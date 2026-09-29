@@ -1,0 +1,55 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Figma "Input" field: 48 high, radius 8, strong border on the base background. */
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font: 400 14px/normal var(--font-sans);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--accent-default);
+}
+
+.errors,
+.hints {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.errors {
+  color: var(--accent-default);
+}
+
+.hints {
+  color: var(--text-secondary);
+}

@@ -32,7 +32,7 @@ export default function HomePage() {
   }, [navigate])
 
   return (
-    <main>
+    <div>
       <h1>Inicio</h1>
       {error ? <p role="alert">{error}</p> : null}
       {user ? (
@@ -41,6 +41,6 @@ export default function HomePage() {
           <p>{user.email}</p>
         </section>
       ) : null}
-    </main>
+    </div>
   )
 }

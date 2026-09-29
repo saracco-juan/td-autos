@@ -23,10 +23,17 @@ describe('app routes', () => {
     expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
   })
 
-  it('renders the register placeholder at /registro', () => {
+  it('renders the register screen at /registro', () => {
     renderAt('/registro')
 
-    expect(screen.getByRole('heading', { name: 'Registro' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toBeInTheDocument()
+  })
+
+  it.each(['/', '/registro'])('wraps %s in the shared shell (nav and footer)', (path) => {
+    renderAt(path)
+
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2026 TD Autos. Todos los derechos reservados.')
   })
 
   it('redirects unknown paths to /', () => {

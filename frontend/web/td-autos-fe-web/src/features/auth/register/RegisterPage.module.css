@@ -1,0 +1,76 @@
+/* Figma "Card/Auth · Registro" */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 560px;
+  padding: 40px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.wordmark {
+  color: var(--palette-charcoal);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.subtitle {
+  max-width: 450px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block: -8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-default);
+}
+
+.login {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.login a {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.login a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 24px 20px;
+    gap: 24px;
+  }
+}

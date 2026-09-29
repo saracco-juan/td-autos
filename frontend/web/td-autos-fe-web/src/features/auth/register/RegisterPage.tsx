@@ -1,18 +1,20 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { HttpError } from '../../../lib/http'
 import { GOOGLE_REDIRECT_URL, registerUser } from '../api'
 import { googleErrorMessage } from '../googleErrors'
 import type { FieldErrors } from '../types'
+import alertStyles from '../../../components/alert.module.css'
+import buttonStyles from '../../../components/button.module.css'
 import RegisterForm from './RegisterForm'
+import styles from './RegisterPage.module.css'
 import { validateRegisterForm, type RegisterFormValues } from './validateRegisterForm'
 
-const GENERIC_ERROR = 'No se pudo completar el registro. Intente nuevamente.'
-const SERVER_FIELDS = ['name', 'apellido', 'email', 'password'] as const
+const GENERIC_ERROR = 'No se pudo completar el registro. Intentá nuevamente.'
+const SERVER_FIELDS = ['name', 'email', 'password'] as const
 
 const EMPTY_VALUES: RegisterFormValues = {
   name: '',
-  apellido: '',
   email: '',
   password: '',
   passwordConfirmation: '',
@@ -54,7 +56,7 @@ export default function RegisterPage() {
     try {
       await registerUser({
         name: values.name.trim(),
-        apellido: values.apellido.trim() || null,
+        apellido: null,
         email: values.email.trim(),
         password: values.password,
         password_confirmation: values.passwordConfirmation,
@@ -76,9 +78,21 @@ export default function RegisterPage() {
   }
 
   return (
-    <main>
-      <h1>Registro</h1>
-      {googleError ? <p role="alert">{googleError}</p> : null}
+    <section className={styles.card} aria-labelledby="register-title">
+      <p className={styles.wordmark}>TD AUTOS</p>
+      <div className={styles.heading}>
+        <h1 id="register-title" className={styles.title}>
+          Registrá tu cuenta
+        </h1>
+        <p className={styles.subtitle}>
+          Creá tu cuenta para guardar favoritos, comparaciones y tu proceso de compra.
+        </p>
+      </div>
+      {googleError ? (
+        <p role="alert" className={alertStyles.alert}>
+          {googleError}
+        </p>
+      ) : null}
       <RegisterForm
         values={values}
         errors={errors}
@@ -87,7 +101,15 @@ export default function RegisterPage() {
         onChange={handleChange}
         onSubmit={handleSubmit}
       />
-      <a href={GOOGLE_REDIRECT_URL}>Registrarse con Google</a>
-    </main>
+      <div className={styles.divider}>
+        <span>o</span>
+      </div>
+      <a href={GOOGLE_REDIRECT_URL} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+        CONTINUAR CON GOOGLE
+      </a>
+      <p className={styles.login}>
+        ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
+      </p>
+    </section>
   )
 }

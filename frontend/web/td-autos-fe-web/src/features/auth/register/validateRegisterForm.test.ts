@@ -3,25 +3,24 @@ import { validateRegisterForm, type RegisterFormValues } from './validateRegiste
 
 const valid: RegisterFormValues = {
   name: 'Ana',
-  apellido: '',
   email: 'ana@example.com',
   password: 'Abcdef12',
   passwordConfirmation: 'Abcdef12',
 }
 
 describe('validateRegisterForm', () => {
-  it('returns no errors for valid values, apellido being optional', () => {
+  it('returns no errors for valid values', () => {
     expect(validateRegisterForm(valid)).toEqual({})
   })
 
-  it('requires Nombre', () => {
+  it('requires Nombre completo', () => {
     expect(validateRegisterForm({ ...valid, name: '   ' })).toEqual({ name: ['El nombre es obligatorio.'] })
   })
 
   it('requires a valid email', () => {
     expect(validateRegisterForm({ ...valid, email: '' })).toEqual({ email: ['El email es obligatorio.'] })
     expect(validateRegisterForm({ ...valid, email: 'no-es-email' })).toEqual({
-      email: ['Ingrese un email válido.'],
+      email: ['Ingresá un email válido.'],
     })
   })
 

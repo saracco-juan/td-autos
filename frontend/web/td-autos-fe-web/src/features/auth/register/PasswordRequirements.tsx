@@ -1,4 +1,5 @@
 import { PASSWORD_RULES } from '../passwordRules'
+import styles from './RegisterForm.module.css'
 
 type Props = {
   id: string
@@ -12,7 +13,7 @@ export default function PasswordRequirements({ id, password }: Props) {
   if (unmet.length === 0) return null
 
   return (
-    <ul id={id} aria-label="Requisitos de la contraseña">
+    <ul id={id} className={styles.hints} aria-label="Requisitos de la contraseña">
       {unmet.map((rule) => (
         <li key={rule.id}>{rule.message}</li>
       ))}

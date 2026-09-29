@@ -27,7 +27,6 @@ function renderPage(entry = '/registro') {
 
 type Fields = Partial<{
   name: string
-  apellido: string
   email: string
   password: string
   confirmation: string
@@ -36,8 +35,7 @@ type Fields = Partial<{
 type User = ReturnType<typeof userEvent.setup>
 
 async function fillForm(user: User, fields: Fields) {
-  if (fields.name) await user.type(screen.getByLabelText('Nombre'), fields.name)
-  if (fields.apellido) await user.type(screen.getByLabelText('Apellido'), fields.apellido)
+  if (fields.name) await user.type(screen.getByLabelText('Nombre completo'), fields.name)
   if (fields.email) await user.type(screen.getByLabelText('Email'), fields.email)
   if (fields.password) await user.type(screen.getByLabelText('Contraseña'), fields.password)
   if (fields.confirmation) await user.type(screen.getByLabelText('Confirmar contraseña'), fields.confirmation)
@@ -50,12 +48,25 @@ const validFields: Fields = {
   confirmation: 'Abcdef12',
 }
 
-const submit = (user: User) => user.click(screen.getByRole('button', { name: 'Registrarse' }))
+const submit = (user: User) => user.click(screen.getByRole('button', { name: 'CREAR CUENTA' }))
 
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.mocked(registerUser).mockReset()
     vi.mocked(registerUser).mockResolvedValue(createdUser)
+  })
+
+  describe('layout', () => {
+    it('renders the Figma copy: title, subtitle and login link', () => {
+      renderPage()
+
+      expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toBeInTheDocument()
+      expect(
+        screen.getByText('Creá tu cuenta para guardar favoritos, comparaciones y tu proceso de compra.'),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login')
+      expect(screen.queryByLabelText('Apellido')).not.toBeInTheDocument()
+    })
   })
 
   describe('submission', () => {
@@ -77,16 +88,16 @@ describe('RegisterPage', () => {
       })
     })
 
-    it('trims the email and sends a provided apellido', async () => {
+    it('trims the email and never sends an apellido', async () => {
       const user = userEvent.setup()
       renderPage()
 
-      await fillForm(user, { ...validFields, email: '  ana@example.com ', apellido: 'Pérez' })
+      await fillForm(user, { ...validFields, email: '  ana@example.com ' })
       await submit(user)
 
       expect(await screen.findByText('Pantalla principal')).toBeInTheDocument()
       expect(registerUser).toHaveBeenCalledWith(
-        expect.objectContaining({ email: 'ana@example.com', apellido: 'Pérez' }),
+        expect.objectContaining({ email: 'ana@example.com', apellido: null }),
       )
     })
 
@@ -143,15 +154,15 @@ describe('RegisterPage', () => {
       expect(registerUser).not.toHaveBeenCalled()
     })
 
-    it('FE-3: blocks submit without Nombre and flags an invalid email', async () => {
+    it('FE-3: blocks submit without Nombre completo and flags an invalid email', async () => {
       const user = userEvent.setup()
       renderPage()
 
       await fillForm(user, { ...validFields, name: '', email: 'no-es-email' })
       await submit(user)
 
-      expect(screen.getByLabelText('Nombre')).toHaveAccessibleDescription('El nombre es obligatorio.')
-      expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Ingrese un email válido.')
+      expect(screen.getByLabelText('Nombre completo')).toHaveAccessibleDescription('El nombre es obligatorio.')
+      expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Ingresá un email válido.')
       expect(registerUser).not.toHaveBeenCalled()
     })
   })
@@ -198,9 +209,9 @@ describe('RegisterPage', () => {
       await submit(user)
 
       expect(await screen.findByRole('alert')).toHaveTextContent(
-        'No se pudo completar el registro. Intente nuevamente.',
+        'No se pudo completar el registro. Intentá nuevamente.',
       )
-      expect(screen.getByRole('button', { name: 'Registrarse' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'CREAR CUENTA' })).toBeEnabled()
 
       await submit(user)
       expect(await screen.findByText('Pantalla principal')).toBeInTheDocument()
@@ -212,7 +223,7 @@ describe('RegisterPage', () => {
     it('TC-02: the Google link points to the backend redirect route', () => {
       renderPage()
 
-      expect(screen.getByRole('link', { name: 'Registrarse con Google' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'CONTINUAR CON GOOGLE' })).toHaveAttribute(
         'href',
         `${API_URL}/auth/google/redirect`,
       )
@@ -220,12 +231,18 @@ describe('RegisterPage', () => {
 
     it.each([
       ['google_cancelled', 'Se canceló el registro con Google.'],
-      ['google_failed', 'No se pudo completar el registro con Google. Intente nuevamente.'],
+      ['google_failed', 'No se pudo completar el registro con Google. Intentá nuevamente.'],
       ['email_in_use', 'El email ya está en uso.'],
     ])('FE-4: shows the banner for ?error=%s', (code, message) => {
       renderPage(`/registro?error=${code}`)
 
       expect(screen.getByRole('alert')).toHaveTextContent(message)
+    })
+
+    it('renders the Google link as a secondary action separated by an "o" divider', () => {
+      renderPage()
+
+      expect(screen.getByText('o')).toBeInTheDocument()
     })
 
     it('ignores unknown error codes', () => {

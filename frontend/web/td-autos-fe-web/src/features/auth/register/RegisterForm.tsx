@@ -1,6 +1,9 @@
 import type { FormEvent, ReactNode } from 'react'
 import type { FieldErrors, FieldName } from '../types'
+import alertStyles from '../../../components/alert.module.css'
+import buttonStyles from '../../../components/button.module.css'
 import PasswordRequirements from './PasswordRequirements'
+import styles from './RegisterForm.module.css'
 import type { RegisterFormValues } from './validateRegisterForm'
 
 type Props = {
@@ -30,11 +33,14 @@ function Field({ field, label, type = 'text', autoComplete, values, errors, onCh
   const describedBy = fieldErrors ? errorId : hint ? `${id}-hint` : undefined
 
   return (
-    <div>
-      <label htmlFor={id}>{label}</label>
+    <div className={styles.field}>
+      <label htmlFor={id} className={styles.label}>
+        {label}
+      </label>
       <input
         id={id}
         name={field}
+        className={styles.input}
         type={type}
         autoComplete={autoComplete}
         value={values[field]}
@@ -43,7 +49,7 @@ function Field({ field, label, type = 'text', autoComplete, values, errors, onCh
         onChange={(event) => onChange(field, event.target.value)}
       />
       {fieldErrors ? (
-        <ul id={errorId}>
+        <ul id={errorId} className={styles.errors}>
           {fieldErrors.map((message) => (
             <li key={message}>{message}</li>
           ))}
@@ -63,28 +69,33 @@ export default function RegisterForm({ values, errors, submitting, formError, on
   const shared = { values, errors, onChange }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      {formError ? <p role="alert">{formError}</p> : null}
-      <Field {...shared} field="name" label="Nombre" autoComplete="given-name" />
-      <Field {...shared} field="apellido" label="Apellido" autoComplete="family-name" />
-      <Field {...shared} field="email" label="Email" type="email" autoComplete="email" />
-      <Field
-        {...shared}
-        field="password"
-        label="Contraseña"
-        type="password"
-        autoComplete="new-password"
-        hint={<PasswordRequirements id="register-password-hint" password={values.password} />}
-      />
-      <Field
-        {...shared}
-        field="passwordConfirmation"
-        label="Confirmar contraseña"
-        type="password"
-        autoComplete="new-password"
-      />
-      <button type="submit" disabled={submitting}>
-        Registrarse
+    <form onSubmit={handleSubmit} noValidate className={styles.form}>
+      {formError ? (
+        <p role="alert" className={alertStyles.alert}>
+          {formError}
+        </p>
+      ) : null}
+      <div className={styles.fields}>
+        <Field {...shared} field="name" label="Nombre completo" autoComplete="name" />
+        <Field {...shared} field="email" label="Email" type="email" autoComplete="email" />
+        <Field
+          {...shared}
+          field="password"
+          label="Contraseña"
+          type="password"
+          autoComplete="new-password"
+          hint={<PasswordRequirements id="register-password-hint" password={values.password} />}
+        />
+        <Field
+          {...shared}
+          field="passwordConfirmation"
+          label="Confirmar contraseña"
+          type="password"
+          autoComplete="new-password"
+        />
+      </div>
+      <button type="submit" disabled={submitting} className={`${buttonStyles.button} ${buttonStyles.primary}`}>
+        CREAR CUENTA
       </button>
     </form>
   )

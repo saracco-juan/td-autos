@@ -1,0 +1,7 @@
+.alert {
+  padding: 10px 12px;
+  border: 1px solid var(--accent-default);
+  border-radius: 8px;
+  color: var(--accent-default);
+  font-size: 13px;
+}

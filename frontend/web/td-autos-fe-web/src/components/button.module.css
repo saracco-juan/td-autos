@@ -1,0 +1,30 @@
+/* Figma "Button" component: height 40, radius 10, bold 11px uppercase label. */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 40px;
+  padding: 0 24px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  font: 700 11px/normal var(--font-sans);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primary {
+  background: var(--action-primary);
+  color: var(--text-on-action);
+  box-shadow: 0 6px 10px rgba(26, 20, 15, 0.14);
+}
+
+.secondary {
+  background: var(--surface-default);
+  color: var(--text-primary);
+}

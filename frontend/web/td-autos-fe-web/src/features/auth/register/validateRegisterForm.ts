@@ -3,7 +3,6 @@ import { PASSWORD_RULES } from '../passwordRules'
 
 export type RegisterFormValues = {
   name: string
-  apellido: string
   email: string
   password: string
   passwordConfirmation: string
@@ -19,7 +18,7 @@ export function validateRegisterForm(values: RegisterFormValues): FieldErrors {
 
   const email = values.email.trim()
   if (email === '') errors.email = ['El email es obligatorio.']
-  else if (!EMAIL_PATTERN.test(email)) errors.email = ['Ingrese un email válido.']
+  else if (!EMAIL_PATTERN.test(email)) errors.email = ['Ingresá un email válido.']
 
   const passwordErrors = PASSWORD_RULES.filter((rule) => !rule.test(values.password)).map(
     (rule) => rule.message,
