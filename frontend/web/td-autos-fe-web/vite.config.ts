@@ -8,4 +8,6 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  // Backend CORS and Sanctum stateful domains expect exactly localhost:5173.
+  server: { host: 'localhost', port: 5173, strictPort: true },
 })
