@@ -14,8 +14,20 @@ class ConfigTest extends TestCase
 
     public function test_sanctum_treats_the_vite_dev_server_as_stateful(): void
     {
-        $this->assertContains('localhost:5173', config('sanctum.stateful'));
-        $this->assertContains('127.0.0.1:5173', config('sanctum.stateful'));
+        $repository = Env::getRepository();
+        $previous = $repository->get('SANCTUM_STATEFUL_DOMAINS');
+        $repository->clear('SANCTUM_STATEFUL_DOMAINS');
+
+        try {
+            $stateful = (require config_path('sanctum.php'))['stateful'];
+        } finally {
+            if ($previous !== null) {
+                $repository->set('SANCTUM_STATEFUL_DOMAINS', $previous);
+            }
+        }
+
+        $this->assertContains('localhost:5173', $stateful);
+        $this->assertContains('127.0.0.1:5173', $stateful);
     }
 
     public function test_cors_allows_the_vite_dev_server_origin(): void
