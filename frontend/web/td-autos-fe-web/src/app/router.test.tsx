@@ -1,7 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { routes } from './router'
+
+// HomePage fetches the current user: keep the router tests off the network.
+vi.mock('../features/auth/api', () => ({
+  fetchCurrentUser: vi.fn(() => new Promise(() => {})),
+  registerUser: vi.fn(),
+  GOOGLE_REDIRECT_URL: 'http://localhost:8000/auth/google/redirect',
+}))
 
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })

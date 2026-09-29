@@ -7,4 +7,7 @@ export const GOOGLE_REDIRECT_URL = `${API_URL}/auth/google/redirect`
 export function registerUser(payload: RegisterPayload): Promise<User> {
   return apiFetch<User>('/register', { method: 'POST', body: payload })
 }
-
+
+export function fetchCurrentUser(): Promise<User> {
+  return apiFetch<User>('/api/user')
+}

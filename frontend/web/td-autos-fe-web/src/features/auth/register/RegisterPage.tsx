@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { HttpError } from '../../../lib/http'
-import { registerUser } from '../api'
+import { GOOGLE_REDIRECT_URL, registerUser } from '../api'
+import { googleErrorMessage } from '../googleErrors'
 import type { FieldErrors } from '../types'
 import RegisterForm from './RegisterForm'
 import { validateRegisterForm, type RegisterFormValues } from './validateRegisterForm'
@@ -30,10 +31,13 @@ function fieldErrorsFromServer(body: ValidationBody | undefined): FieldErrors {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [values, setValues] = useState(EMPTY_VALUES)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [formError, setFormError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
+
+  const googleError = googleErrorMessage(searchParams.get('error'))
 
   const handleChange = (field: keyof RegisterFormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }))
@@ -74,6 +78,7 @@ export default function RegisterPage() {
   return (
     <main>
       <h1>Registro</h1>
+      {googleError ? <p role="alert">{googleError}</p> : null}
       <RegisterForm
         values={values}
         errors={errors}
@@ -82,6 +87,7 @@ export default function RegisterPage() {
         onChange={handleChange}
         onSubmit={handleSubmit}
       />
+      <a href={GOOGLE_REDIRECT_URL}>Registrarse con Google</a>
     </main>
   )
 }

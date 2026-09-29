@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { API_URL } from '../../../lib/config'
 import { HttpError } from '../../../lib/http'
 import { registerUser } from '../api'
 import RegisterPage from './RegisterPage'
@@ -204,6 +205,33 @@ describe('RegisterPage', () => {
       await submit(user)
       expect(await screen.findByText('Pantalla principal')).toBeInTheDocument()
       expect(registerUser).toHaveBeenCalledTimes(2)
+    })
+  })
+
+  describe('Google', () => {
+    it('TC-02: the Google link points to the backend redirect route', () => {
+      renderPage()
+
+      expect(screen.getByRole('link', { name: 'Registrarse con Google' })).toHaveAttribute(
+        'href',
+        `${API_URL}/auth/google/redirect`,
+      )
+    })
+
+    it.each([
+      ['google_cancelled', 'Se canceló el registro con Google.'],
+      ['google_failed', 'No se pudo completar el registro con Google. Intente nuevamente.'],
+      ['email_in_use', 'El email ya está en uso.'],
+    ])('FE-4: shows the banner for ?error=%s', (code, message) => {
+      renderPage(`/registro?error=${code}`)
+
+      expect(screen.getByRole('alert')).toHaveTextContent(message)
+    })
+
+    it('ignores unknown error codes', () => {
+      renderPage('/registro?error=something_else')
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
   })
 })
