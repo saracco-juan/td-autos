@@ -77,6 +77,26 @@ class GoogleRegistrationTest extends TestCase
         $this->assertSame(1, User::count());
     }
 
+    public function test_preregistered_unverified_account_cannot_login_with_old_password_after_linking(): void
+    {
+        $user = User::factory()->unverified()->create([
+            'email' => 'g@x.com',
+            'auth_subject' => null,
+            'password' => 'attacker-pass-123',
+        ]);
+        $this->mockProvider()->shouldReceive('user')->once()->andReturn($this->googleUser());
+
+        $this->get(route('auth.google.callback'))->assertRedirect(self::FRONTEND.'/');
+        $this->assertNull($user->fresh()->password);
+        $this->assertNotNull($user->fresh()->email_verified_at);
+
+        // The attacker is a different client: no session from the Google callback.
+        $this->flushSession();
+        $this->app['auth']->forgetGuards();
+        $this->postJson('/login', ['email' => 'g@x.com', 'password' => 'attacker-pass-123'])
+            ->assertStatus(422);
+    }
+
     public function test_unverified_google_email_collision_is_rejected(): void
     {
         $user = User::factory()->create(['email' => 'g@x.com', 'auth_subject' => null]);

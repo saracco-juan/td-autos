@@ -64,12 +64,25 @@ class GoogleAccountResolver
         $user->forceFill(['auth_subject' => $profile->subject()]);
 
         if ($user->email_verified_at === null) {
+            // The email was never proven by whoever registered it: drop every credential they could hold.
+            $user->password = null;
+            $user->remember_token = Str::random(60);
             $user->email_verified_at = now();
+            $user->tokens()->delete();
+            $this->purgeDatabaseSessions($user);
         }
 
         $user->save();
 
         return $user;
+    }
+
+    /** Only the database session driver can be enumerated per user; other drivers are not covered. */
+    private function purgeDatabaseSessions(User $user): void
+    {
+        if (config('session.driver') === 'database') {
+            DB::table(config('session.table', 'sessions'))->where('user_id', $user->getKey())->delete();
+        }
     }
 
     private function create(GoogleProfile $profile): User

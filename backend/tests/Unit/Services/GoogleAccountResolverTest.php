@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use InvalidArgumentException;
 use Laravel\Socialite\Two\User as SocialiteUser;
@@ -103,6 +104,51 @@ class GoogleAccountResolverTest extends TestCase
         $this->assertSame(1, User::count());
         $this->assertSame('google:S1', $user->fresh()->auth_subject);
         $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_linking_unverified_local_account_rekeys_credentials(): void
+    {
+        config(['session.driver' => 'database']);
+        $user = User::factory()->unverified()->create([
+            'email' => 'g@x.com',
+            'auth_subject' => null,
+            'password' => 'attacker-pass-123',
+            'remember_token' => 'old-remember',
+        ]);
+        $user->createToken('attacker');
+        DB::table('sessions')->insert([
+            ['id' => 'sess-a', 'user_id' => $user->id, 'payload' => '', 'last_activity' => time()],
+            ['id' => 'sess-b', 'user_id' => 999, 'payload' => '', 'last_activity' => time()],
+        ]);
+
+        app(GoogleAccountResolver::class)->resolve($this->profile());
+
+        $fresh = $user->fresh();
+        $this->assertNull($fresh->password);
+        $this->assertNotNull($fresh->email_verified_at);
+        $this->assertSame('google:S1', $fresh->auth_subject);
+        $this->assertNotSame('old-remember', $fresh->remember_token);
+        $this->assertSame(0, $user->tokens()->count());
+        $this->assertDatabaseMissing('sessions', ['id' => 'sess-a']);
+        $this->assertDatabaseHas('sessions', ['id' => 'sess-b']);
+    }
+
+    public function test_linking_verified_local_account_keeps_password(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'g@x.com',
+            'auth_subject' => null,
+            'password' => 'my-real-pass-123',
+        ]);
+        $user->createToken('mine');
+        $hash = $user->password;
+
+        app(GoogleAccountResolver::class)->resolve($this->profile());
+
+        $fresh = $user->fresh();
+        $this->assertSame($hash, $fresh->password);
+        $this->assertSame('google:S1', $fresh->auth_subject);
+        $this->assertSame(1, $user->tokens()->count());
     }
 
     public function test_unverified_google_email_with_existing_user_is_rejected(): void
