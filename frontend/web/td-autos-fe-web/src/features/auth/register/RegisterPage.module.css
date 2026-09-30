@@ -12,11 +12,17 @@
   box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
 }
 
+/* Figma "Logo Header" (Wireframes Medium Web 2141:779): boxed wordmark. */
 .wordmark {
+  align-self: flex-start;
+  padding: 6px 10px;
+  border: 2px solid var(--palette-charcoal);
   color: var(--palette-charcoal);
-  font-size: 32px;
-  line-height: 1.1;
-  font-weight: 700;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  text-transform: uppercase;
 }
 
 .heading {

@@ -6,6 +6,7 @@ import { googleErrorMessage } from '../googleErrors'
 import type { FieldErrors } from '../types'
 import alertStyles from '../../../components/alert.module.css'
 import buttonStyles from '../../../components/button.module.css'
+import GoogleIcon from '../../../components/GoogleIcon'
 import RegisterForm from './RegisterForm'
 import styles from './RegisterPage.module.css'
 import { validateRegisterForm, type RegisterFormValues } from './validateRegisterForm'
@@ -84,9 +85,7 @@ export default function RegisterPage() {
         <h1 id="register-title" className={styles.title}>
           Registrá tu cuenta
         </h1>
-        <p className={styles.subtitle}>
-          Creá tu cuenta para guardar favoritos, comparaciones y tu proceso de compra.
-        </p>
+        <p className={styles.subtitle}>Por favor, introducí tus datos para registrarte.</p>
       </div>
       {googleError ? (
         <p role="alert" className={alertStyles.alert}>
@@ -105,6 +104,7 @@ export default function RegisterPage() {
         <span>o</span>
       </div>
       <a href={GOOGLE_REDIRECT_URL} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+        <GoogleIcon />
         CONTINUAR CON GOOGLE
       </a>
       <p className={styles.login}>

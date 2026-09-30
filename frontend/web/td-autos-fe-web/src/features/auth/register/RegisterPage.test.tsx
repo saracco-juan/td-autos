@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -57,15 +57,36 @@ describe('RegisterPage', () => {
   })
 
   describe('layout', () => {
-    it('renders the Figma copy: title, subtitle and login link', () => {
+    it('renders the Figma copy: wordmark, title, subtitle and login link', () => {
       renderPage()
 
+      expect(screen.getByText('TD AUTOS')).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toBeInTheDocument()
-      expect(
-        screen.getByText('Creá tu cuenta para guardar favoritos, comparaciones y tu proceso de compra.'),
-      ).toBeInTheDocument()
+      expect(screen.getByText('Por favor, introducí tus datos para registrarte.')).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login')
       expect(screen.queryByLabelText('Apellido')).not.toBeInTheDocument()
+    })
+
+    it('sets browser autocomplete hints on every field', () => {
+      renderPage()
+
+      expect(screen.getByLabelText('Nombre completo')).toHaveAttribute('autocomplete', 'name')
+      expect(screen.getByLabelText('Email')).toHaveAttribute('autocomplete', 'email')
+      expect(screen.getByLabelText('Contraseña')).toHaveAttribute('autocomplete', 'new-password')
+      expect(screen.getByLabelText('Confirmar contraseña')).toHaveAttribute('autocomplete', 'new-password')
+    })
+
+    it.each(['Contraseña', 'Confirmar contraseña'])('toggles the visibility of %s', async (label) => {
+      const user = userEvent.setup()
+      renderPage()
+      const input = screen.getByLabelText(label)
+      const field = input.closest('div')!.parentElement!
+
+      expect(input).toHaveAttribute('type', 'password')
+      await user.click(within(field).getByRole('button', { name: 'Mostrar contraseña' }))
+      expect(input).toHaveAttribute('type', 'text')
+      await user.click(within(field).getByRole('button', { name: 'Ocultar contraseña' }))
+      expect(input).toHaveAttribute('type', 'password')
     })
   })
 
@@ -128,17 +149,27 @@ describe('RegisterPage', () => {
       expect(registerUser).not.toHaveBeenCalled()
     })
 
-    it('FE-1: updates the requirement list live as the user types', async () => {
+    it('FE-1: checks off each requirement live as the user types', async () => {
       const user = userEvent.setup()
       renderPage()
       const password = screen.getByLabelText('Contraseña')
+      const checklist = screen.getByRole('list', { name: 'Requisitos de la contraseña' })
+      const metState = () =>
+        within(checklist)
+          .getAllByRole('listitem')
+          .map((item) => item.getAttribute('data-met'))
+
+      for (const label of ['Al menos 8 caracteres', 'Una letra mayúscula', 'Una letra minúscula', 'Un número']) {
+        expect(within(checklist).getByText(label)).toBeInTheDocument()
+      }
+      expect(metState()).toEqual(['false', 'false', 'false', 'false'])
 
       await user.type(password, 'abc')
-      expect(screen.getByText('La contraseña debe incluir al menos una letra mayúscula.')).toBeInTheDocument()
+      expect(metState()).toEqual(['false', 'false', 'true', 'false'])
 
       await user.clear(password)
       await user.type(password, 'Abcdef12')
-      expect(screen.queryByText(/La contraseña debe/)).not.toBeInTheDocument()
+      expect(metState()).toEqual(['true', 'true', 'true', 'true'])
     })
 
     it('FE-2: blocks submit when the confirmation does not match', async () => {
@@ -164,6 +195,22 @@ describe('RegisterPage', () => {
       expect(screen.getByLabelText('Nombre completo')).toHaveAccessibleDescription('El nombre es obligatorio.')
       expect(screen.getByLabelText('Email')).toHaveAccessibleDescription('Ingresá un email válido.')
       expect(registerUser).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('pending state', () => {
+    it('disables the button and shows CREANDO CUENTA… while the request is in flight', async () => {
+      let resolve!: (value: typeof createdUser) => void
+      vi.mocked(registerUser).mockReturnValue(new Promise((r) => (resolve = r)))
+      const user = userEvent.setup()
+      renderPage()
+
+      await fillForm(user, validFields)
+      await submit(user)
+
+      expect(screen.getByRole('button', { name: 'CREANDO CUENTA…' })).toBeDisabled()
+      resolve(createdUser)
+      expect(await screen.findByText('Pantalla principal')).toBeInTheDocument()
     })
   })
 

@@ -45,7 +45,7 @@
 }
 
 .errors,
-.hints {
+.requirements {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -56,6 +56,81 @@
   color: var(--accent-default);
 }
 
-.hints {
+.requirements {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+  margin-top: 4px;
   color: var(--text-secondary);
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 150ms ease;
+}
+
+.requirementIcon {
+  flex-shrink: 0;
+  color: var(--border-default);
+  transition: color 150ms ease;
+}
+
+.requirement[data-met='true'] {
+  color: var(--status-success);
+}
+
+.requirement[data-met='true'] .requirementIcon {
+  color: var(--status-success);
+}
+
+.passwordWrapper {
+  position: relative;
+}
+
+.passwordInput {
+  padding-right: 44px;
+}
+
+.visibilityToggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.visibilityToggle:hover {
+  color: var(--text-primary);
+}
+
+.visibilityToggle:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -4px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 400px) {
+  .requirements {
+    grid-template-columns: 1fr;
+  }
 }

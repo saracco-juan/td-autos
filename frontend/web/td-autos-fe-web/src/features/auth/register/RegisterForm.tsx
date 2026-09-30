@@ -1,7 +1,8 @@
-import type { FormEvent, ReactNode } from 'react'
+import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import type { FieldErrors, FieldName } from '../types'
 import alertStyles from '../../../components/alert.module.css'
 import buttonStyles from '../../../components/button.module.css'
+import PasswordInput from './PasswordInput'
 import PasswordRequirements from './PasswordRequirements'
 import styles from './RegisterForm.module.css'
 import type { RegisterFormValues } from './validateRegisterForm'
@@ -18,7 +19,7 @@ type Props = {
 type FieldProps = {
   field: FieldName
   label: string
-  type?: string
+  type?: 'text' | 'email' | 'password'
   autoComplete: string
   values: RegisterFormValues
   errors: FieldErrors
@@ -31,23 +32,25 @@ function Field({ field, label, type = 'text', autoComplete, values, errors, onCh
   const fieldErrors = errors[field]
   const errorId = `${id}-error`
   const describedBy = fieldErrors ? errorId : hint ? `${id}-hint` : undefined
+  const Input = type === 'password' ? PasswordInput : 'input'
+  const inputProps = {
+    id,
+    name: field,
+    className: styles.input,
+    autoComplete,
+    value: values[field],
+    'aria-invalid': fieldErrors ? true : undefined,
+    'aria-describedby': describedBy,
+    onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(field, event.target.value),
+    ...(type === 'password' ? {} : { type }),
+  }
 
   return (
     <div className={styles.field}>
       <label htmlFor={id} className={styles.label}>
         {label}
       </label>
-      <input
-        id={id}
-        name={field}
-        className={styles.input}
-        type={type}
-        autoComplete={autoComplete}
-        value={values[field]}
-        aria-invalid={fieldErrors ? true : undefined}
-        aria-describedby={describedBy}
-        onChange={(event) => onChange(field, event.target.value)}
-      />
+      <Input {...inputProps} />
       {fieldErrors ? (
         <ul id={errorId} className={styles.errors}>
           {fieldErrors.map((message) => (
@@ -94,8 +97,13 @@ export default function RegisterForm({ values, errors, submitting, formError, on
           autoComplete="new-password"
         />
       </div>
-      <button type="submit" disabled={submitting} className={`${buttonStyles.button} ${buttonStyles.primary}`}>
-        CREAR CUENTA
+      <button
+        type="submit"
+        disabled={submitting}
+        aria-busy={submitting}
+        className={`${buttonStyles.button} ${buttonStyles.primary}`}
+      >
+        {submitting ? 'CREANDO CUENTA…' : 'CREAR CUENTA'}
       </button>
     </form>
   )
