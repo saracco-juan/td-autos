@@ -81,12 +81,9 @@ export default function RegisterPage() {
   return (
     <section className={styles.card} aria-labelledby="register-title">
       <div className={styles.heading}>
-        <div className={styles.titleRow}>
-          <h1 id="register-title" className={styles.title}>
-            Registrá tu cuenta
-          </h1>
-          <p className={styles.wordmark}>TD AUTOS</p>
-        </div>
+        <h1 id="register-title" className={styles.title}>
+          Registrá tu cuenta en TD AUTOS
+        </h1>
         <p className={styles.subtitle}>Por favor, introducí tus datos para registrarte.</p>
       </div>
       {googleError ? (

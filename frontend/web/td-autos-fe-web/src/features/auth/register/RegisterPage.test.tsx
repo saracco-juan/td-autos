@@ -57,11 +57,10 @@ describe('RegisterPage', () => {
   })
 
   describe('layout', () => {
-    it('renders the Figma copy: wordmark, title, subtitle and login link', () => {
+    it('renders the branded title, subtitle and login link', () => {
       renderPage()
 
-      expect(screen.getByText('TD AUTOS')).toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Registrá tu cuenta en TD AUTOS' })).toBeInTheDocument()
       expect(screen.getByText('Por favor, introducí tus datos para registrarte.')).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login')
       expect(screen.queryByLabelText('Apellido')).not.toBeInTheDocument()

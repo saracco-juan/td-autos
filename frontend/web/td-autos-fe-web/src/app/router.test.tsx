@@ -26,7 +26,7 @@ describe('app routes', () => {
   it('renders the register screen at /registro', () => {
     renderAt('/registro')
 
-    expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Registrá tu cuenta en TD AUTOS' })).toBeInTheDocument()
   })
 
   it('wraps / in the shared shell (nav and footer)', () => {

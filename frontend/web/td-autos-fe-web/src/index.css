@@ -13,7 +13,7 @@
   --accent-default: var(--palette-red);
   --border-default: #e4dcd7;
   --border-strong: #111111;
-  --border-input: #dedede;
+  --border-input: #c8c8c8;
   /* Not in Figma yet: success state for the live password checklist. */
   --status-success: #1e7f45;
 

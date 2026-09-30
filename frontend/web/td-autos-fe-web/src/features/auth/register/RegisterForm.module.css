@@ -7,13 +7,13 @@
 .fields {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .label {
@@ -72,7 +72,7 @@
 
 .requirementIcon {
   flex-shrink: 0;
-  color: var(--border-default);
+  color: var(--text-secondary);
   transition: color 150ms ease;
 }
 

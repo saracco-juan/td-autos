@@ -12,38 +12,18 @@
   box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
 }
 
-/* Title on the left, boxed wordmark (Figma 2141:779) on the right. */
-.titleRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px 16px;
-}
-
-.wordmark {
-  flex-shrink: 0;
-  padding: 6px 10px;
-  border: 2px solid var(--palette-charcoal);
-  border-radius: 8px;
-  color: var(--palette-charcoal);
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 900;
-  letter-spacing: -1px;
-  text-transform: uppercase;
-}
-
 .heading {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .title {
   color: var(--text-primary);
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
@@ -55,10 +35,13 @@
 .divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-block: -8px;
+  gap: 16px;
+  margin-block: 4px;
   color: var(--text-secondary);
   font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .divider::before,
@@ -71,17 +54,20 @@
 
 .login {
   text-align: center;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 500;
 }
 
 .login a {
   color: var(--text-primary);
-  text-decoration: none;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .login a:hover {
-  text-decoration: underline;
+  color: var(--accent-default);
 }
 
 @media (max-width: 600px) {
