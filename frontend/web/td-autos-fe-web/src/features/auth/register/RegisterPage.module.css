@@ -78,13 +78,6 @@
 .login a {
   color: var(--text-primary);
   text-decoration: none;
-  border-radius: 4px;
-}
-
-.login a:focus-visible {
-  outline: none;
-  text-decoration: underline;
-  box-shadow: var(--focus-ring);
 }
 
 .login a:hover {

@@ -17,9 +17,6 @@
   /* Not in Figma yet: success state for the live password checklist. */
   --status-success: #1e7f45;
 
-  /* Soft focus halo shared by inputs, buttons and links. */
-  --focus-ring: 0 0 0 3px rgb(17 17 17 / 0.08);
-
   --font-sans: Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
 
   font-family: var(--font-sans);
@@ -47,7 +44,3 @@ p {
   margin: 0;
 }
 
-:focus-visible {
-  outline: 2px solid var(--accent-default);
-  outline-offset: 2px;
-}

@@ -37,7 +37,6 @@
 .input:focus-visible {
   outline: none;
   border-color: var(--text-primary);
-  box-shadow: var(--focus-ring);
 }
 
 .input[aria-invalid='true'] {
@@ -113,12 +112,6 @@
 
 .visibilityToggle:hover {
   color: var(--text-primary);
-}
-
-.visibilityToggle:focus-visible {
-  outline: none;
-  color: var(--text-primary);
-  box-shadow: var(--focus-ring);
 }
 
 .srOnly {
