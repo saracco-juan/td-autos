@@ -34,6 +34,12 @@
   font: 400 14px/normal var(--font-sans);
 }
 
+.input:focus-visible {
+  outline: none;
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgb(17 17 17 / 0.08);
+}
+
 .input[aria-invalid='true'] {
   border-color: var(--accent-default);
 }

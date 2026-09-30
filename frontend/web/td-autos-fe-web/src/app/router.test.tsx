@@ -29,11 +29,21 @@ describe('app routes', () => {
     expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toBeInTheDocument()
   })
 
-  it.each(['/', '/registro'])('wraps %s in the shared shell (nav and footer)', (path) => {
-    renderAt(path)
+  it('wraps / in the shared shell (nav and footer)', () => {
+    renderAt('/')
 
     expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
     expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2026 TD Autos. Todos los derechos reservados.')
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('renders /registro without nav or footer and with a single main landmark', () => {
+    renderAt('/registro')
+
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
   it('redirects unknown paths to /', () => {

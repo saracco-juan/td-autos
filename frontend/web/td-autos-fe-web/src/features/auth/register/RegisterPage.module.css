@@ -14,7 +14,8 @@
 
 .wordmark {
   color: var(--palette-charcoal);
-  font-size: 20px;
+  font-size: 32px;
+  line-height: 1.1;
   font-weight: 700;
 }
 
@@ -26,7 +27,7 @@
 
 .title {
   color: var(--text-primary);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
 }
 
