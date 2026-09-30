@@ -14,6 +14,11 @@
   cursor: pointer;
 }
 
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -23,6 +28,10 @@
   background: var(--action-primary);
   color: var(--text-on-action);
   box-shadow: 0 6px 10px rgba(26, 20, 15, 0.14);
+}
+
+.primary:focus-visible {
+  box-shadow: var(--focus-ring), 0 6px 10px rgba(26, 20, 15, 0.14);
 }
 
 .secondary {

@@ -13,8 +13,12 @@
   --accent-default: var(--palette-red);
   --border-default: #e4dcd7;
   --border-strong: #111111;
+  --border-input: #dedede;
   /* Not in Figma yet: success state for the live password checklist. */
   --status-success: #1e7f45;
+
+  /* Soft focus halo shared by inputs, buttons and links. */
+  --focus-ring: 0 0 0 3px rgb(17 17 17 / 0.08);
 
   --font-sans: Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
 

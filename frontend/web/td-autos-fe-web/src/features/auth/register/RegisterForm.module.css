@@ -28,7 +28,7 @@
   height: 48px;
   padding: 0 12px;
   background: var(--bg-base);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-input);
   border-radius: 8px;
   color: var(--text-primary);
   font: 400 14px/normal var(--font-sans);
@@ -37,7 +37,7 @@
 .input:focus-visible {
   outline: none;
   border-color: var(--text-primary);
-  box-shadow: 0 0 0 3px rgb(17 17 17 / 0.08);
+  box-shadow: var(--focus-ring);
 }
 
 .input[aria-invalid='true'] {
@@ -116,8 +116,9 @@
 }
 
 .visibilityToggle:focus-visible {
-  outline: 2px solid var(--text-primary);
-  outline-offset: -4px;
+  outline: none;
+  color: var(--text-primary);
+  box-shadow: var(--focus-ring);
 }
 
 .srOnly {
