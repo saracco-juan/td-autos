@@ -1,0 +1,46 @@
+/* Design tokens mirror the Figma "Color" variables (TD Autos · Web v2, Light mode). */
+:root {
+  --palette-red: #e02404;
+  --palette-charcoal: #241f1c;
+
+  --bg-base: #faf8f6;
+  --surface-default: #ffffff;
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --text-on-action: #ffffff;
+  --text-on-color: #ffffff;
+  --action-primary: #111111;
+  --accent-default: var(--palette-red);
+  --border-default: #e4dcd7;
+  --border-strong: #111111;
+  --border-input: #c8c8c8;
+  /* Not in Figma yet: success state for the live password checklist. */
+  --status-success: #1e7f45;
+
+  --font-sans: Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-base);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+}
+
+h1,
+p {
+  margin: 0;
+}
+

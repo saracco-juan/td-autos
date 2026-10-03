@@ -233,26 +233,26 @@ class DerSchemaMigrationTest extends TestCase
     public function test_password_registration_keeps_the_existing_api_and_safe_defaults(): void
     {
         $this->artisan('migrate', ['--database' => 'der_test', '--force' => true])->assertSuccessful();
-        $this->post('/register', [
+        $this->postJson('/register', [
             'name' => 'Registered User',
             'email' => 'registered@example.test',
-            'password' => 'valid-password',
-            'password_confirmation' => 'valid-password',
+            'password' => 'Valid-password1',
+            'password_confirmation' => 'Valid-password1',
             'rol' => 'admin',
             'activo' => false,
             'auth_subject' => 'untrusted-subject',
-        ])->assertNoContent();
+        ])->assertCreated();
 
         $user = User::where('email', 'registered@example.test')->firstOrFail();
         $this->assertSame('Registered User', $user->name);
         $this->assertSame('comprador', $user->rol);
         $this->assertTrue($user->activo);
         $this->assertNull($user->auth_subject);
-        $this->assertTrue(Hash::check('valid-password', $user->password));
+        $this->assertTrue(Hash::check('Valid-password1', $user->password));
         $this->post('/logout')->assertNoContent();
         $this->post('/login', [
             'email' => 'registered@example.test',
-            'password' => 'valid-password',
+            'password' => 'Valid-password1',
         ])->assertNoContent();
         $this->assertAuthenticatedAs($user);
     }
