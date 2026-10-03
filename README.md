@@ -9,7 +9,7 @@ El usuario obtiene recomendaciones de vehículos según su perfil; las concesion
 | Carpeta | Qué contiene | Stack |
 |---------|--------------|-------|
 | [`backend/`](backend) | API REST y modelo de datos | PHP 8.2, Laravel 12, Sanctum, Supabase (PostgreSQL) |
-| [`frontend/web/td-autos-fe-web/`](frontend/web/td-autos-fe-web) | Aplicación web (SPA) | React 19, TypeScript, Vite |
+| [`frontend/web/`](frontend/web) | Aplicación web (SPA) | React 19, TypeScript, Vite |
 | `frontend/mobile/` | App móvil | React Native |
 
 ## Inicio rápido
@@ -35,7 +35,7 @@ La base de datos es Supabase (PostgreSQL). Antes de migrar, completar en `.env` 
 ### 2. Frontend web
 
 ```bash
-cd frontend/web/td-autos-fe-web
+cd frontend/web
 npm install
 npm run dev
 ```
@@ -45,7 +45,19 @@ npm run dev
 | Parte | Tests | Lint / formato | Build |
 |-------|-------|----------------|-------|
 | Backend | `php artisan test` | `./vendor/bin/pint` | — |
-| Frontend web | — | `npm run lint` | `npm run build` |
+| Frontend web | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` | `npm run build` |
+
+## Integración continua
+
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada push y pull request hacia `develop` y `main`:
+
+| Job | Qué verifica |
+|-----|--------------|
+| Backend | `./vendor/bin/pint --test` y `php artisan test` con cobertura |
+| Frontend web | `npm run lint`, `npm run test:coverage` y `npm run build` |
+| SonarQube Cloud | Análisis estático y cobertura de ambas partes, configurado en [`sonar-project.properties`](sonar-project.properties) |
+
+El job de SonarQube Cloud necesita el secret `SONAR_TOKEN` en el repositorio de GitHub y no corre en pull requests abiertos desde forks.
 
 ## Convenciones
 

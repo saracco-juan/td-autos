@@ -9,6 +9,13 @@ export default mergeConfig(
       setupFiles: ['./src/test/setup.ts'],
       globals: false,
       css: false,
+      coverage: {
+        provider: 'v8',
+        // lcov feeds SonarQube Cloud; text is for the terminal and CI logs.
+        reporter: ['text', 'lcov'],
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: ['src/**/*.test.{ts,tsx}', 'src/test/**', 'src/**/*.d.ts'],
+      },
     },
   }),
 )
