@@ -10,13 +10,15 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+coverage
 *.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor files (editor directories are ignored in the root .gitignore)
 *.suo
 *.ntvs*
 *.njsproj

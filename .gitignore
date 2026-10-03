@@ -1,1 +1,13 @@
 /.codegraph
+/CLAUDE.md
+/.claude/settings.local.json
+/.atl
+/odd/
+
+.idea
+.vscode
+.fleet
+.nova
+.zed
+.DS_Store
+Thumbs.db
