@@ -1,0 +1,12 @@
+import { Navigate, Outlet } from 'react-router'
+import SessionLoading from './SessionLoading'
+import { useAuth } from './useAuth'
+
+// Layout route: only authenticated users reach the nested routes; guests go to /login.
+export default function ProtectedRoute() {
+  const { status } = useAuth()
+
+  if (status === 'loading') return <SessionLoading />
+  if (status === 'guest') return <Navigate to="/login" replace />
+  return <Outlet />
+}

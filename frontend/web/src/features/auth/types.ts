@@ -14,6 +14,18 @@ export type RegisterPayload = {
   password_confirmation: string
 }
 
+export type LoginCredentials = {
+  email: string
+  password: string
+}
+
+export type ResetPasswordPayload = {
+  token: string
+  email: string
+  password: string
+  passwordConfirmation: string
+}
+
 export type FieldName = 'name' | 'email' | 'password' | 'passwordConfirmation'
 
 export type FieldErrors = Partial<Record<FieldName, string[]>>
