@@ -7,6 +7,7 @@ import type { FieldErrors } from '../types'
 import alertStyles from '../../../components/alert.module.css'
 import buttonStyles from '../../../components/button.module.css'
 import GoogleIcon from '../../../components/GoogleIcon'
+import AuthCard from '../shared/AuthCard'
 import RegisterForm from './RegisterForm'
 import styles from './RegisterPage.module.css'
 import { validateRegisterForm, type RegisterFormValues } from './validateRegisterForm'
@@ -79,16 +80,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <section className={styles.card} aria-labelledby="register-title">
-      <div className={styles.heading}>
-        <div className={styles.titleRow}>
-          <h1 id="register-title" className={styles.title}>
-            Registrá tu cuenta
-          </h1>
-          <p className={styles.wordmark}>TD AUTOS</p>
-        </div>
-        <p className={styles.subtitle}>Por favor, introducí tus datos para registrarte.</p>
-      </div>
+    <AuthCard
+      title="Registrá tu cuenta"
+      titleId="register-title"
+      subtitle="Por favor, introducí tus datos para registrarte."
+    >
       {googleError ? (
         <p role="alert" className={alertStyles.alert}>
           {googleError}
@@ -112,6 +108,6 @@ export default function RegisterPage() {
       <p className={styles.login}>
         ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
       </p>
-    </section>
+    </AuthCard>
   )
 }

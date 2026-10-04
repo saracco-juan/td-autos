@@ -1,5 +1,5 @@
 import { useState, type InputHTMLAttributes } from 'react'
-import styles from './RegisterForm.module.css'
+import styles from './authForm.module.css'
 
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'>
 
