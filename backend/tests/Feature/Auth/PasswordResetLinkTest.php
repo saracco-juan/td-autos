@@ -112,6 +112,20 @@ class PasswordResetLinkTest extends TestCase
         });
     }
 
+    public function test_rendered_email_has_no_english_defaults(): void
+    {
+        $user = User::factory()->create(['name' => 'Juan']);
+        $html = (string) (new ResetPasswordNotification('token-123'))->toMail($user)->render();
+
+        $this->assertStringContainsString(
+            'Si el botón "RESTABLECER CONTRASEÑA" no funciona, copiá y pegá este enlace en tu navegador:',
+            html_entity_decode($html),
+        );
+        $this->assertStringNotContainsString("If you're having trouble", $html);
+        $this->assertStringNotContainsString('If you&#039;re having trouble', $html);
+        $this->assertStringNotContainsString('Regards', $html);
+    }
+
     public function test_email_is_written_in_spanish(): void
     {
         $user = User::factory()->create(['name' => 'Juan']);
