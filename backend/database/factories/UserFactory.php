@@ -34,6 +34,27 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the account has been deactivated.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'activo' => false,
+        ]);
+    }
+
+    /**
+     * Indicate that the account only signs in with Google (no local password).
+     */
+    public function googleOnly(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'password' => null,
+            'auth_subject' => 'google-'.Str::random(21),
+        ]);
+    }
+
+    /**
      * Indicate that the model's email address should be unverified.
      */
     public function unverified(): static
