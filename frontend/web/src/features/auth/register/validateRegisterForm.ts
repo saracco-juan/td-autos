@@ -1,6 +1,6 @@
 import type { FieldErrors } from '../types'
-import { PASSWORD_RULES } from '../passwordRules'
 import { validateEmail } from '../shared/validateEmail'
+import { validateNewPassword } from '../shared/validateNewPassword'
 
 export type RegisterFormValues = {
   name: string
@@ -17,14 +17,5 @@ export function validateRegisterForm(values: RegisterFormValues): FieldErrors {
   const emailErrors = validateEmail(values.email)
   if (emailErrors) errors.email = emailErrors
 
-  const passwordErrors = PASSWORD_RULES.filter((rule) => !rule.test(values.password)).map(
-    (rule) => rule.message,
-  )
-  if (passwordErrors.length > 0) errors.password = passwordErrors
-
-  if (values.password !== values.passwordConfirmation) {
-    errors.passwordConfirmation = ['Las contraseñas no coinciden.']
-  }
-
-  return errors
+  return { ...errors, ...validateNewPassword(values.password, values.passwordConfirmation) }
 }

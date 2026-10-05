@@ -3,7 +3,7 @@ import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { HttpError } from '../lib/http'
-import { fetchCurrentUser, loginUser, logoutUser } from '../features/auth/api'
+import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../features/auth/api'
 import { routes } from './router'
 
 // The session provider reads the current user: keep the router tests off the network.
@@ -108,6 +108,37 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Recuperá tu contraseña' })).not.toBeInTheDocument()
+  })
+
+  it('renders the new password screen at /restablecer/:token for a guest', async () => {
+    asGuest()
+    renderAt('/restablecer/abc?email=a%40b.com')
+
+    expect(await screen.findByRole('heading', { name: 'Definí tu nueva contraseña' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Nueva contraseña')).toBeInTheDocument()
+  })
+
+  it('shows the success notice on the login screen after resetting the password', async () => {
+    asGuest()
+    vi.mocked(resetPassword).mockResolvedValue('Tu contraseña fue actualizada. Ingresá con tu nueva contraseña.')
+    const user = userEvent.setup()
+    const router = renderAt('/restablecer/abc?email=a%40b.com')
+
+    await user.type(await screen.findByLabelText('Nueva contraseña'), 'Abcdef12')
+    await user.type(screen.getByLabelText('Confirmar contraseña'), 'Abcdef12')
+    await user.click(screen.getByRole('button', { name: 'GUARDAR CONTRASEÑA' }))
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(screen.getByRole('status')).toHaveTextContent('Tu contraseña fue actualizada. Ingresá con tu nueva contraseña.')
+  })
+
+  it('redirects an authenticated user from /restablecer/:token to /', async () => {
+    const router = renderAt('/restablecer/abc?email=a%40b.com')
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.queryByRole('heading', { name: 'Definí tu nueva contraseña' })).not.toBeInTheDocument()
   })
 
   it('renders /login without nav or footer and with a single main landmark', async () => {
