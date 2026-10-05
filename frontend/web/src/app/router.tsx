@@ -1,6 +1,8 @@
 import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-router'
 import AuthProvider from '../features/auth/session/AuthProvider'
 import GuestRoute from '../features/auth/session/GuestRoute'
+import ProtectedRoute from '../features/auth/session/ProtectedRoute'
+import LoginPage from '../features/auth/login/LoginPage'
 import RegisterPage from '../features/auth/register/RegisterPage'
 import HomePage from '../features/home/HomePage'
 import AppShell from './AppShell'
@@ -16,9 +18,12 @@ export const routes: RouteObject[] = [
     ),
     children: [
       {
-        element: <AppShell />,
+        element: <ProtectedRoute />,
         children: [
-          { path: '/', element: <HomePage /> },
+          {
+            element: <AppShell />,
+            children: [{ path: '/', element: <HomePage /> }],
+          },
         ],
       },
       {
@@ -26,7 +31,10 @@ export const routes: RouteObject[] = [
         children: [
           {
             element: <AuthLayout />,
-            children: [{ path: '/registro', element: <RegisterPage /> }],
+            children: [
+              { path: '/login', element: <LoginPage /> },
+              { path: '/registro', element: <RegisterPage /> },
+            ],
           },
         ],
       },

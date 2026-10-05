@@ -1,0 +1,18 @@
+/* Sentence with an inline action link below the form ("¿Ya tenés cuenta? Iniciar sesión"). */
+.prompt {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.prompt a {
+  color: var(--text-primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prompt a:hover {
+  color: var(--accent-default);
+}

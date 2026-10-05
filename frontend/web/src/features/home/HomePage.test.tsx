@@ -1,66 +1,46 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../lib/http'
-import { fetchCurrentUser } from '../auth/api'
+import { useAuth } from '../auth/session/useAuth'
+import type { User } from '../auth/types'
 import HomePage from './HomePage'
 
-vi.mock('../auth/api', () => ({ fetchCurrentUser: vi.fn() }))
+vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
 
-function renderHome() {
-  render(
-    <MemoryRouter initialEntries={['/']}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/registro" element={<h1>Registro</h1>} />
-      </Routes>
-    </MemoryRouter>,
-  )
+// The 401 redirect to /login is the route guard's job: see router.test.tsx (TC-84).
+function renderHome(user: User | null) {
+  vi.mocked(useAuth).mockReturnValue({
+    user,
+    status: user ? 'authenticated' : 'guest',
+    login: vi.fn(),
+    refresh: vi.fn(),
+    logout: vi.fn(),
+  })
+  render(<HomePage />)
 }
 
 describe('HomePage', () => {
   beforeEach(() => {
-    vi.mocked(fetchCurrentUser).mockReset()
+    vi.mocked(useAuth).mockReset()
   })
 
-  it('TC-02: shows the logged-in user fetched from the API', async () => {
-    vi.mocked(fetchCurrentUser).mockResolvedValue({
-      id: 7,
-      name: 'Ana',
-      apellido: 'Pérez',
-      email: 'ana@example.com',
-      rol: 'comprador',
-    })
-    renderHome()
+  it('TC-02: shows the logged-in user from the session', () => {
+    renderHome({ id: 7, name: 'Ana', apellido: 'Pérez', email: 'ana@example.com', rol: 'comprador' })
 
-    expect(await screen.findByText('Ana Pérez')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(screen.getByText('Ana Pérez')).toBeInTheDocument()
     expect(screen.getByText('ana@example.com')).toBeInTheDocument()
   })
 
-  it('shows only the name when the user has no apellido', async () => {
-    vi.mocked(fetchCurrentUser).mockResolvedValue({
-      id: 8,
-      name: 'Beto',
-      apellido: null,
-      email: 'beto@example.com',
-      rol: 'comprador',
-    })
-    renderHome()
+  it('shows only the name when the user has no apellido', () => {
+    renderHome({ id: 8, name: 'Beto', apellido: null, email: 'beto@example.com', rol: 'comprador' })
 
-    expect(await screen.findByText('Beto')).toBeInTheDocument()
+    expect(screen.getByText('Beto')).toBeInTheDocument()
   })
 
-  it('redirects to /registro when the session is not authenticated (401)', async () => {
-    vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(401, { message: 'Unauthenticated.' }))
-    renderHome()
+  it('renders no user section without a session user', () => {
+    renderHome(null)
 
-    expect(await screen.findByRole('heading', { name: 'Registro' })).toBeInTheDocument()
-  })
-
-  it('shows an error message on other failures', async () => {
-    vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(500, {}))
-    renderHome()
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cargar la información del usuario.')
+    expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Usuario' })).not.toBeInTheDocument()
   })
 })

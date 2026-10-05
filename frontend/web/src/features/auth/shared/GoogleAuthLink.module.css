@@ -17,21 +17,3 @@
   height: 1px;
   background: var(--border-default);
 }
-
-.login {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.login a {
-  color: var(--text-primary);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.login a:hover {
-  color: var(--accent-default);
-}

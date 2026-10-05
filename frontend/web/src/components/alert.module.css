@@ -5,3 +5,12 @@
   color: var(--accent-default);
   font-size: 13px;
 }
+
+/* Non-error status message (e.g. "password updated"). */
+.notice {
+  padding: 10px 12px;
+  border: 1px solid var(--status-success);
+  border-radius: 8px;
+  color: var(--status-success);
+  font-size: 13px;
+}

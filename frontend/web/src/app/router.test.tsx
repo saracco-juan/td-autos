@@ -1,11 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import { HttpError } from '../lib/http'
-import { fetchCurrentUser } from '../features/auth/api'
+import { fetchCurrentUser, loginUser } from '../features/auth/api'
 import { routes } from './router'
 
-// The provider and HomePage both read the current user: keep the router tests off the network.
+// The session provider reads the current user: keep the router tests off the network.
 vi.mock('../features/auth/api', () => ({
   fetchCurrentUser: vi.fn(),
   registerUser: vi.fn(),
@@ -57,6 +58,57 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Registrá tu cuenta' })).not.toBeInTheDocument()
+  })
+
+  it('TC-84: sends a guest opening / to the login screen without rendering the home', async () => {
+    asGuest()
+    const router = renderAt('/')
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+  })
+
+  it('renders the login screen at /login for a guest', async () => {
+    asGuest()
+    renderAt('/login')
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+  })
+
+  it('redirects an authenticated user from /login to /', async () => {
+    const router = renderAt('/login')
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.queryByRole('heading', { name: 'Ingresá a tu cuenta' })).not.toBeInTheDocument()
+  })
+
+  it('renders /login without nav or footer and with a single main landmark', async () => {
+    asGuest()
+    renderAt('/login')
+    await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })
+
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('TC-05: a guest logs in from /login and lands on the home with the session user', async () => {
+    asGuest()
+    vi.mocked(loginUser).mockImplementation(async () => {
+      asAuthenticated()
+    })
+    const user = userEvent.setup()
+    const router = renderAt('/login')
+
+    await user.type(await screen.findByLabelText('Email'), 'ana@example.com')
+    await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
+    await user.click(screen.getByRole('button', { name: 'INGRESAR' }))
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.getByText('ana@example.com')).toBeInTheDocument()
   })
 
   it('wraps / in the shared shell (nav and footer)', async () => {

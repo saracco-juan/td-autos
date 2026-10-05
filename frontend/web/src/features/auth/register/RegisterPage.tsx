@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { HttpError } from '../../../lib/http'
-import { GOOGLE_REDIRECT_URL, registerUser } from '../api'
+import { registerUser } from '../api'
 import { googleErrorMessage } from '../googleErrors'
+import { useAuth } from '../session/useAuth'
 import type { FieldErrors } from '../types'
 import alertStyles from '../../../components/alert.module.css'
-import buttonStyles from '../../../components/button.module.css'
-import GoogleIcon from '../../../components/GoogleIcon'
 import AuthCard from '../shared/AuthCard'
+import GoogleAuthLink from '../shared/GoogleAuthLink'
+import linkStyles from '../shared/authLinks.module.css'
 import RegisterForm from './RegisterForm'
-import styles from './RegisterPage.module.css'
 import { validateRegisterForm, type RegisterFormValues } from './validateRegisterForm'
 
 const GENERIC_ERROR = 'No se pudo completar el registro. Intentá nuevamente.'
@@ -35,6 +35,7 @@ function fieldErrorsFromServer(body: ValidationBody | undefined): FieldErrors {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const { refresh } = useAuth()
   const [searchParams] = useSearchParams()
   const [values, setValues] = useState(EMPTY_VALUES)
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -63,9 +64,12 @@ export default function RegisterPage() {
         password: values.password,
         password_confirmation: values.passwordConfirmation,
       })
+      // The route guards read the session state: load the new user before leaving the guest-only screen.
+      await refresh()
       navigate('/', { replace: true })
     } catch (error) {
       if (error instanceof HttpError && error.status === 409) {
+        await refresh()
         navigate('/', { replace: true })
       } else if (error instanceof HttpError && error.status === 422) {
         const serverErrors = fieldErrorsFromServer(error.body as ValidationBody)
@@ -98,14 +102,8 @@ export default function RegisterPage() {
         onChange={handleChange}
         onSubmit={handleSubmit}
       />
-      <div className={styles.divider}>
-        <span>o</span>
-      </div>
-      <a href={GOOGLE_REDIRECT_URL} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
-        <GoogleIcon />
-        CONTINUAR CON GOOGLE
-      </a>
-      <p className={styles.login}>
+      <GoogleAuthLink from="registro" />
+      <p className={linkStyles.prompt}>
         ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
       </p>
     </AuthCard>
