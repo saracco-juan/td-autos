@@ -11,7 +11,7 @@ The project documentation lives OUTSIDE this repo. Before specifying, designing,
 | Need | Source | Locator |
 | --- | --- | --- |
 | User stories (UH) and acceptance criteria, backlog status | Trello board `PSF-BACKLOG-GIARDINA-SARACCO` | https://trello.com/b/tiQ2nN2X/psf-backlog-giardina-saracco |
-| Web screens (layout, copy, components) | Figma `Wireframes - TD Autos`, page `TD Autos · Web v2` only | https://www.figma.com/design/VKiAV7F3snjPJLbMrRPxjQ/Wireframes---TD-Autos?node-id=38-44 |
+| Web screens (layout, copy, components) | Figma `Wireframes - TD Autos`, page `TD Autos · Wireframes High v2` only | https://www.figma.com/design/VKiAV7F3snjPJLbMrRPxjQ/Wireframes---TD-Autos?node-id=38-44 |
 | Web requirements | Google Sheet `Requerimientos WEB - TD Autos` | https://docs.google.com/spreadsheets/d/1_unTYmivAD-yEDpvHelcsHBdb6isv44Tj98pxf2m5_0 |
 | Mobile functional requirements | Google Sheet `Requerimientos funcionales Mobile - TD Autos` | https://docs.google.com/spreadsheets/d/18r_mz4NGhyQ53WvN172vjoNqsARAIB5b6n1aTdEMNQg |
 | Use cases (CU) | Google Sheet `Casos de uso - TD Autos` | https://docs.google.com/spreadsheets/d/1QBfeZ0yG1FMUKzNeCoNXuBDpblcGRJJDz5Jj964_3jw |
@@ -45,4 +45,4 @@ Rules:
 
 - Whenever a screen ends up different from its Figma frame (something was missing, was wrong, or was changed), write the decision down when it is made: screen, Figma frame, what Figma shows, what was implemented and why.
 - The last step of a story that touched a screen is to apply those decisions to the Figma file, so Figma stays the visual source of truth. Present the list of changes to the developer and wait for approval before editing Figma.
-- Edit only the page `TD Autos · Web v2`. If Figma cannot be edited, report which changes are pending and add them to the Trello card that tracks Figma follow-ups.
+- Edit only the page `TD Autos · Wireframes High v2`. If Figma cannot be edited, report which changes are pending and add them to the Trello card that tracks Figma follow-ups.
