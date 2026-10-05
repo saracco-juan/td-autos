@@ -4,6 +4,7 @@ import GuestRoute from '../features/auth/session/GuestRoute'
 import ProtectedRoute from '../features/auth/session/ProtectedRoute'
 import LoginPage from '../features/auth/login/LoginPage'
 import RegisterPage from '../features/auth/register/RegisterPage'
+import RecoveryPage from '../features/auth/recovery/RecoveryPage'
 import HomePage from '../features/home/HomePage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
@@ -34,6 +35,7 @@ export const routes: RouteObject[] = [
             children: [
               { path: '/login', element: <LoginPage /> },
               { path: '/registro', element: <RegisterPage /> },
+              { path: '/recuperar', element: <RecoveryPage /> },
             ],
           },
         ],

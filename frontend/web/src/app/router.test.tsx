@@ -85,6 +85,31 @@ describe('app routes', () => {
     expect(screen.queryByRole('heading', { name: 'Ingresá a tu cuenta' })).not.toBeInTheDocument()
   })
 
+  it('renders the recovery screen at /recuperar for a guest', async () => {
+    asGuest()
+    renderAt('/recuperar')
+
+    expect(await screen.findByRole('heading', { name: 'Recuperá tu contraseña' })).toBeInTheDocument()
+  })
+
+  it('opens the recovery screen from the login link', async () => {
+    asGuest()
+    const router = renderAt('/login')
+
+    await userEvent.setup().click(await screen.findByRole('link', { name: '¿Olvidaste tu contraseña?' }))
+
+    expect(await screen.findByRole('heading', { name: 'Recuperá tu contraseña' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/recuperar')
+  })
+
+  it('redirects an authenticated user from /recuperar to /', async () => {
+    const router = renderAt('/recuperar')
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.queryByRole('heading', { name: 'Recuperá tu contraseña' })).not.toBeInTheDocument()
+  })
+
   it('renders /login without nav or footer and with a single main landmark', async () => {
     asGuest()
     renderAt('/login')
