@@ -36,3 +36,13 @@ Rules:
 - Code, identifiers, comments and tests are written in English. User-facing copy is Spanish (Argentine voseo, sentence case, buttons in uppercase).
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
 - Do not discard uncommitted work (`git reset --hard`, `git clean`, `git checkout -- <path>`, `git stash drop`) without explicit confirmation from the developer.
+
+## Closing a task
+
+- Every time a task is finished, the closing message includes how to test it manually: what to start (see `README.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
+
+## Screen decisions go back to Figma
+
+- Whenever a screen ends up different from its Figma frame (something was missing, was wrong, or was changed), write the decision down when it is made: screen, Figma frame, what Figma shows, what was implemented and why.
+- The last step of a story that touched a screen is to apply those decisions to the Figma file, so Figma stays the visual source of truth. Present the list of changes to the developer and wait for approval before editing Figma.
+- Edit only the page `TD Autos · Web v2`. If Figma cannot be edited, report which changes are pending and add them to the Trello card that tracks Figma follow-ups.
