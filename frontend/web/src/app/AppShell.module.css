@@ -4,7 +4,7 @@
   min-height: 100svh;
 }
 
-/* Figma "Nav/Top · Guest" */
+/* Figma "Nav/Top · Guest" and "Nav/Top · Buyer" share the bar */
 .nav {
   display: flex;
   align-items: center;
@@ -19,6 +19,28 @@
   font-size: 20px;
   font-weight: 700;
   text-decoration: none;
+}
+
+/* Figma "Nav/Top · Buyer" text item ("Cerrar sesión"): 12px regular, 4px vertical padding. */
+.navAction {
+  margin-left: auto;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--text-on-color);
+  font: 400 12px/normal var(--font-sans);
+  cursor: pointer;
+}
+
+.navAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.alert {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 16px;
 }
 
 .content {

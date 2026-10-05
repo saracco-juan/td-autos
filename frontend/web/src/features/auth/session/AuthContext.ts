@@ -8,6 +8,7 @@ export type AuthContextValue = {
   status: AuthStatus
   refresh: () => Promise<void>
   login: (credentials: LoginCredentials) => Promise<void>
+  /** Becomes guest on success or 401 (session already gone); rejects with the original error otherwise, staying authenticated. */
   logout: () => Promise<void>
 }
 

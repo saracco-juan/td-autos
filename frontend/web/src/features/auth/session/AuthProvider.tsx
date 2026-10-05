@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { HttpError } from '../../../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser } from '../api'
 import type { LoginCredentials, User } from '../types'
 import { AuthContext, type AuthContextValue, type AuthStatus } from './AuthContext'
@@ -31,11 +32,12 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     try {
       await logoutUser()
-    } catch {
-      // The session may have expired already (401): either way the client is now a guest.
-    } finally {
-      setSession(GUEST)
+    } catch (error) {
+      // A 401 means the session was already gone, so the client is a guest anyway.
+      // Any other failure leaves the server session alive: surface it and stay authenticated.
+      if (!(error instanceof HttpError && error.status === 401)) throw error
     }
+    setSession(GUEST)
   }, [])
 
   useEffect(() => {

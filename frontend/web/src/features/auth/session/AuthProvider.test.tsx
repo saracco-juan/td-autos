@@ -112,7 +112,7 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('user')).toHaveTextContent('none')
   })
 
-  it('logout still ends the session when the request fails (e.g. it had already expired)', async () => {
+  it('logout becomes guest when the session was already gone (401)', async () => {
     vi.mocked(logoutUser).mockRejectedValue(new HttpError(401, undefined))
     renderProvider()
     await screen.findByText('authenticated')
@@ -120,6 +120,30 @@ describe('AuthProvider', () => {
     await act(() => captured.auth.logout())
 
     expect(status()).toBe('guest')
+    expect(screen.getByTestId('user')).toHaveTextContent('none')
+  })
+
+  it('logout rejects with the original error and stays authenticated on a server failure', async () => {
+    const failure = new HttpError(500, undefined)
+    vi.mocked(logoutUser).mockRejectedValue(failure)
+    renderProvider()
+    await screen.findByText('authenticated')
+
+    await expect(act(() => captured.auth.logout())).rejects.toBe(failure)
+
+    expect(status()).toBe('authenticated')
+    expect(screen.getByTestId('user')).toHaveTextContent('ana@example.com')
+  })
+
+  it('logout rejects and stays authenticated on a network failure', async () => {
+    const failure = new TypeError('Failed to fetch')
+    vi.mocked(logoutUser).mockRejectedValue(failure)
+    renderProvider()
+    await screen.findByText('authenticated')
+
+    await expect(act(() => captured.auth.logout())).rejects.toBe(failure)
+
+    expect(status()).toBe('authenticated')
   })
 
   it('refresh re-reads the current user', async () => {

@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { HttpError } from '../lib/http'
-import { fetchCurrentUser, loginUser } from '../features/auth/api'
+import { fetchCurrentUser, loginUser, logoutUser } from '../features/auth/api'
 import { routes } from './router'
 
 // The session provider reads the current user: keep the router tests off the network.
@@ -36,6 +36,7 @@ function renderAt(path: string) {
 describe('app routes', () => {
   beforeEach(() => {
     vi.mocked(fetchCurrentUser).mockReset()
+    vi.mocked(logoutUser).mockReset()
     asAuthenticated()
   })
 
@@ -109,6 +110,43 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
     expect(screen.getByText('ana@example.com')).toBeInTheDocument()
+  })
+
+  it('TC-83: pressing Cerrar sesión ends the session and shows the login screen', async () => {
+    vi.mocked(logoutUser).mockResolvedValue(undefined)
+    const router = renderAt('/')
+
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(logoutUser).toHaveBeenCalledTimes(1)
+    expect(router.state.location.pathname).toBe('/login')
+    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
+  })
+
+  it('TC-84: after logging out, navigating to / shows the login screen and not the protected content', async () => {
+    vi.mocked(logoutUser).mockResolvedValue(undefined)
+    const router = renderAt('/')
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
+    await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })
+
+    await act(() => router.navigate('/'))
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the user on / with an alert when the logout request fails', async () => {
+    vi.mocked(logoutUser).mockRejectedValue(new HttpError(500, undefined))
+    const router = renderAt('/')
+
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cerrar la sesión. Intentá nuevamente.')
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
   })
 
   it('wraps / in the shared shell (nav and footer)', async () => {
