@@ -21,14 +21,22 @@
   text-decoration: none;
 }
 
-/* Figma "Nav/Top · Buyer" text item ("Cerrar sesión"): 12px regular, 4px vertical padding. */
-.navAction {
+/* Figma "Nav/Top · Buyer" right group ("Perfil", "Cerrar sesión"). */
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
   margin-left: auto;
+}
+
+/* Figma "Nav/Top · Buyer" text item: 12px regular, 4px vertical padding. */
+.navAction {
   padding: 4px 0;
   border: 0;
   background: none;
   color: var(--text-on-color);
   font: 400 12px/normal var(--font-sans);
+  text-decoration: none;
   cursor: pointer;
 }
 

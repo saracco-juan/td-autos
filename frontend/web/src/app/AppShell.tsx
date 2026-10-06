@@ -7,7 +7,7 @@ import styles from './AppShell.module.css'
 const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
 // Shared page frame: nav on top (guest, or Buyer with logout once signed in), routed content, footer.
-// The Buyer nav shows only the logo and logout until the screens behind its other links exist.
+// The Buyer nav shows only the links whose screens exist: profile and logout for now.
 export default function AppShell() {
   const navigate = useNavigate()
   const { status, logout } = useAuth()
@@ -33,15 +33,20 @@ export default function AppShell() {
           TD Autos
         </Link>
         {status === 'authenticated' ? (
-          <button
-            type="button"
-            className={styles.navAction}
-            disabled={loggingOut}
-            aria-busy={loggingOut}
-            onClick={handleLogout}
-          >
-            Cerrar sesión
-          </button>
+          <div className={styles.navActions}>
+            <Link to="/perfil" className={styles.navAction}>
+              Perfil
+            </Link>
+            <button
+              type="button"
+              className={styles.navAction}
+              disabled={loggingOut}
+              aria-busy={loggingOut}
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
+          </div>
         ) : null}
       </header>
       <main className={styles.content}>

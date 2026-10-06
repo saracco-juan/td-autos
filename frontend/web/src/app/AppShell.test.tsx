@@ -54,14 +54,22 @@ describe('AppShell', () => {
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
   })
 
-  it('shows the logo and a logout button to an authenticated user, and nothing else in the nav', () => {
+  it('shows no profile link to a guest', () => {
+    mockAuth('guest')
+    renderShell()
+
+    expect(screen.queryByRole('link', { name: 'Perfil' })).not.toBeInTheDocument()
+  })
+
+  it('shows the logo, the profile link and a logout button to an authenticated user, and nothing else in the nav', () => {
     mockAuth('authenticated')
     renderShell()
 
     const banner = screen.getByRole('banner')
     expect(screen.getByRole('link', { name: 'TD Autos' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/perfil')
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('type', 'button')
-    expect(banner.querySelectorAll('a')).toHaveLength(1)
+    expect(banner.querySelectorAll('a')).toHaveLength(2)
     expect(banner.querySelectorAll('button')).toHaveLength(1)
   })
 
