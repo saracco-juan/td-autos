@@ -14,7 +14,7 @@ import {
   resetPassword,
 } from './api'
 
-const user = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
+const user = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false }
 
 describe('auth api', () => {
   beforeEach(() => {

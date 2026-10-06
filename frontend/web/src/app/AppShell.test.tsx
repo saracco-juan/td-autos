@@ -7,7 +7,7 @@ import AppShell from './AppShell'
 
 vi.mock('../features/auth/session/useAuth', () => ({ useAuth: vi.fn() }))
 
-const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
+const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false }
 
 function mockAuth(status: 'authenticated' | 'guest', logout = vi.fn().mockResolvedValue(undefined)) {
   vi.mocked(useAuth).mockReturnValue({

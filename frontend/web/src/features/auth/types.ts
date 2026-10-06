@@ -4,6 +4,7 @@ export type User = {
   apellido: string | null
   email: string
   rol: string
+  perfil_completo: boolean
 }
 
 export type RegisterPayload = {

@@ -49,6 +49,35 @@ describe('apiFetch', () => {
     expect(init.body).toBe(JSON.stringify({ name: 'Ana' }))
   })
 
+  it('fetches the csrf cookie before a PUT and sends the decoded token', async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(jsonResponse(200, { id: 1 }))
+
+    const result = await apiFetch('/api/user', { method: 'PUT', body: { name: 'Ana' } })
+
+    expect(result).toEqual({ id: 1 })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock.mock.calls[0][0]).toBe(`${API_URL}/sanctum/csrf-cookie`)
+    const [url, init] = fetchMock.mock.calls[1]
+    expect(url).toBe(`${API_URL}/api/user`)
+    expect(init.method).toBe('PUT')
+    expect(init.headers['X-XSRF-TOKEN']).toBe('token==')
+    expect(init.body).toBe(JSON.stringify({ name: 'Ana' }))
+  })
+
+  it('retries a PUT once on 419', async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(jsonResponse(419))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(jsonResponse(200, { id: 1 }))
+
+    await expect(apiFetch('/api/user', { method: 'PUT', body: {} })).resolves.toEqual({ id: 1 })
+    expect(fetchMock).toHaveBeenCalledTimes(4)
+    expect(fetchMock.mock.calls[3][1].method).toBe('PUT')
+  })
+
   it('does not fetch the csrf cookie for a GET', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(200, { id: 1 }))
 

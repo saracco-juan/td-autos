@@ -13,7 +13,7 @@ export class HttpError<B = unknown> extends Error {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PUT'
   body?: unknown
 }
 

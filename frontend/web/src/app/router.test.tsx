@@ -17,7 +17,7 @@ vi.mock('../features/auth/api', () => ({
   GOOGLE_REDIRECT_URL: 'http://localhost:8000/auth/google/redirect',
 }))
 
-const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
+const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false }
 
 function asGuest() {
   vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(401, undefined))
