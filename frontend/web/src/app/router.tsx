@@ -6,8 +6,10 @@ import LoginPage from '../features/auth/login/LoginPage'
 import RegisterPage from '../features/auth/register/RegisterPage'
 import RecoveryPage from '../features/auth/recovery/RecoveryPage'
 import ResetPasswordPage from '../features/auth/recovery/ResetPasswordPage'
-import HomePage from '../features/home/HomePage'
+import DiagnosisPage from '../features/diagnosis/DiagnosisPage'
+import HomeRoute from '../features/home/HomeRoute'
 import ProfilePage from '../features/profile/ProfilePage'
+import RecommendationsPage from '../features/recommendations/RecommendationsPage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
 
@@ -27,7 +29,9 @@ export const routes: RouteObject[] = [
           {
             element: <ProtectedRoute />,
             children: [
-              { path: '/', element: <HomePage /> },
+              { path: '/', element: <HomeRoute /> },
+              { path: '/diagnostico', element: <DiagnosisPage /> },
+              { path: '/recomendaciones', element: <RecommendationsPage /> },
               { path: '/perfil', element: <ProfilePage /> },
             ],
           },

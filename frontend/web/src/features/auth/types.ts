@@ -5,6 +5,7 @@ export type User = {
   email: string
   rol: string
   perfil_completo: boolean
+  tiene_diagnostico: boolean
 }
 
 export type RegisterPayload = {

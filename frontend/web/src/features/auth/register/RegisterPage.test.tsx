@@ -17,7 +17,7 @@ vi.mock('../session/useAuth', () => ({ useAuth: vi.fn() }))
 
 const refresh = vi.fn()
 
-const createdUser = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false }
+const createdUser = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 
 function renderPage(entry = '/registro') {
   render(

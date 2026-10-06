@@ -24,6 +24,7 @@ const incompleteUser: User = {
   email: 'ana@example.com',
   rol: 'comprador',
   perfil_completo: false,
+  tiene_diagnostico: true,
 }
 const completeUser: User = { ...incompleteUser, name: 'Ana', apellido: 'Pérez', perfil_completo: true }
 

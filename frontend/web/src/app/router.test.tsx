@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { HttpError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../features/auth/api'
+import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
+import type { DiagnosisAnswers } from '../features/diagnosis/types'
 import { routes } from './router'
 
 // The session provider reads the current user: keep the router tests off the network.
@@ -17,14 +19,25 @@ vi.mock('../features/auth/api', () => ({
   GOOGLE_REDIRECT_URL: 'http://localhost:8000/auth/google/redirect',
 }))
 
-const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false }
+vi.mock('../features/diagnosis/api', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
+
+const ana = {
+  id: 1,
+  name: 'Ana',
+  apellido: null,
+  email: 'ana@example.com',
+  rol: 'comprador',
+  perfil_completo: false,
+  tiene_diagnostico: true,
+}
 
 function asGuest() {
   vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(401, undefined))
 }
 
-function asAuthenticated() {
-  vi.mocked(fetchCurrentUser).mockResolvedValue(ana)
+// A buyer who never answered the questionnaire: the home sends them to /diagnostico (D6).
+function asAuthenticated(overrides: Partial<typeof ana> = {}) {
+  vi.mocked(fetchCurrentUser).mockResolvedValue({ ...ana, ...overrides })
 }
 
 function renderAt(path: string) {
@@ -37,6 +50,8 @@ describe('app routes', () => {
   beforeEach(() => {
     vi.mocked(fetchCurrentUser).mockReset()
     vi.mocked(logoutUser).mockReset()
+    vi.mocked(fetchDiagnosis).mockReset()
+    vi.mocked(saveDiagnosis).mockReset()
     asAuthenticated()
   })
 
@@ -46,7 +61,7 @@ describe('app routes', () => {
 
     expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
-    expect(screen.getByRole('main')).toContainElement(screen.getByRole('status'))
+    expect(screen.getByRole('status').parentElement).toBe(screen.getByRole('main'))
     expect(screen.getByRole('status')).toHaveTextContent('Cargando')
     expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
   })
@@ -58,6 +73,103 @@ describe('app routes', () => {
     expect(screen.getByRole('main')).toContainElement(screen.getByRole('status'))
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'INGRESAR' })).not.toBeInTheDocument()
+  })
+
+  it('D6: sends a user with no diagnosis from / to the questionnaire', async () => {
+    asAuthenticated({ tiene_diagnostico: false })
+    vi.mocked(fetchDiagnosis).mockResolvedValue({ diagnostico: null, carrocerias: [{ id: 1, nombre: 'Sedán' }] })
+    const router = renderAt('/')
+
+    expect(await screen.findByRole('heading', { level: 1, name: '¿Cuál es tu presupuesto máximo?' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/diagnostico')
+    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+  })
+
+  it('D6: shows the home to a user who already has a diagnosis, without reading it', async () => {
+    const router = renderAt('/')
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(fetchDiagnosis).not.toHaveBeenCalled()
+  })
+
+  it('D6: the redirect is not a lock, /perfil stays reachable without a diagnosis', async () => {
+    asAuthenticated({ tiene_diagnostico: false })
+    const router = renderAt('/perfil')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/perfil')
+  })
+
+  it('D6: /diagnostico never redirects a user who has a diagnosis', async () => {
+    vi.mocked(fetchDiagnosis).mockResolvedValue({ diagnostico: null, carrocerias: [{ id: 1, nombre: 'Sedán' }] })
+    const router = renderAt('/diagnostico')
+
+    expect(await screen.findByRole('heading', { level: 1, name: '¿Cuál es tu presupuesto máximo?' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/diagnostico')
+  })
+
+  it('D6: after saving the diagnosis the session is refreshed, so the home no longer bounces to the questionnaire', async () => {
+    asAuthenticated({ tiene_diagnostico: false })
+    const answers: DiagnosisAnswers = {
+      presupuesto: 'hasta_15m',
+      uso_principal: 'ciudad',
+      pasajeros: '1_2',
+      kilometros_mensuales: 'menos_500',
+      transmision: 'manual',
+      prioridad: 'consumo',
+      carrocerias: [1],
+    }
+    vi.mocked(fetchDiagnosis).mockResolvedValue({ diagnostico: answers, carrocerias: [{ id: 1, nombre: 'Sedán' }] })
+    vi.mocked(saveDiagnosis).mockImplementation(async () => {
+      asAuthenticated({ tiene_diagnostico: true })
+      return answers
+    })
+    const user = userEvent.setup()
+    const router = renderAt('/diagnostico')
+
+    for (let step = 0; step < 6; step += 1) {
+      await user.click(await screen.findByRole('button', { name: 'CONTINUAR' }))
+    }
+    await user.click(screen.getByRole('button', { name: 'VER RECOMENDACIONES' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Recomendaciones' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/recomendaciones')
+
+    await act(() => router.navigate('/'))
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+  })
+
+  it('D7: the diagnosis loader sits directly in the content area, so it can be centered there', async () => {
+    vi.mocked(fetchDiagnosis).mockReturnValue(new Promise(() => {}))
+    renderAt('/diagnostico')
+
+    // The session loader shows first; wait for the page itself to start reading the diagnosis.
+    await vi.waitFor(() => expect(fetchDiagnosis).toHaveBeenCalled())
+    expect(screen.getByRole('status').parentElement).toBe(screen.getByRole('main'))
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+  })
+
+  it('renders the provisional recommendations page at /recomendaciones inside the shell', async () => {
+    const router = renderAt('/recomendaciones')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Recomendaciones' })).toBeInTheDocument()
+    expect(screen.getByText('Guardamos tu diagnóstico. Las recomendaciones van a estar disponibles pronto.')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/recomendaciones')
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('redirects a guest opening /recomendaciones to the login screen', async () => {
+    asGuest()
+    const router = renderAt('/recomendaciones')
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(screen.queryByRole('heading', { name: 'Recomendaciones' })).not.toBeInTheDocument()
   })
 
   it('renders the home placeholder at /', async () => {
@@ -83,6 +195,26 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
     expect(screen.queryByRole('heading', { name: 'Perfil' })).not.toBeInTheDocument()
+  })
+
+  it('renders the diagnosis screen at /diagnostico inside the shell for an authenticated user', async () => {
+    vi.mocked(fetchDiagnosis).mockResolvedValue({ diagnostico: null, carrocerias: [{ id: 1, nombre: 'Sedán' }] })
+    const router = renderAt('/diagnostico')
+
+    expect(await screen.findByRole('heading', { level: 1, name: '¿Cuál es tu presupuesto máximo?' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/diagnostico')
+    expect(screen.getByText('PASO 1 DE 7')).toBeInTheDocument()
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('redirects a guest opening /diagnostico to the login screen without reading the diagnosis', async () => {
+    asGuest()
+    const router = renderAt('/diagnostico')
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(fetchDiagnosis).not.toHaveBeenCalled()
   })
 
   it('renders the register screen at /registro for a guest', async () => {

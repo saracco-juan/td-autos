@@ -11,7 +11,7 @@ vi.mock('../api', async (importOriginal) => ({
   fetchCurrentUser: vi.fn(),
 }))
 
-const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false }
+const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 
 function renderGuestOnly() {
   render(

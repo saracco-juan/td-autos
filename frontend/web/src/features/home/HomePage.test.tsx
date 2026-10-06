@@ -24,7 +24,7 @@ describe('HomePage', () => {
   })
 
   it('TC-02: shows the logged-in user from the session', () => {
-    renderHome({ id: 7, name: 'Ana', apellido: 'Pérez', email: 'ana@example.com', rol: 'comprador', perfil_completo: true })
+    renderHome({ id: 7, name: 'Ana', apellido: 'Pérez', email: 'ana@example.com', rol: 'comprador', perfil_completo: true, tiene_diagnostico: true })
 
     expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
     expect(screen.getByText('Ana Pérez')).toBeInTheDocument()
@@ -32,7 +32,7 @@ describe('HomePage', () => {
   })
 
   it('shows only the name when the user has no apellido', () => {
-    renderHome({ id: 8, name: 'Beto', apellido: null, email: 'beto@example.com', rol: 'comprador', perfil_completo: false })
+    renderHome({ id: 8, name: 'Beto', apellido: null, email: 'beto@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true })
 
     expect(screen.getByText('Beto')).toBeInTheDocument()
   })

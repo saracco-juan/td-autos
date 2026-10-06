@@ -1,0 +1,25 @@
+/* Figma "Progress group" (2074:887): label 12 semibold secondary, 10 above the 8 px track. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Figma "Progress" (2014:42): raised track with a default border, charcoal fill. */
+.track {
+  height: 8px;
+  overflow: hidden;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+}
+
+.fill {
+  height: 100%;
+  background: var(--palette-charcoal);
+}

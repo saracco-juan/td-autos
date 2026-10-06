@@ -1,0 +1,117 @@
+/* Figma frames 38:133 and 2074:933-2074:1286: content under the nav, 32 from the edges at 1280, 32 between blocks. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 1216px;
+  /* The shell centers its content vertically; the questionnaire starts at the top. */
+  margin-bottom: auto;
+  padding-top: 20px;
+}
+
+/* Figma "Header group" (2074:882): eyebrow, title and subtitle 8 apart, the progress group 20 below. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header > :last-child {
+  margin-top: 12px;
+}
+
+.eyebrow {
+  color: var(--palette-charcoal);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  outline: none;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma "Body" (2074:893): options fill the row, the summary card keeps 396 on the right, 32 apart. */
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.options {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.message {
+  margin: 0;
+}
+
+/* Figma "Actions" (2074:927): back on the left, forward on the right; step 1 has only the right one. */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.back,
+.next {
+  width: 150px;
+}
+
+.finish {
+  width: 220px;
+}
+
+.next,
+.finish {
+  margin-left: auto;
+}
+
+.loadError {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 480px;
+}
+
+.retry {
+  width: 150px;
+}
+
+@media (max-width: 900px) {
+  .body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .back,
+  .next,
+  .finish {
+    flex: 1;
+    width: auto;
+  }
+
+  /* The longest label gets more room so it stays on one line at 375. */
+  .finish {
+    flex: 1.6;
+  }
+}

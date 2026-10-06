@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import alertStyles from '../components/alert.module.css'
 import { useAuth } from '../features/auth/session/useAuth'
 import styles from './AppShell.module.css'
@@ -7,7 +7,7 @@ import styles from './AppShell.module.css'
 const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
 // Shared page frame: nav on top (guest, or Buyer with logout once signed in), routed content, footer.
-// The Buyer nav shows only the links whose screens exist: profile and logout for now.
+// The Buyer nav shows only the links whose screens exist: diagnosis, recommendations, profile and logout for now.
 export default function AppShell() {
   const navigate = useNavigate()
   const { status, logout } = useAuth()
@@ -34,9 +34,15 @@ export default function AppShell() {
         </Link>
         {status === 'authenticated' ? (
           <div className={styles.navActions}>
-            <Link to="/perfil" className={styles.navAction}>
+            <NavLink to="/diagnostico" className={styles.navAction}>
+              Diagnóstico
+            </NavLink>
+            <NavLink to="/recomendaciones" className={styles.navAction}>
+              Recomendados
+            </NavLink>
+            <NavLink to="/perfil" className={styles.navAction}>
               Perfil
-            </Link>
+            </NavLink>
             <button
               type="button"
               className={styles.navAction}

@@ -1,0 +1,62 @@
+/* Figma "Summary" (2074:903): 396 wide card, radius 14, soft shadow. */
+.card {
+  width: 396px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.title {
+  margin: 0;
+  padding: 16px 16px 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.rows {
+  margin: 0;
+}
+
+/* Figma "Spec row" (2064:649): 40 high, 13 px, label secondary medium, value right-aligned; no line under the last row. */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 13px;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.value,
+.inProgress {
+  margin: 0;
+  text-align: right;
+}
+
+.value {
+  color: var(--text-primary);
+}
+
+.inProgress {
+  color: var(--palette-charcoal);
+}
+
+@media (max-width: 900px) {
+  .card {
+    width: 100%;
+  }
+}

@@ -21,7 +21,7 @@
   text-decoration: none;
 }
 
-/* Figma "Nav/Top · Buyer" right group ("Perfil", "Cerrar sesión"). */
+/* Figma "Nav/Top · Buyer" right group ("Diagnóstico", "Recomendados", "Perfil", "Cerrar sesión"). */
 .navActions {
   display: flex;
   align-items: center;
@@ -38,6 +38,11 @@
   font: 400 12px/normal var(--font-sans);
   text-decoration: none;
   cursor: pointer;
+}
+
+/* The link of the page the user is on (NavLink sets aria-current). */
+.navAction[aria-current='page'] {
+  font-weight: 700;
 }
 
 .navAction:disabled {
@@ -75,5 +80,20 @@
   .nav,
   .footer {
     padding: 0 16px;
+  }
+
+  /* Logo and four links do not fit one row: the bar grows and the links wrap under the logo. */
+  .nav {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 64px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    row-gap: 8px;
+  }
+
+  .navActions {
+    flex-wrap: wrap;
+    gap: 8px 16px;
   }
 }

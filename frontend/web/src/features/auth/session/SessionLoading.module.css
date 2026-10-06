@@ -1,7 +1,14 @@
-/* Sits in the content area of the layout that renders it; the page frame stays visible. */
+/*
+ * Section loader (D7): always centered, horizontally and vertically, in the area that is waiting.
+ * It must be a direct child of that area (the shell content or the bare auth layout, both flex
+ * containers): it stretches over the whole area and centers its own content. The frame stays visible.
+ */
 .loading {
   display: flex;
+  flex: 1;
+  align-self: stretch;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   color: var(--text-secondary);
   font-size: 14px;

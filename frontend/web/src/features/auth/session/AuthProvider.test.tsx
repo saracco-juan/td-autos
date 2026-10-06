@@ -13,7 +13,7 @@ vi.mock('../api', async (importOriginal) => ({
   logoutUser: vi.fn(),
 }))
 
-const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false }
+const ana = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 const credentials = { email: 'ana@example.com', password: 'Abcdef12' }
 
 // Latest context value seen by the probe, so tests can call login/logout/refresh.

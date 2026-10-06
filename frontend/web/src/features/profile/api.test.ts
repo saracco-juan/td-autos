@@ -12,6 +12,7 @@ const user = {
   email: 'ana@example.com',
   rol: 'comprador',
   perfil_completo: true,
+  tiene_diagnostico: true,
 }
 
 describe('profile api', () => {
