@@ -14,3 +14,12 @@
   color: var(--status-success);
   font-size: 13px;
 }
+
+/* Something is pending on the user's side (e.g. "profile incomplete"); not an error. */
+.warning {
+  padding: 10px 12px;
+  border: 1px solid var(--status-warning);
+  border-radius: 8px;
+  color: var(--status-warning);
+  font-size: 13px;
+}

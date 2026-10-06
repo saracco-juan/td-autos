@@ -74,7 +74,7 @@ export default function ProfilePage() {
         <p className={styles.subtitle}>Datos personales</p>
       </div>
       <div className={styles.body}>
-        {user && !user.perfil_completo ? <p className={alertStyles.notice}>{INCOMPLETE_NOTICE}</p> : null}
+        {user && !user.perfil_completo ? <p className={alertStyles.warning}>{INCOMPLETE_NOTICE}</p> : null}
         <ProfileForm
           values={values}
           email={user?.email ?? ''}
