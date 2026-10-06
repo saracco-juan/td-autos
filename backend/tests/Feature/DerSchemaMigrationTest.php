@@ -289,8 +289,8 @@ class DerSchemaMigrationTest extends TestCase
                 'foreign' => ['tipo_carroceria_id' => 'tipo_carroceria.id'],
             ],
             'diagnostico' => [
-                'columns' => ['id', 'usuario_id', 'presupuesto_maximo', 'uso_principal', 'pasajeros', 'transmision_preferida', 'prioridad_comprador', 'estado', 'estado_fuente_externa', 'calculado_en', 'actualizado_en'],
-                'nullable' => ['usuario_id', 'presupuesto_maximo', 'uso_principal', 'pasajeros', 'transmision_preferida', 'prioridad_comprador', 'estado', 'estado_fuente_externa', 'calculado_en', 'actualizado_en'],
+                'columns' => ['id', 'usuario_id', 'presupuesto_maximo', 'uso_principal', 'pasajeros', 'transmision_preferida', 'prioridad_comprador', 'estado', 'estado_fuente_externa', 'calculado_en', 'actualizado_en', 'kilometros_mensuales'],
+                'nullable' => ['usuario_id', 'presupuesto_maximo', 'uso_principal', 'pasajeros', 'transmision_preferida', 'prioridad_comprador', 'estado', 'estado_fuente_externa', 'calculado_en', 'actualizado_en', 'kilometros_mensuales'],
                 'primary' => ['id'],
                 'unique' => [['usuario_id']],
                 'foreign' => ['usuario_id' => 'users.id'],
