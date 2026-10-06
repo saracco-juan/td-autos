@@ -16,8 +16,13 @@
   --border-input: #c8c8c8;
   /* Not in Figma yet: success state for the live password checklist. */
   --status-success: #1e7f45;
-  /* Not in Figma yet: warning state for notices that ask the user to act. */
-  --status-warning: #8a5a00;
+  /* Not in Figma yet: tinted fills and borders of the message boxes (error, success, warning). */
+  --status-error-bg: #fde8e4;
+  --status-error-border: #f3b5aa;
+  --status-success-bg: #e3f4ea;
+  --status-success-border: #a9d8bc;
+  --status-warning-bg: #fdf1d6;
+  --status-warning-border: #efd28f;
 
   --font-sans: Inter, system-ui, 'Segoe UI', Roboto, sans-serif;
 

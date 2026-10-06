@@ -20,11 +20,12 @@ export const routes: RouteObject[] = [
       </AuthProvider>
     ),
     children: [
+      // The layouts wrap the guards, so while the session is read only the content area shows the loader.
       {
-        element: <ProtectedRoute />,
+        element: <AppShell />,
         children: [
           {
-            element: <AppShell />,
+            element: <ProtectedRoute />,
             children: [
               { path: '/', element: <HomePage /> },
               { path: '/perfil', element: <ProfilePage /> },
@@ -33,10 +34,10 @@ export const routes: RouteObject[] = [
         ],
       },
       {
-        element: <GuestRoute />,
+        element: <AuthLayout />,
         children: [
           {
-            element: <AuthLayout />,
+            element: <GuestRoute />,
             children: [
               { path: '/login', element: <LoginPage /> },
               { path: '/registro', element: <RegisterPage /> },

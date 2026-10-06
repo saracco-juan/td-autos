@@ -40,6 +40,26 @@ describe('app routes', () => {
     asAuthenticated()
   })
 
+  it('keeps the shell on screen and loads only its content while the session is read', () => {
+    vi.mocked(fetchCurrentUser).mockReturnValue(new Promise(() => {}))
+    renderAt('/')
+
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    expect(screen.getByRole('main')).toContainElement(screen.getByRole('status'))
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando')
+    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+  })
+
+  it('loads inside the bare auth layout while the session is read at /login', () => {
+    vi.mocked(fetchCurrentUser).mockReturnValue(new Promise(() => {}))
+    renderAt('/login')
+
+    expect(screen.getByRole('main')).toContainElement(screen.getByRole('status'))
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'INGRESAR' })).not.toBeInTheDocument()
+  })
+
   it('renders the home placeholder at /', async () => {
     renderAt('/')
 
