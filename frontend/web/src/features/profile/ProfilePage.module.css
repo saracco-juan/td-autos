@@ -10,17 +10,11 @@
   padding-top: 40px;
 }
 
-/* Figma "Page Header" (2020:33): eyebrow 12 semibold, title 32 bold, subtitle 14 secondary, 8 apart. */
+/* Figma "Page Header" (2020:33) without its eyebrow, which repeated the title: title 32 bold, subtitle 14 secondary, 8 apart. */
 .header {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.eyebrow {
-  color: var(--palette-charcoal);
-  font-size: 12px;
-  font-weight: 600;
 }
 
 .title {

@@ -56,7 +56,7 @@ describe('ProfilePage', () => {
     it('renders the header, the section title and the prefilled fields', () => {
       renderPage()
 
-      expect(screen.getByText('PERFIL')).toBeInTheDocument()
+      expect(screen.queryByText('PERFIL')).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument()
       expect(screen.getByText('Datos personales')).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'DATOS PERSONALES' })).toBeInTheDocument()

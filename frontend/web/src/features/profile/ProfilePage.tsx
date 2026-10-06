@@ -69,7 +69,6 @@ export default function ProfilePage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <p className={styles.eyebrow}>PERFIL</p>
         <h1 className={styles.title}>Perfil</h1>
         <p className={styles.subtitle}>Datos personales</p>
       </div>
