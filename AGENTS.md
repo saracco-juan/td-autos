@@ -40,6 +40,7 @@ Rules:
 ## Closing a task
 
 - Every time a task is finished, the closing message includes how to test it manually: what to start (see `README.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
+- When the task is backend-only and has no screen yet, the manual test comes with ready-to-paste code: a self-contained snippet (browser console or terminal) that authenticates the same way the real client does, one call per case, and the expected status and body of each call. The developer should not have to write or adapt code beyond the host and port.
 
 ## Screen decisions go back to Figma
 
