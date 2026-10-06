@@ -7,6 +7,7 @@ use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -48,6 +49,7 @@ class User extends Authenticatable
      */
     protected $appends = [
         'perfil_completo',
+        'tiene_diagnostico',
     ];
 
     /**
@@ -66,6 +68,24 @@ class User extends Authenticatable
     protected function perfilCompleto(): Attribute
     {
         return Attribute::get(fn () => filled($this->name) && filled($this->apellido));
+    }
+
+    /**
+     * The user's single needs diagnosis (at most one row per user).
+     *
+     * @return HasOne<Diagnostico, $this>
+     */
+    public function diagnostico(): HasOne
+    {
+        return $this->hasOne(Diagnostico::class, 'usuario_id');
+    }
+
+    /**
+     * True once a diagnosis row exists for the user (computed, not stored).
+     */
+    protected function tieneDiagnostico(): Attribute
+    {
+        return Attribute::get(fn () => $this->diagnostico()->exists());
     }
 
     /**
