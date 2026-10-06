@@ -46,6 +46,25 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
   })
 
+  it('renders the profile screen at /perfil inside the shell for an authenticated user', async () => {
+    const router = renderAt('/perfil')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/perfil')
+    expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('redirects a guest opening /perfil to the login screen', async () => {
+    asGuest()
+    const router = renderAt('/perfil')
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(screen.queryByRole('heading', { name: 'Perfil' })).not.toBeInTheDocument()
+  })
+
   it('renders the register screen at /registro for a guest', async () => {
     asGuest()
     renderAt('/registro')

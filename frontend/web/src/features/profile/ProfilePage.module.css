@@ -1,0 +1,44 @@
+/* Figma frame 38:609: content is left-aligned under the nav, 32 from the edges at 1280. The right column is not rendered. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 1216px;
+  /* The shell centers its content vertically; the profile starts at the top. */
+  margin-bottom: auto;
+  padding-top: 40px;
+}
+
+/* Figma "Page Header" (2020:33): eyebrow 12 semibold, title 32 bold, subtitle 14 secondary, 8 apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eyebrow {
+  color: var(--palette-charcoal);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Same width as the Figma form card (760); the freed right column stays empty. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 760px;
+}

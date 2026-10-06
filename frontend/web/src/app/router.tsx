@@ -7,6 +7,7 @@ import RegisterPage from '../features/auth/register/RegisterPage'
 import RecoveryPage from '../features/auth/recovery/RecoveryPage'
 import ResetPasswordPage from '../features/auth/recovery/ResetPasswordPage'
 import HomePage from '../features/home/HomePage'
+import ProfilePage from '../features/profile/ProfilePage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
 
@@ -24,7 +25,10 @@ export const routes: RouteObject[] = [
         children: [
           {
             element: <AppShell />,
-            children: [{ path: '/', element: <HomePage /> }],
+            children: [
+              { path: '/', element: <HomePage /> },
+              { path: '/perfil', element: <ProfilePage /> },
+            ],
           },
         ],
       },
