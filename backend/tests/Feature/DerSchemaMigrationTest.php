@@ -63,7 +63,7 @@ class DerSchemaMigrationTest extends TestCase
         $this->artisan('migrate', ['--database' => 'der_test', '--force' => true])->assertSuccessful();
         $this->artisan('migrate:rollback', [
             '--database' => 'der_test',
-            '--step' => 18,
+            '--step' => 19,
             '--force' => true,
         ])->assertSuccessful();
 
@@ -313,7 +313,7 @@ class DerSchemaMigrationTest extends TestCase
                 'columns' => ['id', 'usuario_id', 'vehiculo_id', 'estado', 'actualizado_en'],
                 'nullable' => ['usuario_id', 'vehiculo_id'],
                 'primary' => ['id'],
-                'unique' => [],
+                'unique' => [['usuario_id', 'vehiculo_id']],
                 'foreign' => ['usuario_id' => 'users.id', 'vehiculo_id' => 'vehiculo.id'],
             ],
             'vehiculo_concesionaria' => [
