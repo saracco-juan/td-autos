@@ -12,6 +12,22 @@ export class HttpError<B = unknown> extends Error {
   }
 }
 
+// The request never got a response: server down, wrong API_URL, CORS failure or no internet.
+export class NetworkError extends Error {
+  constructor(cause: unknown) {
+    super('Network request failed', { cause })
+    this.name = 'NetworkError'
+  }
+}
+
+async function request(input: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(input, init)
+  } catch (failure) {
+    throw new NetworkError(failure)
+  }
+}
+
 type RequestOptions = {
   method?: 'GET' | 'POST'
   body?: unknown
@@ -23,7 +39,7 @@ function readXsrfToken(): string | undefined {
 }
 
 export async function ensureCsrfCookie(): Promise<void> {
-  await fetch(`${API_URL}/sanctum/csrf-cookie`, {
+  await request(`${API_URL}/sanctum/csrf-cookie`, {
     credentials: 'include',
     headers: { Accept: 'application/json' },
   })
@@ -51,7 +67,7 @@ async function send(path: string, { method = 'GET', body }: RequestOptions) {
   }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
 
-  return fetch(`${API_URL}${path}`, {
+  return request(`${API_URL}${path}`, {
     method,
     credentials: 'include',
     headers,
