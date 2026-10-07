@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_URL } from './config'
-import { apiFetch, HttpError } from './http'
+import { apiFetch, HttpError, NetworkError } from './http'
 
 const fetchMock = vi.fn()
 
@@ -133,5 +133,22 @@ describe('apiFetch', () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }))
 
     await expect(apiFetch('/api/ping')).resolves.toBeUndefined()
+  })
+
+  it('throws a NetworkError when the server cannot be reached', async () => {
+    const cause = new TypeError('Failed to fetch')
+    fetchMock.mockRejectedValueOnce(cause)
+
+    const error = await apiFetch('/api/user').catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(NetworkError)
+    expect((error as NetworkError).cause).toBe(cause)
+  })
+
+  it('throws a NetworkError when the csrf cookie request cannot reach the server', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    await expect(apiFetch('/register', { method: 'POST', body: {} })).rejects.toBeInstanceOf(NetworkError)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
