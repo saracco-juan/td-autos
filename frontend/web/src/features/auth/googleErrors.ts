@@ -1,6 +1,6 @@
 const GOOGLE_ERROR_MESSAGES: Readonly<Record<string, string>> = {
-  google_cancelled: 'Se canceló el registro con Google.',
-  google_failed: 'No se pudo completar el registro con Google. Intentá nuevamente.',
+  google_cancelled: 'Se canceló el ingreso con Google.',
+  google_failed: 'No se pudo completar el ingreso con Google. Intentá nuevamente.',
   email_in_use: 'El email ya está en uso.',
 }
 

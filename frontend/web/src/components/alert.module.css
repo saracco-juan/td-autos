@@ -1,7 +1,28 @@
-.alert {
+/* Messages are filled boxes with dark text; the tint carries the meaning. */
+.alert,
+.notice,
+.warning {
   padding: 10px 12px;
-  border: 1px solid var(--accent-default);
+  border: 1px solid;
   border-radius: 8px;
-  color: var(--accent-default);
+  color: var(--text-primary);
   font-size: 13px;
+}
+
+/* Error. */
+.alert {
+  border-color: var(--status-error-border);
+  background: var(--status-error-bg);
+}
+
+/* Non-error status message (e.g. "password updated"). */
+.notice {
+  border-color: var(--status-success-border);
+  background: var(--status-success-bg);
+}
+
+/* Something is pending on the user's side (e.g. "profile incomplete"); not an error. */
+.warning {
+  border-color: var(--status-warning-border);
+  background: var(--status-warning-bg);
 }

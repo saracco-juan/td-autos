@@ -1,0 +1,40 @@
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Figma "Chip" (2018:65 default, 2018:62 selected): 40 high, pill, 12 medium label, 220 wide. */
+.chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 220px;
+  max-width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font: 500 12px/normal var(--font-sans);
+  cursor: pointer;
+}
+
+.selected {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--palette-red);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .chip {
+    flex: 1 1 calc(50% - 6px);
+    width: auto;
+  }
+}

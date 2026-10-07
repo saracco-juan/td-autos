@@ -1,0 +1,35 @@
+/* Same page frame as the profile: left-aligned under the nav, 32 from the edges at 1280. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 1216px;
+  /* The shell centers its content vertically; the page starts at the top. */
+  margin-bottom: auto;
+  padding-top: 40px;
+}
+
+/* Page header without an eyebrow that would repeat the title: title 32 bold, text 14 secondary, 8 apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 24px;
+  }
+}

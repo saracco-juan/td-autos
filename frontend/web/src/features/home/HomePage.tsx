@@ -1,36 +1,8 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState'
-import { HttpError, NetworkError } from '../../lib/http'
-import { fetchCurrentUser } from '../auth/api'
-import type { User } from '../auth/types'
+import { useAuth } from '../auth/session/useAuth'
 
-// Main screen placeholder: shows the logged-in user, or sends guests to the register page.
+// Main screen placeholder: shows the logged-in user. The route guard keeps guests out.
 export default function HomePage() {
-  const navigate = useNavigate()
-  const [user, setUser] = useState<User>()
-  const [error, setError] = useState<ErrorKind>()
-
-  useEffect(() => {
-    let active = true
-    fetchCurrentUser()
-      .then((current) => {
-        if (active) setUser(current)
-      })
-      .catch((failure: unknown) => {
-        if (!active) return
-        if (failure instanceof HttpError && failure.status === 401) {
-          navigate('/registro', { replace: true })
-        } else {
-          setError(failure instanceof NetworkError ? 'network' : 'server')
-        }
-      })
-    return () => {
-      active = false
-    }
-  }, [navigate])
-
-  if (error) return <ErrorState kind={error} />
+  const { user } = useAuth()
 
   return (
     <div>

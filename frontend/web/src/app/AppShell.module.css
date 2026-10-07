@@ -4,7 +4,7 @@
   min-height: 100svh;
 }
 
-/* Figma "Nav/Top · Guest" */
+/* Figma "Nav/Top · Guest" and "Nav/Top · Buyer" share the bar */
 .nav {
   display: flex;
   align-items: center;
@@ -19,6 +19,41 @@
   font-size: 20px;
   font-weight: 700;
   text-decoration: none;
+}
+
+/* Figma "Nav/Top · Buyer" right group ("Diagnóstico", "Recomendados", "Perfil", "Cerrar sesión"). */
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-left: auto;
+}
+
+/* Figma "Nav/Top · Buyer" text item: 12px regular, 4px vertical padding. */
+.navAction {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--text-on-color);
+  font: 400 12px/normal var(--font-sans);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* The link of the page the user is on (NavLink sets aria-current). */
+.navAction[aria-current='page'] {
+  font-weight: 700;
+}
+
+.navAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.alert {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 16px;
 }
 
 .content {
@@ -45,5 +80,20 @@
   .nav,
   .footer {
     padding: 0 16px;
+  }
+
+  /* Logo and four links do not fit one row: the bar grows and the links wrap under the logo. */
+  .nav {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 64px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    row-gap: 8px;
+  }
+
+  .navActions {
+    flex-wrap: wrap;
+    gap: 8px 16px;
   }
 }

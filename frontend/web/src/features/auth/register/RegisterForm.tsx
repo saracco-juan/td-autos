@@ -2,9 +2,10 @@ import type { ChangeEvent, FormEvent, ReactNode } from 'react'
 import type { FieldErrors, FieldName } from '../types'
 import alertStyles from '../../../components/alert.module.css'
 import buttonStyles from '../../../components/button.module.css'
-import PasswordInput from './PasswordInput'
-import PasswordRequirements from './PasswordRequirements'
-import styles from './RegisterForm.module.css'
+import Field from '../shared/Field'
+import PasswordInput from '../shared/PasswordInput'
+import PasswordRequirements from '../shared/PasswordRequirements'
+import styles from '../shared/authForm.module.css'
 import type { RegisterFormValues } from './validateRegisterForm'
 
 type Props = {
@@ -16,7 +17,7 @@ type Props = {
   onSubmit: () => void
 }
 
-type FieldProps = {
+type RegisterFieldProps = {
   field: FieldName
   label: string
   type?: 'text' | 'email' | 'password'
@@ -27,40 +28,22 @@ type FieldProps = {
   hint?: ReactNode
 }
 
-function Field({ field, label, type = 'text', autoComplete, values, errors, onChange, hint }: FieldProps) {
-  const id = `register-${field}`
-  const fieldErrors = errors[field]
-  const errorId = `${id}-error`
-  const describedBy = fieldErrors ? errorId : hint ? `${id}-hint` : undefined
+function RegisterField({ field, label, type = 'text', autoComplete, values, errors, onChange, hint }: RegisterFieldProps) {
   const Input = type === 'password' ? PasswordInput : 'input'
-  const inputProps = {
-    id,
-    name: field,
-    className: styles.input,
-    autoComplete,
-    value: values[field],
-    'aria-invalid': fieldErrors ? true : undefined,
-    'aria-describedby': describedBy,
-    onChange: (event: ChangeEvent<HTMLInputElement>) => onChange(field, event.target.value),
-    ...(type === 'password' ? {} : { type }),
-  }
 
   return (
-    <div className={styles.field}>
-      <label htmlFor={id} className={styles.label}>
-        {label}
-      </label>
-      <Input {...inputProps} />
-      {fieldErrors ? (
-        <ul id={errorId} className={styles.errors}>
-          {fieldErrors.map((message) => (
-            <li key={message}>{message}</li>
-          ))}
-        </ul>
-      ) : (
-        hint
+    <Field id={`register-${field}`} label={label} errors={errors[field]} hint={hint}>
+      {(control) => (
+        <Input
+          {...control}
+          name={field}
+          autoComplete={autoComplete}
+          value={values[field]}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(field, event.target.value)}
+          {...(type === 'password' ? {} : { type })}
+        />
       )}
-    </div>
+    </Field>
   )
 }
 
@@ -79,9 +62,9 @@ export default function RegisterForm({ values, errors, submitting, formError, on
         </p>
       ) : null}
       <div className={styles.fields}>
-        <Field {...shared} field="name" label="Nombre completo" autoComplete="name" />
-        <Field {...shared} field="email" label="Email" type="email" autoComplete="email" />
-        <Field
+        <RegisterField {...shared} field="name" label="Nombre completo" autoComplete="name" />
+        <RegisterField {...shared} field="email" label="Email" type="email" autoComplete="email" />
+        <RegisterField
           {...shared}
           field="password"
           label="Contraseña"
@@ -89,7 +72,7 @@ export default function RegisterForm({ values, errors, submitting, formError, on
           autoComplete="new-password"
           hint={<PasswordRequirements id="register-password-hint" password={values.password} />}
         />
-        <Field
+        <RegisterField
           {...shared}
           field="passwordConfirmation"
           label="Confirmar contraseña"

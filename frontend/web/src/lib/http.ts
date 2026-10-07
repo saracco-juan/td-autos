@@ -29,7 +29,7 @@ async function request(input: string, init: RequestInit): Promise<Response> {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PUT'
   body?: unknown
 }
 

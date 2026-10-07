@@ -1,10 +1,11 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_URL } from '../../../lib/config'
 import { HttpError } from '../../../lib/http'
 import { registerUser } from '../api'
+import { useAuth } from '../session/useAuth'
 import RegisterPage from './RegisterPage'
 
 vi.mock('../api', async (importOriginal) => ({
@@ -12,7 +13,11 @@ vi.mock('../api', async (importOriginal) => ({
   registerUser: vi.fn(),
 }))
 
-const createdUser = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
+vi.mock('../session/useAuth', () => ({ useAuth: vi.fn() }))
+
+const refresh = vi.fn()
+
+const createdUser = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 
 function renderPage(entry = '/registro') {
   render(
@@ -54,6 +59,8 @@ describe('RegisterPage', () => {
   beforeEach(() => {
     vi.mocked(registerUser).mockReset()
     vi.mocked(registerUser).mockResolvedValue(createdUser)
+    refresh.mockReset().mockResolvedValue(undefined)
+    vi.mocked(useAuth).mockReturnValue({ user: null, status: 'guest', login: vi.fn(), refresh, logout: vi.fn() })
   })
 
   describe('layout', () => {
@@ -109,6 +116,21 @@ describe('RegisterPage', () => {
       })
     })
 
+    it('refreshes the session before navigating, so the route guards see the new user', async () => {
+      let resolveRefresh!: () => void
+      refresh.mockReturnValue(new Promise<void>((r) => (resolveRefresh = r)))
+      const user = userEvent.setup()
+      renderPage()
+
+      await fillForm(user, validFields)
+      await submit(user)
+
+      await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
+      expect(screen.queryByText('Pantalla principal')).not.toBeInTheDocument()
+      resolveRefresh()
+      expect(await screen.findByText('Pantalla principal')).toBeInTheDocument()
+    })
+
     it('trims the email and never sends an apellido', async () => {
       const user = userEvent.setup()
       renderPage()
@@ -131,6 +153,7 @@ describe('RegisterPage', () => {
       await submit(user)
 
       expect(await screen.findByText('Pantalla principal')).toBeInTheDocument()
+      expect(refresh).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -267,18 +290,18 @@ describe('RegisterPage', () => {
   })
 
   describe('Google', () => {
-    it('TC-02: the Google link points to the backend redirect route', () => {
+    it('TC-02: the Google link points to the backend redirect route, tagged with the register origin', () => {
       renderPage()
 
       expect(screen.getByRole('link', { name: 'CONTINUAR CON GOOGLE' })).toHaveAttribute(
         'href',
-        `${API_URL}/auth/google/redirect`,
+        `${API_URL}/auth/google/redirect?from=registro`,
       )
     })
 
     it.each([
-      ['google_cancelled', 'Se canceló el registro con Google.'],
-      ['google_failed', 'No se pudo completar el registro con Google. Intentá nuevamente.'],
+      ['google_cancelled', 'Se canceló el ingreso con Google.'],
+      ['google_failed', 'No se pudo completar el ingreso con Google. Intentá nuevamente.'],
       ['email_in_use', 'El email ya está en uso.'],
     ])('FE-4: shows the banner for ?error=%s', (code, message) => {
       renderPage(`/registro?error=${code}`)

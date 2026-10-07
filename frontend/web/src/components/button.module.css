@@ -19,6 +19,29 @@
   cursor: not-allowed;
 }
 
+/* A busy button spins in place: the wait is shown on the control that caused it. */
+.button[aria-busy='true']::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button[aria-busy='true']::before {
+    animation-duration: 2.4s;
+  }
+}
+
 .primary {
   background: var(--action-primary);
   color: var(--text-on-action);

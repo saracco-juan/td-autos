@@ -1,0 +1,19 @@
+/* Figma "Links": both links centered, 22 apart; the second is secondary text. */
+.links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.forgot {
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.forgot:hover {
+  color: var(--accent-default);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

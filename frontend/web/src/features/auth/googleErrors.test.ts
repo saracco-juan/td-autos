@@ -3,8 +3,8 @@ import { googleErrorMessage } from './googleErrors'
 
 describe('googleErrorMessage', () => {
   it.each([
-    ['google_cancelled', 'Se canceló el registro con Google.'],
-    ['google_failed', 'No se pudo completar el registro con Google. Intentá nuevamente.'],
+    ['google_cancelled', 'Se canceló el ingreso con Google.'],
+    ['google_failed', 'No se pudo completar el ingreso con Google. Intentá nuevamente.'],
     ['email_in_use', 'El email ya está en uso.'],
   ])('maps %s to its Spanish message', (code, message) => {
     expect(googleErrorMessage(code)).toBe(message)

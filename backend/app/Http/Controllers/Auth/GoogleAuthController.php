@@ -20,8 +20,23 @@ class GoogleAuthController extends Controller
 
     private const ERROR_EMAIL_IN_USE = 'email_in_use';
 
-    public function redirect(): RedirectResponse
+    private const SESSION_ORIGIN = 'google_auth_origin';
+
+    private const ORIGIN_REGISTER = 'registro';
+
+    private const ORIGIN_LOGIN = 'login';
+
+    // Closed allowlist: the failure path is never built from raw input.
+    private const ORIGINS = [self::ORIGIN_REGISTER, self::ORIGIN_LOGIN];
+
+    public function redirect(Request $request): RedirectResponse
     {
+        $from = $request->query('from');
+        $request->session()->put(
+            self::SESSION_ORIGIN,
+            is_string($from) && in_array($from, self::ORIGINS, true) ? $from : self::ORIGIN_REGISTER,
+        );
+
         return Socialite::driver('google')
             ->with(['prompt' => 'select_account'])
             ->redirect();
@@ -29,19 +44,22 @@ class GoogleAuthController extends Controller
 
     public function callback(Request $request, GoogleAccountResolver $resolver): RedirectResponse
     {
+        $origin = $request->session()->pull(self::SESSION_ORIGIN);
+        $origin = in_array($origin, self::ORIGINS, true) ? $origin : self::ORIGIN_REGISTER;
+
         if ($request->query->has('error')) {
-            return $this->failure(self::ERROR_CANCELLED);
+            return $this->failure($origin, self::ERROR_CANCELLED);
         }
 
         try {
             $profile = GoogleProfile::fromSocialite(Socialite::driver('google')->user());
             $user = $resolver->resolve($profile);
         } catch (GoogleEmailConflictException) {
-            return $this->failure(self::ERROR_EMAIL_IN_USE);
+            return $this->failure($origin, self::ERROR_EMAIL_IN_USE);
         } catch (Throwable $e) {
             report($e);
 
-            return $this->failure(self::ERROR_FAILED);
+            return $this->failure($origin, self::ERROR_FAILED);
         }
 
         Auth::login($user);
@@ -50,9 +68,9 @@ class GoogleAuthController extends Controller
         return redirect()->away($this->frontendUrl('/'));
     }
 
-    private function failure(string $code): RedirectResponse
+    private function failure(string $origin, string $code): RedirectResponse
     {
-        return redirect()->away($this->frontendUrl('/registro?error='.$code));
+        return redirect()->away($this->frontendUrl('/'.$origin.'?error='.$code));
     }
 
     private function frontendUrl(string $path): string

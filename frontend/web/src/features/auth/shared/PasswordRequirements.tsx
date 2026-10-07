@@ -1,5 +1,5 @@
 import { PASSWORD_RULES } from '../passwordRules'
-import styles from './RegisterForm.module.css'
+import styles from './PasswordRequirements.module.css'
 
 type Props = {
   id: string

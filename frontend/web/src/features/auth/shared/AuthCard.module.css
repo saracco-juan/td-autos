@@ -1,4 +1,4 @@
-/* Figma "Card/Auth · Registro" */
+/* Figma "Card/Auth" */
 .card {
   display: flex;
   flex-direction: column;
@@ -50,44 +50,6 @@
   max-width: 450px;
   color: var(--text-secondary);
   font-size: 14px;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-block: 4px;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border-default);
-}
-
-.login {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.login a {
-  color: var(--text-primary);
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.login a:hover {
-  color: var(--accent-default);
 }
 
 @media (max-width: 600px) {
