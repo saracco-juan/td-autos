@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { HttpError } from '../../../lib/http'
+import type { ErrorKind } from '../../../components/ErrorState'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser } from '../api'
 import type { LoginCredentials, User } from '../types'
 import { AuthContext, type AuthContextValue, type AuthStatus } from './AuthContext'
 
-type Session = { user: User | null; status: AuthStatus }
+type Session = { user: User | null; status: AuthStatus; errorKind?: ErrorKind }
 
 const GUEST: Session = { user: null, status: 'guest' }
 
@@ -15,9 +16,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       setSession({ user: await fetchCurrentUser(), status: 'authenticated' })
-    } catch {
-      // 401 means no session; any other failure is treated the same so guarded pages never open.
-      setSession(GUEST)
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 401) {
+        setSession(GUEST)
+        return
+      }
+      // The server could not say whether there is a session. Only the load that decides the session
+      // (first load, or right after a login) may land on the error status; a user who is already
+      // authenticated keeps the session, since a transient failure says nothing about it.
+      const errorKind: ErrorKind = error instanceof NetworkError ? 'network' : 'server'
+      setSession((current) => (current.status === 'authenticated' ? current : { user: null, status: 'error', errorKind }))
     }
   }, [])
 

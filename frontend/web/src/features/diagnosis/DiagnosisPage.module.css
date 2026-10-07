@@ -79,18 +79,6 @@
   margin-left: auto;
 }
 
-.loadError {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-  max-width: 480px;
-}
-
-.retry {
-  width: 150px;
-}
-
 @media (max-width: 900px) {
   .body {
     flex-direction: column;

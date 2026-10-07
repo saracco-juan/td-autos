@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../lib/http'
+import { HttpError, NetworkError } from '../../lib/http'
 import { useAuth } from '../auth/session/useAuth'
 import { fetchDiagnosis, saveDiagnosis } from './api'
 import DiagnosisPage from './DiagnosisPage'
@@ -15,7 +15,6 @@ vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
 // Saving the diagnosis refreshes the session (D6): the stub records the order of the calls.
 const refresh = vi.fn()
 
-const LOAD_ERROR = 'No se pudo cargar el diagnóstico. Intentá nuevamente.'
 const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
 
 const bodyTypes: BodyType[] = [
@@ -118,24 +117,30 @@ describe('DiagnosisPage', () => {
       expect(screen.queryByRole('button', { name: 'CONTINUAR' })).not.toBeInTheDocument()
     })
 
-    it('shows an error with a retry when the diagnosis cannot be read, and recovers on retry', async () => {
-      vi.mocked(fetchDiagnosis).mockRejectedValueOnce(new HttpError(500, undefined))
-      vi.mocked(fetchDiagnosis).mockResolvedValue({ diagnostico: null, carrocerias: bodyTypes })
-      const user = userEvent.setup()
+    it('shows the connection error state when the diagnosis cannot be reached, with no retry button', async () => {
+      vi.mocked(fetchDiagnosis).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
       render(
         <MemoryRouter>
           <DiagnosisPage />
         </MemoryRouter>,
       )
 
-      expect(await screen.findByRole('alert')).toHaveTextContent(LOAD_ERROR)
+      const alert = await screen.findByRole('alert')
+      expect(alert).toHaveTextContent('Sin conexión con el servidor')
       expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
+    })
 
-      await user.click(screen.getByRole('button', { name: 'REINTENTAR' }))
+    it('shows the server error state when the diagnosis read fails with a 500, with no retry button', async () => {
+      vi.mocked(fetchDiagnosis).mockRejectedValue(new HttpError(500, undefined))
+      render(
+        <MemoryRouter>
+          <DiagnosisPage />
+        </MemoryRouter>,
+      )
 
-      expect(await screen.findByRole('heading', { level: 1, name: '¿Cuál es tu presupuesto máximo?' })).toBeInTheDocument()
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
-      expect(fetchDiagnosis).toHaveBeenCalledTimes(2)
+      expect(await screen.findByRole('alert')).toHaveTextContent('Algo salió mal')
+      expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
     })
   })
 

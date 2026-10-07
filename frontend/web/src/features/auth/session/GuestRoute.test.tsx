@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../../lib/http'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser } from '../api'
 import AuthProvider from './AuthProvider'
 import GuestRoute from './GuestRoute'
@@ -47,6 +47,23 @@ describe('GuestRoute', () => {
     renderGuestOnly()
 
     expect(await screen.findByText('Formulario para invitados')).toBeInTheDocument()
+  })
+
+  it('shows the connection error instead of the content when the session cannot be read', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
+    renderGuestOnly()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sin conexión con el servidor')
+    expect(screen.queryByText('Formulario para invitados')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pantalla principal')).not.toBeInTheDocument()
+  })
+
+  it('shows the server error instead of the content when the session read fails with a 500', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(500, undefined))
+    renderGuestOnly()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Algo salió mal')
+    expect(screen.queryByText('Formulario para invitados')).not.toBeInTheDocument()
   })
 
   it('redirects an authenticated user to /', async () => {

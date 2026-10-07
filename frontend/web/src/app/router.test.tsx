@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import { HttpError } from '../lib/http'
+import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../features/auth/api'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
@@ -64,6 +64,36 @@ describe('app routes', () => {
     expect(screen.getByRole('status').parentElement).toBe(screen.getByRole('main'))
     expect(screen.getByRole('status')).toHaveTextContent('Cargando')
     expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+  })
+
+  it('shows the connection error in the content area, with the frame visible and no redirect, when the session cannot be read', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
+    const router = renderAt('/')
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Sin conexión con el servidor')
+    expect(alert.parentElement).toBe(screen.getByRole('main'))
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+  })
+
+  it('shows the server error in the content area when the session read fails with a 500', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(500, undefined))
+    renderAt('/perfil')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Algo salió mal')
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+  })
+
+  it('shows the connection error at /login instead of the form when the session cannot be read', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
+    renderAt('/login')
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Sin conexión con el servidor')
+    expect(alert.parentElement).toBe(screen.getByRole('main'))
+    expect(screen.queryByRole('button', { name: 'INGRESAR' })).not.toBeInTheDocument()
   })
 
   it('loads inside the bare auth layout while the session is read at /login', () => {

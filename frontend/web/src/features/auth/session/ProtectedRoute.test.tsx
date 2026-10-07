@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../../lib/http'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser } from '../api'
 import AuthProvider from './AuthProvider'
 import ProtectedRoute from './ProtectedRoute'
@@ -48,6 +48,23 @@ describe('ProtectedRoute', () => {
 
     expect(await screen.findByText('Pantalla de login')).toBeInTheDocument()
     expect(screen.queryByText('Contenido privado')).not.toBeInTheDocument()
+  })
+
+  it('shows the connection error, with no redirect, when the session cannot be read', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
+    renderGuarded()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sin conexión con el servidor')
+    expect(screen.queryByText('Pantalla de login')).not.toBeInTheDocument()
+    expect(screen.queryByText('Contenido privado')).not.toBeInTheDocument()
+  })
+
+  it('shows the server error, with no redirect, when the session read fails with a 500', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(500, undefined))
+    renderGuarded()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Algo salió mal')
+    expect(screen.queryByText('Pantalla de login')).not.toBeInTheDocument()
   })
 
   it('renders the protected content for an authenticated user', async () => {

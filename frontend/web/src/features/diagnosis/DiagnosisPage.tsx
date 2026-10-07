@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
+import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import { NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { useAuth } from '../auth/session/useAuth'
 import { fetchDiagnosis, saveDiagnosis } from './api'
@@ -21,19 +23,17 @@ import { DIAGNOSIS_STEPS } from './steps'
 import StepProgress from './StepProgress'
 import type { BodyType, DiagnosisDraft } from './types'
 
-const LOAD_ERROR = 'No se pudo cargar el diagnóstico. Intentá nuevamente.'
 const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
 const TITLE_ID = 'diagnosis-step-title'
 const MESSAGE_ID = 'diagnosis-step-message'
 const LAST_STEP = DIAGNOSIS_STEPS.length - 1
 
-type LoadState = 'loading' | 'ready' | 'error'
+type LoadState = 'loading' | 'ready' | { error: ErrorKind }
 
 export default function DiagnosisPage() {
   const navigate = useNavigate()
   const { refresh } = useAuth()
   const [loadState, setLoadState] = useState<LoadState>('loading')
-  const [attempt, setAttempt] = useState(0)
   const [draft, setDraft] = useState<DiagnosisDraft>(createEmptyDraft)
   const [bodyTypes, setBodyTypes] = useState<BodyType[]>([])
   const [step, setStep] = useState(0)
@@ -52,13 +52,13 @@ export default function DiagnosisPage() {
         setDraft(diagnostico ? draftFromAnswers(diagnostico) : createEmptyDraft())
         setLoadState('ready')
       })
-      .catch(() => {
-        if (!cancelled) setLoadState('error')
+      .catch((error: unknown) => {
+        if (!cancelled) setLoadState({ error: error instanceof NetworkError ? 'network' : 'server' })
       })
     return () => {
       cancelled = true
     }
-  }, [attempt])
+  }, [])
 
   // After a step change the title takes the focus, so the new question is announced and the keyboard starts there.
   useEffect(() => {
@@ -71,11 +71,6 @@ export default function DiagnosisPage() {
     stepChanged.current = index !== step
     setStep(index)
     setUnanswered(false)
-  }
-
-  const handleRetry = () => {
-    setLoadState('loading')
-    setAttempt((current) => current + 1)
   }
 
   const handleDraftChange = (next: DiagnosisDraft) => {
@@ -124,25 +119,7 @@ export default function DiagnosisPage() {
   // The loader is a direct child of the content area so it is centered there, not inside the page column.
   if (loadState === 'loading') return <SessionLoading />
 
-
-  if (loadState === 'error') {
-    return (
-      <div className={styles.page}>
-        <div className={styles.loadError}>
-          <p role="alert" className={alertStyles.alert}>
-            {LOAD_ERROR}
-          </p>
-          <button
-            type="button"
-            className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.retry}`}
-            onClick={handleRetry}
-          >
-            REINTENTAR
-          </button>
-        </div>
-      </div>
-    )
-  }
+  if (typeof loadState === 'object') return <ErrorState kind={loadState.error} />
 
   const current = DIAGNOSIS_STEPS[step]
   const isLast = step === LAST_STEP

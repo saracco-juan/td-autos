@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import { useEffect } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../../lib/http'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser } from '../api'
 import AuthProvider from './AuthProvider'
 import { useAuth } from './useAuth'
@@ -28,6 +28,7 @@ function Probe() {
     <>
       <p data-testid="status">{auth.status}</p>
       <p data-testid="user">{auth.user?.email ?? 'none'}</p>
+      <p data-testid="error-kind">{auth.errorKind ?? 'none'}</p>
     </>
   )
 }
@@ -69,11 +70,54 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('user')).toHaveTextContent('none')
   })
 
-  it('becomes guest on any other failure', async () => {
-    vi.mocked(fetchCurrentUser).mockRejectedValue(new TypeError('Failed to fetch'))
+  it('goes to the error status with kind network when the server cannot be reached', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
     renderProvider()
 
-    expect(await screen.findByText('guest')).toBeInTheDocument()
+    expect(await screen.findByText('error')).toBeInTheDocument()
+    expect(screen.getByTestId('error-kind')).toHaveTextContent('network')
+    expect(screen.getByTestId('user')).toHaveTextContent('none')
+  })
+
+  it.each([
+    ['a server failure', new HttpError(500, undefined)],
+    ['an unexpected failure', new TypeError('boom')],
+  ])('goes to the error status with kind server on %s', async (_label, failure) => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(failure)
+    renderProvider()
+
+    expect(await screen.findByText('error')).toBeInTheDocument()
+    expect(screen.getByTestId('error-kind')).toHaveTextContent('server')
+  })
+
+  it('has no error kind unless the status is error', async () => {
+    renderProvider()
+
+    expect(await screen.findByText('authenticated')).toBeInTheDocument()
+    expect(screen.getByTestId('error-kind')).toHaveTextContent('none')
+  })
+
+  it('login followed by a failing refresh goes to the error status', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValueOnce(new HttpError(401, undefined))
+    renderProvider()
+    await screen.findByText('guest')
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
+
+    await act(() => captured.auth.login(credentials))
+
+    expect(status()).toBe('error')
+    expect(screen.getByTestId('error-kind')).toHaveTextContent('network')
+  })
+
+  it('recovers from the error status when a later refresh succeeds', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValueOnce(new HttpError(503, undefined))
+    renderProvider()
+    await screen.findByText('error')
+
+    await act(() => captured.auth.refresh())
+
+    expect(status()).toBe('authenticated')
+    expect(screen.getByTestId('error-kind')).toHaveTextContent('none')
   })
 
   it('login signs in and loads the user', async () => {
@@ -166,6 +210,21 @@ describe('AuthProvider', () => {
 
     expect(status()).toBe('guest')
   })
+
+  it.each([
+    ['a network failure', new NetworkError(new TypeError('Failed to fetch'))],
+    ['a server failure', new HttpError(500, undefined)],
+  ])('refresh keeps an authenticated user untouched on %s and does not throw', async (_label, failure) => {
+    renderProvider()
+    await screen.findByText('authenticated')
+    vi.mocked(fetchCurrentUser).mockRejectedValue(failure)
+
+    await act(() => captured.auth.refresh())
+
+    expect(status()).toBe('authenticated')
+    expect(screen.getByTestId('user')).toHaveTextContent('ana@example.com')
+    expect(screen.getByTestId('error-kind')).toHaveTextContent('none')
+  })
 })
 
 describe('useAuth', () => {
@@ -177,4 +236,3 @@ describe('useAuth', () => {
     consoleError.mockRestore()
   })
 })
-
