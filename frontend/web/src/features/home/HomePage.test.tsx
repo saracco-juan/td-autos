@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../lib/http'
+import { HttpError, NetworkError } from '../../lib/http'
 import { fetchCurrentUser } from '../auth/api'
 import HomePage from './HomePage'
 
@@ -57,10 +57,22 @@ describe('HomePage', () => {
     expect(await screen.findByRole('heading', { name: 'Registro' })).toBeInTheDocument()
   })
 
-  it('shows an error message on other failures', async () => {
+  it('shows a connection error when the server cannot be reached', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
+    renderHome()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Sin conexión con el servidor')
+    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    expect(alert.querySelector('svg[data-icon="network"]')).not.toBeNull()
+  })
+
+  it('shows a generic error when the server fails', async () => {
     vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(500, {}))
     renderHome()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cargar la información del usuario.')
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Algo salió mal')
+    expect(alert.querySelector('svg[data-icon="server"]')).not.toBeNull()
   })
 })
