@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { HttpError } from '../../../lib/http'
+import type { ErrorKind } from '../../../components/ErrorState'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser } from '../api'
 import type { LoginCredentials, User } from '../types'
 import { AuthContext, type AuthContextValue, type AuthStatus } from './AuthContext'
 
-type Session = { user: User | null; status: AuthStatus }
+type Session = { user: User | null; status: AuthStatus; errorKind?: ErrorKind }
 
 const GUEST: Session = { user: null, status: 'guest' }
 
@@ -15,9 +16,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       setSession({ user: await fetchCurrentUser(), status: 'authenticated' })
-    } catch {
-      // 401 means no session; any other failure is treated the same so guarded pages never open.
-      setSession(GUEST)
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 401) {
+        setSession(GUEST)
+      } else {
+        // Keep the user behind the guards without mistaking an unavailable server for a logged-out session.
+        setSession({ user: null, status: 'error', errorKind: error instanceof NetworkError ? 'network' : 'server' })
+      }
     }
   }, [])
 

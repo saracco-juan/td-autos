@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import { HttpError } from '../lib/http'
+import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../features/auth/api'
 import { routes } from './router'
 
@@ -67,6 +67,16 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
+    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+  })
+
+  it('keeps / protected and shows a network error when session lookup cannot connect', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
+    const router = renderAt('/')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Sin conexión con el servidor')
+    expect(router.state.location.pathname).toBe('/')
+    expect(fetchCurrentUser).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
   })
 

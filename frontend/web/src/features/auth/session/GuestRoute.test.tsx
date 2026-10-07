@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../../lib/http'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser } from '../api'
 import AuthProvider from './AuthProvider'
 import GuestRoute from './GuestRoute'
@@ -55,5 +55,17 @@ describe('GuestRoute', () => {
 
     expect(await screen.findByText('Pantalla principal')).toBeInTheDocument()
     expect(screen.queryByText('Formulario para invitados')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [new NetworkError(new TypeError('Failed to fetch')), 'Sin conexión con el servidor'],
+    [new HttpError(500, undefined), 'Algo salió mal'],
+  ])('shows an error instead of a guest form when session lookup fails', async (failure, message) => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(failure)
+    renderGuestOnly()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(message)
+    expect(screen.queryByText('Formulario para invitados')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pantalla principal')).not.toBeInTheDocument()
   })
 })

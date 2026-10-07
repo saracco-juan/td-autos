@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import { useEffect } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../../lib/http'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser } from '../api'
 import AuthProvider from './AuthProvider'
 import { useAuth } from './useAuth'
@@ -28,6 +28,7 @@ function Probe() {
     <>
       <p data-testid="status">{auth.status}</p>
       <p data-testid="user">{auth.user?.email ?? 'none'}</p>
+      <p data-testid="error">{auth.errorKind ?? 'none'}</p>
     </>
   )
 }
@@ -69,11 +70,20 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('user')).toHaveTextContent('none')
   })
 
-  it('becomes guest on any other failure', async () => {
-    vi.mocked(fetchCurrentUser).mockRejectedValue(new TypeError('Failed to fetch'))
+  it('reports a network error instead of becoming a guest', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
     renderProvider()
 
-    expect(await screen.findByText('guest')).toBeInTheDocument()
+    expect(await screen.findByText('error')).toBeInTheDocument()
+    expect(screen.getByTestId('error')).toHaveTextContent('network')
+  })
+
+  it('reports a server error instead of becoming a guest', async () => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(new HttpError(500, undefined))
+    renderProvider()
+
+    expect(await screen.findByText('error')).toBeInTheDocument()
+    expect(screen.getByTestId('error')).toHaveTextContent('server')
   })
 
   it('login signs in and loads the user', async () => {

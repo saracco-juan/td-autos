@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../../lib/http'
+import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchCurrentUser } from '../api'
 import AuthProvider from './AuthProvider'
 import ProtectedRoute from './ProtectedRoute'
@@ -56,5 +56,19 @@ describe('ProtectedRoute', () => {
 
     expect(await screen.findByText('Contenido privado')).toBeInTheDocument()
     expect(screen.queryByText('Pantalla de login')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [new NetworkError(new TypeError('Failed to fetch')), 'Sin conexión con el servidor', 'network'],
+    [new HttpError(500, undefined), 'Algo salió mal', 'server'],
+  ])('shows an error instead of redirecting when session lookup fails', async (failure, message, icon) => {
+    vi.mocked(fetchCurrentUser).mockRejectedValue(failure)
+    renderGuarded()
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(message)
+    expect(alert.querySelector(`svg[data-icon="${icon}"]`)).not.toBeNull()
+    expect(screen.queryByText('Pantalla de login')).not.toBeInTheDocument()
+    expect(screen.queryByText('Contenido privado')).not.toBeInTheDocument()
   })
 })
