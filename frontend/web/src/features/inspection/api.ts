@@ -10,9 +10,10 @@ export function setItemCompleted(
   code: string,
   completed: boolean,
 ): Promise<InspectionProgress> {
+  // Saved in the background with no loader: keepalive lets the write finish if the user reloads or leaves.
   return apiFetch<InspectionProgress>(
     `/api/vehiculos/${vehicleId}/inspeccion/items/${encodeURIComponent(code)}`,
-    { method: 'PUT', body: { completado: completed } },
+    { method: 'PUT', body: { completado: completed }, keepalive: true },
   )
 }
 

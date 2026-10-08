@@ -1,0 +1,93 @@
+/* Left card of the two-column area: the five steps as a vertical list of tabs. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-primary);
+  font: 400 14px/1.3 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: var(--bg-base);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--palette-red);
+  outline-offset: 2px;
+}
+
+/* Selected: raised surface, stronger border and medium weight. */
+.selected,
+.selected:hover {
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
+  font-weight: 600;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Critical items pending (only while the warning is open): a small accent dot, the text is for screen readers. */
+.marker {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-default);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Narrow screens: a horizontal strip above the panel that scrolls sideways. */
+@media (max-width: 767px) {
+  .list {
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px;
+    overflow-x: auto;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    min-height: 44px;
+  }
+
+  .title {
+    flex: none;
+    white-space: nowrap;
+  }
+}

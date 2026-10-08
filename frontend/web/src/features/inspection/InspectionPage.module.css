@@ -1,9 +1,14 @@
-/* Single column of full-width accordion panels (user decision, replaces the two-column grid of Figma 38:568):
-   the page is symmetric whatever is open. Actions bottom right. */
-.grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/*
+ * Two-column area (user decision, replaces the two-column step cards of Figma 38:568 and the accordion):
+ * the step list on the left (280 wide), the selected step on the right. Both cards share the row height
+ * (grid stretch) and the panel has a fixed min-height, so the page does not change size while the user works.
+ * One column below 768 px: the list becomes a strip above the panel.
+ */
+.columns {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
 }
 
 .warning {
@@ -11,35 +16,9 @@
   outline: none;
 }
 
-.footer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-}
-
-.footerMessage {
-  margin: 0;
-  align-self: stretch;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.action {
-  width: 220px;
-}
-
-@media (max-width: 600px) {
-  .actions {
-    align-self: stretch;
-  }
-
-  .action {
-    flex: 1;
-    width: auto;
+@media (max-width: 767px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
 }

@@ -1,0 +1,129 @@
+/*
+ * Right card of the two-column area: the selected step.
+ *
+ * Fixed height (desktop): every step is shown in the same card, so its min-height fits the longest step
+ * and switching steps never changes the page height. The height is built from the same metrics the content
+ * uses (custom properties below), not from a pixel guess:
+ *   card padding x2 + card border x2
+ *   + head (title line + gap + one hint line, reserved even when the step has no hint)
+ *   + gap + N rows of --row-h with --row-gap between them (N = --max-items = items of the longest step,
+ *     set by the page from the data on the wrapper, 6 as fallback)
+ *   + gap + the save-error slot (--message-h, reserved so an error never grows the card).
+ * A row that wraps (narrow widths, long texts) can still make the card grow; at desktop width rows are one line.
+ */
+.panel {
+  --row-h: 44px;
+  --row-gap: 8px;
+  --card-pad: 20px;
+  --card-border: 1px;
+  --section-gap: 16px;
+  --title-h: 24px;
+  --hint-h: 18px;
+  --head-gap: 4px;
+  --message-h: 40px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+  padding: var(--card-pad);
+  background: var(--surface-default);
+  border: var(--card-border) solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+@media (min-width: 768px) {
+  .panel {
+    min-height: calc(
+      2 * var(--card-pad) + 2 * var(--card-border) + var(--title-h) + var(--head-gap) + var(--hint-h) +
+        var(--section-gap) + var(--max-items, 6) * var(--row-h) + (var(--max-items, 6) - 1) * var(--row-gap) +
+        var(--section-gap) + var(--message-h)
+    );
+  }
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--head-gap);
+  min-height: calc(var(--title-h) + var(--head-gap) + var(--hint-h));
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: var(--title-h);
+  outline: none;
+}
+
+.hint {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: var(--hint-h);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--row-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Item row: bordered, rounded; checkbox, text that wraps, and the badge that never shrinks. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--row-h);
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.row:has(.checkbox:focus-visible) {
+  outline: 2px solid var(--palette-red);
+  outline-offset: 2px;
+}
+
+.checked .text {
+  color: var(--text-secondary);
+}
+
+.checkbox {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--action-primary);
+  cursor: inherit;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-default);
+  color: var(--text-on-color);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* The slot is reserved by the min-height above; the error takes the room that was left empty. */
+.message {
+  display: flex;
+  align-items: center;
+  min-height: var(--message-h);
+  margin: 0;
+}

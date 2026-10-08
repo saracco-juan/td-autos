@@ -1,0 +1,67 @@
+/*
+ * Pinned bar. `sticky; bottom: 0` inside the page column: it sticks to the bottom of the viewport while the
+ * checklist is taller than the screen and rests at the end of the page otherwise, so it never covers the
+ * footer (the shell footer is a sibling after <main>). Opaque background and a top border keep content from
+ * showing through. The height is fixed (buttons are 40 high, the message slot holds the 40-high error box),
+ * and the buttons are anchored to the right edge.
+ */
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  min-height: 72px;
+  padding: 16px 0;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-default);
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.action {
+  width: 180px;
+}
+
+@media (max-width: 767px) {
+  .bar {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .message {
+    flex-basis: 100%;
+  }
+
+  /* An error above the buttons is the one thing allowed to make the bar taller on a phone. */
+  .message:empty {
+    display: none;
+  }
+
+  .actions {
+    flex: 1;
+  }
+
+  .action {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: 0 8px;
+  }
+}

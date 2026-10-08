@@ -162,6 +162,22 @@ describe('apiFetch', () => {
     expect((error as NetworkError).cause).toBe(cause)
   })
 
+  it('asks the browser to finish a keepalive write even if the page goes away', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, {}))
+
+    await apiFetch('/api/user', { method: 'PUT', body: {}, keepalive: true })
+
+    expect(fetchMock.mock.calls[0][1].keepalive).toBe(true)
+  })
+
+  it('does not set keepalive unless asked', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, {}))
+
+    await apiFetch('/api/user', { method: 'PUT', body: {} })
+
+    expect(fetchMock.mock.calls[0][1].keepalive).toBeUndefined()
+  })
+
   it('throws a NetworkError when the csrf cookie request cannot reach the server', async () => {
     clearXsrfCookie()
     fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))

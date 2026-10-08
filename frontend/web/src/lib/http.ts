@@ -31,6 +31,8 @@ async function request(input: string, init: RequestInit): Promise<Response> {
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT'
   body?: unknown
+  // The browser finishes the request even if the page is reloaded or closed meanwhile (background saves).
+  keepalive?: boolean
 }
 
 function readXsrfToken(): string | undefined {
@@ -57,7 +59,7 @@ async function parseBody(response: Response): Promise<unknown> {
 
 // The CSRF cookie is requested only when there is none (or when a 419 says the one we have is stale):
 // asking for it before every write would double the round trips of each one.
-async function send(path: string, { method = 'GET', body }: RequestOptions, refreshCsrf = false) {
+async function send(path: string, { method = 'GET', body, keepalive }: RequestOptions, refreshCsrf = false) {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
@@ -74,6 +76,7 @@ async function send(path: string, { method = 'GET', body }: RequestOptions, refr
     credentials: 'include',
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
+    ...(keepalive ? { keepalive: true } : {}),
   })
 }
 

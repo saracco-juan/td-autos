@@ -1,21 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useParams } from 'react-router'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import alertStyles from '../../components/alert.module.css'
-import buttonStyles from '../../components/button.module.css'
 import screenStyles from '../../components/screen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
+import { useMediaQuery } from '../../lib/useMediaQuery'
 import SessionLoading from '../auth/session/SessionLoading'
 import { fetchInspection, finishInspection, setItemCompleted } from './api'
+import InspectionActionBar from './InspectionActionBar'
 import InspectionHeader from './InspectionHeader'
 import styles from './InspectionPage.module.css'
-import InspectionStepCard from './InspectionStepCard'
+import InspectionStepList from './InspectionStepList'
+import InspectionStepPanel from './InspectionStepPanel'
 import InspectionSummary from './InspectionSummary'
 import { summarizeInspection, vehicleTitle } from './progress'
 import type { InspectionStep, InspectionVehicle } from './types'
 import VehicleNotFound from './VehicleNotFound'
-
-const FINISH_ERROR = 'No pudimos finalizar la inspección. Probá de nuevo.'
 
 type LoadState = 'loading' | 'ready' | 'not-found' | { error: ErrorKind }
 type View = 'checklist' | 'summary'
@@ -31,12 +31,15 @@ function withCode(codes: string[], code: string, completed: boolean): string[] {
   return completed ? [...rest, code] : rest
 }
 
-// Only the first step that still has pending items starts open; with everything ticked all start closed.
-function initialOpenSteps(steps: InspectionStep[], completedCodes: string[]): Set<number> {
+// The first step that still has pending items; step 1 when everything is ticked.
+function initialSelectedStep(steps: InspectionStep[], completedCodes: string[]): number {
   const ticked = new Set(completedCodes)
   const first = steps.find((step) => step.items.some((item) => !ticked.has(item.codigo)))
-  return new Set(first ? [first.numero] : [])
+  return (first ?? steps[0])?.numero ?? 1
 }
+
+// Longest step, in items: the panel is sized for it (see InspectionStepPanel.module.css).
+const longestStep = (steps: InspectionStep[]) => Math.max(1, ...steps.map((step) => step.items.length))
 
 function criticalWarning(count: number): string {
   return count === 1
@@ -59,14 +62,18 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   // The page is the source of truth while it is open: responses never replace this list.
   const [completed, setCompleted] = useState<string[]>([])
   const [failedSteps, setFailedSteps] = useState<ReadonlySet<number>>(new Set())
-  const [openSteps, setOpenSteps] = useState<ReadonlySet<number>>(new Set())
+  // Local UI state, not saved: the step shown in the panel. It survives a trip to the summary.
+  const [selected, setSelected] = useState(1)
   const [view, setView] = useState<View>('checklist')
   const [warningOpen, setWarningOpen] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const [finishFailed, setFinishFailed] = useState(false)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const warningRef = useRef<HTMLParagraphElement>(null)
+  const panelHeadingRef = useRef<HTMLHeadingElement>(null)
   const viewChanged = useRef(false)
+  const headingFocus = useRef(false)
+  const narrow = useMediaQuery('(max-width: 767px)')
   // Per-item sync state. Each item has at most one request in flight (`draining`); the value the user
   // wants now is `desired`, and `confirmed` is the last value the server acknowledged for it.
   const desired = useRef(new Map<string, boolean>())
@@ -82,7 +89,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
         confirmed.current = new Map(inspection.items_completados.map((code) => [code, true]))
         setContent({ vehicle: inspection.vehiculo, steps: inspection.pasos })
         setCompleted(inspection.items_completados)
-        setOpenSteps(initialOpenSteps(inspection.pasos, inspection.items_completados))
+        setSelected(initialSelectedStep(inspection.pasos, inspection.items_completados))
         setLoadState('ready')
       })
       .catch((error: unknown) => {
@@ -115,13 +122,19 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
     setView(next)
   }
 
-  const setStepOpen = (numero: number, open: boolean) =>
-    setOpenSteps((current) => {
-      const next = new Set(current)
-      if (open) next.add(numero)
-      else next.delete(numero)
-      return next
-    })
+  // After PASO ANTERIOR / PASO SIGUIENTE the panel heading takes the focus, so the new step is announced.
+  useEffect(() => {
+    if (!headingFocus.current) return
+    headingFocus.current = false
+    panelHeadingRef.current?.focus({ preventScroll: true })
+  }, [selected])
+
+  const stepIndex = steps.findIndex((step) => step.numero === selected)
+
+  const goToStep = (index: number) => {
+    headingFocus.current = true
+    setSelected(steps[index].numero)
+  }
 
   const setStepFailed = (code: string, failed: boolean) => {
     const numero = steps.find((step) => step.items.some((item) => item.codigo === code))?.numero
@@ -132,8 +145,8 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
       else next.delete(numero)
       return next
     })
-    // A step whose save failed must show its error.
-    if (failed) setStepOpen(numero, true)
+    // The step whose save failed is shown, so the reverted item and the error are visible.
+    if (failed) setSelected(numero)
   }
 
   // Sends the desired value of one item, then again if the user changed their mind meanwhile.
@@ -198,20 +211,18 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   }
 
   const handleFinishRequest = () => {
-    if (progress.pendingCritical > 0) {
-      setWarningOpen(true)
-      // Open every step that still has a critical item pending, so the user sees what is missing.
-      const ticked = new Set(completed)
-      setOpenSteps(
-        (current) =>
-          new Set([
-            ...current,
-            ...steps
-              .filter((step) => step.items.some((item) => item.critico && !ticked.has(item.codigo)))
-              .map((step) => step.numero),
-          ]),
-      )
-    } else void handleFinish()
+    if (progress.pendingCritical > 0) setWarningOpen(true)
+    else void handleFinish()
+  }
+
+  // While the warning is open, the steps that still have critical items pending get a marker in the list.
+  const ticked = new Set(completed)
+  const pendingCritical = new Map<number, number>()
+  if (showWarning) {
+    for (const step of steps) {
+      const count = step.items.filter((item) => item.critico && !ticked.has(item.codigo)).length
+      if (count > 0) pendingCritical.set(step.numero, count)
+    }
   }
 
   // The loader is a direct child of the content area so it is centered there, not inside the page column.
@@ -233,6 +244,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   }
 
   const completedCodes = new Set(completed)
+  const step = steps[stepIndex]
 
   return (
     <div className={screenStyles.page}>
@@ -250,60 +262,37 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
         </p>
       ) : null}
 
-      <div className={styles.grid}>
-        {content.steps.map((step) => (
-          <InspectionStepCard
-            key={step.numero}
-            step={step}
-            completedCodes={completedCodes}
-            open={openSteps.has(step.numero)}
-            saveFailed={failedSteps.has(step.numero)}
-            onToggleOpen={() => setStepOpen(step.numero, !openSteps.has(step.numero))}
-            onToggle={handleToggle}
-          />
-        ))}
+      {/* Two columns: the step list and the selected step. --max-items sizes the panel for the longest step. */}
+      <div className={styles.columns} style={{ '--max-items': longestStep(steps) } as CSSProperties}>
+        <InspectionStepList
+          steps={steps}
+          completedCodes={completedCodes}
+          selected={selected}
+          orientation={narrow ? 'horizontal' : 'vertical'}
+          pendingCritical={pendingCritical}
+          onSelect={setSelected}
+        />
+        <InspectionStepPanel
+          step={step}
+          completedCodes={completedCodes}
+          saveFailed={failedSteps.has(step.numero)}
+          headingRef={panelHeadingRef}
+          onToggle={handleToggle}
+        />
       </div>
 
-      <div className={styles.footer}>
-        {finishFailed ? (
-          <p role="alert" className={`${alertStyles.alert} ${styles.footerMessage}`}>
-            {FINISH_ERROR}
-          </p>
-        ) : null}
-        <div className={styles.actions}>
-          {showWarning ? (
-            <>
-              <button
-                type="button"
-                disabled={finishing}
-                aria-busy={finishing}
-                className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.action}`}
-                onClick={() => void handleFinish()}
-              >
-                {finishing ? 'FINALIZANDO…' : 'FINALIZAR IGUAL'}
-              </button>
-              <button
-                type="button"
-                disabled={finishing}
-                className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.action}`}
-                onClick={() => setWarningOpen(false)}
-              >
-                SEGUIR REVISANDO
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              disabled={finishing}
-              aria-busy={finishing}
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.action}`}
-              onClick={handleFinishRequest}
-            >
-              {finishing ? 'FINALIZANDO…' : 'FINALIZAR'}
-            </button>
-          )}
-        </div>
-      </div>
+      <InspectionActionBar
+        warning={showWarning}
+        finishing={finishing}
+        finishFailed={finishFailed}
+        hasPrevious={stepIndex > 0}
+        hasNext={stepIndex < steps.length - 1}
+        onPrevious={() => goToStep(stepIndex - 1)}
+        onNext={() => goToStep(stepIndex + 1)}
+        onFinish={handleFinishRequest}
+        onFinishAnyway={() => void handleFinish()}
+        onKeepReviewing={() => setWarningOpen(false)}
+      />
     </div>
   )
 }

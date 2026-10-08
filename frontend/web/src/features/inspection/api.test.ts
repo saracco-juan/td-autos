@@ -42,6 +42,7 @@ describe('inspection api', () => {
     expect(apiFetch).toHaveBeenCalledWith('/api/vehiculos/7/inspeccion/items/papeles_titular', {
       method: 'PUT',
       body: { completado: true },
+      keepalive: true,
     })
   })
 
@@ -52,6 +53,7 @@ describe('inspection api', () => {
     expect(apiFetch).toHaveBeenCalledWith('/api/vehiculos/7/inspeccion/items/papeles_titular', {
       method: 'PUT',
       body: { completado: false },
+      keepalive: true,
     })
   })
 

@@ -12,6 +12,18 @@ vi.mock('./api', () => ({ fetchInspection: vi.fn(), setItemCompleted: vi.fn(), f
 
 const SAVE_ERROR = 'No pudimos guardar el cambio. Probá de nuevo.'
 const FINISH_ERROR = 'No pudimos finalizar la inspección. Probá de nuevo.'
+const ALL_CODES = [
+  'papeles_titular',
+  'papeles_vtv',
+  'exterior_pintura',
+  'exterior_luces',
+  'motor_perdidas',
+  'motor_aceite',
+  'interior_testigos',
+  'interior_kilometraje',
+  'manejo_frenos',
+  'manejo_caja',
+]
 
 // A promise the test settles by hand, to hold a request in flight.
 function deferred<T>() {
@@ -48,23 +60,28 @@ type User = ReturnType<typeof userEvent.setup>
 const checkbox = (name: string | RegExp) => screen.getByRole('checkbox', { name })
 const button = (name: string) => screen.getByRole('button', { name })
 const counter = () => screen.getByText(/puntos revisados$/)
-const stepHeaders = () => screen.getAllByRole('button', { name: /^\d\. / })
-const stepHeader = (title: string) => screen.getByRole('button', { name: new RegExp(`^${title.replace('.', '\\.')}`) })
-// Numbers of the steps that are expanded, in order.
-const openSteps = () =>
-  stepHeaders()
-    .filter((header) => header.getAttribute('aria-expanded') === 'true')
-    .map((header) => Number(header.textContent?.[0]))
+const tab = (title: string) => screen.getByRole('tab', { name: new RegExp(`^${title.replace('.', '\\.')}`) })
+// Number of the selected step.
+const selectedStep = () => Number(screen.getByRole('tab', { selected: true }).textContent?.[0])
+const selectStep = (user: User, title: string) => user.click(tab(title))
+const warningBox = () => screen.getByText(/sin revisar/)
 
-// Opens every collapsed step, so any item can be reached.
-async function expandAll(user: User) {
-  for (const header of stepHeaders()) {
-    if (header.getAttribute('aria-expanded') === 'false') await user.click(header)
-  }
+// jsdom has no layout: this makes `(max-width: 767px)` match, like a phone.
+function stubNarrowScreen() {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockImplementation((query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  )
 }
 
 describe('InspectionPage', () => {
   beforeEach(() => {
+    vi.unstubAllGlobals()
     vi.mocked(fetchInspection).mockReset()
     vi.mocked(setItemCompleted).mockReset().mockResolvedValue(saved())
     vi.mocked(finishInspection).mockReset().mockResolvedValue({ estado: 'completa', items_completados: [] })
@@ -127,12 +144,10 @@ describe('InspectionPage', () => {
       expect(counter()).toHaveAttribute('aria-live', 'polite')
     })
 
-    it('renders the five steps in order, each with its progress', async () => {
+    it('renders the five steps in the list, each with its progress', async () => {
       await renderPage(inspectionResponse({ items_completados: ['papeles_vtv'] }))
 
-      const headers = stepHeaders()
-      expect(headers).toHaveLength(5)
-      expect(headers.map((header) => header.textContent)).toEqual([
+      expect(screen.getAllByRole('tab').map((step) => step.textContent)).toEqual([
         '1. Papeles del auto1 de 2',
         '2. Exterior0 de 2',
         '3. Motor0 de 2',
@@ -141,23 +156,20 @@ describe('InspectionPage', () => {
       ])
     })
 
-    it('shows the hint and the items of an open step', async () => {
-      const user = userEvent.setup()
+    it('renders only the selected step: its title, hint and items', async () => {
       await renderPage()
 
-      expect(screen.getByText('Pedile al vendedor la cédula y el título del auto.')).toBeInTheDocument()
-      const step = screen.getByRole('region', { name: '1. Papeles del auto' })
-      expect(within(step).getAllByRole('checkbox')).toHaveLength(2)
-      await expandAll(user)
-      expect(screen.getAllByRole('checkbox')).toHaveLength(10)
+      const panel = screen.getByRole('tabpanel')
+      expect(within(panel).getByRole('heading', { level: 2, name: '1. Papeles del auto' })).toBeInTheDocument()
+      expect(within(panel).getByText('Pedile al vendedor la cédula y el título del auto.')).toBeInTheDocument()
+      expect(screen.getAllByRole('checkbox')).toHaveLength(2)
+      expect(screen.queryByRole('checkbox', { name: 'Las luces funcionan' })).not.toBeInTheDocument()
     })
 
     it('marks the critical items with a CRÍTICO badge that is part of the item name', async () => {
-      const user = userEvent.setup()
       await renderPage()
-      await expandAll(user)
 
-      expect(screen.getAllByText('CRÍTICO')).toHaveLength(CRITICAL_CODES.length)
+      expect(screen.getAllByText('CRÍTICO')).toHaveLength(1)
       expect(checkbox('El titular coincide con el vendedor CRÍTICO')).toBeInTheDocument()
       expect(checkbox('La VTV está vigente')).toBeInTheDocument()
     })
@@ -167,135 +179,165 @@ describe('InspectionPage', () => {
       await renderPage(
         inspectionResponse({ estado: 'en_curso', items_completados: ['papeles_vtv', 'motor_perdidas'] }),
       )
-      await expandAll(user)
 
       expect(checkbox('La VTV está vigente')).toBeChecked()
+      expect(checkbox('El titular coincide con el vendedor CRÍTICO')).not.toBeChecked()
+      await selectStep(user, '3. Motor')
       expect(checkbox('No hay pérdidas de líquidos CRÍTICO')).toBeChecked()
-      expect(checkbox('Las luces funcionan')).not.toBeChecked()
+      expect(checkbox('El aceite se ve limpio')).not.toBeChecked()
       expect(counter()).toHaveTextContent('2 de 10 puntos revisados')
     })
   })
 
-  describe('accordion', () => {
-    it('opens only the first step when nothing is ticked', async () => {
+  describe('step selection', () => {
+    it('selects step 1 when nothing is ticked', async () => {
       await renderPage()
 
-      expect(openSteps()).toEqual([1])
+      expect(selectedStep()).toBe(1)
     })
 
-    it('opens only the first step that still has pending items', async () => {
+    it('selects the first step that still has pending items', async () => {
       await renderPage(
         inspectionResponse({ items_completados: ['papeles_titular', 'papeles_vtv', 'exterior_pintura'] }),
       )
 
-      expect(openSteps()).toEqual([2])
+      expect(selectedStep()).toBe(2)
     })
 
-    it('collapses every step when everything is ticked', async () => {
-      await renderPage(
-        inspectionResponse({
-          items_completados: [
-            'papeles_titular',
-            'papeles_vtv',
-            'exterior_pintura',
-            'exterior_luces',
-            'motor_perdidas',
-            'motor_aceite',
-            'interior_testigos',
-            'interior_kilometraje',
-            'manejo_frenos',
-            'manejo_caja',
-          ],
-        }),
-      )
+    it('selects step 1 when everything is ticked', async () => {
+      await renderPage(inspectionResponse({ items_completados: ALL_CODES }))
 
-      expect(openSteps()).toEqual([])
-      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+      expect(selectedStep()).toBe(1)
       expect(counter()).toHaveTextContent('10 de 10 puntos revisados')
     })
 
-    it('opens and closes a step from its header, with aria-expanded and aria-controls', async () => {
+    it('shows the items of the clicked step in place and hides the others, keeping the focus on the tab', async () => {
       const user = userEvent.setup()
       await renderPage()
-      const header = stepHeader('2. Exterior')
-      expect(header).toHaveAttribute('aria-expanded', 'false')
-      expect(screen.queryByRole('checkbox', { name: 'Las luces funcionan' })).not.toBeInTheDocument()
 
-      await user.click(header)
+      await selectStep(user, '2. Exterior')
 
-      expect(header).toHaveAttribute('aria-expanded', 'true')
-      const panel = document.getElementById(header.getAttribute('aria-controls') ?? '')
-      expect(panel).toContainElement(checkbox('Las luces funcionan'))
-
-      await user.click(header)
-
-      expect(header).toHaveAttribute('aria-expanded', 'false')
-      expect(screen.queryByRole('checkbox', { name: 'Las luces funcionan' })).not.toBeInTheDocument()
+      expect(selectedStep()).toBe(2)
+      expect(tab('2. Exterior')).toHaveFocus()
+      expect(screen.getAllByRole('checkbox')).toHaveLength(2)
+      expect(checkbox('Las luces funcionan')).toBeInTheDocument()
+      expect(screen.queryByRole('checkbox', { name: 'La VTV está vigente' })).not.toBeInTheDocument()
+      expect(screen.getAllByRole('tabpanel')).toHaveLength(1)
     })
 
-    it('toggles with the keyboard (Enter and Space) and keeps several steps open at once', async () => {
+    it('labels the tabpanel with the selected tab', async () => {
       const user = userEvent.setup()
       await renderPage()
+      await selectStep(user, '3. Motor')
 
-      stepHeader('2. Exterior').focus()
-      await user.keyboard('{Enter}')
-      stepHeader('3. Motor').focus()
-      await user.keyboard(' ')
-
-      expect(openSteps()).toEqual([1, 2, 3])
+      const panel = screen.getByRole('tabpanel', { name: /^3\. Motor/ })
+      expect(panel).toHaveAttribute('aria-labelledby', tab('3. Motor').id)
+      expect(tab('3. Motor')).toHaveAttribute('aria-controls', panel.id)
+      expect(tab('3. Motor')).toHaveAttribute('aria-selected', 'true')
+      expect(tab('1. Papeles del auto')).toHaveAttribute('aria-selected', 'false')
     })
 
-    it('keeps the items of a collapsed step out of the tab order', async () => {
+    it('moves with the arrow keys, Home and End, selecting and focusing the tab', async () => {
       const user = userEvent.setup()
       await renderPage()
-      await user.click(stepHeader('1. Papeles del auto'))
+      tab('1. Papeles del auto').focus()
 
-      // The focus stays on the header that was clicked; the next stop is the following header.
-      await user.tab()
+      await user.keyboard('{ArrowDown}')
+      expect(selectedStep()).toBe(2)
+      expect(tab('2. Exterior')).toHaveFocus()
+      expect(checkbox('Las luces funcionan')).toBeInTheDocument()
 
-      expect(document.activeElement).toBe(stepHeader('2. Exterior'))
-      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+      await user.keyboard('{End}')
+      expect(selectedStep()).toBe(5)
+      await user.keyboard('{Home}')
+      expect(selectedStep()).toBe(1)
+      await user.keyboard('{ArrowUp}')
+      expect(selectedStep()).toBe(5)
     })
 
-    it('updates the progress of a step when an item is ticked', async () => {
+    it('lists the steps horizontally, moving with Left and Right, on a narrow screen', async () => {
+      stubNarrowScreen()
       const user = userEvent.setup()
       await renderPage()
-      expect(stepHeader('1. Papeles del auto')).toHaveTextContent('0 de 2')
+      expect(screen.getByRole('tablist')).toHaveAttribute('aria-orientation', 'horizontal')
+      tab('1. Papeles del auto').focus()
+
+      await user.keyboard('{ArrowRight}')
+
+      expect(selectedStep()).toBe(2)
+    })
+
+    it('is a vertical list on a wide screen', async () => {
+      await renderPage()
+
+      expect(screen.getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical')
+    })
+
+    it('has PASO SIGUIENTE only on the first step and PASO ANTERIOR only on the last one', async () => {
+      const user = userEvent.setup()
+      await renderPage()
+      expect(screen.queryByRole('button', { name: 'PASO ANTERIOR' })).not.toBeInTheDocument()
+      expect(button('PASO SIGUIENTE')).toBeInTheDocument()
+
+      await selectStep(user, '5. Prueba de manejo')
+
+      expect(button('PASO ANTERIOR')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'PASO SIGUIENTE' })).not.toBeInTheDocument()
+      expect(button('FINALIZAR')).toBeInTheDocument()
+    })
+
+    it('moves between steps with PASO SIGUIENTE and PASO ANTERIOR, focusing the new step heading', async () => {
+      const user = userEvent.setup()
+      await renderPage()
+
+      await user.click(button('PASO SIGUIENTE'))
+      expect(selectedStep()).toBe(2)
+      expect(screen.getByRole('heading', { level: 2, name: '2. Exterior' })).toHaveFocus()
+
+      await user.click(button('PASO SIGUIENTE'))
+      expect(selectedStep()).toBe(3)
+      await user.click(button('PASO ANTERIOR'))
+      expect(selectedStep()).toBe(2)
+      expect(screen.getByRole('heading', { level: 2, name: '2. Exterior' })).toHaveFocus()
+    })
+
+    it('updates the progress of a step in the list when an item is ticked', async () => {
+      const user = userEvent.setup()
+      await renderPage()
+      expect(tab('1. Papeles del auto')).toHaveTextContent('0 de 2')
       vi.mocked(setItemCompleted).mockResolvedValue(saved(['papeles_vtv']))
 
       await user.click(checkbox('La VTV está vigente'))
 
-      expect(stepHeader('1. Papeles del auto')).toHaveTextContent('1 de 2')
-      expect(stepHeader('2. Exterior')).toHaveTextContent('0 de 2')
+      expect(tab('1. Papeles del auto')).toHaveTextContent('1 de 2')
+      expect(tab('2. Exterior')).toHaveTextContent('0 de 2')
     })
 
-    it('expands the step of a save that failed, even if the user closed it meanwhile', async () => {
+    it('selects the step of a save that failed when the user already moved on', async () => {
       const user = userEvent.setup()
       await renderPage()
       const saving = deferred<InspectionProgress>()
       vi.mocked(setItemCompleted).mockReturnValue(saving.promise)
       await user.click(checkbox('La VTV está vigente'))
-      await user.click(stepHeader('1. Papeles del auto'))
-      expect(openSteps()).toEqual([])
+      await selectStep(user, '4. Interior')
+      expect(selectedStep()).toBe(4)
 
       await act(async () => saving.reject(new HttpError(500, undefined)))
 
-      expect(openSteps()).toEqual([1])
-      expect(within(screen.getByRole('region', { name: '1. Papeles del auto' })).getByRole('alert')).toHaveTextContent(
-        SAVE_ERROR,
-      )
+      expect(selectedStep()).toBe(1)
+      expect(within(screen.getByRole('tabpanel')).getByRole('alert')).toHaveTextContent(SAVE_ERROR)
+      expect(checkbox('La VTV está vigente')).not.toBeChecked()
     })
 
-    it('keeps which steps are open when going to the summary and back', async () => {
+    it('keeps the selected step when going to the summary and back', async () => {
       const user = userEvent.setup()
       await renderPage(inspectionResponse({ items_completados: CRITICAL_CODES }))
-      await user.click(stepHeader('3. Motor'))
-      expect(openSteps()).toEqual([1, 3])
+      await selectStep(user, '3. Motor')
       await user.click(button('FINALIZAR'))
 
       await user.click(await screen.findByRole('button', { name: 'SEGUIR REVISANDO' }))
 
-      expect(openSteps()).toEqual([1, 3])
+      expect(selectedStep()).toBe(3)
     })
   })
 
@@ -307,6 +349,7 @@ describe('InspectionPage', () => {
 
       await user.click(checkbox('La VTV está vigente'))
 
+      expect(setItemCompleted).toHaveBeenCalledTimes(1)
       expect(setItemCompleted).toHaveBeenCalledWith(7, 'papeles_vtv', true)
       expect(checkbox('La VTV está vigente')).toBeChecked()
       expect(counter()).toHaveTextContent('1 de 10 puntos revisados')
@@ -337,15 +380,14 @@ describe('InspectionPage', () => {
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
     })
 
-    it('reverts the item and shows the error inside its step card when the save fails', async () => {
+    it('reverts the item and shows the error inside the step panel when the save fails', async () => {
       const user = userEvent.setup()
       await renderPage()
       vi.mocked(setItemCompleted).mockRejectedValue(new HttpError(500, undefined))
 
       await user.click(checkbox('La VTV está vigente'))
 
-      const step = screen.getByRole('region', { name: '1. Papeles del auto' })
-      expect(await within(step).findByRole('alert')).toHaveTextContent(SAVE_ERROR)
+      expect(await within(screen.getByRole('tabpanel')).findByRole('alert')).toHaveTextContent(SAVE_ERROR)
       expect(checkbox('La VTV está vigente')).not.toBeChecked()
       expect(counter()).toHaveTextContent('0 de 10 puntos revisados')
       expect(screen.getAllByRole('alert')).toHaveLength(1)
@@ -379,31 +421,33 @@ describe('InspectionPage', () => {
     it('never replaces the local marks with a response: an older list cannot untick an item that settled (concurrent server)', async () => {
       const user = userEvent.setup()
       await renderPage()
-      await expandAll(user)
       const first = deferred<InspectionProgress>()
       const second = deferred<InspectionProgress>()
       vi.mocked(setItemCompleted).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
 
       await user.click(checkbox('La VTV está vigente'))
+      await selectStep(user, '2. Exterior')
       await user.click(checkbox('Las luces funcionan'))
       // A settles; B's transaction read its list before A committed, so its answer lacks A.
       await act(async () => first.resolve(saved(['papeles_vtv'])))
       await act(async () => second.resolve(saved(['exterior_luces'])))
 
-      expect(checkbox('La VTV está vigente')).toBeChecked()
       expect(checkbox('Las luces funcionan')).toBeChecked()
+      expect(tab('1. Papeles del auto')).toHaveTextContent('1 de 2')
       expect(counter()).toHaveTextContent('2 de 10 puntos revisados')
+      await selectStep(user, '1. Papeles del auto')
+      expect(checkbox('La VTV está vigente')).toBeChecked()
     })
 
     it('ignores the list of a response in any order', async () => {
       const user = userEvent.setup()
       await renderPage()
-      await expandAll(user)
       const first = deferred<InspectionProgress>()
       const second = deferred<InspectionProgress>()
       vi.mocked(setItemCompleted).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
 
       await user.click(checkbox('La VTV está vigente'))
+      await selectStep(user, '2. Exterior')
       await user.click(checkbox('Las luces funcionan'))
       await act(async () => second.resolve(saved(['papeles_vtv', 'exterior_luces'])))
       await act(async () => first.resolve(saved(['papeles_vtv'])))
@@ -415,28 +459,31 @@ describe('InspectionPage', () => {
     it('reverts only the failed item when another one is saving at the same time', async () => {
       const user = userEvent.setup()
       await renderPage()
-      await expandAll(user)
       const first = deferred<InspectionProgress>()
       const second = deferred<InspectionProgress>()
       vi.mocked(setItemCompleted).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
 
       await user.click(checkbox('La VTV está vigente'))
+      await selectStep(user, '2. Exterior')
       await user.click(checkbox('Las luces funcionan'))
       await act(async () => first.reject(new HttpError(500, undefined)))
       await act(async () => second.resolve(saved(['exterior_luces'])))
 
+      // The failed item's step is selected again.
+      expect(selectedStep()).toBe(1)
       expect(checkbox('La VTV está vigente')).not.toBeChecked()
-      expect(checkbox('Las luces funcionan')).toBeChecked()
       expect(counter()).toHaveTextContent('1 de 10 puntos revisados')
+      await selectStep(user, '2. Exterior')
+      expect(checkbox('Las luces funcionan')).toBeChecked()
     })
 
     it('saves different items in parallel', async () => {
       const user = userEvent.setup()
       await renderPage()
-      await expandAll(user)
       vi.mocked(setItemCompleted).mockReturnValue(new Promise(() => {}))
 
       await user.click(checkbox('La VTV está vigente'))
+      await selectStep(user, '2. Exterior')
       await user.click(checkbox('Las luces funcionan'))
 
       expect(setItemCompleted).toHaveBeenCalledTimes(2)
@@ -523,12 +570,14 @@ describe('InspectionPage', () => {
     it('TC-35: finishes with no critical item pending and shows the summary view', async () => {
       const user = userEvent.setup()
       await renderPage(allCritical())
+      vi.mocked(finishInspection).mockResolvedValue({ estado: 'incompleta', items_completados: CRITICAL_CODES })
 
       await user.click(button('FINALIZAR'))
 
       expect(finishInspection).toHaveBeenCalledWith(7)
       expect(await screen.findByRole('button', { name: 'SEGUIR REVISANDO' })).toBeInTheDocument()
       expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2021' })).toHaveFocus()
     })
 
@@ -543,7 +592,7 @@ describe('InspectionPage', () => {
       expect(counter()).toHaveTextContent('4 de 10 puntos revisados')
     })
 
-    it('shows the finishing state on the pressed button and disables both while it waits', async () => {
+    it('shows the finishing state on the pressed button and disables the bar while it waits', async () => {
       const user = userEvent.setup()
       await renderPage(allCritical())
       const finishing = deferred<InspectionProgress>()
@@ -561,7 +610,7 @@ describe('InspectionPage', () => {
       expect(await screen.findByRole('button', { name: 'SEGUIR REVISANDO' })).toBeInTheDocument()
     })
 
-    it('shows an error next to the buttons and stays on the checklist when finishing fails', async () => {
+    it('shows an error in the bar and stays on the checklist when finishing fails', async () => {
       const user = userEvent.setup()
       await renderPage(allCritical())
       vi.mocked(finishInspection).mockRejectedValue(new HttpError(500, undefined))
@@ -620,7 +669,7 @@ describe('InspectionPage', () => {
 
       await user.click(button('FINALIZAR'))
 
-      const warning = screen.getByText(/sin revisar/)
+      const warning = warningBox()
       expect(warning).toHaveAttribute('role', 'alert')
       expect(warning).toHaveTextContent(
         'Te quedan 3 puntos críticos sin revisar. Son los que más pesan a la hora de decidir: revisalos antes de terminar.',
@@ -630,19 +679,23 @@ describe('InspectionPage', () => {
       expect(screen.queryByRole('button', { name: 'FINALIZAR' })).not.toBeInTheDocument()
       expect(button('FINALIZAR IGUAL')).toBeInTheDocument()
       expect(button('SEGUIR REVISANDO')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'PASO SIGUIENTE' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'PASO ANTERIOR' })).not.toBeInTheDocument()
     })
 
-    it('expands every step that has a critical item pending when the warning opens', async () => {
+    it('marks the steps with critical items pending in the list, without switching step', async () => {
       const user = userEvent.setup()
-      await renderPage(inspectionResponse({ items_completados: ['papeles_titular', 'papeles_vtv'] }))
-      await user.click(stepHeader('3. Motor'))
-      await user.click(stepHeader('3. Motor'))
-      expect(openSteps()).toEqual([2])
+      await renderPage(inspectionResponse({ items_completados: ['papeles_titular'] }))
+      expect(screen.queryByText(/crítico pendiente/)).not.toBeInTheDocument()
 
       await user.click(button('FINALIZAR'))
 
-      // Steps 2, 3 and 5 hold the pending critical items; step 4 has none.
-      expect(openSteps()).toEqual([2, 3, 5])
+      expect(selectedStep()).toBe(1)
+      expect(tab('1. Papeles del auto')).not.toHaveTextContent('pendiente')
+      expect(tab('2. Exterior')).toHaveTextContent('1 crítico pendiente')
+      expect(tab('3. Motor')).toHaveTextContent('1 crítico pendiente')
+      expect(tab('4. Interior')).not.toHaveTextContent('pendiente')
+      expect(tab('5. Prueba de manejo')).toHaveTextContent('1 crítico pendiente')
     })
 
     it('uses the singular when one critical item is pending', async () => {
@@ -651,12 +704,13 @@ describe('InspectionPage', () => {
 
       await user.click(button('FINALIZAR'))
 
-      expect(screen.getByText(/sin revisar/)).toHaveTextContent(
+      expect(warningBox()).toHaveTextContent(
         'Te queda 1 punto crítico sin revisar. Es el que más pesa a la hora de decidir: revisalo antes de terminar.',
       )
+      expect(tab('1. Papeles del auto')).toHaveTextContent('1 crítico pendiente')
     })
 
-    it('SEGUIR REVISANDO hides the warning and brings FINALIZAR back', async () => {
+    it('SEGUIR REVISANDO hides the warning and the markers and brings FINALIZAR and the step buttons back', async () => {
       const user = userEvent.setup()
       await renderPage()
       await user.click(button('FINALIZAR'))
@@ -664,7 +718,9 @@ describe('InspectionPage', () => {
       await user.click(button('SEGUIR REVISANDO'))
 
       expect(screen.queryByText(/sin revisar/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/pendiente/)).not.toBeInTheDocument()
       expect(button('FINALIZAR')).toBeInTheDocument()
+      expect(button('PASO SIGUIENTE')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'FINALIZAR IGUAL' })).not.toBeInTheDocument()
       expect(finishInspection).not.toHaveBeenCalled()
     })
@@ -705,14 +761,18 @@ describe('InspectionPage', () => {
       const user = userEvent.setup()
       await renderPage(inspectionResponse({ items_completados: CRITICAL_CODES.slice(2) }))
       await user.click(button('FINALIZAR'))
-      expect(screen.getByText(/sin revisar/)).toHaveTextContent('Te quedan 2 puntos críticos sin revisar.')
-
-      await user.click(checkbox('La pintura es pareja CRÍTICO'))
-      expect(screen.getByText(/sin revisar/)).toHaveTextContent('Te queda 1 punto crítico sin revisar.')
+      expect(warningBox()).toHaveTextContent('Te quedan 2 puntos críticos sin revisar.')
 
       await user.click(checkbox('El titular coincide con el vendedor CRÍTICO'))
+      expect(warningBox()).toHaveTextContent('Te queda 1 punto crítico sin revisar.')
+      expect(tab('1. Papeles del auto')).not.toHaveTextContent('pendiente')
+      expect(tab('2. Exterior')).toHaveTextContent('1 crítico pendiente')
+
+      await selectStep(user, '2. Exterior')
+      await user.click(checkbox('La pintura es pareja CRÍTICO'))
 
       expect(screen.queryByText(/sin revisar/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/pendiente/)).not.toBeInTheDocument()
       expect(button('FINALIZAR')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'SEGUIR REVISANDO' })).not.toBeInTheDocument()
     })
@@ -735,7 +795,7 @@ describe('InspectionPage', () => {
   })
 
   describe('summary view', () => {
-    it('SEGUIR REVISANDO returns to the checklist with the marks intact', async () => {
+    it('SEGUIR REVISANDO returns to the checklist with the marks intact and the title focused', async () => {
       const user = userEvent.setup()
       await renderPage(inspectionResponse({ items_completados: CRITICAL_CODES }))
       vi.mocked(finishInspection).mockResolvedValue({ estado: 'incompleta', items_completados: CRITICAL_CODES })
@@ -744,11 +804,10 @@ describe('InspectionPage', () => {
       await user.click(await screen.findByRole('button', { name: 'SEGUIR REVISANDO' }))
 
       expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
-      await expandAll(user)
-      expect(screen.getAllByRole('checkbox')).toHaveLength(10)
-      expect(checkbox('Los frenos responden bien CRÍTICO')).toBeChecked()
       expect(counter()).toHaveTextContent('4 de 10 puntos revisados')
       expect(button('FINALIZAR')).toBeInTheDocument()
+      await selectStep(user, '5. Prueba de manejo')
+      expect(checkbox('Los frenos responden bien CRÍTICO')).toBeChecked()
     })
   })
 })
