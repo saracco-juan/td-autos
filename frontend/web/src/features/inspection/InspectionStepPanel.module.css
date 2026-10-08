@@ -72,17 +72,9 @@
   list-style: none;
 }
 
-/* Item row: bordered, rounded; checkbox, text that wraps, and the badge that never shrinks. */
+/* Row, text and badge come from the module shared with the summary lists. */
 .row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: var(--row-h);
-  padding: 8px 12px;
-  border: 1px solid var(--border-default);
-  border-radius: 10px;
-  background: var(--surface-default);
-  font-size: 14px;
+  composes: row from './inspectionRow.module.css';
   cursor: pointer;
 }
 
@@ -105,19 +97,11 @@
 }
 
 .text {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
+  composes: text from './inspectionRow.module.css';
 }
 
 .badge {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--accent-default);
-  color: var(--text-on-color);
-  font-size: 10px;
-  font-weight: 700;
+  composes: badge from './inspectionRow.module.css';
 }
 
 /* The slot is reserved by the min-height above; the error takes the room that was left empty. */

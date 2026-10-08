@@ -736,7 +736,8 @@ describe('InspectionPage', () => {
       expect(finishInspection).toHaveBeenCalledWith(7)
       expect(await screen.findByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2021' })).toHaveFocus()
       expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
-      expect(screen.queryByText(/sin revisar/)).not.toBeInTheDocument()
+      // The 07b warning is gone (the summary has its own message, which also says "sin revisar").
+      expect(screen.queryByText(/revisalos antes de terminar/)).not.toBeInTheDocument()
     })
 
     it('shows the finishing state on FINALIZAR IGUAL and the error when it fails', async () => {
@@ -808,6 +809,56 @@ describe('InspectionPage', () => {
       expect(button('FINALIZAR')).toBeInTheDocument()
       await selectStep(user, '5. Prueba de manejo')
       expect(checkbox('Los frenos responden bien CRÍTICO')).toBeChecked()
+    })
+
+    it('SEGUIR REVISANDO keeps the marks and the selected step', async () => {
+      const user = userEvent.setup()
+      await renderPage(inspectionResponse({ items_completados: CRITICAL_CODES }))
+      await selectStep(user, '3. Motor')
+      await user.click(button('FINALIZAR'))
+
+      await user.click(await screen.findByRole('button', { name: 'SEGUIR REVISANDO' }))
+
+      expect(selectedStep()).toBe(3)
+      expect(counter()).toHaveTextContent('4 de 10 puntos revisados')
+      expect(checkbox('No hay pérdidas de líquidos CRÍTICO')).toBeChecked()
+    })
+
+    it('TC-35 (scenario 1): finishing with everything ticked shows the complete summary, without a pending card', async () => {
+      const user = userEvent.setup()
+      await renderPage(inspectionResponse({ items_completados: ALL_CODES }))
+
+      await user.click(button('FINALIZAR'))
+
+      expect(await screen.findByText('Inspección completa: revisaste los 10 puntos.')).toBeInTheDocument()
+      expect(screen.getByRole('region', { name: 'Avance por paso' })).toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: /pendientes?$/ })).not.toBeInTheDocument()
+    })
+
+    it('scenario 3: finishing with only non-critical items pending lists them all', async () => {
+      const user = userEvent.setup()
+      await renderPage(inspectionResponse({ items_completados: CRITICAL_CODES }))
+
+      await user.click(button('FINALIZAR'))
+
+      expect(await screen.findByText('Inspección incompleta: te quedan 6 puntos sin revisar.')).toBeInTheDocument()
+      const card = screen.getByRole('region', { name: 'Puntos pendientes' })
+      expect(within(card).getAllByRole('listitem')).toHaveLength(6)
+      expect(within(card).getByText('La caja cambia sin tirones')).toBeInTheDocument()
+    })
+
+    it('TC-37 (scenario 4): FINALIZAR IGUAL shows the critical-pending summary', async () => {
+      const user = userEvent.setup()
+      await renderPage()
+      await user.click(button('FINALIZAR'))
+      await user.click(button('FINALIZAR IGUAL'))
+
+      expect(
+        await screen.findByText('Inspección incompleta: te quedan 10 puntos sin revisar, 4 de ellos críticos.'),
+      ).toBeInTheDocument()
+      const card = screen.getByRole('region', { name: 'Puntos críticos pendientes' })
+      expect(within(card).getAllByRole('listitem')).toHaveLength(4)
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     })
   })
 })

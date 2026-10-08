@@ -1,0 +1,49 @@
+/*
+ * Pinned bar shared by the checklist and the summary, so the primary button sits in the same place in both.
+ * `sticky; bottom: 0` inside the page column: it sticks to the bottom of the viewport while the page is taller
+ * than the screen and rests at the end of the page otherwise, so it never covers the footer (a sibling after
+ * <main>). Opaque background and a top border keep content from showing through. Fixed height (buttons are
+ * 40 high), buttons 180 wide anchored to the right edge.
+ */
+.bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  min-height: 72px;
+  padding: 16px 0;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-default);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.action {
+  width: 180px;
+}
+
+@media (max-width: 767px) {
+  .bar {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .actions {
+    flex: 1;
+  }
+
+  .action {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    padding: 0 8px;
+  }
+}

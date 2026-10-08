@@ -1,15 +1,100 @@
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+.message {
+  margin: 0;
 }
 
-.keepReviewing {
-  width: 220px;
+/*
+ * Figma 2287:4651: two equal cards side by side, 24 apart, the same height (grid stretch).
+ * Without a pending card (everything ticked, D5) the progress card takes the full width.
+ * One column on narrow screens. Long pending lists just make the page longer: no inner scroll.
+ */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
 }
 
-@media (max-width: 600px) {
-  .keepReviewing {
-    width: 100%;
+.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 767px) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Progress rows: step on the left, "X de Y" on the right, hairlines between rows; the total is bold. */
+.progress {
+  margin: 0;
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 13px;
+}
+
+.progressRow dt {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.progressRow dd {
+  margin: 0;
+  text-align: right;
+}
+
+.progressRow:last-child {
+  border-bottom: 0;
+}
+
+.total dt,
+.total dd {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
