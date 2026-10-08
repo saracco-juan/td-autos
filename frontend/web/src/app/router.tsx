@@ -8,6 +8,7 @@ import RecoveryPage from '../features/auth/recovery/RecoveryPage'
 import ResetPasswordPage from '../features/auth/recovery/ResetPasswordPage'
 import DiagnosisPage from '../features/diagnosis/DiagnosisPage'
 import HomeRoute from '../features/home/HomeRoute'
+import InspectionPage from '../features/inspection/InspectionPage'
 import ProfilePage from '../features/profile/ProfilePage'
 import RecommendationsPage from '../features/recommendations/RecommendationsPage'
 import AppShell from './AppShell'
@@ -31,6 +32,7 @@ export const routes: RouteObject[] = [
             children: [
               { path: '/', element: <HomeRoute /> },
               { path: '/diagnostico', element: <DiagnosisPage /> },
+              { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
               { path: '/recomendaciones', element: <RecommendationsPage /> },
               { path: '/perfil', element: <ProfilePage /> },
             ],

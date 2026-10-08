@@ -1,0 +1,45 @@
+/* Single column of full-width accordion panels (user decision, replaces the two-column grid of Figma 38:568):
+   the page is symmetric whatever is open. Actions bottom right. */
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.warning {
+  margin: 0;
+  outline: none;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.footerMessage {
+  margin: 0;
+  align-self: stretch;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.action {
+  width: 220px;
+}
+
+@media (max-width: 600px) {
+  .actions {
+    align-self: stretch;
+  }
+
+  .action {
+    flex: 1;
+    width: auto;
+  }
+}

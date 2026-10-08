@@ -55,13 +55,15 @@ async function parseBody(response: Response): Promise<unknown> {
   }
 }
 
-async function send(path: string, { method = 'GET', body }: RequestOptions) {
+// The CSRF cookie is requested only when there is none (or when a 419 says the one we have is stale):
+// asking for it before every write would double the round trips of each one.
+async function send(path: string, { method = 'GET', body }: RequestOptions, refreshCsrf = false) {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   }
   if (method !== 'GET') {
-    await ensureCsrfCookie()
+    if (refreshCsrf || readXsrfToken() === undefined) await ensureCsrfCookie()
     const token = readXsrfToken()
     if (token) headers['X-XSRF-TOKEN'] = token
   }
@@ -78,7 +80,7 @@ async function send(path: string, { method = 'GET', body }: RequestOptions) {
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response = await send(path, options)
   // The CSRF token may have expired: refresh it and retry a single time.
-  if (response.status === 419) response = await send(path, options)
+  if (response.status === 419) response = await send(path, options, true)
 
   const data = await parseBody(response)
   if (!response.ok) throw new HttpError(response.status, data)

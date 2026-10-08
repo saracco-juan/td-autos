@@ -1,0 +1,15 @@
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.keepReviewing {
+  width: 220px;
+}
+
+@media (max-width: 600px) {
+  .keepReviewing {
+    width: 100%;
+  }
+}

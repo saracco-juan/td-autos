@@ -1,0 +1,38 @@
+/* Figma 38:568 header: back link on top, then eyebrow, title and counter 8 apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+/* The square chevron button of the frame; the whole link is the target. */
+.chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-default);
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.counter {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
