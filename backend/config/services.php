@@ -34,6 +34,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'transfer_advisor' => [
+        'whatsapp' => env('TRANSFER_ADVISOR_WHATSAPP', ''),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

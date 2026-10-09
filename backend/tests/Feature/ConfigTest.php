@@ -35,6 +35,21 @@ class ConfigTest extends TestCase
         $this->assertContains('http://localhost:5173', config('cors.allowed_origins'));
     }
 
+    public function test_transfer_advisor_whatsapp_is_empty_when_env_is_unset(): void
+    {
+        $repository = Env::getRepository();
+        $previous = $repository->get('TRANSFER_ADVISOR_WHATSAPP');
+        $repository->clear('TRANSFER_ADVISOR_WHATSAPP');
+
+        try {
+            $this->assertSame('', (require config_path('services.php'))['transfer_advisor']['whatsapp']);
+        } finally {
+            if ($previous !== null) {
+                $repository->set('TRANSFER_ADVISOR_WHATSAPP', $previous);
+            }
+        }
+    }
+
     public function test_defaults_target_the_vite_dev_server_when_env_is_unset(): void
     {
         $repository = Env::getRepository();
