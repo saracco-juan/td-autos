@@ -1,0 +1,20 @@
+/* The bar itself, its buttons and their sizes live in pinnedBar.module.css (shared with the summary). */
+.message {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert {
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  .message {
+    flex-basis: 100%;
+  }
+
+  /* An error above the buttons is the one thing allowed to make the bar taller on a phone. */
+  .message:empty {
+    display: none;
+  }
+}

@@ -1,13 +1,6 @@
 /* Figma frames 38:133 and 2074:933-2074:1286: content under the nav, 32 from the edges at 1280, 32 between blocks. */
 .page {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  width: 100%;
-  max-width: 1216px;
-  /* The shell centers its content vertically; the questionnaire starts at the top. */
-  margin-bottom: auto;
-  padding-top: 20px;
+  composes: page from '../../components/screen.module.css';
 }
 
 /* Figma "Header group" (2074:882): eyebrow, title and subtitle 8 apart, the progress group 20 below. */
@@ -22,16 +15,11 @@
 }
 
 .eyebrow {
-  color: var(--palette-charcoal);
-  font-size: 12px;
-  font-weight: 600;
+  composes: eyebrow from '../../components/screen.module.css';
 }
 
 .title {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 700;
-  outline: none;
+  composes: title from '../../components/screen.module.css';
 }
 
 .subtitle {
@@ -87,10 +75,6 @@
 }
 
 @media (max-width: 600px) {
-  .title {
-    font-size: 24px;
-  }
-
   .back,
   .next,
   .finish {

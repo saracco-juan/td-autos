@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../features/auth/api'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
+import { fetchInspection } from '../features/inspection/api'
+import { inspectionResponse } from '../features/inspection/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
 import { routes } from './router'
 
@@ -20,6 +22,12 @@ vi.mock('../features/auth/api', () => ({
 }))
 
 vi.mock('../features/diagnosis/api', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
+
+vi.mock('../features/inspection/api', () => ({
+  fetchInspection: vi.fn(),
+  setItemCompleted: vi.fn(),
+  finishInspection: vi.fn(),
+}))
 
 const ana = {
   id: 1,
@@ -52,6 +60,7 @@ describe('app routes', () => {
     vi.mocked(logoutUser).mockReset()
     vi.mocked(fetchDiagnosis).mockReset()
     vi.mocked(saveDiagnosis).mockReset()
+    vi.mocked(fetchInspection).mockReset()
     asAuthenticated()
   })
 
@@ -245,6 +254,26 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
     expect(fetchDiagnosis).not.toHaveBeenCalled()
+  })
+
+  it('renders the inspection checklist at /vehiculos/:id/inspeccion inside the shell for an authenticated user', async () => {
+    vi.mocked(fetchInspection).mockResolvedValue(inspectionResponse())
+    const router = renderAt('/vehiculos/7/inspeccion')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/vehiculos/7/inspeccion')
+    expect(fetchInspection).toHaveBeenCalledWith(7)
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('redirects a guest opening /vehiculos/:id/inspeccion to the login screen without reading the inspection', async () => {
+    asGuest()
+    const router = renderAt('/vehiculos/7/inspeccion')
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(fetchInspection).not.toHaveBeenCalled()
   })
 
   it('renders the register screen at /registro for a guest', async () => {
