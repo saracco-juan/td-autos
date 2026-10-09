@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
-import alertStyles from '../../components/alert.module.css'
 import ChecklistActionBar from '../../components/checklist/ChecklistActionBar'
+import ChecklistColumns from '../../components/checklist/ChecklistColumns'
 import ChecklistStepList from '../../components/checklist/ChecklistStepList'
 import ChecklistStepPanel from '../../components/checklist/ChecklistStepPanel'
-import { longestStepSize, pendingFlaggedByStep, summarizeChecklist } from '../../components/checklist/progress'
-import type { ChecklistStep } from '../../components/checklist/types'
+import ChecklistWarning from '../../components/checklist/ChecklistWarning'
+import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '../../components/checklist/progress'
+import { useChecklistAutosave, withCode } from '../../components/checklist/useChecklistAutosave'
 import screenStyles from '../../components/screen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
 import { useMediaQuery } from '../../lib/useMediaQuery'
@@ -15,7 +16,6 @@ import { fetchInspection, finishInspection, setItemCompleted } from './api'
 import { ACTION_LABELS, FLAG_LABEL, SAVE_ERROR, pendingMarkerLabel } from './checklistCopy'
 import { toChecklistSteps } from './checklistSteps'
 import InspectionHeader from './InspectionHeader'
-import styles from './InspectionPage.module.css'
 import InspectionSummary from './InspectionSummary'
 import { vehicleTitle } from './progress'
 import type { InspectionStep, InspectionVehicle } from './types'
@@ -28,18 +28,6 @@ type Content = { vehicle: InspectionVehicle; steps: InspectionStep[] }
 // Only a positive integer can be a vehicle id; anything else never reaches the API.
 function parseVehicleId(raw: string | undefined): number | null {
   return raw !== undefined && /^[1-9]\d*$/.test(raw) ? Number(raw) : null
-}
-
-function withCode(codes: string[], code: string, completed: boolean): string[] {
-  const rest = codes.filter((current) => current !== code)
-  return completed ? [...rest, code] : rest
-}
-
-// The first step that still has pending items; step 1 when everything is ticked.
-function initialSelectedStep(steps: ChecklistStep[], completedCodes: string[]): number {
-  const ticked = new Set(completedCodes)
-  const first = steps.find((step) => step.items.some((item) => !ticked.has(item.codigo)))
-  return (first ?? steps[0])?.numero ?? 1
 }
 
 function criticalWarning(count: number): string {
@@ -60,9 +48,6 @@ export default function InspectionPage() {
 function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const [content, setContent] = useState<Content | null>(null)
-  // The page is the source of truth while it is open: responses never replace this list.
-  const [completed, setCompleted] = useState<string[]>([])
-  const [failedSteps, setFailedSteps] = useState<ReadonlySet<number>>(new Set())
   // Local UI state, not saved: the step shown in the panel. It survives a trip to the summary.
   const [selected, setSelected] = useState(1)
   const [view, setView] = useState<View>('checklist')
@@ -75,22 +60,22 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   const viewChanged = useRef(false)
   const headingFocus = useRef(false)
   const narrow = useMediaQuery('(max-width: 767px)')
-  // Per-item sync state. Each item has at most one request in flight (`draining`); the value the user
-  // wants now is `desired`, and `confirmed` is the last value the server acknowledged for it.
-  const desired = useRef(new Map<string, boolean>())
-  const confirmed = useRef(new Map<string, boolean>())
-  const draining = useRef(new Map<string, Promise<void>>())
-  const failures = useRef(0)
+  const steps = toChecklistSteps(content?.steps ?? [])
+  const { completed, failedSteps, load, toggle, settle } = useChecklistAutosave({
+    steps,
+    save: (code, value) => setItemCompleted(vehicleId, code, value),
+    // The step whose save failed is shown, so the reverted item and the error are visible.
+    onSaveFailed: setSelected,
+  })
 
   useEffect(() => {
     let cancelled = false
     fetchInspection(vehicleId)
       .then((inspection) => {
         if (cancelled) return
-        confirmed.current = new Map(inspection.items_completados.map((code) => [code, true]))
         setContent({ vehicle: inspection.vehiculo, steps: inspection.pasos })
-        setCompleted(inspection.items_completados)
-        setSelected(initialSelectedStep(toChecklistSteps(inspection.pasos), inspection.items_completados))
+        load(inspection.items_completados)
+        setSelected(firstPendingStep(toChecklistSteps(inspection.pasos), inspection.items_completados))
         setLoadState('ready')
       })
       .catch((error: unknown) => {
@@ -101,7 +86,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
     return () => {
       cancelled = true
     }
-  }, [vehicleId])
+  }, [vehicleId, load])
 
   // After a view change the title takes the focus, so the new content is announced.
   useEffect(() => {
@@ -110,7 +95,6 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
     titleRef.current?.focus()
   }, [view])
 
-  const steps = toChecklistSteps(content?.steps ?? [])
   const progress = summarizeChecklist(steps, completed)
   const showWarning = warningOpen && progress.pendingFlagged > 0
 
@@ -137,59 +121,9 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
     setSelected(steps[index].numero)
   }
 
-  const setStepFailed = (code: string, failed: boolean) => {
-    const numero = steps.find((step) => step.items.some((item) => item.codigo === code))?.numero
-    if (numero === undefined) return
-    setFailedSteps((current) => {
-      const next = new Set(current)
-      if (failed) next.add(numero)
-      else next.delete(numero)
-      return next
-    })
-    // The step whose save failed is shown, so the reverted item and the error are visible.
-    if (failed) setSelected(numero)
-  }
-
-  // Sends the desired value of one item, then again if the user changed their mind meanwhile.
-  // Never two requests of the same item at once, so the server sees its writes in order.
-  const drain = async (code: string) => {
-    let force = false
-    for (;;) {
-      const value = desired.current.get(code)
-      if (value === undefined || (!force && value === (confirmed.current.get(code) ?? false))) return
-      force = false
-      try {
-        await setItemCompleted(vehicleId, code, value)
-        confirmed.current.set(code, value)
-        setStepFailed(code, false)
-      } catch {
-        if (desired.current.get(code) !== value) {
-          // The user wants something else now. A failed write leaves the server state unknown: send the new value.
-          force = true
-          continue
-        }
-        const last = confirmed.current.get(code) ?? false
-        desired.current.set(code, last)
-        failures.current += 1
-        setCompleted((current) => withCode(current, code, last))
-        setStepFailed(code, true)
-        return
-      }
-    }
-  }
-
   const handleToggle = (code: string, value: boolean) => {
     if (summarizeChecklist(steps, withCode(completed, code, value)).pendingFlagged === 0) setWarningOpen(false)
-    setCompleted((current) => withCode(current, code, value))
-    desired.current.set(code, value)
-    if (draining.current.has(code)) return
-    const run = drain(code).finally(() => draining.current.delete(code))
-    draining.current.set(code, run)
-  }
-
-  // Waits until no item has a request in flight (new ones may start while waiting).
-  const settleSaves = async () => {
-    while (draining.current.size > 0) await Promise.all(draining.current.values())
+    toggle(code, value)
   }
 
   const handleFinish = async () => {
@@ -197,10 +131,8 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
     setFinishFailed(false)
     setFinishing(true)
     try {
-      const failuresBefore = failures.current
-      await settleSaves()
       // A save failed meanwhile: its step shows the error and the user stays on the checklist.
-      if (failures.current !== failuresBefore) return
+      if (!(await settle())) return
       await finishInspection(vehicleId)
       setWarningOpen(false)
       changeView('summary')
@@ -251,34 +183,36 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
       />
 
       {showWarning ? (
-        <p ref={warningRef} tabIndex={-1} role="alert" className={`${alertStyles.warning} ${styles.warning}`}>
-          {criticalWarning(progress.pendingFlagged)}
-        </p>
+        <ChecklistWarning warningRef={warningRef}>{criticalWarning(progress.pendingFlagged)}</ChecklistWarning>
       ) : null}
 
-      {/* Two columns: the step list and the selected step. --max-items sizes the panel for the longest step. */}
-      <div className={styles.columns} style={{ '--max-items': longestStepSize(steps) } as CSSProperties}>
-        <ChecklistStepList
-          idPrefix="inspection"
-          steps={steps}
-          completedCodes={completedCodes}
-          selected={selected}
-          orientation={narrow ? 'horizontal' : 'vertical'}
-          pendingFlagged={pendingFlagged}
-          pendingLabel={pendingMarkerLabel}
-          onSelect={setSelected}
-        />
-        <ChecklistStepPanel
-          idPrefix="inspection"
-          step={step}
-          completedCodes={completedCodes}
-          saveFailed={failedSteps.has(step.numero)}
-          saveError={SAVE_ERROR}
-          flagLabel={FLAG_LABEL}
-          headingRef={panelHeadingRef}
-          onToggle={handleToggle}
-        />
-      </div>
+      <ChecklistColumns
+        steps={steps}
+        list={
+          <ChecklistStepList
+            idPrefix="inspection"
+            steps={steps}
+            completedCodes={completedCodes}
+            selected={selected}
+            orientation={narrow ? 'horizontal' : 'vertical'}
+            pendingFlagged={pendingFlagged}
+            pendingLabel={pendingMarkerLabel}
+            onSelect={setSelected}
+          />
+        }
+        panel={
+          <ChecklistStepPanel
+            idPrefix="inspection"
+            step={step}
+            completedCodes={completedCodes}
+            saveFailed={failedSteps.has(step.numero)}
+            saveError={SAVE_ERROR}
+            flagLabel={FLAG_LABEL}
+            headingRef={panelHeadingRef}
+            onToggle={handleToggle}
+          />
+        }
+      />
 
       <ChecklistActionBar
         labels={ACTION_LABELS}

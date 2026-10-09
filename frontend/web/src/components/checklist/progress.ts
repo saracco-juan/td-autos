@@ -63,3 +63,10 @@ export function pendingFlaggedByStep(
 
 // Items of the longest step (at least 1): the step panel is sized for it.
 export const longestStepSize = (steps: ChecklistStep[]) => Math.max(1, ...steps.map((step) => step.items.length))
+
+// The step to open on: the first one that still has unticked items; step 1 when everything is ticked.
+export function firstPendingStep(steps: ChecklistStep[], completedCodes: string[]): number {
+  const ticked = new Set(completedCodes)
+  const first = steps.find((step) => step.items.some((item) => !ticked.has(item.codigo)))
+  return (first ?? steps[0])?.numero ?? 1
+}

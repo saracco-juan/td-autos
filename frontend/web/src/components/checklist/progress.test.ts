@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { longestStepSize, pendingFlaggedByStep, summarizeChecklist } from './progress'
+import { firstPendingStep, longestStepSize, pendingFlaggedByStep, summarizeChecklist } from './progress'
 import type { ChecklistStep } from './types'
 
 // Small catalog in the neutral shape: two steps, three flagged items (c1, c2, c4).
@@ -150,5 +150,23 @@ describe('longestStepSize', () => {
 
   it('is 1 when there are no steps, so a sizing variable is never 0', () => {
     expect(longestStepSize([])).toBe(1)
+  })
+})
+
+describe('firstPendingStep', () => {
+  it('is the first step with an unticked item', () => {
+    expect(firstPendingStep(steps, ['a1', 'c1', 'a2', 'c2'])).toBe(2)
+  })
+
+  it('is step 1 when nothing is ticked', () => {
+    expect(firstPendingStep(steps, [])).toBe(1)
+  })
+
+  it('is step 1 when everything is ticked', () => {
+    expect(firstPendingStep(steps, ['a1', 'c1', 'a2', 'c2', 'a3', 'c4'])).toBe(1)
+  })
+
+  it('is step 1 for an empty catalog', () => {
+    expect(firstPendingStep([], [])).toBe(1)
   })
 })

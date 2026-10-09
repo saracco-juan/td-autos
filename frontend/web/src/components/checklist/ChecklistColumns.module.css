@@ -1,0 +1,70 @@
+/*
+ * Two-column area (user decision, replaces the two-column step cards of Figma 38:568 and the accordion):
+ * the step list on the left (280 wide), the selected step on the right. Both cards share the row height
+ * (grid stretch) and the panel has a fixed min-height, so the page does not change size while the user works.
+ * With an aside (the advisor card of the transfer checklist) it sits under the list, and the panel spans both
+ * rows. One column below 768 px: the list becomes a strip above the panel, and the aside goes under the panel.
+ */
+.columns {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-areas: 'list panel';
+  gap: 24px;
+  align-items: stretch;
+}
+
+.withAside {
+  grid-template-areas:
+    'list panel'
+    'aside panel';
+  grid-template-rows: auto 1fr;
+}
+
+.list {
+  grid-area: list;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The list and the aside keep their own height; only without an aside does the list fill the row. */
+.withAside .list,
+.aside {
+  align-self: start;
+}
+
+.panel {
+  grid-area: panel;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.list > *,
+.panel > * {
+  flex: 1;
+}
+
+.aside {
+  grid-area: aside;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'list'
+      'panel';
+    grid-template-rows: auto;
+    gap: 16px;
+  }
+
+  .withAside {
+    grid-template-areas:
+      'list'
+      'panel'
+      'aside';
+    grid-template-rows: auto;
+  }
+}

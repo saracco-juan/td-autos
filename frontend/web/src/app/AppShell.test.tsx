@@ -70,7 +70,7 @@ describe('AppShell', () => {
     expect(screen.queryByRole('link', { name: 'Perfil' })).not.toBeInTheDocument()
   })
 
-  it('shows the logo, the diagnosis, recommendations and profile links and a logout button to an authenticated user, and nothing else in the nav', () => {
+  it('shows the logo, the diagnosis, recommendations, transfer and profile links and a logout button to an authenticated user, and nothing else in the nav', () => {
     mockAuth('authenticated')
     renderShell()
 
@@ -78,20 +78,21 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'TD Autos' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Diagnóstico' })).toHaveAttribute('href', '/diagnostico')
     expect(screen.getByRole('link', { name: 'Recomendados' })).toHaveAttribute('href', '/recomendaciones')
+    expect(screen.getByRole('link', { name: 'Transferencia' })).toHaveAttribute('href', '/transferencia')
     expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/perfil')
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('type', 'button')
-    expect(banner.querySelectorAll('a')).toHaveLength(4)
+    expect(banner.querySelectorAll('a')).toHaveLength(5)
     expect(banner.querySelectorAll('button')).toHaveLength(1)
   })
 
-  it('orders the nav as in Figma: Diagnóstico, Recomendados, Perfil, Cerrar sesión', () => {
+  it('orders the nav as in Figma: Diagnóstico, Recomendados, Transferencia, Perfil, Cerrar sesión', () => {
     mockAuth('authenticated')
     renderShell()
 
     const items = within(screen.getByRole('banner')).getAllByRole('link').slice(1)
-    expect(items.map((item) => item.textContent)).toEqual(['Diagnóstico', 'Recomendados', 'Perfil'])
+    expect(items.map((item) => item.textContent)).toEqual(['Diagnóstico', 'Recomendados', 'Transferencia', 'Perfil'])
     const logout = screen.getByRole('button', { name: 'Cerrar sesión' })
-    expect(items[2].compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(items[3].compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('shows no diagnosis or recommendations link to a guest', () => {
@@ -100,6 +101,7 @@ describe('AppShell', () => {
 
     expect(screen.queryByRole('link', { name: 'Diagnóstico' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Recomendados' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Transferencia' })).not.toBeInTheDocument()
   })
 
   it('marks the link of the current page with aria-current', () => {
@@ -109,6 +111,14 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'Recomendados' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Diagnóstico' })).not.toHaveAttribute('aria-current')
     expect(screen.getByRole('link', { name: 'Perfil' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('marks the Transferencia link with aria-current on /transferencia', () => {
+    mockAuth('authenticated')
+    renderShell('/transferencia')
+
+    expect(screen.getByRole('link', { name: 'Transferencia' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Recomendados' })).not.toHaveAttribute('aria-current')
   })
 
   it('TC-83: pressing Cerrar sesión logs out and goes to the login screen', async () => {

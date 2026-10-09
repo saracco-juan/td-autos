@@ -7,7 +7,7 @@ import styles from './AppShell.module.css'
 const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
 // Shared page frame: nav on top (guest, or Buyer with logout once signed in), routed content, footer.
-// The Buyer nav shows only the links whose screens exist: diagnosis, recommendations, profile and logout for now.
+// The Buyer nav shows only the links whose screens exist: diagnosis, recommendations, transfer, profile and logout for now.
 export default function AppShell() {
   const navigate = useNavigate()
   const { status, logout } = useAuth()
@@ -39,6 +39,9 @@ export default function AppShell() {
             </NavLink>
             <NavLink to="/recomendaciones" className={styles.navAction}>
               Recomendados
+            </NavLink>
+            <NavLink to="/transferencia" className={styles.navAction}>
+              Transferencia
             </NavLink>
             <NavLink to="/perfil" className={styles.navAction}>
               Perfil
