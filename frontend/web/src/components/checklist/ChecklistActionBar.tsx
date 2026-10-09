@@ -1,12 +1,21 @@
-import alertStyles from '../../components/alert.module.css'
-import buttonStyles from '../../components/button.module.css'
-import styles from './InspectionActionBar.module.css'
+import alertStyles from '../alert.module.css'
+import buttonStyles from '../button.module.css'
+import styles from './ChecklistActionBar.module.css'
 import barStyles from './pinnedBar.module.css'
 
-export const FINISH_ERROR = 'No pudimos finalizar la inspección. Probá de nuevo.'
+export type ChecklistActionLabels = {
+  previous: string
+  next: string
+  finish: string
+  finishAnyway: string
+  keepWorking: string
+  // Alert shown above the buttons when finishing failed.
+  finishError: string
+}
 
 type Props = {
-  // The critical-pending warning is open: the bar offers FINALIZAR IGUAL / SEGUIR REVISANDO.
+  labels: ChecklistActionLabels
+  // The flagged-pending warning is open: the bar offers finishAnyway / keepWorking.
   warning: boolean
   finishing: boolean
   finishFailed: boolean
@@ -16,7 +25,7 @@ type Props = {
   onNext: () => void
   onFinish: () => void
   onFinishAnyway: () => void
-  onKeepReviewing: () => void
+  onKeepWorking: () => void
 }
 
 const secondary = `${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`
@@ -24,7 +33,8 @@ const primary = `${buttonStyles.button} ${buttonStyles.primary} ${barStyles.acti
 
 // Pinned to the bottom of the viewport. The primary button is always the right-most one, so it never moves
 // when previous or next come and go.
-export default function InspectionActionBar({
+export default function ChecklistActionBar({
+  labels,
   warning,
   finishing,
   finishFailed,
@@ -34,14 +44,14 @@ export default function InspectionActionBar({
   onNext,
   onFinish,
   onFinishAnyway,
-  onKeepReviewing,
+  onKeepWorking,
 }: Props) {
   return (
     <div className={barStyles.bar}>
       <div className={styles.message}>
         {finishFailed ? (
           <p role="alert" className={`${alertStyles.alert} ${styles.alert}`}>
-            {FINISH_ERROR}
+            {labels.finishError}
           </p>
         ) : null}
       </div>
@@ -55,22 +65,22 @@ export default function InspectionActionBar({
               className={secondary}
               onClick={onFinishAnyway}
             >
-              {finishing ? 'FINALIZANDO…' : 'FINALIZAR IGUAL'}
+              {finishing ? 'FINALIZANDO…' : labels.finishAnyway}
             </button>
-            <button type="button" disabled={finishing} className={primary} onClick={onKeepReviewing}>
-              SEGUIR REVISANDO
+            <button type="button" disabled={finishing} className={primary} onClick={onKeepWorking}>
+              {labels.keepWorking}
             </button>
           </>
         ) : (
           <>
             {hasPrevious ? (
               <button type="button" disabled={finishing} className={secondary} onClick={onPrevious}>
-                PASO ANTERIOR
+                {labels.previous}
               </button>
             ) : null}
             {hasNext ? (
               <button type="button" disabled={finishing} className={secondary} onClick={onNext}>
-                PASO SIGUIENTE
+                {labels.next}
               </button>
             ) : null}
             <button
@@ -80,7 +90,7 @@ export default function InspectionActionBar({
               className={primary}
               onClick={onFinish}
             >
-              {finishing ? 'FINALIZANDO…' : 'FINALIZAR'}
+              {finishing ? 'FINALIZANDO…' : labels.finish}
             </button>
           </>
         )}

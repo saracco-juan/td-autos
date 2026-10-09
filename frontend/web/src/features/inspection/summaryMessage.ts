@@ -1,11 +1,11 @@
-import type { InspectionSummary } from './progress'
+import type { ChecklistSummary } from '../../components/checklist/progress'
 
 export type SummaryMessage = { tone: 'success' | 'warning'; text: string }
 
 // The box under the header of the summary (Figma 2287:4651 for the incomplete case; D5 and D6 for the rest).
-export function summaryMessage(progress: InspectionSummary): SummaryMessage {
+export function summaryMessage(progress: ChecklistSummary): SummaryMessage {
   const pending = progress.pending.length
-  const critical = progress.pendingCritical
+  const critical = progress.pendingFlagged
 
   if (pending === 0) {
     const points = progress.total === 1 ? 'el punto' : `los ${progress.total} puntos`

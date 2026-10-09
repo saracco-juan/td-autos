@@ -2,18 +2,22 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useParams } from 'react-router'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import alertStyles from '../../components/alert.module.css'
+import ChecklistActionBar from '../../components/checklist/ChecklistActionBar'
+import ChecklistStepList from '../../components/checklist/ChecklistStepList'
+import ChecklistStepPanel from '../../components/checklist/ChecklistStepPanel'
+import { longestStepSize, pendingFlaggedByStep, summarizeChecklist } from '../../components/checklist/progress'
+import type { ChecklistStep } from '../../components/checklist/types'
 import screenStyles from '../../components/screen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import SessionLoading from '../auth/session/SessionLoading'
 import { fetchInspection, finishInspection, setItemCompleted } from './api'
-import InspectionActionBar from './InspectionActionBar'
+import { ACTION_LABELS, FLAG_LABEL, SAVE_ERROR, pendingMarkerLabel } from './checklistCopy'
+import { toChecklistSteps } from './checklistSteps'
 import InspectionHeader from './InspectionHeader'
 import styles from './InspectionPage.module.css'
-import InspectionStepList from './InspectionStepList'
-import InspectionStepPanel from './InspectionStepPanel'
 import InspectionSummary from './InspectionSummary'
-import { summarizeInspection, vehicleTitle } from './progress'
+import { vehicleTitle } from './progress'
 import type { InspectionStep, InspectionVehicle } from './types'
 import VehicleNotFound from './VehicleNotFound'
 
@@ -32,14 +36,11 @@ function withCode(codes: string[], code: string, completed: boolean): string[] {
 }
 
 // The first step that still has pending items; step 1 when everything is ticked.
-function initialSelectedStep(steps: InspectionStep[], completedCodes: string[]): number {
+function initialSelectedStep(steps: ChecklistStep[], completedCodes: string[]): number {
   const ticked = new Set(completedCodes)
   const first = steps.find((step) => step.items.some((item) => !ticked.has(item.codigo)))
   return (first ?? steps[0])?.numero ?? 1
 }
-
-// Longest step, in items: the panel is sized for it (see InspectionStepPanel.module.css).
-const longestStep = (steps: InspectionStep[]) => Math.max(1, ...steps.map((step) => step.items.length))
 
 function criticalWarning(count: number): string {
   return count === 1
@@ -89,7 +90,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
         confirmed.current = new Map(inspection.items_completados.map((code) => [code, true]))
         setContent({ vehicle: inspection.vehiculo, steps: inspection.pasos })
         setCompleted(inspection.items_completados)
-        setSelected(initialSelectedStep(inspection.pasos, inspection.items_completados))
+        setSelected(initialSelectedStep(toChecklistSteps(inspection.pasos), inspection.items_completados))
         setLoadState('ready')
       })
       .catch((error: unknown) => {
@@ -109,9 +110,9 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
     titleRef.current?.focus()
   }, [view])
 
-  const steps = content?.steps ?? []
-  const progress = summarizeInspection(steps, completed)
-  const showWarning = warningOpen && progress.pendingCritical > 0
+  const steps = toChecklistSteps(content?.steps ?? [])
+  const progress = summarizeChecklist(steps, completed)
+  const showWarning = warningOpen && progress.pendingFlagged > 0
 
   useEffect(() => {
     if (showWarning) warningRef.current?.focus()
@@ -178,7 +179,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   }
 
   const handleToggle = (code: string, value: boolean) => {
-    if (summarizeInspection(steps, withCode(completed, code, value)).pendingCritical === 0) setWarningOpen(false)
+    if (summarizeChecklist(steps, withCode(completed, code, value)).pendingFlagged === 0) setWarningOpen(false)
     setCompleted((current) => withCode(current, code, value))
     desired.current.set(code, value)
     if (draining.current.has(code)) return
@@ -211,19 +212,11 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   }
 
   const handleFinishRequest = () => {
-    if (progress.pendingCritical > 0) setWarningOpen(true)
+    if (progress.pendingFlagged > 0) setWarningOpen(true)
     else void handleFinish()
   }
 
   // While the warning is open, the steps that still have critical items pending get a marker in the list.
-  const ticked = new Set(completed)
-  const pendingCritical = new Map<number, number>()
-  if (showWarning) {
-    for (const step of steps) {
-      const count = step.items.filter((item) => item.critico && !ticked.has(item.codigo)).length
-      if (count > 0) pendingCritical.set(step.numero, count)
-    }
-  }
 
   // The loader is a direct child of the content area so it is centered there, not inside the page column.
   if (loadState === 'loading') return <SessionLoading />
@@ -244,6 +237,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
   }
 
   const completedCodes = new Set(completed)
+  const pendingFlagged = showWarning ? pendingFlaggedByStep(steps, completedCodes) : new Map<number, number>()
   const step = steps[stepIndex]
 
   return (
@@ -258,30 +252,36 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
 
       {showWarning ? (
         <p ref={warningRef} tabIndex={-1} role="alert" className={`${alertStyles.warning} ${styles.warning}`}>
-          {criticalWarning(progress.pendingCritical)}
+          {criticalWarning(progress.pendingFlagged)}
         </p>
       ) : null}
 
       {/* Two columns: the step list and the selected step. --max-items sizes the panel for the longest step. */}
-      <div className={styles.columns} style={{ '--max-items': longestStep(steps) } as CSSProperties}>
-        <InspectionStepList
+      <div className={styles.columns} style={{ '--max-items': longestStepSize(steps) } as CSSProperties}>
+        <ChecklistStepList
+          idPrefix="inspection"
           steps={steps}
           completedCodes={completedCodes}
           selected={selected}
           orientation={narrow ? 'horizontal' : 'vertical'}
-          pendingCritical={pendingCritical}
+          pendingFlagged={pendingFlagged}
+          pendingLabel={pendingMarkerLabel}
           onSelect={setSelected}
         />
-        <InspectionStepPanel
+        <ChecklistStepPanel
+          idPrefix="inspection"
           step={step}
           completedCodes={completedCodes}
           saveFailed={failedSteps.has(step.numero)}
+          saveError={SAVE_ERROR}
+          flagLabel={FLAG_LABEL}
           headingRef={panelHeadingRef}
           onToggle={handleToggle}
         />
       </div>
 
-      <InspectionActionBar
+      <ChecklistActionBar
+        labels={ACTION_LABELS}
         warning={showWarning}
         finishing={finishing}
         finishFailed={finishFailed}
@@ -291,7 +291,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
         onNext={() => goToStep(stepIndex + 1)}
         onFinish={handleFinishRequest}
         onFinishAnyway={() => void handleFinish()}
-        onKeepReviewing={() => setWarningOpen(false)}
+        onKeepWorking={() => setWarningOpen(false)}
       />
     </div>
   )
