@@ -3,6 +3,7 @@
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TransferenciaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,4 +20,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/vehiculos/{vehiculo}/inspeccion', [InspeccionController::class, 'show']);
     Route::put('/vehiculos/{vehiculo}/inspeccion/items/{codigo}', [InspeccionController::class, 'toggle']);
     Route::post('/vehiculos/{vehiculo}/inspeccion/finalizar', [InspeccionController::class, 'finish']);
+
+    Route::get('/transferencia', [TransferenciaController::class, 'show']);
+    Route::put('/transferencia/items/{codigo}', [TransferenciaController::class, 'toggle']);
+    Route::post('/transferencia/finalizar', [TransferenciaController::class, 'finish']);
 });
