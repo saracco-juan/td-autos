@@ -44,6 +44,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the account belongs to a dealer's responsible person.
+     */
+    public function dealer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'rol' => User::ROL_CONCESIONARIA,
+        ]);
+    }
+
+    /**
      * Indicate that the account only signs in with Google (no local password).
      */
     public function googleOnly(): static
