@@ -431,7 +431,9 @@ describe('TransferPage', () => {
 
       await user.click(button('FINALIZAR'))
 
-      expect(screen.queryByText(/sin completar/)).not.toBeInTheDocument()
+      // The summary says "sin completar" too, so the check is on the mandatory warning itself.
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.queryByText(/completalos antes de terminar/)).not.toBeInTheDocument()
       expect(finishTransfer).toHaveBeenCalledTimes(1)
       expect(await screen.findByRole('region', { name: 'Avance por etapa' })).toBeInTheDocument()
     })
@@ -524,7 +526,7 @@ describe('TransferPage', () => {
     })
   })
 
-  describe('summary view (stub, T5 extends it)', () => {
+  describe('summary view', () => {
     it('shows the header, the progress per stage and SEGUIR COMPLETANDO, with the title focused', async () => {
       const user = userEvent.setup()
       await renderPage(onlyMandatory())
@@ -537,6 +539,61 @@ describe('TransferPage', () => {
       expect(within(card).getByText('2. Documentación')).toBeInTheDocument()
       expect(button('SEGUIR COMPLETANDO')).toBeInTheDocument()
       expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+    })
+
+    it('TC-79: with only optional items pending, the summary lists what is missing, without badges', async () => {
+      const user = userEvent.setup()
+      await renderPage(onlyMandatory())
+
+      await user.click(button('FINALIZAR'))
+
+      expect(await screen.findByRole('status')).toHaveTextContent(
+        'Trámite incompleto: te quedan 7 pasos sin completar.',
+      )
+      const card = screen.getByRole('region', { name: 'Pasos pendientes' })
+      expect(within(card).getAllByRole('listitem')).toHaveLength(7)
+      expect(within(card).getByText('Turno en el registro')).toBeInTheDocument()
+      expect(within(card).queryByText('OBLIGATORIO')).not.toBeInTheDocument()
+    })
+
+    it('TC-85: after FINALIZAR IGUAL the summary shows the pending mandatory items', async () => {
+      const user = userEvent.setup()
+      await renderPage(transferResponse({ items_completados: ['documentacion_dni', 'documentacion_titulo'] }))
+      vi.mocked(finishTransfer).mockResolvedValue({ estado: 'incompleta', items_completados: [] })
+      await user.click(button('FINALIZAR'))
+
+      await user.click(button('FINALIZAR IGUAL'))
+
+      expect(await screen.findByRole('status')).toHaveTextContent(
+        'Trámite incompleto: te quedan 13 pasos sin completar, 6 de ellos obligatorios.',
+      )
+      const card = screen.getByRole('region', { name: 'Pasos obligatorios pendientes' })
+      expect(within(card).getAllByRole('listitem')).toHaveLength(6)
+      expect(within(card).getAllByText('OBLIGATORIO')).toHaveLength(6)
+      expect(button('SEGUIR COMPLETANDO')).toBeInTheDocument()
+    })
+
+    it('shows the complete variant when everything is ticked, with VOLVER AL CHECKLIST', async () => {
+      const user = userEvent.setup()
+      await renderPage(transferResponse({ items_completados: ALL_CODES }))
+      vi.mocked(finishTransfer).mockResolvedValue({ estado: 'completa', items_completados: ALL_CODES })
+
+      await user.click(button('FINALIZAR'))
+
+      expect(await screen.findByRole('status')).toHaveTextContent('Trámite completo: completaste los 15 pasos.')
+      expect(screen.getAllByRole('region')).toHaveLength(1)
+      await user.click(button('VOLVER AL CHECKLIST'))
+      expect(screen.getAllByRole('tab')).toHaveLength(4)
+    })
+
+    it('does not show the advisor card in the summary', async () => {
+      const user = userEvent.setup()
+      await renderPage(transferResponse({ items_completados: MANDATORY_CODES, asesor_whatsapp: '5491155550000' }))
+
+      await user.click(button('FINALIZAR'))
+
+      await screen.findByRole('status')
+      expect(screen.queryByText('ASESORAMIENTO')).not.toBeInTheDocument()
     })
 
     it('keeps the local marks after finishing instead of taking the response list', async () => {
