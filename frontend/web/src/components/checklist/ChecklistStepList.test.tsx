@@ -1,28 +1,32 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import ChecklistStepList from './ChecklistStepList'
 import { STEPS } from './fixtures'
-import InspectionStepList from './InspectionStepList'
 
-type Props = React.ComponentProps<typeof InspectionStepList>
+type Props = React.ComponentProps<typeof ChecklistStepList>
+
+const criticalLabel = (count: number) => (count === 1 ? '1 crítico pendiente' : `${count} críticos pendientes`)
 
 function renderList(overrides: Partial<Props> = {}) {
   const props: Props = {
+    idPrefix: 'inspection',
     steps: STEPS,
     completedCodes: new Set(),
     selected: 1,
     orientation: 'vertical',
-    pendingCritical: new Map(),
+    pendingFlagged: new Map(),
+    pendingLabel: criticalLabel,
     onSelect: vi.fn(),
     ...overrides,
   }
-  const view = render(<InspectionStepList {...props} />)
+  const view = render(<ChecklistStepList {...props} />)
   return { props, ...view }
 }
 
 const tabs = () => screen.getAllByRole('tab')
 
-describe('InspectionStepList', () => {
+describe('ChecklistStepList', () => {
   it('renders a vertical tablist with one tab per step: title on the left, progress on the right', () => {
     renderList({ completedCodes: new Set(['papeles_vtv']) })
 
@@ -51,6 +55,13 @@ describe('InspectionStepList', () => {
     expect(tabs()[2]).toHaveAttribute('id', 'inspection-tab-3')
   })
 
+  it('builds the tab and panel ids from the id prefix', () => {
+    renderList({ idPrefix: 'transfer', selected: 2 })
+
+    expect(tabs()[1]).toHaveAttribute('id', 'transfer-tab-2')
+    expect(tabs()[1]).toHaveAttribute('aria-controls', 'transfer-panel-2')
+  })
+
   it('selects a step by clicking its tab', async () => {
     const { props } = renderList()
 
@@ -68,7 +79,7 @@ describe('InspectionStepList', () => {
     expect(props.onSelect).toHaveBeenLastCalledWith(2)
     expect(tabs()[1]).toHaveFocus()
 
-    rerender(<InspectionStepList {...props} selected={1} />)
+    rerender(<ChecklistStepList {...props} selected={1} />)
     tabs()[0].focus()
     await user.keyboard('{ArrowUp}')
     expect(props.onSelect).toHaveBeenLastCalledWith(5)
@@ -83,7 +94,7 @@ describe('InspectionStepList', () => {
     await user.keyboard('{ArrowRight}{ArrowLeft}')
     expect(props.onSelect).not.toHaveBeenCalled()
 
-    rerender(<InspectionStepList {...props} orientation="horizontal" />)
+    rerender(<ChecklistStepList {...props} orientation="horizontal" />)
     await user.keyboard('{ArrowDown}')
     expect(props.onSelect).not.toHaveBeenCalled()
     await user.keyboard('{ArrowRight}')
@@ -104,9 +115,9 @@ describe('InspectionStepList', () => {
     expect(tabs()[0]).toHaveFocus()
   })
 
-  it('shows a marker with accessible text, singular and plural, only on the steps with critical items pending', () => {
+  it('shows a marker with accessible text, singular and plural, only on the steps with flagged items pending', () => {
     renderList({
-      pendingCritical: new Map([
+      pendingFlagged: new Map([
         [2, 2],
         [5, 1],
       ]),
@@ -115,5 +126,14 @@ describe('InspectionStepList', () => {
     expect(screen.getByRole('tab', { name: /^2\. Exterior/ })).toHaveTextContent('2 críticos pendientes')
     expect(screen.getByRole('tab', { name: /^5\. Prueba/ })).toHaveTextContent('1 crítico pendiente')
     expect(screen.getByRole('tab', { name: /^1\. Papeles/ })).not.toHaveTextContent('pendiente')
+  })
+
+  it('takes the marker text from the pending label, with the count', () => {
+    const pendingLabel = vi.fn((count: number) => `${count} obligatorios sin completar`)
+    renderList({ pendingFlagged: new Map([[3, 4]]), pendingLabel })
+
+    expect(screen.getByRole('tab', { name: /^3\. Motor/ })).toHaveTextContent('4 obligatorios sin completar')
+    expect(pendingLabel).toHaveBeenCalledWith(4)
+    expect(pendingLabel).toHaveBeenCalledTimes(1)
   })
 })

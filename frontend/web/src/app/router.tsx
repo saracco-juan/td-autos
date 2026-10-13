@@ -11,6 +11,7 @@ import HomeRoute from '../features/home/HomeRoute'
 import InspectionPage from '../features/inspection/InspectionPage'
 import ProfilePage from '../features/profile/ProfilePage'
 import RecommendationsPage from '../features/recommendations/RecommendationsPage'
+import TransferPage from '../features/transfer/TransferPage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
 
@@ -34,6 +35,7 @@ export const routes: RouteObject[] = [
               { path: '/diagnostico', element: <DiagnosisPage /> },
               { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
               { path: '/recomendaciones', element: <RecommendationsPage /> },
+              { path: '/transferencia', element: <TransferPage /> },
               { path: '/perfil', element: <ProfilePage /> },
             ],
           },

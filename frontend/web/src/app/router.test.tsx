@@ -7,6 +7,8 @@ import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../featu
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
+import { fetchTransfer } from '../features/transfer/api'
+import { transferResponse } from '../features/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
 import { routes } from './router'
 
@@ -27,6 +29,12 @@ vi.mock('../features/inspection/api', () => ({
   fetchInspection: vi.fn(),
   setItemCompleted: vi.fn(),
   finishInspection: vi.fn(),
+}))
+
+vi.mock('../features/transfer/api', () => ({
+  fetchTransfer: vi.fn(),
+  setItemCompleted: vi.fn(),
+  finishTransfer: vi.fn(),
 }))
 
 const ana = {
@@ -61,6 +69,7 @@ describe('app routes', () => {
     vi.mocked(fetchDiagnosis).mockReset()
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
+    vi.mocked(fetchTransfer).mockReset()
     asAuthenticated()
   })
 
@@ -274,6 +283,25 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
     expect(fetchInspection).not.toHaveBeenCalled()
+  })
+
+  it('renders the transfer checklist at /transferencia inside the shell for an authenticated user', async () => {
+    vi.mocked(fetchTransfer).mockResolvedValue(transferResponse())
+    const router = renderAt('/transferencia')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Checklist de transferencia' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/transferencia')
+    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('redirects a guest opening /transferencia to the login screen without reading the checklist', async () => {
+    asGuest()
+    const router = renderAt('/transferencia')
+
+    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/login')
+    expect(fetchTransfer).not.toHaveBeenCalled()
   })
 
   it('renders the register screen at /registro for a guest', async () => {

@@ -1,4 +1,4 @@
-/* Left card of the two-column area: the five steps as a vertical list of tabs. */
+/* Left card of the two-column area: the steps as a vertical list of tabs. */
 .list {
   display: flex;
   flex-direction: column;
@@ -54,7 +54,7 @@
   font-weight: 500;
 }
 
-/* Critical items pending (only while the warning is open): a small accent dot, the text is for screen readers. */
+/* Flagged items pending (only while the warning is open): a small accent dot, the text is for screen readers. */
 .marker {
   flex-shrink: 0;
   width: 8px;

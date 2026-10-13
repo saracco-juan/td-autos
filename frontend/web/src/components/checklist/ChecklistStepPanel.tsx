@@ -1,28 +1,44 @@
-import type { Ref } from 'react'
-import alertStyles from '../../components/alert.module.css'
-import { stepPanelId, stepTabId } from './stepIds'
-import styles from './InspectionStepPanel.module.css'
-import type { InspectionStep } from './types'
-
-export const SAVE_ERROR = 'No pudimos guardar el cambio. Probá de nuevo.'
+import type { ReactNode, Ref } from 'react'
+import alertStyles from '../alert.module.css'
+import { stepPanelId, stepTabId } from './ids'
+import styles from './ChecklistStepPanel.module.css'
+import type { ChecklistStep } from './types'
 
 type Props = {
-  step: InspectionStep
+  // Prefix of the tab and panel ids; must match the one given to the step list.
+  idPrefix: string
+  step: ChecklistStep
   completedCodes: ReadonlySet<string>
   saveFailed: boolean
+  // Shown as an alert while `saveFailed`.
+  saveError: string
+  // Badge text of the flagged items.
+  flagLabel: string
   // Previous/next move the focus here, so the new step is announced.
   headingRef: Ref<HTMLHeadingElement>
   onToggle: (code: string, completed: boolean) => void
+  // Optional content under the rows (for example a source note).
+  children?: ReactNode
 }
 
 // Right card: the selected step, labelled by its tab. The hint and error slots keep their space
 // (see the min-height in the CSS) so the card does not change height from one step to another.
-export default function InspectionStepPanel({ step, completedCodes, saveFailed, headingRef, onToggle }: Props) {
+export default function ChecklistStepPanel({
+  idPrefix,
+  step,
+  completedCodes,
+  saveFailed,
+  saveError,
+  flagLabel,
+  headingRef,
+  onToggle,
+  children,
+}: Props) {
   return (
     <div
       role="tabpanel"
-      id={stepPanelId(step.numero)}
-      aria-labelledby={stepTabId(step.numero)}
+      id={stepPanelId(idPrefix, step.numero)}
+      aria-labelledby={stepTabId(idPrefix, step.numero)}
       className={styles.panel}
     >
       <div className={styles.head}>
@@ -46,16 +62,18 @@ export default function InspectionStepPanel({ step, completedCodes, saveFailed, 
                 />
                 <span className={styles.text}>{item.texto}</span>
                 {/* The space keeps the badge a separate word in the accessible name. */}
-                {item.critico ? <> <span className={styles.badge}>CRÍTICO</span></> : null}
+                {item.flagged ? <> <span className={styles.badge}>{flagLabel}</span></> : null}
               </label>
             </li>
           )
         })}
       </ul>
 
+      {children}
+
       {saveFailed ? (
         <p role="alert" className={`${alertStyles.alert} ${styles.message}`}>
-          {SAVE_ERROR}
+          {saveError}
         </p>
       ) : null}
     </div>

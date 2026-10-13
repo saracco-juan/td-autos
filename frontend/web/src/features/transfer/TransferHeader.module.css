@@ -1,0 +1,11 @@
+/* Figma 38:694 header: eyebrow, title and counter 8 apart (no back link on this screen). */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.counter {
+  color: var(--text-secondary);
+  font-size: 14px;
+}

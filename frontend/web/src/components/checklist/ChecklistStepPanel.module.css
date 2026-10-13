@@ -10,6 +10,7 @@
  *     set by the page from the data on the wrapper, 6 as fallback)
  *   + gap + the save-error slot (--message-h, reserved so an error never grows the card).
  * A row that wraps (narrow widths, long texts) can still make the card grow; at desktop width rows are one line.
+ * Footer content under the rows (children) is not part of the reservation: give it the same height in every step.
  */
 .panel {
   --row-h: 44px;
@@ -74,7 +75,7 @@
 
 /* Row, text and badge come from the module shared with the summary lists. */
 .row {
-  composes: row from './inspectionRow.module.css';
+  composes: row from './checklistRow.module.css';
   cursor: pointer;
 }
 
@@ -97,11 +98,11 @@
 }
 
 .text {
-  composes: text from './inspectionRow.module.css';
+  composes: text from './checklistRow.module.css';
 }
 
 .badge {
-  composes: badge from './inspectionRow.module.css';
+  composes: badge from './checklistRow.module.css';
 }
 
 /* The slot is reserved by the min-height above; the error takes the room that was left empty. */

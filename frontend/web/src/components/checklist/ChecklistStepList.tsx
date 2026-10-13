@@ -1,17 +1,21 @@
 import { useRef, type KeyboardEvent } from 'react'
-import { stepPanelId, stepTabId } from './stepIds'
-import styles from './InspectionStepList.module.css'
-import type { InspectionStep } from './types'
+import { stepPanelId, stepTabId } from './ids'
+import styles from './ChecklistStepList.module.css'
+import type { ChecklistStep } from './types'
 
 export type ListOrientation = 'vertical' | 'horizontal'
 
 type Props = {
-  steps: InspectionStep[]
+  // Prefix of the tab and panel ids; one per checklist on the page.
+  idPrefix: string
+  steps: ChecklistStep[]
   completedCodes: ReadonlySet<string>
   selected: number
   orientation: ListOrientation
-  // Critical items still pending per step number; only filled while the warning is open.
-  pendingCritical: ReadonlyMap<number, number>
+  // Flagged items still pending per step number; only filled while the warning is open.
+  pendingFlagged: ReadonlyMap<number, number>
+  // Accessible text of the marker, given the count of flagged items pending in the step.
+  pendingLabel: (count: number) => string
   onSelect: (numero: number) => void
 }
 
@@ -21,12 +25,14 @@ const KEYS: Record<ListOrientation, { previous: string; next: string }> = {
 }
 
 // The steps as tabs: arrows move and select, Home and End jump to the ends, only the selected tab is in the tab order.
-export default function InspectionStepList({
+export default function ChecklistStepList({
+  idPrefix,
   steps,
   completedCodes,
   selected,
   orientation,
-  pendingCritical,
+  pendingFlagged,
+  pendingLabel,
   onSelect,
 }: Props) {
   const tabs = useRef(new Map<number, HTMLButtonElement>())
@@ -55,7 +61,7 @@ export default function InspectionStepList({
       {steps.map((step) => {
         const isSelected = step.numero === selected
         const done = step.items.filter((item) => completedCodes.has(item.codigo)).length
-        const critical = pendingCritical.get(step.numero) ?? 0
+        const flagged = pendingFlagged.get(step.numero) ?? 0
         return (
           <button
             key={step.numero}
@@ -65,9 +71,9 @@ export default function InspectionStepList({
             }}
             type="button"
             role="tab"
-            id={stepTabId(step.numero)}
+            id={stepTabId(idPrefix, step.numero)}
             aria-selected={isSelected}
-            aria-controls={stepPanelId(step.numero)}
+            aria-controls={stepPanelId(idPrefix, step.numero)}
             tabIndex={isSelected ? 0 : -1}
             className={`${styles.tab} ${isSelected ? styles.selected : ''}`}
             onClick={() => onSelect(step.numero)}
@@ -75,12 +81,10 @@ export default function InspectionStepList({
             <span className={styles.title}>
               {step.numero}. {step.titulo}
             </span>
-            {critical > 0 ? (
+            {flagged > 0 ? (
               <>
                 <span aria-hidden="true" className={styles.marker} />
-                <span className={styles.visuallyHidden}>
-                  {critical === 1 ? '1 crítico pendiente' : `${critical} críticos pendientes`}
-                </span>
+                <span className={styles.visuallyHidden}>{pendingLabel(flagged)}</span>
               </>
             ) : null}
             <span className={styles.progress}>
