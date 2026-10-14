@@ -3,7 +3,7 @@ import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
-import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../features/auth/api'
+import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
@@ -558,6 +558,58 @@ describe('app routes', () => {
 
       expect(await statusHeading()).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/concesionaria')
+    })
+
+    it('TC-44: a guest registers a dealer at /registro/concesionaria and lands on the request status, never on the diagnosis', async () => {
+      asGuest()
+      vi.mocked(registerDealer).mockReset()
+      vi.mocked(registerDealer).mockImplementation(async () => {
+        // The registration starts the session: the refresh that follows reads the new pending dealer.
+        asDealer('pendiente')
+        return { ...marta, concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta: 'pendiente' } }
+      })
+      const user = userEvent.setup()
+      const router = renderAt('/registro/concesionaria')
+
+      await user.type(await screen.findByLabelText('Nombre de la concesionaria'), 'Autos del Sur')
+      await user.type(screen.getByLabelText('Email'), 'marta@autosdelsur.com')
+      await user.type(screen.getByLabelText('Nombre del responsable'), 'Marta')
+      await user.type(screen.getByLabelText('Apellido del responsable'), 'Gómez')
+      await user.type(screen.getByLabelText('DNI del responsable'), '30111222')
+      await user.type(screen.getByLabelText('Teléfono del responsable'), '1144445555')
+      await user.type(screen.getByLabelText('Teléfono público'), '1143210000')
+      await user.type(screen.getByLabelText('Dirección'), 'Av. Mitre 1234')
+      await user.type(screen.getByLabelText('Localidad'), 'Avellaneda')
+      await user.type(screen.getByLabelText('Provincia'), 'Buenos Aires')
+      await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
+      await user.type(screen.getByLabelText('Confirmar contraseña'), 'Abcdef12')
+      await user.click(screen.getByRole('button', { name: 'CREAR CUENTA' }))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(screen.getByText('Pendiente de aprobación inicial · inventario bloqueado')).toBeInTheDocument()
+      expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
+      expect(registerDealer).toHaveBeenCalledTimes(1)
+      expect(fetchDiagnosis).not.toHaveBeenCalled()
+      expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    })
+
+    it.each([
+      ['an unknown role', { rol: 'admin' }],
+      ['a missing role', { rol: undefined as unknown as string }],
+    ])('denies a signed-in user with %s on buyer and dealer routes, in place and without reading the diagnosis', async (_label, overrides) => {
+      asAuthenticated({ ...overrides, tiene_diagnostico: false })
+      const router = renderAt('/')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('No tenés permiso para realizar esta acción.')
+      expect(router.state.location.pathname).toBe('/')
+
+      await act(() => router.navigate('/concesionaria'))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('No tenés permiso para realizar esta acción.')
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(screen.queryByRole('heading', { name: 'Verificación de suscripción' })).not.toBeInTheDocument()
+      expect(fetchDiagnosis).not.toHaveBeenCalled()
     })
 
     it('sends a dealer from / to /concesionaria, never to the diagnosis', async () => {

@@ -13,8 +13,8 @@ export type User = {
   rol: string
   perfil_completo: boolean
   tiene_diagnostico: boolean
-  // Present only for users with the dealer role.
-  concesionaria?: DealerSummary
+  // Sent only for users with the dealer role; null when that user has no dealer row.
+  concesionaria?: DealerSummary | null
 }
 
 export type RegisterPayload = {

@@ -313,7 +313,6 @@ describe('DealerRegisterPage', () => {
             localidad: ['La localidad no puede superar los 100 caracteres.'],
             provincia: ['La provincia no puede superar los 100 caracteres.'],
             password: ['La contraseña debe incluir al menos un número.'],
-            password_confirmation: ['Las contraseñas no coinciden.'],
           },
         }),
       )
@@ -323,7 +322,7 @@ describe('DealerRegisterPage', () => {
       await fillForm(user)
       await submit(user)
 
-      const expected: Record<Label, string> = {
+      const expected: Partial<Record<Label, string>> = {
         'Nombre de la concesionaria': 'El nombre de la concesionaria no puede superar los 150 caracteres.',
         Email: 'El email ya está en uso.',
         'Nombre del responsable': 'El nombre no puede superar los 255 caracteres.',
@@ -335,14 +334,44 @@ describe('DealerRegisterPage', () => {
         Localidad: 'La localidad no puede superar los 100 caracteres.',
         Provincia: 'La provincia no puede superar los 100 caracteres.',
         Contraseña: 'La contraseña debe incluir al menos un número.',
-        'Confirmar contraseña': 'Las contraseñas no coinciden.',
       }
       await screen.findByText('El email ya está en uso.')
       for (const [label, message] of Object.entries(expected)) {
         expect(screen.getByLabelText(label)).toHaveAccessibleDescription(message)
       }
+      expect(screen.getByLabelText('Confirmar contraseña')).not.toBeInvalid()
       expect(screen.queryByText('Estado de la concesionaria')).not.toBeInTheDocument()
       expect(refresh).not.toHaveBeenCalled()
+    })
+
+    // Laravel's `confirmed` rule reports the mismatch under `password`; no `password_confirmation` key ever arrives.
+    it('shows the confirmation mismatch reported by the server on the password field', async () => {
+      vi.mocked(registerDealer).mockRejectedValue(new HttpError(422, { errors: { password: ['Las contraseñas no coinciden.'] } }))
+      const user = userEvent.setup()
+      renderPage()
+
+      await fillForm(user)
+      await submit(user)
+
+      expect(await screen.findByText('Las contraseñas no coinciden.')).toBeInTheDocument()
+      expect(screen.getByLabelText('Contraseña')).toBeInvalid()
+      expect(screen.getByLabelText('Contraseña')).toHaveAccessibleDescription('Las contraseñas no coinciden.')
+      expect(screen.getByLabelText('Confirmar contraseña')).not.toBeInvalid()
+      expect(screen.getByLabelText('Confirmar contraseña')).not.toHaveAccessibleDescription('Las contraseñas no coinciden.')
+    })
+
+    it('ignores a password_confirmation key, which the API never sends', async () => {
+      vi.mocked(registerDealer).mockRejectedValue(
+        new HttpError(422, { errors: { password_confirmation: ['Las contraseñas no coinciden.'] } }),
+      )
+      const user = userEvent.setup()
+      renderPage()
+
+      await fillForm(user)
+      await submit(user)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo completar el registro. Intentá nuevamente.')
+      expect(screen.getByLabelText('Confirmar contraseña')).not.toBeInvalid()
     })
 
     it.each([

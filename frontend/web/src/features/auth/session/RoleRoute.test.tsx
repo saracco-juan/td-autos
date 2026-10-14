@@ -57,4 +57,18 @@ describe('RoleRoute', () => {
     expect(screen.getByText('Inicio del comprador')).toBeInTheDocument()
     expect(screen.queryByText('Estado de la concesionaria')).not.toBeInTheDocument()
   })
+
+  describe.each([
+    ['an unknown role', { ...buyer, rol: 'admin' }],
+    ['a missing role', { ...buyer, rol: undefined as unknown as string }],
+  ])('a signed-in user with %s', (_label, user) => {
+    it.each(['/', '/diagnostico', '/concesionaria'])('is denied at %s in place, without bouncing between roles', (path) => {
+      renderAt(path, user)
+
+      expect(screen.getByRole('alert')).toHaveTextContent('No tenés permiso para realizar esta acción.')
+      expect(screen.queryByText('Inicio del comprador')).not.toBeInTheDocument()
+      expect(screen.queryByText('Diagnóstico')).not.toBeInTheDocument()
+      expect(screen.queryByText('Estado de la concesionaria')).not.toBeInTheDocument()
+    })
+  })
 })

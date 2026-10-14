@@ -1,0 +1,11 @@
+/* Starts at the top like the dealer pages, as wide as their card. */
+.denied {
+  width: 100%;
+  max-width: 1216px;
+  margin-bottom: auto;
+  padding-top: 40px;
+}
+
+.denied > p {
+  max-width: 760px;
+}

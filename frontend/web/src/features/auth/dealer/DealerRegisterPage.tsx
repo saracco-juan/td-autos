@@ -16,7 +16,7 @@ import {
 
 const GENERIC_ERROR = 'No se pudo completar el registro. Intentá nuevamente.'
 
-// Form field -> key of the API payload, which is also the key of its 422 errors.
+// Form field -> key of the API payload, which is also the key of its 422 errors (except the confirmation).
 const SERVER_KEYS: Record<DealerRegisterField, keyof DealerRegisterPayload> = {
   dealerName: 'nombre_concesionaria',
   email: 'email',
@@ -34,6 +34,9 @@ const SERVER_KEYS: Record<DealerRegisterField, keyof DealerRegisterPayload> = {
 
 const FORM_FIELDS = Object.keys(SERVER_KEYS) as DealerRegisterField[]
 
+// `password_confirmation` is only sent: the API reports a mismatch under `password` (Laravel's `confirmed` rule).
+const SERVER_ERROR_FIELDS = FORM_FIELDS.filter((field) => field !== 'passwordConfirmation')
+
 const EMPTY_VALUES = Object.fromEntries(FORM_FIELDS.map((field) => [field, ''])) as DealerRegisterFormValues
 
 type ValidationBody = { errors?: Partial<Record<string, string[]>> }
@@ -48,7 +51,7 @@ function toPayload(values: DealerRegisterFormValues): DealerRegisterPayload {
 
 function fieldErrorsFromServer(body: ValidationBody | undefined): DealerRegisterErrors {
   const errors: DealerRegisterErrors = {}
-  for (const field of FORM_FIELDS) {
+  for (const field of SERVER_ERROR_FIELDS) {
     const messages = body?.errors?.[SERVER_KEYS[field]]
     if (messages && messages.length > 0) errors[field] = messages
   }

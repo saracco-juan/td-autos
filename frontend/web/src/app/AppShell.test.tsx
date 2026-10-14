@@ -116,6 +116,17 @@ describe('AppShell', () => {
     expect(screen.queryByRole('link', { name: 'Transferencia' })).not.toBeInTheDocument()
   })
 
+  it('shows only the logo and the logout button to a signed-in user who is neither a buyer nor a dealer', () => {
+    mockAuth('authenticated', undefined, { ...ana, rol: 'admin' })
+    renderShell()
+
+    const banner = screen.getByRole('banner')
+    expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
+    expect(banner.querySelectorAll('a')).toHaveLength(1)
+    expect(screen.queryByRole('link', { name: 'Diagnóstico' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Verificación' })).not.toBeInTheDocument()
+  })
+
   it('marks the link of the current page with aria-current', () => {
     mockAuth('authenticated')
     renderShell('/recomendaciones')
@@ -174,8 +185,9 @@ describe('AppShell', () => {
       expect(screen.getByRole('link', { name: 'Verificación' })).not.toHaveAttribute('aria-current')
     })
 
+    // The API sends `concesionaria: null` for a dealer-role user without a dealer row.
     it('shows no dealer name for a dealer user without a dealer', () => {
-      mockAuth('authenticated', undefined, { ...marta, concesionaria: undefined })
+      mockAuth('authenticated', undefined, { ...marta, concesionaria: null })
       renderShell()
 
       expect(screen.getByRole('link', { name: 'Verificación' })).toBeInTheDocument()
