@@ -63,6 +63,7 @@ class ComprobantePago extends Model
      */
     public function scopePendientes(Builder $query): Builder
     {
-        return $query->where('estado', self::ESTADO_PENDIENTE_REVISION);
+        // Qualified: the scope is also used through a join (dealer -> subscription -> receipts).
+        return $query->where($query->qualifyColumn('estado'), self::ESTADO_PENDIENTE_REVISION);
     }
 }
