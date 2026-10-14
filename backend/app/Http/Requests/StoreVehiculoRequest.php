@@ -28,14 +28,12 @@ class StoreVehiculoRequest extends VehiculoRequest
      */
     public function messages(): array
     {
-        $minimum = 'Cargá al menos siete fotos.';
-
         return [
             ...parent::messages(),
-            'fotos.required' => $minimum,
-            'fotos.array' => $minimum,
-            'fotos.min' => $minimum,
-            'fotos.max' => 'Podés cargar hasta '.VehiculoOptions::FOTOS_MAXIMO.' fotos.',
+            'fotos.required' => self::FOTOS_MINIMO_MESSAGE,
+            'fotos.array' => self::FOTOS_MINIMO_MESSAGE,
+            'fotos.min' => self::FOTOS_MINIMO_MESSAGE,
+            'fotos.max' => self::FOTOS_MAXIMO_MESSAGE,
         ];
     }
 }

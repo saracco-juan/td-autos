@@ -20,62 +20,10 @@ use Tests\TestCase;
  */
 class CreateVehiculoTest extends TestCase
 {
+    use InteractsWithVehiculos;
     use RefreshDatabase;
 
     private const URL = '/api/concesionaria/vehiculos';
-
-    /** 1x1 transparent PNG; real image bytes so the `image` rule passes without GD. */
-    private const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-
-    private string $disk;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->disk = config('filesystems.vehicle_photos_disk');
-        Storage::fake($this->disk);
-    }
-
-    /**
-     * @return list<UploadedFile>
-     */
-    private function photos(int $count): array
-    {
-        return array_map(
-            fn (int $n) => UploadedFile::fake()->createWithContent("foto{$n}.png", base64_decode(self::PNG)),
-            range(1, $count),
-        );
-    }
-
-    /**
-     * @param  array<string, mixed>  $overrides
-     * @return array<string, mixed>
-     */
-    private function payload(array $overrides = []): array
-    {
-        return [
-            'patente' => 'AB123CD',
-            'marca' => 'Toyota',
-            'modelo' => 'Corolla',
-            'version' => 'XEI 2.0 CVT',
-            'anio' => 2021,
-            'kilometraje' => 45000,
-            'precio' => 25000000,
-            'transmision' => 'automatica',
-            'combustible' => 'nafta',
-            'carroceria_id' => TipoCarroceria::query()->value('id'),
-            'ubicacion' => 'Córdoba',
-            'descripcion' => 'Único dueño.',
-            'fotos' => $this->photos(7),
-            ...$overrides,
-        ];
-    }
-
-    private function dealer(): User
-    {
-        return Concesionaria::factory()->active()->create()->usuario;
-    }
 
     /**
      * TC-55: an active dealer saves a vehicle with seven photos.

@@ -29,5 +29,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
         Route::get('/', [ConcesionariaVehiculoController::class, 'index']);
         Route::post('/', [ConcesionariaVehiculoController::class, 'store']);
+        Route::get('/{id}', [ConcesionariaVehiculoController::class, 'show'])->whereNumber('id');
+        Route::post('/{id}', [ConcesionariaVehiculoController::class, 'update'])->whereNumber('id');
+        Route::delete('/{id}', [ConcesionariaVehiculoController::class, 'destroy'])->whereNumber('id');
     });
 });

@@ -50,6 +50,10 @@ abstract class VehiculoRequest extends FormRequest
         'carroceria_id' => 'la carrocería',
     ];
 
+    protected const FOTOS_MINIMO_MESSAGE = 'Cargá al menos siete fotos.';
+
+    protected const FOTOS_MAXIMO_MESSAGE = 'Podés cargar hasta '.VehiculoOptions::FOTOS_MAXIMO.' fotos.';
+
     /** Fields that may be left empty. */
     private const OPTIONAL_FIELDS = ['version', 'descripcion'];
 
