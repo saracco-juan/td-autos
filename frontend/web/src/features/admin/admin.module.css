@@ -1,0 +1,138 @@
+/* Admin screens (Figma 2101:1493, 38:1037): eyebrow, title and subtitle 8 apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma "Card": white surface, radius 14. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.card > p {
+  margin: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cardBody {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.statLabel {
+  font-size: 12px;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.statMuted {
+  color: var(--text-secondary);
+}
+
+.sectionLabel {
+  margin: 0 0 -16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma 38:1037 table: raised header row, white rows split by a line. */
+.tableWrap {
+  overflow-x: auto;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.table thead th {
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.table tbody tr + tr {
+  border-top: 1px solid var(--border-default);
+}
+
+.dealerName {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+
+/* Figma: the state is bold text tinted by its meaning. */
+.state {
+  font-weight: 600;
+}
+
+.state[data-tone='active'] {
+  color: var(--status-success);
+}
+
+.state[data-tone='inactive'] {
+  color: var(--text-secondary);
+}
+
+.rowAction {
+  width: 150px;
+  height: 36px;
+}
+
+@media (max-width: 600px) {
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

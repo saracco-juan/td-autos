@@ -9,6 +9,8 @@ import { fetchBodyTypes, fetchVehicle, fetchVehicles } from '../features/invento
 import { VEHICULOS, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
+import { fetchDealerDirectory } from '../features/admin/api'
+import { directory } from '../features/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
 import { fetchTransfer } from '../features/transfer/api'
@@ -44,6 +46,8 @@ vi.mock('../features/inventory/api', () => ({
   updateVehicle: vi.fn(),
   fetchBodyTypes: vi.fn(),
 }))
+
+vi.mock('../features/admin/api', () => ({ fetchDealerDirectory: vi.fn() }))
 
 vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
@@ -112,6 +116,8 @@ describe('app routes', () => {
     vi.mocked(fetchVehicle).mockResolvedValue(vehiculo())
     vi.mocked(fetchBodyTypes).mockReset()
     vi.mocked(fetchBodyTypes).mockResolvedValue([{ id: 2, nombre: 'Sedán' }])
+    vi.mocked(fetchDealerDirectory).mockReset()
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(directory())
     asAuthenticated()
   })
 
@@ -822,5 +828,90 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
+  })
+
+  describe('admin session (UH19)', () => {
+    // An administrator has no diagnosis: the buyer home must never send one to the questionnaire.
+    function asAdmin() {
+      vi.mocked(fetchCurrentUser).mockResolvedValue({ ...ana, name: 'Laura', rol: 'administrador', tiene_diagnostico: false })
+    }
+
+    const dashboardHeading = () => screen.findByRole('heading', { level: 1, name: 'Panel de administración' })
+
+    it('an administrator who logs in lands on /admin, not on the diagnosis', async () => {
+      asGuest()
+      vi.mocked(loginUser).mockImplementation(async () => {
+        asAdmin()
+      })
+      const user = userEvent.setup()
+      const router = renderAt('/login')
+
+      await user.type(await screen.findByLabelText('Email'), 'laura@tdautos.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
+      await user.click(screen.getByRole('button', { name: 'INGRESAR' }))
+
+      expect(await dashboardHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin')
+      expect(fetchDiagnosis).not.toHaveBeenCalled()
+    })
+
+    it.each(['/', '/diagnostico', '/perfil', '/concesionaria', '/concesionaria/suscripcion', '/concesionaria/inventario'])(
+      'sends an administrator opening %s to /admin',
+      async (path) => {
+        asAdmin()
+        const router = renderAt(path)
+
+        expect(await dashboardHeading()).toBeInTheDocument()
+        expect(router.state.location.pathname).toBe('/admin')
+        expect(fetchDiagnosis).not.toHaveBeenCalled()
+        expect(fetchSubscription).not.toHaveBeenCalled()
+        expect(fetchVehicles).not.toHaveBeenCalled()
+      },
+    )
+
+    it('renders the dealer list at /admin/concesionarias inside the shell', async () => {
+      asAdmin()
+      const router = renderAt('/admin/concesionarias')
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin/concesionarias')
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+    })
+
+    it('opens the dealer list from the dashboard', async () => {
+      asAdmin()
+      const router = renderAt('/admin')
+
+      await userEvent.setup().click(await screen.findByRole('link', { name: 'VER CONCESIONARIAS' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin/concesionarias')
+    })
+
+    it.each(['/admin', '/admin/concesionarias'])('sends a buyer opening %s to / without reading the dealers', async (path) => {
+      const router = renderAt(path)
+
+      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/')
+      expect(fetchDealerDirectory).not.toHaveBeenCalled()
+    })
+
+    it.each(['/admin', '/admin/concesionarias'])('sends a dealer opening %s to /concesionaria without reading the dealers', async (path) => {
+      asDealer('activa')
+      const router = renderAt(path)
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Verificación de suscripción' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(fetchDealerDirectory).not.toHaveBeenCalled()
+    })
+
+    it('redirects a guest opening /admin to the login screen', async () => {
+      asGuest()
+      const router = renderAt('/admin')
+
+      expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/login')
+      expect(fetchDealerDirectory).not.toHaveBeenCalled()
+    })
   })
 })
