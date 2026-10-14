@@ -162,6 +162,38 @@ describe('AppShell', () => {
       }
     })
 
+    it('UH21: shows the Inventario link to an active dealer, after Verificación', () => {
+      mockAuth('authenticated', undefined, { ...marta, concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta: 'activa' } })
+      renderShell()
+
+      const link = screen.getByRole('link', { name: 'Inventario' })
+      expect(link).toHaveAttribute('href', '/concesionaria/inventario')
+      expect(screen.getByRole('link', { name: 'Verificación' }).compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('UH21: marks Inventario with aria-current on the inventory screens, and Verificación stays unmarked', () => {
+      mockAuth('authenticated', undefined, { ...marta, concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta: 'activa' } })
+      renderShell('/concesionaria/inventario/3/editar')
+
+      expect(screen.getByRole('link', { name: 'Inventario' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('link', { name: 'Verificación' })).not.toHaveAttribute('aria-current')
+    })
+
+    it.each([['pendiente'], [null]])('UH21: hides the Inventario link from a dealer whose state is %s', (estado_alta) => {
+      mockAuth('authenticated', undefined, { ...marta, concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta } })
+      renderShell()
+
+      expect(screen.queryByRole('link', { name: 'Inventario' })).not.toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Verificación' })).toBeInTheDocument()
+    })
+
+    it('UH21: hides the Inventario link from a dealer user without a dealer', () => {
+      mockAuth('authenticated', undefined, { ...marta, concesionaria: null })
+      renderShell()
+
+      expect(screen.queryByRole('link', { name: 'Inventario' })).not.toBeInTheDocument()
+    })
+
     it('orders the nav: Verificación, dealer name, Cerrar sesión', () => {
       mockAuth('authenticated', undefined, marta)
       renderShell()

@@ -1,3 +1,4 @@
+import buttonStyles from './button.module.css'
 import styles from './ErrorState.module.css'
 
 export type ErrorKind = 'network' | 'server'
@@ -50,14 +51,19 @@ function ErrorIcon({ kind }: { kind: ErrorKind }) {
   )
 }
 
-// Full-block error for data that failed to load.
-export default function ErrorState({ kind }: { kind: ErrorKind }) {
+// Full-block error for data that failed to load. With `onRetry` it offers a REINTENTAR button.
+export default function ErrorState({ kind, onRetry }: { kind: ErrorKind; onRetry?: () => void }) {
   const { title, body } = COPY[kind]
   return (
     <section role="alert" className={styles.state}>
       <ErrorIcon kind={kind} />
       <h2 className={styles.title}>{title}</h2>
       <p className={styles.body}>{body}</p>
+      {onRetry ? (
+        <button type="button" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.retry}`} onClick={onRetry}>
+          REINTENTAR
+        </button>
+      ) : null}
     </section>
   )
 }
