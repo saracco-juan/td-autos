@@ -1,12 +1,6 @@
-import { DEALER_STATE_ACTIVE, DEALER_STATE_PENDING } from '../auth/roles'
 import { useAuth } from '../auth/session/useAuth'
+import { accountStatusText } from './accountStatus'
 import styles from './DealerStatusPage.module.css'
-
-function statusText(state: string | null | undefined): string {
-  if (state === DEALER_STATE_PENDING) return 'Pendiente de aprobación inicial · inventario bloqueado'
-  if (state === DEALER_STATE_ACTIVE) return 'Activa'
-  return 'Sin información de estado'
-}
 
 // Dealer landing screen (Figma 38:860), reduced to UH17: the state of the adhesion request.
 // The receipt review card and the inventory button arrive with their own stories.
@@ -23,7 +17,7 @@ export default function DealerStatusPage() {
         <h2 id="dealer-status-title" className={styles.cardTitle}>
           Estado de la cuenta
         </h2>
-        <p className={styles.status}>{statusText(user?.concesionaria?.estado_alta)}</p>
+        <p className={styles.status}>{accountStatusText(user?.concesionaria?.estado_alta)}</p>
       </section>
     </div>
   )

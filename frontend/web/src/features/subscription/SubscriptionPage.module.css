@@ -1,0 +1,142 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma "Cards" 2113:1661: three cards side by side, 24 apart; they stack on narrow screens. */
+.cards {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.cards > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Figma "Card" 2010:35: same surface as the other dealer cards. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cardBody {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* The account state is the one body text Figma paints with the accent color. */
+.status {
+  color: var(--accent-default);
+}
+
+/* Not in Figma: the data to make the transfer (HU18 scenario 1). */
+.data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.dataRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.term {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.value {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.kind {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.message {
+  margin: 0;
+  outline: none;
+}
+
+/* Figma "Actions" 2113:1674: buttons 16 apart, 260 / 320 / 220 wide. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pick {
+  position: relative;
+  width: 260px;
+}
+
+.pick:focus-within {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.pick:has(:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* The input stays in the page (focusable, announced) but the styled label is what the dealer sees. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.send {
+  width: 320px;
+}
+
+.inventory {
+  width: 220px;
+}
+
+@media (max-width: 800px) {
+  .cards {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .pick,
+  .send,
+  .inventory {
+    width: 100%;
+  }
+}

@@ -9,6 +9,8 @@ import { fetchBodyTypes, fetchVehicle, fetchVehicles } from '../features/invento
 import { VEHICULOS, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
+import { fetchSubscription } from '../features/subscription/api'
+import { suscripcion } from '../features/subscription/fixtures'
 import { fetchTransfer } from '../features/transfer/api'
 import { transferResponse } from '../features/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
@@ -42,6 +44,8 @@ vi.mock('../features/inventory/api', () => ({
   updateVehicle: vi.fn(),
   fetchBodyTypes: vi.fn(),
 }))
+
+vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
 vi.mock('../features/transfer/api', () => ({
   fetchTransfer: vi.fn(),
@@ -100,6 +104,8 @@ describe('app routes', () => {
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
     vi.mocked(fetchTransfer).mockReset()
+    vi.mocked(fetchSubscription).mockReset()
+    vi.mocked(fetchSubscription).mockResolvedValue(suscripcion())
     vi.mocked(fetchVehicles).mockReset()
     vi.mocked(fetchVehicles).mockResolvedValue(VEHICULOS)
     vi.mocked(fetchVehicle).mockReset()
@@ -758,6 +764,45 @@ describe('app routes', () => {
       await screen.findByRole('alert')
 
       expect(fetchVehicles).not.toHaveBeenCalled()
+    })
+
+    it.each(['pendiente', 'activa'])('UH18: a %s dealer opens /concesionaria/suscripcion inside the shell, outside the active-dealer guard', async (estado) => {
+      asDealer(estado)
+      vi.mocked(fetchSubscription).mockResolvedValue(suscripcion({ estado_alta: estado as 'pendiente' | 'activa' }))
+      const router = renderAt('/concesionaria/suscripcion')
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Suscripción y comprobantes' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
+      expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+    })
+
+    it('UH18: a dealer reaches the subscription screen from the Suscripción nav link', async () => {
+      asDealer('pendiente')
+      const router = renderAt('/concesionaria')
+      await statusHeading()
+
+      await userEvent.setup().click(screen.getByRole('link', { name: 'Suscripción' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Suscripción y comprobantes' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
+    })
+
+    it('UH18: a buyer opening /concesionaria/suscripcion is sent to / and nothing is loaded', async () => {
+      const router = renderAt('/concesionaria/suscripcion')
+
+      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/')
+      expect(fetchSubscription).not.toHaveBeenCalled()
+    })
+
+    it('UH18: a guest opening /concesionaria/suscripcion is sent to the login screen', async () => {
+      asGuest()
+      const router = renderAt('/concesionaria/suscripcion')
+
+      expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/login')
+      expect(fetchSubscription).not.toHaveBeenCalled()
     })
 
     it('UH21: an active dealer reaches the inventory from the Inventario nav link', async () => {
