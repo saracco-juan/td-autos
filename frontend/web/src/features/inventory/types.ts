@@ -23,3 +23,4 @@ export type Vehiculo = {
 }
 
 export type VehiculosResponse = { vehiculos: Vehiculo[] }
+export type VehiculoResponse = { vehiculo: Vehiculo }

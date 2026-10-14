@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
@@ -8,10 +8,19 @@ import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { deleteVehicle, fetchVehicles } from './api'
 import styles from './InventoryPage.module.css'
+import type { InventoryLocationState } from './inventoryRoutes'
 import type { Vehiculo } from './types'
 import VehicleRow from './VehicleRow'
 
 type LoadState = 'loading' | 'ready' | { error: ErrorKind }
+
+const REMOVED_NOTICE = 'Eliminaste el vehículo.'
+
+// The message the form leaves in the navigation state (saved or edited); anything else is ignored.
+function noticeFrom(state: unknown): string | null {
+  const notice = (state as InventoryLocationState | null)?.notice
+  return typeof notice === 'string' ? notice : null
+}
 
 // Dealer inventory (Figma 38:884, UH-21): the dealer's vehicles with EDITAR and ELIMINAR, and the load action.
 // IMPORTAR CSV and SUSCRIPCIÓN of the frame wait for their own stories.
@@ -21,8 +30,16 @@ export default function InventoryPage() {
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [failedId, setFailedId] = useState<number | null>(null)
-  const [removed, setRemoved] = useState(false)
-  const removedRef = useRef<HTMLParagraphElement>(null)
+  const location = useLocation()
+  const navigate = useNavigate()
+  // Success message of the last action: a save that brought the dealer here, or a delete done on this page.
+  const [notice, setNotice] = useState<string | null>(() => noticeFrom(location.state))
+  const noticeRef = useRef<HTMLParagraphElement>(null)
+
+  // The message lives in the history entry, which a reload keeps: take it out so it is shown once.
+  useEffect(() => {
+    if (noticeFrom(location.state) !== null) navigate(location.pathname, { replace: true, state: null })
+  }, [location.pathname, location.state, navigate])
 
   // `isCancelled` lets the effect drop the answer of a page that is gone.
   const loadList = useCallback((isCancelled: () => boolean = () => false) => {
@@ -51,25 +68,26 @@ export default function InventoryPage() {
     loadList()
   }
 
-  // The row that held the focus is gone: the success message takes it, so the result is announced.
+  // The message takes the focus once it is on screen (after a delete the row that held it is gone), so the result is announced.
+  const ready = loadState === 'ready'
   useEffect(() => {
-    if (removed) removedRef.current?.focus()
-  }, [removed])
+    if (notice && ready) noticeRef.current?.focus()
+  }, [notice, ready])
 
   const removeRow = (id: number) => {
     setVehicles((current) => current.filter((vehicle) => vehicle.id !== id))
     setConfirmingId(null)
-    setRemoved(true)
+    setNotice(REMOVED_NOTICE)
   }
 
   const askDelete = (id: number) => {
-    setRemoved(false)
+    setNotice(null)
     setFailedId(null)
     setConfirmingId(id)
   }
 
   const confirmDelete = async (id: number) => {
-    setRemoved(false)
+    setNotice(null)
     setFailedId(null)
     setDeletingId(id)
     try {
@@ -104,9 +122,9 @@ export default function InventoryPage() {
           archivo de vigencia.
         </p>
       </section>
-      {removed ? (
-        <p ref={removedRef} tabIndex={-1} role="status" className={`${alertStyles.notice} ${styles.message}`}>
-          Eliminaste el vehículo.
+      {notice ? (
+        <p ref={noticeRef} tabIndex={-1} role="status" className={`${alertStyles.notice} ${styles.message}`}>
+          {notice}
         </p>
       ) : null}
       {vehicles.length === 0 ? (

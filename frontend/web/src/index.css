@@ -12,6 +12,7 @@
   --text-on-color: #ffffff;
   --action-primary: #111111;
   --action-danger: #da291c;
+  --action-success: #17803a;
   --accent-default: var(--palette-red);
   --border-default: #e4dcd7;
   --border-strong: #111111;

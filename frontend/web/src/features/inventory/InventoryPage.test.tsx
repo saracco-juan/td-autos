@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { deleteVehicle, fetchVehicles } from './api'
@@ -245,5 +245,53 @@ describe('InventoryPage', () => {
       expect(await screen.findByText('Todavía no cargaste vehículos.')).toBeInTheDocument()
       expect(screen.getByText('Eliminaste el vehículo.')).toBeInTheDocument()
     })
+  })
+})
+
+describe('InventoryPage save notice', () => {
+  function LocationState() {
+    return <output aria-label="location state">{JSON.stringify(useLocation().state)}</output>
+  }
+
+  function renderWithState(state: unknown) {
+    vi.mocked(fetchVehicles).mockReset()
+    vi.mocked(fetchVehicles).mockResolvedValue(VEHICULOS)
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/concesionaria/inventario', state }]}>
+        <InventoryPage />
+        <LocationState />
+      </MemoryRouter>,
+    )
+  }
+
+  it.each(['Cargaste el vehículo.', 'Guardaste los cambios.'])('shows the filled success message "%s" received from the form', async (notice) => {
+    renderWithState({ notice })
+
+    const message = await screen.findByText(notice)
+    expect(message).toHaveAttribute('role', 'status')
+    expect(message).toHaveFocus()
+  })
+
+  it('clears the navigation state so a reload does not show the message again', async () => {
+    renderWithState({ notice: 'Cargaste el vehículo.' })
+    await screen.findByText('Cargaste el vehículo.')
+
+    await waitFor(() => expect(screen.getByLabelText('location state')).toHaveTextContent('null'))
+    expect(screen.getByText('Cargaste el vehículo.')).toBeInTheDocument()
+  })
+
+  it('shows no message when the list is opened without state', async () => {
+    renderWithState(undefined)
+    await screen.findByRole('list')
+
+    expect(screen.queryByText('Cargaste el vehículo.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Guardaste los cambios.')).not.toBeInTheDocument()
+  })
+
+  it('ignores a state that is not a notice', async () => {
+    renderWithState({ notice: 42, other: 'x' })
+    await screen.findByRole('list')
+
+    expect(screen.queryByText('42')).not.toBeInTheDocument()
   })
 })
