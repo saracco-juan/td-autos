@@ -50,5 +50,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->whereNumber('comprobante')->name('comprobantes.show');
         Route::get('/comprobantes/{comprobante}/archivo', [AdminComprobanteController::class, 'file'])
             ->whereNumber('comprobante')->name('comprobantes.archivo');
+        Route::post('/comprobantes/{comprobante}/aprobar', [AdminComprobanteController::class, 'approve'])
+            ->whereNumber('comprobante')->name('comprobantes.aprobar');
+        Route::post('/comprobantes/{comprobante}/rechazar', [AdminComprobanteController::class, 'reject'])
+            ->whereNumber('comprobante')->name('comprobantes.rechazar');
     });
 });
