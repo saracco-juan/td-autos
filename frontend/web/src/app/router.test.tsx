@@ -5,6 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
+import { fetchBodyTypes, fetchVehicle, fetchVehicles } from '../features/inventory/api'
+import { VEHICULOS, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
 import { fetchTransfer } from '../features/transfer/api'
@@ -30,6 +32,15 @@ vi.mock('../features/inspection/api', () => ({
   fetchInspection: vi.fn(),
   setItemCompleted: vi.fn(),
   finishInspection: vi.fn(),
+}))
+
+vi.mock('../features/inventory/api', () => ({
+  fetchVehicles: vi.fn(),
+  deleteVehicle: vi.fn(),
+  fetchVehicle: vi.fn(),
+  createVehicle: vi.fn(),
+  updateVehicle: vi.fn(),
+  fetchBodyTypes: vi.fn(),
 }))
 
 vi.mock('../features/transfer/api', () => ({
@@ -89,6 +100,12 @@ describe('app routes', () => {
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
     vi.mocked(fetchTransfer).mockReset()
+    vi.mocked(fetchVehicles).mockReset()
+    vi.mocked(fetchVehicles).mockResolvedValue(VEHICULOS)
+    vi.mocked(fetchVehicle).mockReset()
+    vi.mocked(fetchVehicle).mockResolvedValue(vehiculo())
+    vi.mocked(fetchBodyTypes).mockReset()
+    vi.mocked(fetchBodyTypes).mockResolvedValue([{ id: 2, nombre: 'Sedán' }])
     asAuthenticated()
   })
 
@@ -680,13 +697,78 @@ describe('app routes', () => {
       expect(router.state.location.pathname).toBe('/concesionaria')
     })
 
-    it('sends an active dealer from /concesionaria/inventario back to the status until the inventory exists', async () => {
+    it('UH21: an active dealer opening /concesionaria/inventario sees its vehicles inside the shell', async () => {
       asDealer('activa')
       const router = renderAt('/concesionaria/inventario')
 
-      expect(await statusHeading()).toBeInTheDocument()
-      expect(screen.getByText('Activa')).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(await screen.findByRole('heading', { level: 1, name: 'Inventario' })).toBeInTheDocument()
+      expect(await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/inventario')
+      expect(fetchVehicles).toHaveBeenCalledTimes(1)
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+    })
+
+    it('UH21: an active dealer reaches the load form at /concesionaria/inventario/nuevo inside the shell', async () => {
+      asDealer('activa')
+      const router = renderAt('/concesionaria/inventario/nuevo')
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Cargar vehículo' })).toBeInTheDocument()
+      expect(await screen.findByLabelText('Patente')).toHaveValue('')
+      expect(router.state.location.pathname).toBe('/concesionaria/inventario/nuevo')
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+    })
+
+    it('UH21: an active dealer reaches the edit form at /concesionaria/inventario/:id/editar with the vehicle loaded', async () => {
+      asDealer('activa')
+      const router = renderAt('/concesionaria/inventario/1/editar')
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Editar vehículo' })).toBeInTheDocument()
+      expect(await screen.findByLabelText('Patente')).toHaveValue('AB123CD')
+      expect(fetchVehicle).toHaveBeenCalledWith(1)
+      expect(router.state.location.pathname).toBe('/concesionaria/inventario/1/editar')
+    })
+
+    it.each(['/concesionaria/inventario/nuevo', '/concesionaria/inventario/1/editar'])(
+      'UH21: a pending dealer opening %s is blocked and nothing is loaded',
+      async (path) => {
+        asDealer('pendiente')
+        const router = renderAt(path)
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+          'Tu cuenta está pendiente de aprobación. Todavía no podés gestionar el inventario.',
+        )
+        expect(router.state.location.pathname).toBe(path)
+        expect(fetchVehicle).not.toHaveBeenCalled()
+        expect(fetchBodyTypes).not.toHaveBeenCalled()
+        expect(screen.queryByLabelText('Patente')).not.toBeInTheDocument()
+      },
+    )
+
+    it.each(['/concesionaria/inventario/nuevo', '/concesionaria/inventario/1/editar'])('UH21: a buyer opening %s is sent to /', async (path) => {
+      const router = renderAt(path)
+
+      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/')
+    })
+
+    it('UH21: a pending dealer never loads the inventory', async () => {
+      asDealer('pendiente')
+      renderAt('/concesionaria/inventario')
+
+      await screen.findByRole('alert')
+
+      expect(fetchVehicles).not.toHaveBeenCalled()
+    })
+
+    it('UH21: an active dealer reaches the inventory from the Inventario nav link', async () => {
+      asDealer('activa')
+      const router = renderAt('/concesionaria')
+      await statusHeading()
+
+      await userEvent.setup().click(screen.getByRole('link', { name: 'Inventario' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Inventario' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/inventario')
     })
   })
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import alertStyles from '../components/alert.module.css'
-import { isBuyer, isDealer } from '../features/auth/roles'
+import { isActiveDealer, isBuyer, isDealer } from '../features/auth/roles'
 import { useAuth } from '../features/auth/session/useAuth'
 import styles from './AppShell.module.css'
 
@@ -9,7 +9,7 @@ const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
 // Shared page frame: nav on top (guest, or the Buyer or Dealer nav with logout once signed in), routed content, footer.
 // Each nav shows only the links whose screens exist: diagnosis, recommendations, transfer and profile for buyers,
-// the adhesion status for dealers. A signed-in user with any other role gets only the logout.
+// the adhesion status for dealers, plus the inventory once the dealer is active. A signed-in user with any other role gets only the logout.
 export default function AppShell() {
   const navigate = useNavigate()
   const { user, status, logout } = useAuth()
@@ -41,6 +41,11 @@ export default function AppShell() {
                 <NavLink to="/concesionaria" end className={styles.navAction}>
                   Verificación
                 </NavLink>
+                {isActiveDealer(user) ? (
+                  <NavLink to="/concesionaria/inventario" className={styles.navAction}>
+                    Inventario
+                  </NavLink>
+                ) : null}
                 {user?.concesionaria ? <span className={styles.navText}>{user.concesionaria.nombre}</span> : null}
               </>
             ) : null}

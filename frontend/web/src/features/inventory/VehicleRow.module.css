@@ -1,0 +1,85 @@
+/* Figma 38:884 "Row": white card, radius 14, 20/16 padding; info on the left, EDITAR and ELIMINAR on the right. */
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  overflow: hidden;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+}
+
+/* Figma: buttons 36 high; EDITAR 110 wide, ELIMINAR 120. */
+.edit,
+.delete {
+  height: 36px;
+}
+
+.edit {
+  width: 110px;
+}
+
+.delete {
+  width: 120px;
+}
+
+/* Inline confirmation: the question, the failure if any, and its two buttons. */
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    gap: 12px;
+  }
+
+  .edit,
+  .delete {
+    flex: 1;
+    width: auto;
+  }
+}

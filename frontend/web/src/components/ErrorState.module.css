@@ -24,3 +24,8 @@
   font-size: 14px;
   color: var(--text-secondary);
 }
+
+.retry {
+  width: 200px;
+  margin-top: 4px;
+}

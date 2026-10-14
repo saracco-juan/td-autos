@@ -53,6 +53,14 @@
   font: 400 14px/normal var(--font-sans);
 }
 
+/* A textarea keeps the input look but grows with its rows instead of the fixed 48. */
+.textarea {
+  height: auto;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
 .input:focus-visible {
   outline: none;
   border-color: var(--text-primary);

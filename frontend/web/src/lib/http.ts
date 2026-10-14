@@ -29,7 +29,8 @@ async function request(input: string, init: RequestInit): Promise<Response> {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PUT'
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  // A FormData goes out as is (multipart); anything else is sent as JSON.
   body?: unknown
   // The browser finishes the request even if the page is reloaded or closed meanwhile (background saves).
   keepalive?: boolean
@@ -69,13 +70,15 @@ async function send(path: string, { method = 'GET', body, keepalive }: RequestOp
     const token = readXsrfToken()
     if (token) headers['X-XSRF-TOKEN'] = token
   }
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  // For a FormData the browser sets the Content-Type itself, with the multipart boundary.
+  const isForm = body instanceof FormData
+  if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
 
   return request(`${API_URL}${path}`, {
     method,
     credentials: 'include',
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     ...(keepalive ? { keepalive: true } : {}),
   })
 }

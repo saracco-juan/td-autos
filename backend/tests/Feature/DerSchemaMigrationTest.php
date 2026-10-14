@@ -63,7 +63,7 @@ class DerSchemaMigrationTest extends TestCase
         $this->artisan('migrate', ['--database' => 'der_test', '--force' => true])->assertSuccessful();
         $this->artisan('migrate:rollback', [
             '--database' => 'der_test',
-            '--step' => 20,
+            '--step' => 21,
             '--force' => true,
         ])->assertSuccessful();
 
@@ -282,8 +282,8 @@ class DerSchemaMigrationTest extends TestCase
                 'foreign' => ['usuario_id' => 'users.id'],
             ],
             'vehiculo' => [
-                'columns' => ['id', 'origen', 'tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion'],
-                'nullable' => ['tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion'],
+                'columns' => ['id', 'origen', 'tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion'],
+                'nullable' => ['tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion'],
                 'primary' => ['id'],
                 'unique' => [],
                 'foreign' => ['tipo_carroceria_id' => 'tipo_carroceria.id'],

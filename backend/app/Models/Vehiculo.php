@@ -6,6 +6,8 @@ use Database\Factories\VehiculoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Vehiculo extends Model
 {
@@ -34,6 +36,7 @@ class Vehiculo extends Model
         'motor',
         'potencia',
         'ubicacion',
+        'descripcion',
     ];
 
     /**
@@ -42,5 +45,25 @@ class Vehiculo extends Model
     public function tipoCarroceria(): BelongsTo
     {
         return $this->belongsTo(TipoCarroceria::class, 'tipo_carroceria_id');
+    }
+
+    /**
+     * Who owns the vehicle when it was loaded by a dealer.
+     *
+     * @return HasOne<VehiculoConcesionaria, $this>
+     */
+    public function propiedad(): HasOne
+    {
+        return $this->hasOne(VehiculoConcesionaria::class, 'vehiculo_id');
+    }
+
+    /**
+     * Photos in upload order; the first one is the cover.
+     *
+     * @return HasMany<FotoVehiculo, $this>
+     */
+    public function fotos(): HasMany
+    {
+        return $this->hasMany(FotoVehiculo::class, 'vehiculo_id')->orderBy('orden');
     }
 }

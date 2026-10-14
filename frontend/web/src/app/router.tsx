@@ -13,6 +13,9 @@ import DealerStatusPage from '../features/dealer/DealerStatusPage'
 import DiagnosisPage from '../features/diagnosis/DiagnosisPage'
 import HomeRoute from '../features/home/HomeRoute'
 import InspectionPage from '../features/inspection/InspectionPage'
+import EditVehiclePage from '../features/inventory/EditVehiclePage'
+import InventoryPage from '../features/inventory/InventoryPage'
+import NewVehiclePage from '../features/inventory/NewVehiclePage'
 import ProfilePage from '../features/profile/ProfilePage'
 import RecommendationsPage from '../features/recommendations/RecommendationsPage'
 import TransferPage from '../features/transfer/TransferPage'
@@ -55,8 +58,9 @@ export const routes: RouteObject[] = [
                   {
                     element: <ActiveDealerRoute />,
                     children: [
-                      // The inventory screen belongs to a later story (UH21): until it exists, an active dealer goes back to the status.
-                      { path: '/concesionaria/inventario', element: <Navigate to="/concesionaria" replace /> },
+                      { path: '/concesionaria/inventario', element: <InventoryPage /> },
+                      { path: '/concesionaria/inventario/nuevo', element: <NewVehiclePage /> },
+                      { path: '/concesionaria/inventario/:id/editar', element: <EditVehiclePage /> },
                     ],
                   },
                 ],

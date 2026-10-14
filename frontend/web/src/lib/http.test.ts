@@ -162,6 +162,33 @@ describe('apiFetch', () => {
     expect((error as NetworkError).cause).toBe(cause)
   })
 
+  it('sends a DELETE with the csrf token, no body and no content type, and accepts an empty 204', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    const result = await apiFetch('/api/concesionaria/vehiculos/3', { method: 'DELETE' })
+
+    expect(result).toBeUndefined()
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`${API_URL}/api/concesionaria/vehiculos/3`)
+    expect(init.method).toBe('DELETE')
+    expect(init.headers['X-XSRF-TOKEN']).toBe('token==')
+    expect(init.headers['Content-Type']).toBeUndefined()
+    expect(init.body).toBeUndefined()
+  })
+
+  it('sends a FormData body as is and leaves the content type to the browser (multipart boundary)', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(201, { id: 1 }))
+    const form = new FormData()
+    form.append('patente', 'AB123CD')
+
+    await apiFetch('/api/concesionaria/vehiculos', { method: 'POST', body: form })
+
+    const init = fetchMock.mock.calls[0][1]
+    expect(init.body).toBe(form)
+    expect(init.headers['Content-Type']).toBeUndefined()
+    expect(init.headers['X-XSRF-TOKEN']).toBe('token==')
+  })
+
   it('asks the browser to finish a keepalive write even if the page goes away', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(200, {}))
 
