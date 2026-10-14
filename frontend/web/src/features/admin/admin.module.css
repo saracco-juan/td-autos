@@ -125,6 +125,25 @@
   color: var(--text-secondary);
 }
 
+/* The dealer state stays as is; a rejected receipt is flagged under it. */
+.stateCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.receiptBadge {
+  padding: 2px 8px;
+  border: 1px solid var(--status-error-border);
+  border-radius: 999px;
+  background: var(--status-error-bg);
+  color: var(--action-danger);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .rowAction {
   width: 150px;
   height: 36px;

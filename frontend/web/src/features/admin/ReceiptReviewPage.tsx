@@ -10,7 +10,7 @@ import Field from '../auth/shared/Field'
 import fieldStyles from '../auth/shared/authForm.module.css'
 import { formatSentDate } from '../subscription/format'
 import { approveReceipt, fetchReceipt, rejectReceipt } from './api'
-import { dealerLocation, dealerState, formatDay, receiptState, validateRejectReason } from './format'
+import { dealerLocation, dealerState, formatDay, receiptState, receiptTone, validateRejectReason } from './format'
 import ReceiptPreview from './ReceiptPreview'
 import styles from './ReceiptReviewPage.module.css'
 import type { AdminReceipt } from './types'
@@ -52,19 +52,31 @@ function BackLink() {
   )
 }
 
-// The outcome of a decided receipt, for an admin reopening it later (Figma has no such state).
-function DecisionCard({ receipt }: { receipt: AdminReceipt }) {
+// The outcome of a decided receipt, at the top of the screen (Figma has no such state):
+// red with the reason when rejected, green when approved.
+function OutcomeBanner({ receipt }: { receipt: AdminReceipt }) {
+  const rejected = receipt.estado === 'rechazado'
   const date = receipt.fecha_revision ? ` el ${formatSentDate(receipt.fecha_revision)}` : ''
   return (
-    <InfoCard id="receipt-decision" title="Decisión">
-      <p className={styles.cardText}>
+    <section
+      aria-labelledby="receipt-outcome"
+      className={`${rejected ? alertStyles.alert : alertStyles.notice} ${styles.outcome}`}
+      data-tone={receiptTone(receipt.estado)}
+    >
+      <h2 id="receipt-outcome" className={styles.outcomeTitle}>
+        {rejected ? 'Comprobante rechazado' : 'Comprobante aprobado'}
+      </h2>
+      <p className={styles.outcomeText}>
         {receiptState(receipt.estado)}
         {date}
       </p>
-      {receipt.estado === 'rechazado' && receipt.motivo_rechazo ? (
-        <p className={styles.reason}>{receipt.motivo_rechazo}</p>
+      {rejected && receipt.motivo_rechazo ? (
+        <p className={styles.reason}>
+          <span className={styles.reasonLabel}>Motivo: </span>
+          {receipt.motivo_rechazo}
+        </p>
       ) : null}
-    </InfoCard>
+    </section>
   )
 }
 
@@ -182,6 +194,7 @@ export default function ReceiptReviewPage() {
           {failure}
         </p>
       ) : null}
+      {pending ? null : <OutcomeBanner receipt={receipt} />}
       <div className={styles.layout}>
         <div className={styles.column}>
           <InfoCard id="receipt-dealer" title="Concesionaria">
@@ -194,7 +207,9 @@ export default function ReceiptReviewPage() {
             <p className={styles.cardText}>{dealerState(dealer.estado_alta).label}</p>
           </InfoCard>
           <InfoCard id="receipt-state" title="Estado del comprobante">
-            <p className={styles.cardText}>{receiptState(receipt.estado)}</p>
+            <p className={styles.receiptState} data-tone={receiptTone(receipt.estado)}>
+              {receiptState(receipt.estado)}
+            </p>
           </InfoCard>
           <InfoCard id="receipt-period" title="Período">
             <p className={styles.cardText}>
@@ -241,9 +256,7 @@ export default function ReceiptReviewPage() {
                 RECHAZAR COMPROBANTE
               </button>
             </>
-          ) : (
-            <DecisionCard receipt={receipt} />
-          )}
+          ) : null}
           <Link to="/admin/concesionarias" className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
             VOLVER A CONCESIONARIAS
           </Link>

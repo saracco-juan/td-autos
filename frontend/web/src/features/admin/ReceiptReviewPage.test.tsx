@@ -259,8 +259,8 @@ describe('ReceiptReviewPage (UH19, Figma 38:1129)', () => {
 
       expect(await screen.findByRole('status')).toHaveTextContent('Rechazaste el comprobante. Le avisamos a la concesionaria por email.')
       expect(rejectReceipt).toHaveBeenCalledWith(31, 'El monto no coincide con la cuota.')
-      expect(card('Estado del comprobante').getByText('Rechazado')).toBeInTheDocument()
-      expect(card('Decisión').getByText('El monto no coincide con la cuota.')).toBeInTheDocument()
+      expect(card('Estado del comprobante').getByText('Rechazado')).toHaveAttribute('data-tone', 'rejected')
+      expect(card('Comprobante rechazado').getByText('El monto no coincide con la cuota.')).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: REJECT })).not.toBeInTheDocument()
       expect(screen.queryByLabelText(REASON)).not.toBeInTheDocument()
     })
@@ -313,7 +313,8 @@ describe('ReceiptReviewPage (UH19, Figma 38:1129)', () => {
       vi.mocked(fetchReceipt).mockResolvedValue(approved)
       await loaded()
 
-      expect(card('Decisión').getByText(/Aprobado el \d{2}\/10\/2026/)).toBeInTheDocument()
+      expect(card('Comprobante aprobado').getByText(/Aprobado el \d{2}\/10\/2026/)).toBeInTheDocument()
+      expect(card('Estado del comprobante').getByText('Aprobado')).toHaveAttribute('data-tone', 'approved')
       expect(screen.queryByRole('button', { name: APPROVE })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: REJECT })).not.toBeInTheDocument()
       expect(screen.queryByLabelText(REASON)).not.toBeInTheDocument()
@@ -324,8 +325,21 @@ describe('ReceiptReviewPage (UH19, Figma 38:1129)', () => {
       vi.mocked(fetchReceipt).mockResolvedValue(rejected)
       await loaded()
 
-      expect(card('Decisión').getByText(/Rechazado el/)).toBeInTheDocument()
-      expect(card('Decisión').getByText('El monto no coincide con la cuota.')).toBeInTheDocument()
+      const banner = screen.getByRole('region', { name: 'Comprobante rechazado' })
+      expect(within(banner).getByText(/Rechazado el \d{2}\/10\/2026/)).toBeInTheDocument()
+      expect(within(banner).getByText('El monto no coincide con la cuota.')).toBeInTheDocument()
+      // The outcome sits at the top, before the data cards.
+      expect(banner.compareDocumentPosition(screen.getByRole('region', { name: 'Concesionaria' }))).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      )
+      expect(card('Estado del comprobante').getByText('Rechazado')).toHaveAttribute('data-tone', 'rejected')
+    })
+
+    it('shows no outcome banner while the receipt is pending', async () => {
+      await loaded()
+
+      expect(screen.queryByRole('region', { name: /Comprobante (rechazado|aprobado)/ })).not.toBeInTheDocument()
+      expect(card('Estado del comprobante').getByText('Pendiente de revisión')).toHaveAttribute('data-tone', 'pending')
     })
   })
 

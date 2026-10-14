@@ -110,6 +110,38 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
     expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
   })
 
+  it('flags a dealer whose latest receipt was rejected, next to its unchanged state', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [
+          dealerRow({ comprobante_pendiente_id: null, ultimo_comprobante_id: 30, ultimo_comprobante_estado: 'rechazado' }),
+        ],
+      }),
+    )
+    renderPage()
+    await screen.findByRole('table')
+
+    const sur = within(row('Concesionaria Sur'))
+    expect(sur.getByText('Pendiente de aprobación')).toHaveAttribute('data-tone', 'pending')
+    expect(sur.getByText('Comprobante rechazado')).toHaveAttribute('data-tone', 'rejected')
+    expect(sur.getByRole('link', { name: 'Ver comprobante de Concesionaria Sur' })).toHaveAttribute('href', '/admin/comprobantes/30')
+  })
+
+  it('does not flag a rejection while a newer receipt is pending, nor approved or missing receipts', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [
+          dealerRow({ comprobante_pendiente_id: 32, ultimo_comprobante_id: 32, ultimo_comprobante_estado: 'pendiente de revisión' }),
+          ...directory().concesionarias.slice(1),
+        ],
+      }),
+    )
+    renderPage()
+    await screen.findByRole('table')
+
+    expect(screen.queryByText('Comprobante rechazado')).not.toBeInTheDocument()
+  })
+
   it('shows an empty message and no table when there are no dealers', async () => {
     vi.mocked(fetchDealerDirectory).mockResolvedValue(
       directory({ conteos: { activas: 0, pendientes: 0, inactivas: 0 }, concesionarias: [] }),

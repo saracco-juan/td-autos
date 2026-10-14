@@ -81,6 +81,57 @@
   font-size: 12px;
 }
 
+/* Outcome of a decided receipt: the alert box (red) or the notice box (green), with a bold title. */
+.outcome {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-width: 2px;
+}
+
+.outcomeTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.outcome[data-tone='rejected'] .outcomeTitle {
+  color: var(--action-danger);
+}
+
+.outcome[data-tone='approved'] .outcomeTitle {
+  color: var(--status-success);
+}
+
+.outcomeText {
+  margin: 0;
+  font-size: 13px;
+}
+
+.reasonLabel {
+  font-weight: 600;
+}
+
+/* Receipt state card: tinted and bold once decided. */
+.receiptState {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.receiptState[data-tone='rejected'] {
+  color: var(--action-danger);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.receiptState[data-tone='approved'] {
+  color: var(--status-success);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .reason {
   margin: 0;
   font-size: 13px;

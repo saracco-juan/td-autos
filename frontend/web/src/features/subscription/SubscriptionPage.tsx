@@ -13,7 +13,13 @@ import { fetchSubscription, sendReceipt } from './api'
 import { formatMonthlyAmount, formatSentDate } from './format'
 import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from './receipt'
 import styles from './SubscriptionPage.module.css'
-import type { DatosTransferencia, Suscripcion } from './types'
+import type { DatosTransferencia, Suscripcion, UltimoComprobante } from './types'
+
+function reviewText(pending: boolean, rejected: boolean): string {
+  if (pending) return 'Tu comprobante está en revisión.'
+  if (rejected) return 'Tu comprobante fue rechazado. Podés enviar uno nuevo.'
+  return 'La administración aprueba o rechaza el comprobante.'
+}
 
 type LoadState = 'loading' | { ready: Suscripcion } | { error: ErrorKind }
 type Message = { kind: 'error' | 'success'; text: string }
@@ -58,6 +64,26 @@ function TransferData({ data, kind }: { data: DatosTransferencia | null; kind: s
         ))}
       </dl>
     </>
+  )
+}
+
+// Not in Figma: the latest receipt was rejected. The reason tells the dealer what to fix before sending a new one.
+function RejectedNotice({ receipt }: { receipt: UltimoComprobante }) {
+  const titleId = useId()
+  const date = receipt.fecha_revision ? ` el ${formatSentDate(receipt.fecha_revision)}` : ''
+  return (
+    <section aria-labelledby={titleId} className={`${alertStyles.alert} ${styles.rejected}`}>
+      <h2 id={titleId} className={styles.rejectedTitle}>
+        Tu comprobante fue rechazado
+      </h2>
+      <p className={styles.rejectedText}>{`Lo rechazamos${date}. Enviá uno nuevo para continuar.`}</p>
+      {receipt.motivo_rechazo ? (
+        <p className={styles.rejectedText}>
+          <span className={styles.rejectedLabel}>Motivo: </span>
+          <span>{receipt.motivo_rechazo}</span>
+        </p>
+      ) : null}
+    </section>
   )
 }
 
@@ -125,6 +151,7 @@ export default function SubscriptionPage() {
 
   const summary = load.ready
   const receipt = summary.comprobante_pendiente
+  const rejected = !receipt && summary.ultimo_comprobante?.estado === 'rechazado' ? summary.ultimo_comprobante : null
   const kind = summary.tipo_pago === 'alta' ? 'Pago de alta inicial' : 'Renovación mensual'
   const receiptText = receipt
     ? `${receipt.nombre_archivo} · enviado el ${formatSentDate(receipt.enviado_en)}`
@@ -137,6 +164,7 @@ export default function SubscriptionPage() {
         <h1 className={screenStyles.title}>Suscripción y comprobantes</h1>
         <p className={styles.subtitle}>Transferencia bancaria para el alta inicial y la renovación mensual.</p>
       </div>
+      {rejected ? <RejectedNotice receipt={rejected} /> : null}
       <div className={styles.cards}>
         <Card title="Estado de la cuenta">
           <Body accent>{accountStatusText(summary.estado_alta)}</Body>
@@ -145,7 +173,7 @@ export default function SubscriptionPage() {
           <Body>{receiptText}</Body>
         </Card>
         <Card title="Revisión">
-          <Body>{receipt ? 'Tu comprobante está en revisión.' : 'La administración aprueba o rechaza el comprobante.'}</Body>
+          <Body>{reviewText(Boolean(receipt), rejected !== null)}</Body>
         </Card>
       </div>
       <Card title="Datos para la transferencia">

@@ -83,6 +83,33 @@
   font-weight: 600;
 }
 
+/* Not in Figma: the rejected receipt notice, an alert box with a red title. */
+.rejected {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-width: 2px;
+}
+
+.rejectedTitle {
+  margin: 0;
+  color: var(--action-danger);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rejectedText {
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rejectedLabel {
+  font-weight: 600;
+}
+
 .message {
   margin: 0;
   outline: none;

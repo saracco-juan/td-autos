@@ -25,6 +25,23 @@ export function receiptTarget(dealer: AdminDealerRow): number | null {
   return dealer.comprobante_pendiente_id ?? dealer.ultimo_comprobante_id
 }
 
+// The latest receipt was rejected and the dealer has not sent a new one yet.
+export function hasRejectedReceipt(dealer: AdminDealerRow): boolean {
+  return dealer.comprobante_pendiente_id === null && dealer.ultimo_comprobante_estado === 'rechazado'
+}
+
+export type ReceiptTone = 'pending' | 'approved' | 'rejected'
+
+const RECEIPT_TONES: Record<ReceiptState, ReceiptTone> = {
+  'pendiente de revisión': 'pending',
+  aprobado: 'approved',
+  rechazado: 'rejected',
+}
+
+export function receiptTone(estado: ReceiptState): ReceiptTone {
+  return RECEIPT_TONES[estado] ?? 'pending'
+}
+
 const RECEIPT_STATES: Record<ReceiptState, string> = {
   'pendiente de revisión': 'Pendiente de revisión',
   aprobado: 'Aprobado',

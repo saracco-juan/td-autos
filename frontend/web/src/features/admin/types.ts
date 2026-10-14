@@ -20,6 +20,8 @@ export type AdminDealerRow = AdminDealer & {
   comprobante_pendiente_id: number | null
   // The latest receipt in any state, so an already decided one can still be opened.
   ultimo_comprobante_id: number | null
+  // State of that latest receipt; null when the dealer never sent one.
+  ultimo_comprobante_estado: ReceiptState | null
 }
 
 export type DealerCounts = {

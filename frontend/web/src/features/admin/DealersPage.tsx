@@ -4,7 +4,7 @@ import ErrorState from '../../components/ErrorState'
 import screenStyles from '../../components/screen.module.css'
 import SessionLoading from '../auth/session/SessionLoading'
 import styles from './admin.module.css'
-import { dealerLocation, dealerState, receiptTarget } from './format'
+import { dealerLocation, dealerState, hasRejectedReceipt, receiptTarget } from './format'
 import type { AdminDealerRow } from './types'
 import { useDealerDirectory } from './useDealerDirectory'
 
@@ -24,9 +24,16 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
       <td className={styles.muted}>{dealerLocation(dealer)}</td>
       <td className={styles.muted}>{dealer.contacto.email}</td>
       <td>
-        <span className={styles.state} data-tone={state.tone}>
-          {state.label}
-        </span>
+        <div className={styles.stateCell}>
+          <span className={styles.state} data-tone={state.tone}>
+            {state.label}
+          </span>
+          {hasRejectedReceipt(dealer) ? (
+            <span className={styles.receiptBadge} data-tone="rejected">
+              Comprobante rechazado
+            </span>
+          ) : null}
+        </div>
       </td>
       <td>
         {receiptId === null ? (

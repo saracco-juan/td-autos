@@ -10,6 +10,7 @@ export function dealerRow(overrides: Partial<AdminDealerRow> = {}): AdminDealerR
     contacto: { email: 'sur@example.com', telefono: '11 4000-0000' },
     comprobante_pendiente_id: 31,
     ultimo_comprobante_id: 31,
+    ultimo_comprobante_estado: 'pendiente de revisión',
     ...overrides,
   }
 }
@@ -28,6 +29,7 @@ export function directory(overrides: Partial<DealerDirectory> = {}): DealerDirec
         contacto: { email: 'centro@example.com', telefono: '341 400-0000' },
         comprobante_pendiente_id: null,
         ultimo_comprobante_id: 27,
+        ultimo_comprobante_estado: 'aprobado',
       }),
       dealerRow({
         id: 7,
@@ -38,6 +40,7 @@ export function directory(overrides: Partial<DealerDirectory> = {}): DealerDirec
         contacto: { email: 'norte@example.com', telefono: null },
         comprobante_pendiente_id: null,
         ultimo_comprobante_id: null,
+        ultimo_comprobante_estado: null,
       }),
     ],
     ...overrides,
