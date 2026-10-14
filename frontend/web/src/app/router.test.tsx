@@ -9,8 +9,8 @@ import { fetchBodyTypes, fetchVehicle, fetchVehicles } from '../features/invento
 import { VEHICULOS, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
-import { fetchDealerDirectory } from '../features/admin/api'
-import { directory } from '../features/admin/fixtures'
+import { fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api'
+import { directory, receipt } from '../features/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
 import { fetchTransfer } from '../features/transfer/api'
@@ -47,7 +47,13 @@ vi.mock('../features/inventory/api', () => ({
   fetchBodyTypes: vi.fn(),
 }))
 
-vi.mock('../features/admin/api', () => ({ fetchDealerDirectory: vi.fn() }))
+vi.mock('../features/admin/api', () => ({
+  fetchDealerDirectory: vi.fn(),
+  fetchReceipt: vi.fn(),
+  fetchReceiptFile: vi.fn(),
+  approveReceipt: vi.fn(),
+  rejectReceipt: vi.fn(),
+}))
 
 vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
@@ -118,6 +124,10 @@ describe('app routes', () => {
     vi.mocked(fetchBodyTypes).mockResolvedValue([{ id: 2, nombre: 'Sedán' }])
     vi.mocked(fetchDealerDirectory).mockReset()
     vi.mocked(fetchDealerDirectory).mockResolvedValue(directory())
+    vi.mocked(fetchReceipt).mockReset()
+    vi.mocked(fetchReceipt).mockResolvedValue(receipt())
+    vi.mocked(fetchReceiptFile).mockReset()
+    vi.mocked(fetchReceiptFile).mockReturnValue(new Promise(() => {}))
     asAuthenticated()
   })
 
@@ -886,6 +896,31 @@ describe('app routes', () => {
 
       expect(await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/admin/concesionarias')
+    })
+
+    it('opens the receipt review from the dealer list and comes back with the back link', async () => {
+      asAdmin()
+      const router = renderAt('/admin/concesionarias')
+      const user = userEvent.setup()
+
+      await user.click(await screen.findByRole('link', { name: 'Ver comprobante de Concesionaria Sur' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Revisar comprobante' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin/comprobantes/31')
+      expect(fetchReceipt).toHaveBeenCalledWith(31)
+
+      await user.click(screen.getByRole('link', { name: 'Volver a concesionarias' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin/concesionarias')
+    })
+
+    it('sends a buyer opening a receipt review to / without reading the receipt', async () => {
+      const router = renderAt('/admin/comprobantes/31')
+
+      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/')
+      expect(fetchReceipt).not.toHaveBeenCalled()
     })
 
     it.each(['/admin', '/admin/concesionarias'])('sends a buyer opening %s to / without reading the dealers', async (path) => {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_URL } from './config'
-import { apiFetch, HttpError, NetworkError } from './http'
+import { apiFetch, apiFetchBlob, HttpError, NetworkError } from './http'
 
 const fetchMock = vi.fn()
 
@@ -211,5 +211,37 @@ describe('apiFetch', () => {
 
     await expect(apiFetch('/register', { method: 'POST', body: {} })).rejects.toBeInstanceOf(NetworkError)
     expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('apiFetchBlob', () => {
+  it('GETs the file with the session cookie and returns it as a Blob with its type', async () => {
+    fetchMock.mockResolvedValueOnce(new Response('%PDF', { status: 200, headers: { 'Content-Type': 'application/pdf' } }))
+
+    const blob = await apiFetchBlob('/api/admin/comprobantes/31/archivo')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`${API_URL}/api/admin/comprobantes/31/archivo`)
+    expect(init.method).toBe('GET')
+    expect(init.credentials).toBe('include')
+    expect(blob.type).toBe('application/pdf')
+    expect(await blob.text()).toBe('%PDF')
+  })
+
+  it('throws an HttpError with the parsed JSON body when the file is not served', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(404, { message: 'No encontramos el archivo del comprobante.' }))
+
+    const failure = await apiFetchBlob('/api/admin/comprobantes/31/archivo').catch((error: unknown) => error)
+
+    expect(failure).toBeInstanceOf(HttpError)
+    expect((failure as HttpError).status).toBe(404)
+    expect((failure as HttpError).body).toEqual({ message: 'No encontramos el archivo del comprobante.' })
+  })
+
+  it('throws a NetworkError when the server cannot be reached', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    await expect(apiFetchBlob('/api/admin/comprobantes/31/archivo')).rejects.toBeInstanceOf(NetworkError)
   })
 })

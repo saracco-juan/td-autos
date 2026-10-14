@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dealerLocation, dealerState, receiptTarget } from './format'
+import { dealerLocation, dealerState, formatDay, receiptState, receiptTarget, validateRejectReason } from './format'
 import { dealerRow } from './fixtures'
 
 describe('admin format', () => {
@@ -27,5 +27,29 @@ describe('admin format', () => {
     expect(receiptTarget(dealerRow({ comprobante_pendiente_id: 31, ultimo_comprobante_id: 40 }))).toBe(31)
     expect(receiptTarget(dealerRow({ comprobante_pendiente_id: null, ultimo_comprobante_id: 27 }))).toBe(27)
     expect(receiptTarget(dealerRow({ comprobante_pendiente_id: null, ultimo_comprobante_id: null }))).toBeNull()
+  })
+
+  it.each([
+    ['pendiente de revisión', 'Pendiente de revisión'],
+    ['aprobado', 'Aprobado'],
+    ['rechazado', 'Rechazado'],
+  ] as const)('receiptState maps %s to %s', (estado, label) => {
+    expect(receiptState(estado)).toBe(label)
+  })
+
+  it('formatDay turns a yyyy-mm-dd day into dd/mm/aaaa without moving it across time zones', () => {
+    expect(formatDay('2026-10-01')).toBe('01/10/2026')
+    expect(formatDay('2026-12-31')).toBe('31/12/2026')
+  })
+
+  it('TC-50: validateRejectReason asks for a reason when it is empty or only spaces', () => {
+    expect(validateRejectReason('')).toBe('Ingresá el motivo del rechazo.')
+    expect(validateRejectReason('   \n ')).toBe('Ingresá el motivo del rechazo.')
+  })
+
+  it('validateRejectReason accepts up to 500 characters once trimmed and rejects longer reasons', () => {
+    expect(validateRejectReason(`  ${'a'.repeat(500)}  `)).toBeUndefined()
+    expect(validateRejectReason('a'.repeat(501))).toBe('El motivo no puede superar los 500 caracteres.')
+    expect(validateRejectReason('El monto no coincide.')).toBeUndefined()
   })
 })

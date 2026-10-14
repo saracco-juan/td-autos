@@ -1,4 +1,4 @@
-import type { AdminDealer, AdminDealerRow } from './types'
+import type { AdminDealer, AdminDealerRow, ReceiptState } from './types'
 
 export type DealerTone = 'pending' | 'active' | 'inactive' | 'unknown'
 
@@ -23,4 +23,30 @@ export function dealerLocation({ localidad, provincia }: Pick<AdminDealer, 'loca
 // VER COMPROBANTE opens the receipt waiting for review, else the latest decided one.
 export function receiptTarget(dealer: AdminDealerRow): number | null {
   return dealer.comprobante_pendiente_id ?? dealer.ultimo_comprobante_id
+}
+
+const RECEIPT_STATES: Record<ReceiptState, string> = {
+  'pendiente de revisión': 'Pendiente de revisión',
+  aprobado: 'Aprobado',
+  rechazado: 'Rechazado',
+}
+
+export function receiptState(estado: ReceiptState): string {
+  return RECEIPT_STATES[estado] ?? estado
+}
+
+// A calendar day (yyyy-mm-dd) as dd/mm/aaaa; read as text so no time zone can move it.
+export function formatDay(day: string): string {
+  const [year, month, date] = day.split('-')
+  return `${date}/${month}/${year}`
+}
+
+// Same limit and messages as the backend (RejectComprobanteRequest).
+export const MAX_REJECT_REASON = 500
+
+export function validateRejectReason(reason: string): string | undefined {
+  const trimmed = reason.trim()
+  if (trimmed === '') return 'Ingresá el motivo del rechazo.'
+  if (trimmed.length > MAX_REJECT_REASON) return `El motivo no puede superar los ${MAX_REJECT_REASON} caracteres.`
+  return undefined
 }

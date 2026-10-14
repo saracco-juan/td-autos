@@ -1,6 +1,7 @@
 import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-router'
 import AdminDashboardPage from '../features/admin/AdminDashboardPage'
 import DealersPage from '../features/admin/DealersPage'
+import ReceiptReviewPage from '../features/admin/ReceiptReviewPage'
 import AuthProvider from '../features/auth/session/AuthProvider'
 import GuestRoute from '../features/auth/session/GuestRoute'
 import ProtectedRoute from '../features/auth/session/ProtectedRoute'
@@ -77,6 +78,7 @@ export const routes: RouteObject[] = [
                 children: [
                   { path: '/admin', element: <AdminDashboardPage /> },
                   { path: '/admin/concesionarias', element: <DealersPage /> },
+                  { path: '/admin/comprobantes/:id', element: <ReceiptReviewPage /> },
                 ],
               },
             ],
