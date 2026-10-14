@@ -9,10 +9,16 @@ use App\Models\User;
 use App\Notifications\PaymentReceiptReviewedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\Mailer\Exception\TransportException;
+use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mailer\Transport\AbstractTransport;
 use Tests\TestCase;
 
 /**
@@ -280,5 +286,79 @@ class AdminReceiptDecisionTest extends TestCase
 
         $this->assertSame(2, $receipt->suscripcion->comprobantes()->count());
         $this->assertSame(ComprobantePago::ESTADO_PENDIENTE_REVISION, $receipt->suscripcion->comprobantes()->latest('id')->value('estado'));
+    }
+
+    /**
+     * Real notifications through a mailer whose transport always fails, like an unreachable SMTP server.
+     */
+    private function failingMailTransport(): void
+    {
+        Notification::swap(new ChannelManager($this->app));
+        Mail::extend('failing', fn () => new class extends AbstractTransport
+        {
+            protected function doSend(SentMessage $message): void
+            {
+                throw new TransportException('Connection to the mail server could not be established.');
+            }
+
+            public function __toString(): string
+            {
+                return 'failing://';
+            }
+        });
+        config(['mail.mailers.failing' => ['transport' => 'failing'], 'mail.default' => 'failing']);
+        Exceptions::fake();
+    }
+
+    public function test_approval_is_saved_and_answered_when_the_dealer_email_fails(): void
+    {
+        $this->failingMailTransport();
+        $admin = User::factory()->admin()->create();
+        $dealer = Concesionaria::factory()->create();
+        $receipt = $this->pendingReceipt($dealer);
+
+        $this->approve($admin, $receipt)
+            ->assertOk()
+            ->assertJsonPath('estado', ComprobantePago::ESTADO_APROBADO)
+            ->assertJsonPath('concesionaria.estado_alta', Concesionaria::ESTADO_ACTIVA);
+
+        $this->assertSame(ComprobantePago::ESTADO_APROBADO, $receipt->fresh()->estado);
+        $this->assertSame(Suscripcion::ESTADO_ACTIVA, $receipt->suscripcion->fresh()->estado);
+        $this->assertSame(Concesionaria::ESTADO_ACTIVA, $dealer->fresh()->estado_alta);
+        Exceptions::assertReported(TransportException::class);
+    }
+
+    public function test_rejection_is_saved_and_answered_when_the_dealer_email_fails(): void
+    {
+        $this->failingMailTransport();
+        $admin = User::factory()->admin()->create();
+        $receipt = $this->pendingReceipt(Concesionaria::factory()->create());
+
+        $this->reject($admin, $receipt, ['motivo_rechazo' => self::REASON])
+            ->assertOk()
+            ->assertJsonPath('estado', ComprobantePago::ESTADO_RECHAZADO)
+            ->assertJsonPath('motivo_rechazo', self::REASON);
+
+        $receipt->refresh();
+        $this->assertSame(ComprobantePago::ESTADO_RECHAZADO, $receipt->estado);
+        $this->assertSame(self::REASON, $receipt->motivo_rechazo);
+        Exceptions::assertReported(TransportException::class);
+    }
+
+    #[DataProvider('decisions')]
+    public function test_a_dealer_without_a_user_can_still_be_decided(string $action): void
+    {
+        $admin = User::factory()->admin()->create();
+        $dealer = Concesionaria::factory()->create(['usuario_id' => null]);
+        $receipt = $this->pendingReceipt($dealer);
+
+        $this->actingAs($admin)
+            ->postJson("/api/admin/comprobantes/{$receipt->id}/{$action}", ['motivo_rechazo' => self::REASON])
+            ->assertOk();
+
+        $expected = $action === 'aprobar' ? ComprobantePago::ESTADO_APROBADO : ComprobantePago::ESTADO_RECHAZADO;
+        $this->assertSame($expected, $receipt->fresh()->estado);
+        $this->assertSame($admin->id, $receipt->fresh()->revisado_por_admin_id);
+        Notification::assertNothingSent();
     }
 }
