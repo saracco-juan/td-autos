@@ -92,6 +92,19 @@ export default function ReceiptReviewPage() {
   const [result, setResult] = useState<string | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
   const messageRef = useRef<HTMLParagraphElement>(null)
+  const [shownId, setShownId] = useState(id)
+
+  // Another receipt on the same mounted page (the route param changed): start over, so nothing of the
+  // previous receipt (data, reason, outcome) is shown or acted upon while the new one loads.
+  if (shownId !== id) {
+    setShownId(id)
+    setLoadState('loading')
+    setReason('')
+    setReasonError(undefined)
+    setSubmitting(null)
+    setResult(null)
+    setFailure(null)
+  }
 
   // `isCancelled` lets the effect drop the answer of a page that is gone.
   const load = useCallback(
@@ -117,6 +130,12 @@ export default function ReceiptReviewPage() {
     }
   }, [load])
 
+  // The current route id, for answers that arrive after the page moved to another receipt.
+  const currentId = useRef(id)
+  useEffect(() => {
+    currentId.current = id
+  }, [id])
+
   // The outcome takes the focus, so it is announced and the hidden buttons do not leave the focus behind.
   useEffect(() => {
     if (result || failure) messageRef.current?.focus()
@@ -127,7 +146,8 @@ export default function ReceiptReviewPage() {
     load()
   }
 
-  const decide = async (decision: Decision) => {
+  // Decisions act on the receipt on screen, never on an id read elsewhere.
+  const decide = async (receiptId: number, decision: Decision) => {
     setResult(null)
     setFailure(null)
     if (decision === 'reject') {
@@ -137,11 +157,15 @@ export default function ReceiptReviewPage() {
     }
 
     setSubmitting(decision)
+    const routeId = id
+    const stale = () => currentId.current !== routeId
     try {
-      const receipt = decision === 'approve' ? await approveReceipt(id) : await rejectReceipt(id, reason.trim())
+      const receipt = decision === 'approve' ? await approveReceipt(receiptId) : await rejectReceipt(receiptId, reason.trim())
+      if (stale()) return
       setLoadState({ receipt })
       setResult(RESULT[decision])
     } catch (error) {
+      if (stale()) return
       if (error instanceof HttpError && error.status === 409) {
         // Someone else decided it meanwhile: show the receipt as it is now.
         setFailure((error.body as { message?: string } | undefined)?.message ?? ALREADY_REVIEWED)
@@ -152,7 +176,7 @@ export default function ReceiptReviewPage() {
         setFailure(SAVE_ERROR)
       }
     } finally {
-      setSubmitting(null)
+      if (!stale()) setSubmitting(null)
     }
   }
 
@@ -242,7 +266,7 @@ export default function ReceiptReviewPage() {
                 className={`${buttonStyles.button} ${buttonStyles.success}`}
                 disabled={submitting !== null}
                 aria-busy={submitting === 'approve'}
-                onClick={() => void decide('approve')}
+                onClick={() => void decide(receipt.id, 'approve')}
               >
                 APROBAR COMPROBANTE
               </button>
@@ -251,7 +275,7 @@ export default function ReceiptReviewPage() {
                 className={`${buttonStyles.button} ${buttonStyles.danger}`}
                 disabled={submitting !== null}
                 aria-busy={submitting === 'reject'}
-                onClick={() => void decide('reject')}
+                onClick={() => void decide(receipt.id, 'reject')}
               >
                 RECHAZAR COMPROBANTE
               </button>

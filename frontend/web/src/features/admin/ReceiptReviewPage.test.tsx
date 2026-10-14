@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { approveReceipt, fetchReceipt, fetchReceiptFile, rejectReceipt } from './api'
@@ -29,9 +29,20 @@ const rejected = receipt({
   fecha_revision: '2026-10-15T13:00:00+00:00',
 })
 
+// Moves to another receipt without unmounting the page, like a link to another receipt would.
+function GoToReceipt({ id }: { id: number }) {
+  const navigate = useNavigate()
+  return (
+    <button type="button" onClick={() => void navigate(`/admin/comprobantes/${id}`)}>
+      Ir al comprobante {id}
+    </button>
+  )
+}
+
 function renderPage(id = '31') {
   render(
     <MemoryRouter initialEntries={[`/admin/comprobantes/${id}`]}>
+      <GoToReceipt id={45} />
       <Routes>
         <Route path="/admin/comprobantes/:id" element={<ReceiptReviewPage />} />
         <Route path="/admin/concesionarias" element={<p>Lista de concesionarias</p>} />
@@ -143,6 +154,33 @@ describe('ReceiptReviewPage (UH19, Figma 38:1129)', () => {
       const open = await screen.findByRole('link', { name: 'Abrir pago-octubre.pdf' })
       expect(open).toHaveAttribute('href', 'blob:receipt-31')
       expect(open).toHaveAttribute('target', '_blank')
+      expect(open).not.toHaveAttribute('download')
+    })
+
+    it('offers to open a PDF receipt in a new tab', async () => {
+      vi.mocked(fetchReceiptFile).mockResolvedValue(new Blob(['%PDF'], { type: 'application/pdf' }))
+      await loaded()
+
+      expect(await screen.findByRole('link', { name: 'Abrir pago-octubre.pdf' })).toHaveAttribute('target', '_blank')
+    })
+
+    it.each([
+      ['an SVG image', 'image/svg+xml'],
+      ['an HTML document', 'text/html'],
+      ['a file without a type', ''],
+    ])('never opens %s in the app: no preview, only a download of an inert copy', async (_label, type) => {
+      vi.mocked(fetchReceiptFile).mockResolvedValue(new Blob(['<svg onload="alert(1)"/>'], { type }))
+      await loaded()
+
+      const download = await screen.findByRole('link', { name: 'Descargar pago-octubre.pdf' })
+      expect(download).toHaveAttribute('href', 'blob:receipt-31')
+      expect(download).toHaveAttribute('download', 'pago-octubre.pdf')
+      expect(download).not.toHaveAttribute('target')
+      expect(screen.queryByRole('link', { name: /^Abrir/ })).not.toBeInTheDocument()
+      expect(screen.queryByRole('img', { name: 'Comprobante de pago' })).not.toBeInTheDocument()
+      expect(screen.queryByTitle('Comprobante de pago')).not.toBeInTheDocument()
+      const blob = vi.mocked(URL.createObjectURL).mock.calls.at(-1)?.[0] as Blob
+      expect(blob.type).toBe('application/octet-stream')
     })
 
     it('says the file could not be loaded, and the decision can still be made', async () => {
@@ -340,6 +378,79 @@ describe('ReceiptReviewPage (UH19, Figma 38:1129)', () => {
 
       expect(screen.queryByRole('region', { name: /Comprobante (rechazado|aprobado)/ })).not.toBeInTheDocument()
       expect(card('Estado del comprobante').getByText('Pendiente de revisión')).toHaveAttribute('data-tone', 'pending')
+    })
+  })
+
+  describe('another receipt on the same page', () => {
+    const other = receipt({
+      id: 45,
+      nombre_archivo: 'pago-noviembre.pdf',
+      concesionaria: { ...receipt().concesionaria, nombre: 'Autos Norte' },
+    })
+
+    it('drops the previous receipt, its reason and its result while the new one loads', async () => {
+      vi.mocked(approveReceipt).mockResolvedValue(approved)
+      vi.mocked(fetchReceipt).mockImplementation((id) => (id === 31 ? Promise.resolve(receipt()) : new Promise(() => {})))
+      await loaded()
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: APPROVE }))
+      await screen.findByText('Aprobaste el comprobante. Le avisamos a la concesionaria por email.')
+
+      await user.click(screen.getByRole('button', { name: 'Ir al comprobante 45' }))
+
+      expect(fetchReceipt).toHaveBeenLastCalledWith(45)
+      expect(screen.getByRole('status')).toHaveTextContent('Cargando')
+      expect(screen.queryByRole('heading', { level: 1, name: 'Revisar comprobante' })).not.toBeInTheDocument()
+      expect(screen.queryByText('Concesionaria Sur · CABA')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Aprobaste el comprobante/)).not.toBeInTheDocument()
+    })
+
+    it('decides on the receipt shown, with a clean reason field', async () => {
+      vi.mocked(fetchReceipt).mockImplementation((id) => Promise.resolve(id === 31 ? receipt() : other))
+      vi.mocked(rejectReceipt).mockResolvedValue({ ...other, estado: 'rechazado', motivo_rechazo: 'Ilegible.' })
+      await loaded()
+      const user = userEvent.setup()
+      await user.type(screen.getByLabelText(REASON), 'Motivo del anterior')
+
+      await user.click(screen.getByRole('button', { name: 'Ir al comprobante 45' }))
+
+      expect(await screen.findByText('Autos Norte · CABA')).toBeInTheDocument()
+      expect(screen.getByLabelText(REASON)).toHaveValue('')
+      await user.type(screen.getByLabelText(REASON), 'Ilegible.')
+      await user.click(screen.getByRole('button', { name: REJECT }))
+
+      expect(await screen.findByRole('status')).toHaveTextContent('Rechazaste el comprobante.')
+      expect(rejectReceipt).toHaveBeenCalledWith(45, 'Ilegible.')
+      expect(rejectReceipt).not.toHaveBeenCalledWith(31, expect.anything())
+    })
+
+    it('ignores the answer of a decision sent for the previous receipt', async () => {
+      let answer: (value: typeof approved) => void = () => {}
+      vi.mocked(approveReceipt).mockReturnValue(new Promise((resolve) => (answer = resolve)))
+      vi.mocked(fetchReceipt).mockImplementation((id) => Promise.resolve(id === 31 ? receipt() : other))
+      await loaded()
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: APPROVE }))
+      await user.click(screen.getByRole('button', { name: 'Ir al comprobante 45' }))
+      await screen.findByText('Autos Norte · CABA')
+
+      answer(approved)
+
+      await waitFor(() => expect(screen.getByRole('button', { name: APPROVE })).toBeEnabled())
+      expect(screen.queryByText(/Aprobaste el comprobante/)).not.toBeInTheDocument()
+      expect(card('Estado del comprobante').getByText('Pendiente de revisión')).toBeInTheDocument()
+    })
+
+    it('approves the receipt it shows, not the one in the address', async () => {
+      // The API answers for the receipt id it owns; the decision follows the loaded receipt.
+      vi.mocked(fetchReceipt).mockResolvedValue(other)
+      vi.mocked(approveReceipt).mockResolvedValue({ ...other, estado: 'aprobado' })
+      await loaded()
+
+      await userEvent.setup().click(screen.getByRole('button', { name: APPROVE }))
+
+      await screen.findByText(/Aprobaste el comprobante/)
+      expect(approveReceipt).toHaveBeenCalledWith(45)
     })
   })
 
