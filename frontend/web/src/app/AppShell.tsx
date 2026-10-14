@@ -9,7 +9,7 @@ const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
 // Shared page frame: nav on top (guest, or the Buyer or Dealer nav with logout once signed in), routed content, footer.
 // Each nav shows only the links whose screens exist: diagnosis, recommendations, transfer and profile for buyers,
-// the adhesion status for dealers, plus the inventory once the dealer is active. A signed-in user with any other role gets only the logout.
+// the subscription and the adhesion status for dealers, plus the inventory once the dealer is active. A signed-in user with any other role gets only the logout.
 export default function AppShell() {
   const navigate = useNavigate()
   const { user, status, logout } = useAuth()
@@ -38,6 +38,9 @@ export default function AppShell() {
           <div className={styles.navActions}>
             {isDealer(user) ? (
               <>
+                <NavLink to="/concesionaria/suscripcion" className={styles.navAction}>
+                  Suscripción
+                </NavLink>
                 <NavLink to="/concesionaria" end className={styles.navAction}>
                   Verificación
                 </NavLink>

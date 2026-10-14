@@ -82,6 +82,21 @@ class ConfigTest extends TestCase
         }
     }
 
+    public function test_receipts_use_the_private_local_disk_when_env_is_unset(): void
+    {
+        $repository = Env::getRepository();
+        $previous = $repository->get('RECEIPTS_DISK');
+        $repository->clear('RECEIPTS_DISK');
+
+        try {
+            $this->assertSame('local', (require config_path('filesystems.php'))['receipts_disk']);
+        } finally {
+            if ($previous !== null) {
+                $repository->set('RECEIPTS_DISK', $previous);
+            }
+        }
+    }
+
     public function test_supabase_storage_disk_is_a_public_path_style_s3_disk(): void
     {
         $disk = config('filesystems.disks.supabase');

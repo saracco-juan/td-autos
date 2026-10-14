@@ -18,6 +18,7 @@ import InventoryPage from '../features/inventory/InventoryPage'
 import NewVehiclePage from '../features/inventory/NewVehiclePage'
 import ProfilePage from '../features/profile/ProfilePage'
 import RecommendationsPage from '../features/recommendations/RecommendationsPage'
+import SubscriptionPage from '../features/subscription/SubscriptionPage'
 import TransferPage from '../features/transfer/TransferPage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
@@ -55,6 +56,8 @@ export const routes: RouteObject[] = [
                 element: <RoleRoute allow="dealer" />,
                 children: [
                   { path: '/concesionaria', element: <DealerStatusPage /> },
+                  // Outside ActiveDealerRoute: a pending dealer has to reach it to send the first payment.
+                  { path: '/concesionaria/suscripcion', element: <SubscriptionPage /> },
                   {
                     element: <ActiveDealerRoute />,
                     children: [

@@ -4,6 +4,7 @@ use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/transferencia', [TransferenciaController::class, 'show']);
     Route::put('/transferencia/items/{codigo}', [TransferenciaController::class, 'toggle']);
     Route::post('/transferencia/finalizar', [TransferenciaController::class, 'finish']);
+
+    // Reachable by a pending dealer too: it is how the first payment is sent (RF16, RF17).
+    Route::middleware('dealer')->prefix('concesionaria/suscripcion')->group(function () {
+        Route::get('/', [SuscripcionController::class, 'show']);
+        Route::post('/comprobantes', [SuscripcionController::class, 'storeComprobante']);
+    });
 
     Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
         Route::get('/', [ConcesionariaVehiculoController::class, 'index']);

@@ -145,21 +145,43 @@ describe('AppShell', () => {
   })
 
   describe('dealer nav (UH17)', () => {
-    it('shows Verificación, the dealer name as plain text and the logout button, and none of the buyer links', () => {
+    it('shows Suscripción, Verificación, the dealer name as plain text and the logout button, and none of the buyer links', () => {
       mockAuth('authenticated', undefined, marta)
       renderShell()
 
       const banner = screen.getByRole('banner')
       expect(screen.getByRole('link', { name: 'TD Autos' })).toHaveAttribute('href', '/')
+      expect(screen.getByRole('link', { name: 'Suscripción' })).toHaveAttribute('href', '/concesionaria/suscripcion')
       expect(screen.getByRole('link', { name: 'Verificación' })).toHaveAttribute('href', '/concesionaria')
       expect(within(banner).getByText('Autos del Sur')).toBeInTheDocument()
       expect(within(banner).queryByRole('link', { name: 'Autos del Sur' })).not.toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('type', 'button')
-      expect(banner.querySelectorAll('a')).toHaveLength(2)
+      expect(banner.querySelectorAll('a')).toHaveLength(3)
       expect(banner.querySelectorAll('button')).toHaveLength(1)
       for (const name of ['Diagnóstico', 'Recomendados', 'Transferencia', 'Perfil', 'Inventario']) {
         expect(screen.queryByRole('link', { name })).not.toBeInTheDocument()
       }
+    })
+
+    it('UH18: shows Suscripción to every dealer, pending or active, first and before Verificación', () => {
+      const following = (a: Element, b: Element) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING
+      for (const estado_alta of ['pendiente', 'activa']) {
+        mockAuth('authenticated', undefined, { ...marta, concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta } })
+        renderShell()
+
+        const items = within(screen.getByRole('banner')).getAllByRole('link').slice(1)
+        expect(items[0]).toHaveTextContent('Suscripción')
+        expect(following(items[0], screen.getByRole('link', { name: 'Verificación' }))).toBeTruthy()
+        cleanup()
+      }
+    })
+
+    it('UH18: marks Suscripción with aria-current on its screen, and Verificación stays unmarked', () => {
+      mockAuth('authenticated', undefined, marta)
+      renderShell('/concesionaria/suscripcion')
+
+      expect(screen.getByRole('link', { name: 'Suscripción' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('link', { name: 'Verificación' })).not.toHaveAttribute('aria-current')
     })
 
     it('UH21: shows the Inventario link to an active dealer, after Verificación', () => {
