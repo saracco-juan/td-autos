@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureDealerIsActive;
 use App\Http\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsDealer;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Foundation\Application;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest' => RedirectIfAuthenticated::class,
             'dealer' => EnsureUserIsDealer::class,
             'dealer.active' => EnsureDealerIsActive::class,
+            'admin' => EnsureUserIsAdmin::class,
         ]);
 
         //
