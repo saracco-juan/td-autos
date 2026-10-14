@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Rules\StrongPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -178,6 +179,69 @@ class DealerRegistrationTest extends TestCase
             ->assertOnlyJsonValidationErrors(['nombre_concesionaria', 'responsable_dni', 'telefono_publico']);
 
         $this->assertNothingPersisted();
+    }
+
+    public function test_non_string_fields_are_rejected_with_spanish_messages(): void
+    {
+        $this->postJson('/register/concesionaria', $this->payload([
+            'responsable_dni' => 30123456,
+            'telefono_publico' => 3514001000,
+        ]))
+            ->assertUnprocessable()
+            ->assertOnlyJsonValidationErrors(['responsable_dni', 'telefono_publico'])
+            ->assertJsonPath('errors.responsable_dni', ['El DNI debe ser un texto.'])
+            ->assertJsonPath('errors.telefono_publico', ['El teléfono de la concesionaria debe ser un texto.']);
+
+        $this->assertNothingPersisted();
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function stringMessages(): array
+    {
+        return [
+            'nombre_concesionaria' => ['nombre_concesionaria', 'El nombre de la concesionaria debe ser un texto.'],
+            'name' => ['name', 'El nombre debe ser un texto.'],
+            'apellido' => ['apellido', 'El apellido debe ser un texto.'],
+            'responsable_dni' => ['responsable_dni', 'El DNI debe ser un texto.'],
+            'telefono_publico' => ['telefono_publico', 'El teléfono de la concesionaria debe ser un texto.'],
+            'telefono_responsable' => ['telefono_responsable', 'El teléfono del responsable debe ser un texto.'],
+            'email' => ['email', 'El email debe ser un texto.'],
+            'direccion' => ['direccion', 'La dirección debe ser un texto.'],
+            'localidad' => ['localidad', 'La localidad debe ser un texto.'],
+            'provincia' => ['provincia', 'La provincia debe ser un texto.'],
+            'password' => ['password', 'La contraseña debe ser un texto.'],
+        ];
+    }
+
+    #[DataProvider('stringMessages')]
+    public function test_every_string_field_reports_a_spanish_type_error(string $field, string $message): void
+    {
+        $this->postJson('/register/concesionaria', $this->payload([$field => 12345678]))
+            ->assertUnprocessable()
+            ->assertJsonPath("errors.$field.0", $message);
+
+        $this->assertNothingPersisted();
+    }
+
+    /**
+     * The user and the dealer are created together or not at all.
+     */
+    public function test_user_is_not_persisted_when_the_dealer_insert_fails(): void
+    {
+        Concesionaria::creating(function (): void {
+            throw new RuntimeException('dealer insert failed');
+        });
+
+        try {
+            $this->postJson('/register/concesionaria', $this->payload())->assertStatus(500);
+        } finally {
+            Concesionaria::flushEventListeners();
+        }
+
+        $this->assertNothingPersisted();
+        $this->assertGuest();
     }
 
     public function test_privileged_fields_in_payload_are_ignored(): void

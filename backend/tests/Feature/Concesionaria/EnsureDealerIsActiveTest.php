@@ -7,6 +7,7 @@ use App\Models\Concesionaria;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -38,6 +39,28 @@ class EnsureDealerIsActiveTest extends TestCase
             ->getJson(self::PROBE)
             ->assertForbidden()
             ->assertExactJson(['message' => EnsureDealerIsActive::MESSAGE_PENDING]);
+    }
+
+    /**
+     * @return array<string, array{?string}>
+     */
+    public static function nonPendingInactiveStates(): array
+    {
+        return [
+            'unknown state' => ['suspendida'],
+            'no state' => [null],
+        ];
+    }
+
+    #[DataProvider('nonPendingInactiveStates')]
+    public function test_inactive_dealer_that_is_not_pending_is_forbidden_with_the_generic_message(?string $state): void
+    {
+        $dealer = Concesionaria::factory()->create(['estado_alta' => $state]);
+
+        $this->actingAs($dealer->usuario)
+            ->getJson(self::PROBE)
+            ->assertForbidden()
+            ->assertExactJson(['message' => EnsureDealerIsActive::MESSAGE_FORBIDDEN]);
     }
 
     public function test_active_dealer_passes(): void

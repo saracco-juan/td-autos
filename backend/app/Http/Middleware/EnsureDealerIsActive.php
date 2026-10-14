@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Concesionaria;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,7 +33,12 @@ class EnsureDealerIsActive
 
         // Subscription validity (RF21) will be added to this gate by the subscription stories.
         if (! $dealer->estaActiva()) {
-            return response()->json(['message' => self::MESSAGE_PENDING], 403);
+            // Fail closed on any other state; only a pending request gets the pending copy.
+            $message = $dealer->estado_alta === Concesionaria::ESTADO_PENDIENTE
+                ? self::MESSAGE_PENDING
+                : self::MESSAGE_FORBIDDEN;
+
+            return response()->json(['message' => $message], 403);
         }
 
         return $next($request);

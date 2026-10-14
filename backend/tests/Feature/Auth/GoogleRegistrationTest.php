@@ -110,6 +110,30 @@ class GoogleRegistrationTest extends TestCase
         $this->assertNull($user->fresh()->auth_subject);
     }
 
+    /**
+     * UH17: Google sign-in never takes over a dealer account registered with the same email.
+     */
+    public function test_google_email_matching_a_dealer_account_is_rejected(): void
+    {
+        $user = User::factory()->dealer()->unverified()->create([
+            'email' => 'g@x.com',
+            'auth_subject' => null,
+            'password' => 'dealer-pass-123',
+        ]);
+        $hash = $user->password;
+        $this->mockProvider()->shouldReceive('user')->once()->andReturn($this->googleUser());
+
+        $response = $this->get(route('auth.google.callback'));
+
+        $response->assertRedirect(self::FRONTEND.'/registro?error=email_in_use');
+        $this->assertGuest();
+        $fresh = $user->fresh();
+        $this->assertSame($hash, $fresh->password);
+        $this->assertNull($fresh->auth_subject);
+        $this->assertNull($fresh->email_verified_at);
+        $this->assertSame(User::ROL_CONCESIONARIA, $fresh->rol);
+    }
+
     public function test_denied_permissions_redirect_as_cancelled_without_user(): void
     {
         $provider = $this->mockProvider();
