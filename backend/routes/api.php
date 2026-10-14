@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\ProfileController;
@@ -24,4 +25,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/transferencia', [TransferenciaController::class, 'show']);
     Route::put('/transferencia/items/{codigo}', [TransferenciaController::class, 'toggle']);
     Route::post('/transferencia/finalizar', [TransferenciaController::class, 'finish']);
+
+    Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
+        Route::get('/', [ConcesionariaVehiculoController::class, 'index']);
+        Route::post('/', [ConcesionariaVehiculoController::class, 'store']);
+    });
 });
