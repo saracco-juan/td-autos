@@ -16,6 +16,7 @@ import { routes } from './router'
 vi.mock('../features/auth/api', () => ({
   fetchCurrentUser: vi.fn(),
   registerUser: vi.fn(),
+  registerDealer: vi.fn(),
   loginUser: vi.fn(),
   logoutUser: vi.fn(),
   requestPasswordReset: vi.fn(),
@@ -317,6 +318,34 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Registrá tu cuenta' })).not.toBeInTheDocument()
+  })
+
+  it('UH17: renders the dealer registration at /registro/concesionaria for a guest, in the bare auth layout', async () => {
+    asGuest()
+    const router = renderAt('/registro/concesionaria')
+
+    expect(await screen.findByRole('heading', { name: 'Registrá tu concesionaria' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/registro/concesionaria')
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('UH17: opens the dealer registration from the buyer registration link', async () => {
+    asGuest()
+    const router = renderAt('/registro')
+
+    await userEvent.setup().click(await screen.findByRole('link', { name: 'Registrala' }))
+
+    expect(await screen.findByRole('heading', { name: 'Registrá tu concesionaria' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/registro/concesionaria')
+  })
+
+  it('UH17: redirects an authenticated user from /registro/concesionaria to /', async () => {
+    const router = renderAt('/registro/concesionaria')
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.queryByRole('heading', { name: 'Registrá tu concesionaria' })).not.toBeInTheDocument()
   })
 
   it('TC-84: sends a guest opening / to the login screen without rendering the home', async () => {

@@ -16,6 +16,22 @@ export type RegisterPayload = {
   password_confirmation: string
 }
 
+// Dealer self-registration (RF15): the dealer plus the account of its responsible person.
+export type DealerRegisterPayload = {
+  nombre_concesionaria: string
+  name: string
+  apellido: string
+  responsable_dni: string
+  telefono_publico: string
+  telefono_responsable: string
+  email: string
+  direccion: string
+  localidad: string
+  provincia: string
+  password: string
+  password_confirmation: string
+}
+
 export type LoginCredentials = {
   email: string
   password: string

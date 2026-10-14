@@ -5,13 +5,15 @@ type Props = {
   title: string
   titleId: string
   subtitle?: string
+  // Figma variant "Tipo=Registro concesionaria": 760 wide instead of 560, for the two-column form.
+  wide?: boolean
   children: ReactNode
 }
 
 // Card shared by every auth screen: title row with the boxed wordmark, optional subtitle, then the content.
-export default function AuthCard({ title, titleId, subtitle, children }: Props) {
+export default function AuthCard({ title, titleId, subtitle, wide = false, children }: Props) {
   return (
-    <section className={styles.card} aria-labelledby={titleId}>
+    <section className={wide ? `${styles.card} ${styles.wide}` : styles.card} aria-labelledby={titleId}>
       <div className={styles.heading}>
         <div className={styles.titleRow}>
           <h1 id={titleId} className={styles.title}>

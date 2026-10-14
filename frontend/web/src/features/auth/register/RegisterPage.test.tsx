@@ -74,6 +74,18 @@ describe('RegisterPage', () => {
       expect(screen.queryByLabelText('Apellido')).not.toBeInTheDocument()
     })
 
+    it('UH17: offers the dealer registration below the login link', () => {
+      renderPage()
+
+      const dealerLink = screen.getByRole('link', { name: 'Registrala' })
+      expect(dealerLink).toHaveAttribute('href', '/registro/concesionaria')
+      expect(dealerLink.parentElement).toHaveTextContent('¿Tenés una concesionaria? Registrala')
+      expect(
+        screen.getByRole('link', { name: 'Iniciar sesión' }).compareDocumentPosition(dealerLink) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
     it('sets browser autocomplete hints on every field', () => {
       renderPage()
 

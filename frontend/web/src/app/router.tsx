@@ -2,6 +2,7 @@ import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-r
 import AuthProvider from '../features/auth/session/AuthProvider'
 import GuestRoute from '../features/auth/session/GuestRoute'
 import ProtectedRoute from '../features/auth/session/ProtectedRoute'
+import DealerRegisterPage from '../features/auth/dealer/DealerRegisterPage'
 import LoginPage from '../features/auth/login/LoginPage'
 import RegisterPage from '../features/auth/register/RegisterPage'
 import RecoveryPage from '../features/auth/recovery/RecoveryPage'
@@ -49,6 +50,7 @@ export const routes: RouteObject[] = [
             children: [
               { path: '/login', element: <LoginPage /> },
               { path: '/registro', element: <RegisterPage /> },
+              { path: '/registro/concesionaria', element: <DealerRegisterPage /> },
               { path: '/recuperar', element: <RecoveryPage /> },
               { path: '/restablecer/:token', element: <ResetPasswordPage /> },
             ],

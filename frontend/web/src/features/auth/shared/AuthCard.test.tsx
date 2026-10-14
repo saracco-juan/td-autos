@@ -27,4 +27,20 @@ describe('AuthCard', () => {
     expect(screen.getByRole('heading', { name: 'Iniciá sesión' })).toBeInTheDocument()
     expect(screen.queryByText('Accedé para guardar tus favoritos.')).not.toBeInTheDocument()
   })
+
+  it('keeps the default width unless the wide variant is asked for', () => {
+    const { rerender } = render(
+      <AuthCard titleId="login-title" title="Iniciá sesión">
+        <p>Contenido</p>
+      </AuthCard>,
+    )
+    expect(screen.getByRole('region').className).not.toMatch(/wide/)
+
+    rerender(
+      <AuthCard titleId="login-title" title="Iniciá sesión" wide>
+        <p>Contenido</p>
+      </AuthCard>,
+    )
+    expect(screen.getByRole('region').className).toMatch(/wide/)
+  })
 })

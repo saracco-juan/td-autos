@@ -9,6 +9,7 @@ import {
   fetchCurrentUser,
   loginUser,
   logoutUser,
+  registerDealer,
   registerUser,
   requestPasswordReset,
   resetPassword,
@@ -33,6 +34,26 @@ describe('auth api', () => {
 
     await expect(registerUser(payload)).resolves.toEqual(user)
     expect(apiFetch).toHaveBeenCalledWith('/register', { method: 'POST', body: payload })
+  })
+
+  it('TC-44: registerDealer POSTs /register/concesionaria with the payload and returns the user', async () => {
+    const payload = {
+      nombre_concesionaria: 'Autos del Sur',
+      name: 'Marta',
+      apellido: 'Gómez',
+      responsable_dni: '30111222',
+      telefono_publico: '1143210000',
+      telefono_responsable: '1144445555',
+      email: 'marta@autosdelsur.com',
+      direccion: 'Av. Mitre 1234',
+      localidad: 'Avellaneda',
+      provincia: 'Buenos Aires',
+      password: 'Abcdef12',
+      password_confirmation: 'Abcdef12',
+    }
+
+    await expect(registerDealer(payload)).resolves.toEqual(user)
+    expect(apiFetch).toHaveBeenCalledWith('/register/concesionaria', { method: 'POST', body: payload })
   })
 
   it('fetchCurrentUser GETs /api/user', async () => {
