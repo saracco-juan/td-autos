@@ -50,6 +50,48 @@ class ConfigTest extends TestCase
         }
     }
 
+    public function test_vehicle_photos_use_the_public_disk_when_env_is_unset(): void
+    {
+        $repository = Env::getRepository();
+        $previous = $repository->get('VEHICLE_PHOTOS_DISK');
+        $repository->clear('VEHICLE_PHOTOS_DISK');
+
+        try {
+            $this->assertSame('public', (require config_path('filesystems.php'))['vehicle_photos_disk']);
+        } finally {
+            if ($previous !== null) {
+                $repository->set('VEHICLE_PHOTOS_DISK', $previous);
+            }
+        }
+    }
+
+    public function test_vehicle_photos_disk_can_be_overridden_by_env(): void
+    {
+        $repository = Env::getRepository();
+        $previous = $repository->get('VEHICLE_PHOTOS_DISK');
+        $repository->set('VEHICLE_PHOTOS_DISK', 'supabase');
+
+        try {
+            $this->assertSame('supabase', (require config_path('filesystems.php'))['vehicle_photos_disk']);
+        } finally {
+            if ($previous === null) {
+                $repository->clear('VEHICLE_PHOTOS_DISK');
+            } else {
+                $repository->set('VEHICLE_PHOTOS_DISK', $previous);
+            }
+        }
+    }
+
+    public function test_supabase_storage_disk_is_a_public_path_style_s3_disk(): void
+    {
+        $disk = config('filesystems.disks.supabase');
+
+        $this->assertSame('s3', $disk['driver']);
+        $this->assertTrue($disk['use_path_style_endpoint']);
+        $this->assertSame('public', $disk['visibility']);
+        $this->assertTrue($disk['throw']);
+    }
+
     public function test_defaults_target_the_vite_dev_server_when_env_is_unset(): void
     {
         $repository = Env::getRepository();
