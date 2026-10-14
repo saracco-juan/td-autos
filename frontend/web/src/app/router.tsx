@@ -2,11 +2,14 @@ import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-r
 import AuthProvider from '../features/auth/session/AuthProvider'
 import GuestRoute from '../features/auth/session/GuestRoute'
 import ProtectedRoute from '../features/auth/session/ProtectedRoute'
+import RoleRoute from '../features/auth/session/RoleRoute'
 import DealerRegisterPage from '../features/auth/dealer/DealerRegisterPage'
 import LoginPage from '../features/auth/login/LoginPage'
 import RegisterPage from '../features/auth/register/RegisterPage'
 import RecoveryPage from '../features/auth/recovery/RecoveryPage'
 import ResetPasswordPage from '../features/auth/recovery/ResetPasswordPage'
+import ActiveDealerRoute from '../features/dealer/ActiveDealerRoute'
+import DealerStatusPage from '../features/dealer/DealerStatusPage'
 import DiagnosisPage from '../features/diagnosis/DiagnosisPage'
 import HomeRoute from '../features/home/HomeRoute'
 import InspectionPage from '../features/inspection/InspectionPage'
@@ -32,12 +35,32 @@ export const routes: RouteObject[] = [
           {
             element: <ProtectedRoute />,
             children: [
-              { path: '/', element: <HomeRoute /> },
-              { path: '/diagnostico', element: <DiagnosisPage /> },
-              { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
-              { path: '/recomendaciones', element: <RecommendationsPage /> },
-              { path: '/transferencia', element: <TransferPage /> },
-              { path: '/perfil', element: <ProfilePage /> },
+              {
+                // Buyer screens: a dealer is sent to /concesionaria, so the home never sends one to the diagnosis.
+                element: <RoleRoute allow="buyer" />,
+                children: [
+                  { path: '/', element: <HomeRoute /> },
+                  { path: '/diagnostico', element: <DiagnosisPage /> },
+                  { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
+                  { path: '/recomendaciones', element: <RecommendationsPage /> },
+                  { path: '/transferencia', element: <TransferPage /> },
+                  { path: '/perfil', element: <ProfilePage /> },
+                ],
+              },
+              {
+                // Dealer screens: anyone else is sent to /.
+                element: <RoleRoute allow="dealer" />,
+                children: [
+                  { path: '/concesionaria', element: <DealerStatusPage /> },
+                  {
+                    element: <ActiveDealerRoute />,
+                    children: [
+                      // The inventory screen belongs to a later story (UH21): until it exists, an active dealer goes back to the status.
+                      { path: '/concesionaria/inventario', element: <Navigate to="/concesionaria" replace /> },
+                    ],
+                  },
+                ],
+              },
             ],
           },
         ],

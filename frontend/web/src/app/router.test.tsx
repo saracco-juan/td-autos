@@ -57,6 +57,24 @@ function asAuthenticated(overrides: Partial<typeof ana> = {}) {
   vi.mocked(fetchCurrentUser).mockResolvedValue({ ...ana, ...overrides })
 }
 
+const marta = {
+  id: 2,
+  name: 'Marta',
+  apellido: 'Gómez',
+  email: 'marta@autosdelsur.com',
+  rol: 'concesionaria',
+  perfil_completo: true,
+  tiene_diagnostico: false,
+}
+
+// A dealer's responsible person (UH17); like every new account, they have no diagnosis.
+function asDealer(estado_alta: string | null = 'pendiente') {
+  vi.mocked(fetchCurrentUser).mockResolvedValue({
+    ...marta,
+    concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta },
+  })
+}
+
 function renderAt(path: string) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(<RouterProvider router={router} />)
@@ -510,6 +528,114 @@ describe('app routes', () => {
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  describe('dealer session (UH17)', () => {
+    const statusHeading = () => screen.findByRole('heading', { level: 1, name: 'Verificación de suscripción' })
+
+    it('TC-46: a pending dealer sees the request status at /concesionaria inside the shell', async () => {
+      asDealer()
+      const router = renderAt('/concesionaria')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(screen.getByText('Pendiente de aprobación inicial · inventario bloqueado')).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+    })
+
+    it('TC-46: a pending dealer logs in from /login and lands on the request status', async () => {
+      asGuest()
+      vi.mocked(loginUser).mockImplementation(async () => {
+        asDealer()
+      })
+      const user = userEvent.setup()
+      const router = renderAt('/login')
+
+      await user.type(await screen.findByLabelText('Email'), 'marta@autosdelsur.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
+      await user.click(screen.getByRole('button', { name: 'INGRESAR' }))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
+
+    it('sends a dealer from / to /concesionaria, never to the diagnosis', async () => {
+      asDealer()
+      const router = renderAt('/')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(fetchDiagnosis).not.toHaveBeenCalled()
+      expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    })
+
+    it.each(['/diagnostico', '/recomendaciones', '/transferencia', '/vehiculos/7/inspeccion', '/perfil'])(
+      'sends a dealer opening the buyer route %s to /concesionaria without loading it',
+      async (path) => {
+        asDealer()
+        const router = renderAt(path)
+
+        expect(await statusHeading()).toBeInTheDocument()
+        expect(router.state.location.pathname).toBe('/concesionaria')
+        expect(fetchDiagnosis).not.toHaveBeenCalled()
+        expect(fetchTransfer).not.toHaveBeenCalled()
+        expect(fetchInspection).not.toHaveBeenCalled()
+      },
+    )
+
+    it('sends a dealer opening an unknown path or a guest-only screen to /concesionaria', async () => {
+      asDealer()
+      const router = renderAt('/no-existe')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+
+      await act(() => router.navigate('/registro/concesionaria'))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
+
+    it.each(['/concesionaria', '/concesionaria/inventario'])('sends a buyer opening the dealer route %s to /', async (path) => {
+      const router = renderAt(path)
+
+      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/')
+      expect(screen.queryByRole('heading', { name: 'Verificación de suscripción' })).not.toBeInTheDocument()
+    })
+
+    it('redirects a guest opening /concesionaria to the login screen', async () => {
+      asGuest()
+      const router = renderAt('/concesionaria')
+
+      expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/login')
+    })
+
+    it('TC-45: a pending dealer opening /concesionaria/inventario is told the inventory is blocked', async () => {
+      asDealer('pendiente')
+      const router = renderAt('/concesionaria/inventario')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Tu cuenta está pendiente de aprobación. Todavía no podés gestionar el inventario.',
+      )
+      expect(router.state.location.pathname).toBe('/concesionaria/inventario')
+
+      await userEvent.setup().click(screen.getByRole('link', { name: 'Volver a verificación' }))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
+
+    it('sends an active dealer from /concesionaria/inventario back to the status until the inventory exists', async () => {
+      asDealer('activa')
+      const router = renderAt('/concesionaria/inventario')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(screen.getByText('Activa')).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
   })
 
   it('redirects unknown paths to /', async () => {

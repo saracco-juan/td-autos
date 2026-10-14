@@ -1,3 +1,10 @@
+// The dealer a `concesionaria` user is responsible for.
+export type DealerSummary = {
+  id: number
+  nombre: string
+  estado_alta: string | null
+}
+
 export type User = {
   id: number
   name: string
@@ -6,6 +13,8 @@ export type User = {
   rol: string
   perfil_completo: boolean
   tiene_diagnostico: boolean
+  // Present only for users with the dealer role.
+  concesionaria?: DealerSummary
 }
 
 export type RegisterPayload = {
