@@ -7,7 +7,8 @@ use App\Models\Concesionaria;
 use App\Models\Suscripcion;
 
 /**
- * Builds the subscription summary the dealer sees: account state, transfer data and pending receipt.
+ * Builds the subscription summary the dealer sees: account state, transfer data, pending receipt
+ * and the outcome of the latest receipt (so a rejection and its reason reach the dealer).
  */
 final class SuscripcionPresenter
 {
@@ -22,12 +23,14 @@ final class SuscripcionPresenter
     {
         $suscripcion = $dealer->suscripcion()->first();
         $receipt = $suscripcion?->comprobantes()->pendientes()->latest('id')->first();
+        $latest = $suscripcion?->comprobantes()->latest('id')->first();
 
         return [
             'estado_alta' => $dealer->estado_alta,
             'tipo_pago' => $dealer->estado_alta === Concesionaria::ESTADO_ACTIVA ? self::TIPO_RENOVACION : self::TIPO_ALTA,
             'transferencia' => self::transfer(),
             'comprobante_pendiente' => $receipt ? self::receipt($receipt, $suscripcion) : null,
+            'ultimo_comprobante' => $latest ? self::outcome($latest) : null,
         ];
     }
 
@@ -54,6 +57,19 @@ final class SuscripcionPresenter
             'cbu' => $data['cbu'],
             'alias' => $data['alias'],
             'monto_mensual' => $data['monthly_amount'],
+        ];
+    }
+
+    /**
+     * @return array{id: int, estado: string, motivo_rechazo: ?string, fecha_revision: ?string}
+     */
+    private static function outcome(ComprobantePago $receipt): array
+    {
+        return [
+            'id' => $receipt->id,
+            'estado' => $receipt->estado,
+            'motivo_rechazo' => $receipt->motivo_rechazo,
+            'fecha_revision' => $receipt->fecha_revision?->toIso8601String(),
         ];
     }
 

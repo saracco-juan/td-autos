@@ -136,6 +136,7 @@ class SuscripcionEndpointsTest extends TestCase
                     'monto_mensual' => '25000',
                 ],
                 'comprobante_pendiente' => null,
+                'ultimo_comprobante' => null,
             ]);
     }
 
@@ -166,6 +167,49 @@ class SuscripcionEndpointsTest extends TestCase
         $this->actingAs($dealer->usuario)->getJson(self::URL)
             ->assertOk()
             ->assertJsonPath('comprobante_pendiente', null);
+    }
+
+    public function test_get_reports_the_latest_receipt_when_it_was_rejected(): void
+    {
+        $dealer = Concesionaria::factory()->create();
+        $receipt = $this->pendingReceipt($dealer);
+        $receipt->forceFill([
+            'estado' => ComprobantePago::ESTADO_RECHAZADO,
+            'motivo_rechazo' => 'El monto no coincide con la cuota.',
+            'fecha_revision' => '2026-10-15 10:30:00',
+        ])->save();
+
+        $this->actingAs($dealer->usuario)->getJson(self::URL)
+            ->assertOk()
+            ->assertJsonPath('comprobante_pendiente', null)
+            ->assertJsonPath('ultimo_comprobante', [
+                'id' => $receipt->id,
+                'estado' => ComprobantePago::ESTADO_RECHAZADO,
+                'motivo_rechazo' => 'El monto no coincide con la cuota.',
+                'fecha_revision' => '2026-10-15T10:30:00+00:00',
+            ]);
+    }
+
+    public function test_latest_receipt_is_the_pending_one_after_a_new_upload(): void
+    {
+        $dealer = Concesionaria::factory()->create();
+        $rejected = $this->pendingReceipt($dealer);
+        $rejected->forceFill([
+            'estado' => ComprobantePago::ESTADO_RECHAZADO,
+            'motivo_rechazo' => 'Ilegible.',
+            'fecha_revision' => '2026-10-14 16:00:00',
+        ])->save();
+
+        $response = $this->upload($dealer, $this->pdf())->assertCreated();
+
+        $pendingId = $response->json('comprobante_pendiente.id');
+        $this->assertNotSame($rejected->id, $pendingId);
+        $response->assertJsonPath('ultimo_comprobante', [
+            'id' => $pendingId,
+            'estado' => ComprobantePago::ESTADO_PENDIENTE_REVISION,
+            'motivo_rechazo' => null,
+            'fecha_revision' => null,
+        ]);
     }
 
     public function test_get_for_active_dealer_reports_renewal(): void

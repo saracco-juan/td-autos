@@ -23,6 +23,7 @@ final class DealerDirectory
                 'concesionaria.*',
                 'comprobante_pendiente_id' => $this->latestReceiptId()->pendientes(),
                 'ultimo_comprobante_id' => $this->latestReceiptId(),
+                'ultimo_comprobante_estado' => $this->latestReceipt('comprobante_pago.estado'),
             ])
             ->orderBy('nombre')
             ->orderBy('id')
@@ -42,6 +43,7 @@ final class DealerDirectory
                 ...AdminPresenter::dealer($dealer),
                 'comprobante_pendiente_id' => $dealer->comprobante_pendiente_id,
                 'ultimo_comprobante_id' => $dealer->ultimo_comprobante_id,
+                'ultimo_comprobante_estado' => $dealer->ultimo_comprobante_estado,
             ])->all(),
         ];
     }
@@ -51,8 +53,18 @@ final class DealerDirectory
      */
     private function latestReceiptId(): Builder
     {
+        return $this->latestReceipt('comprobante_pago.id');
+    }
+
+    /**
+     * One column of the dealer's most recent receipt, in any state.
+     *
+     * @return Builder<ComprobantePago>
+     */
+    private function latestReceipt(string $column): Builder
+    {
         return ComprobantePago::query()
-            ->select('comprobante_pago.id')
+            ->select($column)
             ->join('suscripcion', 'suscripcion.id', '=', 'comprobante_pago.suscripcion_id')
             ->whereColumn('suscripcion.concesionaria_id', 'concesionaria.id')
             ->orderByDesc('comprobante_pago.id')

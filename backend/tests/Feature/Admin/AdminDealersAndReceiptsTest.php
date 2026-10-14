@@ -127,11 +127,29 @@ class AdminDealersAndReceiptsTest extends TestCase
             ],
             'comprobante_pendiente_id' => $pending->id,
             'ultimo_comprobante_id' => $pending->id,
+            'ultimo_comprobante_estado' => ComprobantePago::ESTADO_PENDIENTE_REVISION,
         ]);
         $response->assertJsonPath('concesionarias.2.comprobante_pendiente_id', null);
         $response->assertJsonPath('concesionarias.2.ultimo_comprobante_id', null);
+        $response->assertJsonPath('concesionarias.2.ultimo_comprobante_estado', null);
         $response->assertJsonPath('concesionarias.3.comprobante_pendiente_id', null);
         $response->assertJsonPath('concesionarias.3.ultimo_comprobante_id', $approved->id);
+        $response->assertJsonPath('concesionarias.3.ultimo_comprobante_estado', ComprobantePago::ESTADO_APROBADO);
+    }
+
+    public function test_lists_the_state_of_the_latest_receipt_when_it_was_rejected(): void
+    {
+        $dealer = Concesionaria::factory()->create(['nombre' => 'Delta Autos']);
+        $this->receipt($dealer, ['estado' => ComprobantePago::ESTADO_APROBADO]);
+        $rejected = $this->receipt($dealer, ['estado' => ComprobantePago::ESTADO_RECHAZADO]);
+
+        $this->actingAs($this->admin())
+            ->getJson(self::LIST_URL)
+            ->assertOk()
+            ->assertJsonPath('concesionarias.0.estado_alta', Concesionaria::ESTADO_PENDIENTE)
+            ->assertJsonPath('concesionarias.0.comprobante_pendiente_id', null)
+            ->assertJsonPath('concesionarias.0.ultimo_comprobante_id', $rejected->id)
+            ->assertJsonPath('concesionarias.0.ultimo_comprobante_estado', ComprobantePago::ESTADO_RECHAZADO);
     }
 
     public function test_list_is_empty_without_dealers(): void
