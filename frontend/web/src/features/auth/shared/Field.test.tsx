@@ -39,6 +39,22 @@ describe('Field', () => {
     expect(screen.getByText('Usá tu email.')).toBeInTheDocument()
   })
 
+  it('describes the control with a hint rendered outside the field, until there are errors', () => {
+    const { rerender } = render(
+      <Field id="login-email" label="Email" hintId="outside-hint">
+        {(control) => <input {...control} />}
+      </Field>,
+    )
+    expect(screen.getByLabelText('Email')).toHaveAttribute('aria-describedby', 'outside-hint')
+
+    rerender(
+      <Field id="login-email" label="Email" hintId="outside-hint" errors={['Mal.']}>
+        {(control) => <input {...control} />}
+      </Field>,
+    )
+    expect(screen.getByLabelText('Email')).toHaveAttribute('aria-describedby', 'login-email-error')
+  })
+
   it('replaces the hint with the errors when both are present', () => {
     render(
       <Field id="login-email" label="Email" errors={['Mal.']} hint={<p>Usá tu email.</p>}>

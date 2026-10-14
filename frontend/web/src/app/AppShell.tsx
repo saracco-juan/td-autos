@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import alertStyles from '../components/alert.module.css'
+import { isBuyer, isDealer } from '../features/auth/roles'
 import { useAuth } from '../features/auth/session/useAuth'
 import styles from './AppShell.module.css'
 
 const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
-// Shared page frame: nav on top (guest, or Buyer with logout once signed in), routed content, footer.
-// The Buyer nav shows only the links whose screens exist: diagnosis, recommendations, transfer, profile and logout for now.
+// Shared page frame: nav on top (guest, or the Buyer or Dealer nav with logout once signed in), routed content, footer.
+// Each nav shows only the links whose screens exist: diagnosis, recommendations, transfer and profile for buyers,
+// the adhesion status for dealers. A signed-in user with any other role gets only the logout.
 export default function AppShell() {
   const navigate = useNavigate()
-  const { status, logout } = useAuth()
+  const { user, status, logout } = useAuth()
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutFailed, setLogoutFailed] = useState(false)
 
@@ -34,18 +36,30 @@ export default function AppShell() {
         </Link>
         {status === 'authenticated' ? (
           <div className={styles.navActions}>
-            <NavLink to="/diagnostico" className={styles.navAction}>
-              Diagnóstico
-            </NavLink>
-            <NavLink to="/recomendaciones" className={styles.navAction}>
-              Recomendados
-            </NavLink>
-            <NavLink to="/transferencia" className={styles.navAction}>
-              Transferencia
-            </NavLink>
-            <NavLink to="/perfil" className={styles.navAction}>
-              Perfil
-            </NavLink>
+            {isDealer(user) ? (
+              <>
+                <NavLink to="/concesionaria" end className={styles.navAction}>
+                  Verificación
+                </NavLink>
+                {user?.concesionaria ? <span className={styles.navText}>{user.concesionaria.nombre}</span> : null}
+              </>
+            ) : null}
+            {isBuyer(user) ? (
+              <>
+                <NavLink to="/diagnostico" className={styles.navAction}>
+                  Diagnóstico
+                </NavLink>
+                <NavLink to="/recomendaciones" className={styles.navAction}>
+                  Recomendados
+                </NavLink>
+                <NavLink to="/transferencia" className={styles.navAction}>
+                  Transferencia
+                </NavLink>
+                <NavLink to="/perfil" className={styles.navAction}>
+                  Perfil
+                </NavLink>
+              </>
+            ) : null}
             <button
               type="button"
               className={styles.navAction}

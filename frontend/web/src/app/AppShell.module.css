@@ -40,6 +40,13 @@
   cursor: pointer;
 }
 
+/* Dealer nav: the dealer's name, same type as the items but not interactive. */
+.navText {
+  padding: 4px 0;
+  color: var(--text-on-color);
+  font: 600 12px/normal var(--font-sans);
+}
+
 /* The link of the page the user is on (NavLink sets aria-current). */
 .navAction[aria-current='page'] {
   font-weight: 700;

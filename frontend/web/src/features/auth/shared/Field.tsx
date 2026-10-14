@@ -15,14 +15,16 @@ type Props = {
   errors?: string[]
   // Hint element rendered below the control while there are no errors; it must carry the id `${id}-hint`.
   hint?: ReactNode
+  // Id of a hint rendered outside the field (e.g. below a group of fields); it describes the control while there are no errors.
+  hintId?: string
   // Receives the props to spread on the control (input, PasswordInput, ...).
   children: (control: FieldControlProps) => ReactNode
 }
 
 // Labelled field: wires label, aria-invalid and aria-describedby to the control, and lists its errors.
-export default function Field({ id, label, errors, hint, children }: Props) {
+export default function Field({ id, label, errors, hint, hintId, children }: Props) {
   const errorId = `${id}-error`
-  const describedBy = errors ? errorId : hint ? `${id}-hint` : undefined
+  const describedBy = errors ? errorId : hint ? `${id}-hint` : hintId
 
   return (
     <div className={styles.field}>

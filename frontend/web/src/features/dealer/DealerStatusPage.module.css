@@ -1,0 +1,61 @@
+/* Same page frame as the profile: left-aligned under the nav, 32 from the edges at 1280. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 1216px;
+  /* The shell centers its content vertically; the page starts at the top. */
+  margin-bottom: auto;
+  padding-top: 40px;
+}
+
+/* Page header without an eyebrow: title 32 bold, subtitle 14 secondary, 8 apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma 38:860 "Estado de la cuenta" card: same surface as the checklist summary cards. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 760px;
+  padding: 20px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.status {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 24px;
+  }
+}

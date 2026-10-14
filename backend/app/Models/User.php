@@ -19,6 +19,8 @@ class User extends Authenticatable
 
     public const ROL_COMPRADOR = 'comprador';
 
+    public const ROL_CONCESIONARIA = 'concesionaria';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -86,6 +88,38 @@ class User extends Authenticatable
     protected function tieneDiagnostico(): Attribute
     {
         return Attribute::get(fn () => $this->diagnostico()->exists());
+    }
+
+    /**
+     * The dealer this user is responsible for (dealer users only).
+     *
+     * @return HasOne<Concesionaria, $this>
+     */
+    public function concesionaria(): HasOne
+    {
+        return $this->hasOne(Concesionaria::class, 'usuario_id');
+    }
+
+    public function esConcesionaria(): bool
+    {
+        return $this->rol === self::ROL_CONCESIONARIA;
+    }
+
+    /**
+     * Dealer users carry a summary of their dealer; other roles never get the key.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        $data = parent::toArray();
+        unset($data['concesionaria']);
+
+        if ($this->esConcesionaria()) {
+            $data['concesionaria'] = $this->concesionaria?->only(['id', 'nombre', 'estado_alta']);
+        }
+
+        return $data;
     }
 
     /**

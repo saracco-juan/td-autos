@@ -61,6 +61,11 @@ class GoogleAccountResolver
             throw new GoogleEmailConflictException('The email already belongs to another account.');
         }
 
+        // Dealers never sign in with Google: linking would hand the dealer account to whoever owns the email.
+        if ($user->esConcesionaria()) {
+            throw new GoogleEmailConflictException('The email belongs to a dealer account.');
+        }
+
         $user->forceFill(['auth_subject' => $profile->subject()]);
 
         if ($user->email_verified_at === null) {

@@ -1,10 +1,9 @@
-import type { ChangeEvent, FormEvent, ReactNode } from 'react'
-import type { FieldErrors, FieldName } from '../types'
+import type { FormEvent } from 'react'
+import type { FieldErrors } from '../types'
 import alertStyles from '../../../components/alert.module.css'
 import buttonStyles from '../../../components/button.module.css'
-import Field from '../shared/Field'
-import PasswordInput from '../shared/PasswordInput'
 import PasswordRequirements from '../shared/PasswordRequirements'
+import TextField, { type TextFieldProps } from '../shared/TextField'
 import styles from '../shared/authForm.module.css'
 import type { RegisterFormValues } from './validateRegisterForm'
 
@@ -17,33 +16,23 @@ type Props = {
   onSubmit: () => void
 }
 
-type RegisterFieldProps = {
-  field: FieldName
-  label: string
-  type?: 'text' | 'email' | 'password'
-  autoComplete: string
+type RegisterFieldProps = Pick<TextFieldProps, 'label' | 'type' | 'autoComplete' | 'hint'> & {
+  field: keyof RegisterFormValues
   values: RegisterFormValues
   errors: FieldErrors
   onChange: Props['onChange']
-  hint?: ReactNode
 }
 
-function RegisterField({ field, label, type = 'text', autoComplete, values, errors, onChange, hint }: RegisterFieldProps) {
-  const Input = type === 'password' ? PasswordInput : 'input'
-
+function RegisterField({ field, values, errors, onChange, ...textField }: RegisterFieldProps) {
   return (
-    <Field id={`register-${field}`} label={label} errors={errors[field]} hint={hint}>
-      {(control) => (
-        <Input
-          {...control}
-          name={field}
-          autoComplete={autoComplete}
-          value={values[field]}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(field, event.target.value)}
-          {...(type === 'password' ? {} : { type })}
-        />
-      )}
-    </Field>
+    <TextField
+      {...textField}
+      id={`register-${field}`}
+      name={field}
+      value={values[field]}
+      errors={errors[field]}
+      onChange={(value) => onChange(field, value)}
+    />
   )
 }
 

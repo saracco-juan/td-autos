@@ -10,6 +10,25 @@
   gap: 20px;
 }
 
+/* Figma 38:779: fields in two columns, one column on narrow screens. */
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+/* A block that spans both columns of the grid (e.g. the password requirements). */
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 600px) {
+  .fieldGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .field {
   display: flex;
   flex-direction: column;

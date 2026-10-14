@@ -176,6 +176,51 @@ class GoogleAccountResolverTest extends TestCase
         }
     }
 
+    /**
+     * UH17: dealers never sign in with Google, so a matching dealer account is never linked.
+     */
+    public function test_unverified_dealer_account_is_rejected_and_left_untouched(): void
+    {
+        config(['session.driver' => 'database']);
+        $user = User::factory()->dealer()->unverified()->create([
+            'email' => 'g@x.com',
+            'auth_subject' => null,
+            'password' => 'dealer-pass-123',
+            'remember_token' => 'old-remember',
+        ]);
+        $user->createToken('dealer');
+        DB::table('sessions')->insert(['id' => 'sess-a', 'user_id' => $user->id, 'payload' => '', 'last_activity' => time()]);
+        $hash = $user->password;
+
+        try {
+            app(GoogleAccountResolver::class)->resolve($this->profile());
+            $this->fail('Expected GoogleEmailConflictException.');
+        } catch (GoogleEmailConflictException) {
+            $fresh = $user->fresh();
+            $this->assertSame($hash, $fresh->password);
+            $this->assertNull($fresh->auth_subject);
+            $this->assertNull($fresh->email_verified_at);
+            $this->assertSame(User::ROL_CONCESIONARIA, $fresh->rol);
+            $this->assertSame('old-remember', $fresh->remember_token);
+            $this->assertSame(1, $user->tokens()->count());
+            $this->assertDatabaseHas('sessions', ['id' => 'sess-a']);
+            $this->assertSame(1, User::count());
+        }
+    }
+
+    public function test_verified_dealer_account_is_rejected(): void
+    {
+        $user = User::factory()->dealer()->create(['email' => 'g@x.com', 'auth_subject' => null]);
+
+        try {
+            app(GoogleAccountResolver::class)->resolve($this->profile());
+            $this->fail('Expected GoogleEmailConflictException.');
+        } catch (GoogleEmailConflictException) {
+            $this->assertNull($user->fresh()->auth_subject);
+            $this->assertSame(User::ROL_CONCESIONARIA, $user->fresh()->rol);
+        }
+    }
+
     public function test_new_verified_google_user_is_created_as_buyer(): void
     {
         Event::fake([Registered::class]);

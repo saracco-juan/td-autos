@@ -106,6 +106,9 @@ export default function RegisterPage() {
       <p className={linkStyles.prompt}>
         ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
       </p>
+      <p className={linkStyles.prompt}>
+        ¿Tenés una concesionaria? <Link to="/registro/concesionaria">Registrala</Link>
+      </p>
     </AuthCard>
   )
 }

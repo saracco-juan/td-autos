@@ -3,7 +3,7 @@ import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
-import { fetchCurrentUser, loginUser, logoutUser, resetPassword } from '../features/auth/api'
+import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
@@ -16,6 +16,7 @@ import { routes } from './router'
 vi.mock('../features/auth/api', () => ({
   fetchCurrentUser: vi.fn(),
   registerUser: vi.fn(),
+  registerDealer: vi.fn(),
   loginUser: vi.fn(),
   logoutUser: vi.fn(),
   requestPasswordReset: vi.fn(),
@@ -54,6 +55,24 @@ function asGuest() {
 // A buyer who never answered the questionnaire: the home sends them to /diagnostico (D6).
 function asAuthenticated(overrides: Partial<typeof ana> = {}) {
   vi.mocked(fetchCurrentUser).mockResolvedValue({ ...ana, ...overrides })
+}
+
+const marta = {
+  id: 2,
+  name: 'Marta',
+  apellido: 'Gómez',
+  email: 'marta@autosdelsur.com',
+  rol: 'concesionaria',
+  perfil_completo: true,
+  tiene_diagnostico: false,
+}
+
+// A dealer's responsible person (UH17); like every new account, they have no diagnosis.
+function asDealer(estado_alta: string | null = 'pendiente') {
+  vi.mocked(fetchCurrentUser).mockResolvedValue({
+    ...marta,
+    concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta },
+  })
 }
 
 function renderAt(path: string) {
@@ -319,6 +338,34 @@ describe('app routes', () => {
     expect(screen.queryByRole('heading', { name: 'Registrá tu cuenta' })).not.toBeInTheDocument()
   })
 
+  it('UH17: renders the dealer registration at /registro/concesionaria for a guest, in the bare auth layout', async () => {
+    asGuest()
+    const router = renderAt('/registro/concesionaria')
+
+    expect(await screen.findByRole('heading', { name: 'Registrá tu concesionaria' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/registro/concesionaria')
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('UH17: opens the dealer registration from the buyer registration link', async () => {
+    asGuest()
+    const router = renderAt('/registro')
+
+    await userEvent.setup().click(await screen.findByRole('link', { name: 'Registrala' }))
+
+    expect(await screen.findByRole('heading', { name: 'Registrá tu concesionaria' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/registro/concesionaria')
+  })
+
+  it('UH17: redirects an authenticated user from /registro/concesionaria to /', async () => {
+    const router = renderAt('/registro/concesionaria')
+
+    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/')
+    expect(screen.queryByRole('heading', { name: 'Registrá tu concesionaria' })).not.toBeInTheDocument()
+  })
+
   it('TC-84: sends a guest opening / to the login screen without rendering the home', async () => {
     asGuest()
     const router = renderAt('/')
@@ -481,6 +528,166 @@ describe('app routes', () => {
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  describe('dealer session (UH17)', () => {
+    const statusHeading = () => screen.findByRole('heading', { level: 1, name: 'Verificación de suscripción' })
+
+    it('TC-46: a pending dealer sees the request status at /concesionaria inside the shell', async () => {
+      asDealer()
+      const router = renderAt('/concesionaria')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(screen.getByText('Pendiente de aprobación inicial · inventario bloqueado')).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+    })
+
+    it('TC-46: a pending dealer logs in from /login and lands on the request status', async () => {
+      asGuest()
+      vi.mocked(loginUser).mockImplementation(async () => {
+        asDealer()
+      })
+      const user = userEvent.setup()
+      const router = renderAt('/login')
+
+      await user.type(await screen.findByLabelText('Email'), 'marta@autosdelsur.com')
+      await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
+      await user.click(screen.getByRole('button', { name: 'INGRESAR' }))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
+
+    it('TC-44: a guest registers a dealer at /registro/concesionaria and lands on the request status, never on the diagnosis', async () => {
+      asGuest()
+      vi.mocked(registerDealer).mockReset()
+      vi.mocked(registerDealer).mockImplementation(async () => {
+        // The registration starts the session: the refresh that follows reads the new pending dealer.
+        asDealer('pendiente')
+        return { ...marta, concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta: 'pendiente' } }
+      })
+      const user = userEvent.setup()
+      const router = renderAt('/registro/concesionaria')
+
+      await user.type(await screen.findByLabelText('Nombre de la concesionaria'), 'Autos del Sur')
+      await user.type(screen.getByLabelText('Email'), 'marta@autosdelsur.com')
+      await user.type(screen.getByLabelText('Nombre del responsable'), 'Marta')
+      await user.type(screen.getByLabelText('Apellido del responsable'), 'Gómez')
+      await user.type(screen.getByLabelText('DNI del responsable'), '30111222')
+      await user.type(screen.getByLabelText('Teléfono del responsable'), '1144445555')
+      await user.type(screen.getByLabelText('Teléfono público'), '1143210000')
+      await user.type(screen.getByLabelText('Dirección'), 'Av. Mitre 1234')
+      await user.type(screen.getByLabelText('Localidad'), 'Avellaneda')
+      await user.type(screen.getByLabelText('Provincia'), 'Buenos Aires')
+      await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
+      await user.type(screen.getByLabelText('Confirmar contraseña'), 'Abcdef12')
+      await user.click(screen.getByRole('button', { name: 'CREAR CUENTA' }))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(screen.getByText('Pendiente de aprobación inicial · inventario bloqueado')).toBeInTheDocument()
+      expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
+      expect(registerDealer).toHaveBeenCalledTimes(1)
+      expect(fetchDiagnosis).not.toHaveBeenCalled()
+      expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    })
+
+    it.each([
+      ['an unknown role', { rol: 'admin' }],
+      ['a missing role', { rol: undefined as unknown as string }],
+    ])('denies a signed-in user with %s on buyer and dealer routes, in place and without reading the diagnosis', async (_label, overrides) => {
+      asAuthenticated({ ...overrides, tiene_diagnostico: false })
+      const router = renderAt('/')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('No tenés permiso para realizar esta acción.')
+      expect(router.state.location.pathname).toBe('/')
+
+      await act(() => router.navigate('/concesionaria'))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('No tenés permiso para realizar esta acción.')
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(screen.queryByRole('heading', { name: 'Verificación de suscripción' })).not.toBeInTheDocument()
+      expect(fetchDiagnosis).not.toHaveBeenCalled()
+    })
+
+    it('sends a dealer from / to /concesionaria, never to the diagnosis', async () => {
+      asDealer()
+      const router = renderAt('/')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(fetchDiagnosis).not.toHaveBeenCalled()
+      expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    })
+
+    it.each(['/diagnostico', '/recomendaciones', '/transferencia', '/vehiculos/7/inspeccion', '/perfil'])(
+      'sends a dealer opening the buyer route %s to /concesionaria without loading it',
+      async (path) => {
+        asDealer()
+        const router = renderAt(path)
+
+        expect(await statusHeading()).toBeInTheDocument()
+        expect(router.state.location.pathname).toBe('/concesionaria')
+        expect(fetchDiagnosis).not.toHaveBeenCalled()
+        expect(fetchTransfer).not.toHaveBeenCalled()
+        expect(fetchInspection).not.toHaveBeenCalled()
+      },
+    )
+
+    it('sends a dealer opening an unknown path or a guest-only screen to /concesionaria', async () => {
+      asDealer()
+      const router = renderAt('/no-existe')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+
+      await act(() => router.navigate('/registro/concesionaria'))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
+
+    it.each(['/concesionaria', '/concesionaria/inventario'])('sends a buyer opening the dealer route %s to /', async (path) => {
+      const router = renderAt(path)
+
+      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/')
+      expect(screen.queryByRole('heading', { name: 'Verificación de suscripción' })).not.toBeInTheDocument()
+    })
+
+    it('redirects a guest opening /concesionaria to the login screen', async () => {
+      asGuest()
+      const router = renderAt('/concesionaria')
+
+      expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/login')
+    })
+
+    it('TC-45: a pending dealer opening /concesionaria/inventario is told the inventory is blocked', async () => {
+      asDealer('pendiente')
+      const router = renderAt('/concesionaria/inventario')
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Tu cuenta está pendiente de aprobación. Todavía no podés gestionar el inventario.',
+      )
+      expect(router.state.location.pathname).toBe('/concesionaria/inventario')
+
+      await userEvent.setup().click(screen.getByRole('link', { name: 'Volver a verificación' }))
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
+
+    it('sends an active dealer from /concesionaria/inventario back to the status until the inventory exists', async () => {
+      asDealer('activa')
+      const router = renderAt('/concesionaria/inventario')
+
+      expect(await statusHeading()).toBeInTheDocument()
+      expect(screen.getByText('Activa')).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria')
+    })
   })
 
   it('redirects unknown paths to /', async () => {
