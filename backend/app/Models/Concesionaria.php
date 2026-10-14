@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Concesionaria extends Model
 {
@@ -53,6 +55,24 @@ class Concesionaria extends Model
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(User::class, 'usuario_id');
+    }
+
+    /**
+     * @return HasOne<Suscripcion, $this>
+     */
+    public function suscripcion(): HasOne
+    {
+        return $this->hasOne(Suscripcion::class, 'concesionaria_id');
+    }
+
+    /**
+     * Payment receipts across the dealer's subscription.
+     *
+     * @return HasManyThrough<ComprobantePago, Suscripcion, $this>
+     */
+    public function comprobantes(): HasManyThrough
+    {
+        return $this->hasManyThrough(ComprobantePago::class, Suscripcion::class, 'concesionaria_id', 'suscripcion_id');
     }
 
     /**

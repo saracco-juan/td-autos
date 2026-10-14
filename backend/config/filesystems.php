@@ -29,6 +29,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Payment Receipts Disk
+    |--------------------------------------------------------------------------
+    |
+    | Private disk where the payment receipts uploaded by dealers are stored.
+    | Never a public disk: receipts are only served through authenticated routes.
+    |
+    */
+
+    'receipts_disk' => env('RECEIPTS_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
