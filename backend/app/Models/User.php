@@ -21,6 +21,8 @@ class User extends Authenticatable
 
     public const ROL_CONCESIONARIA = 'concesionaria';
 
+    public const ROL_ADMINISTRADOR = 'administrador';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -103,6 +105,14 @@ class User extends Authenticatable
     public function esConcesionaria(): bool
     {
         return $this->rol === self::ROL_CONCESIONARIA;
+    }
+
+    /**
+     * Platform administrators (created from the console, never through sign-up).
+     */
+    public function esAdministrador(): bool
+    {
+        return $this->rol === self::ROL_ADMINISTRADOR;
     }
 
     /**

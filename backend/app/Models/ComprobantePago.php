@@ -18,6 +18,10 @@ class ComprobantePago extends Model
 
     public const ESTADO_PENDIENTE_REVISION = 'pendiente de revisión';
 
+    public const ESTADO_APROBADO = 'aprobado';
+
+    public const ESTADO_RECHAZADO = 'rechazado';
+
     protected $table = 'comprobante_pago';
 
     public $timestamps = false;
@@ -53,6 +57,34 @@ class ComprobantePago extends Model
     public function suscripcion(): BelongsTo
     {
         return $this->belongsTo(Suscripcion::class, 'suscripcion_id');
+    }
+
+    /**
+     * The administrator who approved or rejected the receipt.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function revisadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'revisado_por_admin_id');
+    }
+
+    public function estaPendiente(): bool
+    {
+        return $this->estado === self::ESTADO_PENDIENTE_REVISION;
+    }
+
+    /**
+     * A receipt pays the first activation unless an earlier receipt of the same
+     * subscription was already approved; then it is a renewal.
+     */
+    public function esRenovacion(): bool
+    {
+        return self::query()
+            ->where('suscripcion_id', $this->suscripcion_id)
+            ->where('estado', self::ESTADO_APROBADO)
+            ->where('id', '<', $this->id)
+            ->exists();
     }
 
     /**

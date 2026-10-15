@@ -23,10 +23,22 @@ export type ComprobantePendiente = {
   periodo_hasta: string
 }
 
+export type EstadoComprobante = 'pendiente de revisión' | 'aprobado' | 'rechazado'
+
+// Outcome of the latest receipt in any state, so the dealer learns about a rejection and its reason.
+export type UltimoComprobante = {
+  id: number
+  estado: EstadoComprobante
+  motivo_rechazo: string | null
+  // ISO 8601, UTC; null while the receipt is in review.
+  fecha_revision: string | null
+}
+
 export type Suscripcion = {
   estado_alta: EstadoAlta
   tipo_pago: TipoPago
   // null when the transfer data are not configured: the dealer cannot send a receipt.
   transferencia: DatosTransferencia | null
   comprobante_pendiente: ComprobantePendiente | null
+  ultimo_comprobante: UltimoComprobante | null
 }

@@ -54,6 +54,16 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the account belongs to a platform administrator.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'rol' => User::ROL_ADMINISTRADOR,
+        ]);
+    }
+
+    /**
      * Indicate that the account only signs in with Google (no local password).
      */
     public function googleOnly(): static

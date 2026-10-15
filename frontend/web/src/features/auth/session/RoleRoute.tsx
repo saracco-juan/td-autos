@@ -1,26 +1,43 @@
 import { Navigate, Outlet } from 'react-router'
 import alertStyles from '../../../components/alert.module.css'
-import { isBuyer, isDealer } from '../roles'
+import type { User } from '../types'
+import { isAdmin, isBuyer, isDealer } from '../roles'
 import styles from './RoleRoute.module.css'
 import { useAuth } from './useAuth'
 
+type Area = 'buyer' | 'dealer' | 'admin'
+
 type Props = {
-  allow: 'buyer' | 'dealer'
+  allow: Area
+}
+
+// Where each role's screens start.
+const HOME: Record<Area, string> = {
+  buyer: '/',
+  dealer: '/concesionaria',
+  admin: '/admin',
 }
 
 // Same message as the backend denial (EnsureDealerIsActive::MESSAGE_FORBIDDEN).
 const MESSAGE_FORBIDDEN = 'No tenés permiso para realizar esta acción.'
 
+function areaOf(user: User | null): Area | null {
+  if (isBuyer(user)) return 'buyer'
+  if (isDealer(user)) return 'dealer'
+  if (isAdmin(user)) return 'admin'
+  return null
+}
+
 // Layout route under ProtectedRoute: keeps each role on its own screens.
-// A dealer opening a buyer route goes to /concesionaria; a buyer opening a dealer route goes to /.
-// A user who is neither (another role, or none) has no screen to be sent to: the denial replaces
-// the route content, so the URL stays put and nothing loops between / and /concesionaria.
+// A user opening another role's route is sent to the start of their own area: a dealer to /concesionaria,
+// a buyer to /, an administrator to /admin (so logging in, which goes to /, lands an administrator on /admin).
+// A user with no known role has no screen to be sent to: the denial replaces the route content,
+// so the URL stays put and nothing loops between areas.
 export default function RoleRoute({ allow }: Props) {
   const { user } = useAuth()
-  const buyer = isBuyer(user)
-  const dealer = isDealer(user)
+  const area = areaOf(user)
 
-  if (!buyer && !dealer) {
+  if (area === null) {
     return (
       <div className={styles.denied}>
         <p role="alert" className={alertStyles.alert}>
@@ -29,7 +46,6 @@ export default function RoleRoute({ allow }: Props) {
       </div>
     )
   }
-  if (allow === 'buyer' && dealer) return <Navigate to="/concesionaria" replace />
-  if (allow === 'dealer' && buyer) return <Navigate to="/" replace />
+  if (area !== allow) return <Navigate to={HOME[area]} replace />
   return <Outlet />
 }

@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchSubscription, sendReceipt } from './api'
-import { TRANSFERENCIA, comprobantePendiente, suscripcion } from './fixtures'
+import { TRANSFERENCIA, comprobantePendiente, comprobanteRechazado, suscripcion } from './fixtures'
 import SubscriptionPage from './SubscriptionPage'
 
 vi.mock('./api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
@@ -99,6 +99,40 @@ describe('SubscriptionPage', () => {
       expect(card('Comprobante').getByText('comprobante-transferencia.pdf · enviado el 14/10/2026')).toBeInTheDocument()
       expect(card('Revisión').getByText('Tu comprobante está en revisión.')).toBeInTheDocument()
       expect(card('Revisión').queryByText('La administración aprueba o rechaza el comprobante.')).not.toBeInTheDocument()
+    })
+
+    it('tells the dealer the latest receipt was rejected, with the reason and the local date, and keeps the upload', async () => {
+      const reviewed = new Date(2026, 9, 15, 12).toISOString()
+      vi.mocked(fetchSubscription).mockResolvedValue(
+        suscripcion({ ultimo_comprobante: comprobanteRechazado({ fecha_revision: reviewed }) }),
+      )
+      await loaded()
+
+      const notice = within(screen.getByRole('region', { name: 'Tu comprobante fue rechazado' }))
+      expect(notice.getByText('Lo rechazamos el 15/10/2026. Enviá uno nuevo para continuar.')).toBeInTheDocument()
+      expect(notice.getByText('El monto no coincide con la cuota.')).toBeInTheDocument()
+      expect(card('Revisión').getByText('Tu comprobante fue rechazado. Podés enviar uno nuevo.')).toBeInTheDocument()
+      expect(screen.getByLabelText(SELECT)).toHaveAttribute('type', 'file')
+      expect(sendButton()).toBeEnabled()
+    })
+
+    it('shows no rejection notice while a receipt is pending or when the latest one was approved', async () => {
+      vi.mocked(fetchSubscription).mockResolvedValue(
+        suscripcion({
+          comprobante_pendiente: comprobantePendiente(),
+          ultimo_comprobante: { id: 3, estado: 'pendiente de revisión', motivo_rechazo: null, fecha_revision: null },
+        }),
+      )
+      await loaded()
+      expect(screen.queryByRole('region', { name: 'Tu comprobante fue rechazado' })).not.toBeInTheDocument()
+    })
+
+    it('shows no rejection notice when the latest receipt was approved', async () => {
+      vi.mocked(fetchSubscription).mockResolvedValue(
+        suscripcion({ ultimo_comprobante: comprobanteRechazado({ estado: 'aprobado', motivo_rechazo: null }) }),
+      )
+      await loaded()
+      expect(screen.queryByRole('region', { name: 'Tu comprobante fue rechazado' })).not.toBeInTheDocument()
     })
 
     it('shows the name of the selected file before it is sent', async () => {

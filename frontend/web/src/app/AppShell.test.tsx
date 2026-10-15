@@ -107,6 +107,27 @@ describe('AppShell', () => {
     expect(items[3].compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
+  it.each([
+    ['buyer', ana, ['Diagnóstico', 'Recomendados', 'Transferencia'], 'Perfil'],
+    ['dealer', marta, ['Suscripción', 'Verificación'], null],
+    ['administrator', { ...ana, rol: 'administrador' }, ['Concesionarias'], 'Administración'],
+  ])('groups the %s links in the main navigation beside the logo and keeps the account items apart', (_, user, links, accountLink) => {
+    mockAuth('authenticated', undefined, user as User)
+    renderShell()
+
+    const navigation = screen.getByRole('navigation', { name: 'Principal' })
+    expect(within(navigation).getAllByRole('link').map((link) => link.textContent)).toEqual(links)
+    expect(within(navigation).queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
+    const logo = screen.getByRole('link', { name: 'TD Autos' })
+    expect(logo.compareDocumentPosition(navigation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    if (accountLink) {
+      const account = screen.getByRole('link', { name: accountLink })
+      expect(navigation).not.toContainElement(account)
+      const logout = screen.getByRole('button', { name: 'Cerrar sesión' })
+      expect(account.compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+  })
+
   it('shows no diagnosis or recommendations link to a guest', () => {
     mockAuth('guest')
     renderShell()
@@ -142,6 +163,49 @@ describe('AppShell', () => {
 
     expect(screen.getByRole('link', { name: 'Transferencia' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Recomendados' })).not.toHaveAttribute('aria-current')
+  })
+
+  describe('admin nav (UH19)', () => {
+    const admin: User = { ...ana, rol: 'administrador' }
+
+    it('shows Concesionarias, Administración and the logout button, and none of the buyer or dealer links', () => {
+      mockAuth('authenticated', undefined, admin)
+      renderShell('/admin')
+
+      const banner = screen.getByRole('banner')
+      expect(screen.getByRole('link', { name: 'Concesionarias' })).toHaveAttribute('href', '/admin/concesionarias')
+      expect(screen.getByRole('link', { name: 'Administración' })).toHaveAttribute('href', '/admin')
+      expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
+      expect(banner.querySelectorAll('a')).toHaveLength(3)
+      for (const name of ['Diagnóstico', 'Recomendados', 'Transferencia', 'Perfil', 'Suscripción', 'Verificación', 'Inventario']) {
+        expect(screen.queryByRole('link', { name })).not.toBeInTheDocument()
+      }
+    })
+
+    it('orders the nav as in Figma: Concesionarias, Administración, Cerrar sesión', () => {
+      mockAuth('authenticated', undefined, admin)
+      renderShell('/admin')
+
+      const items = within(screen.getByRole('banner')).getAllByRole('link').slice(1)
+      expect(items.map((item) => item.textContent)).toEqual(['Concesionarias', 'Administración'])
+    })
+
+    it('marks Administración on /admin and Concesionarias on the screens under /admin/concesionarias and the receipt review', () => {
+      mockAuth('authenticated', undefined, admin)
+      renderShell('/admin')
+      expect(screen.getByRole('link', { name: 'Administración' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('link', { name: 'Concesionarias' })).not.toHaveAttribute('aria-current')
+      cleanup()
+
+      renderShell('/admin/concesionarias')
+      expect(screen.getByRole('link', { name: 'Concesionarias' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('link', { name: 'Administración' })).not.toHaveAttribute('aria-current')
+      cleanup()
+
+      renderShell('/admin/comprobantes/7')
+      expect(screen.getByRole('link', { name: 'Concesionarias' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('link', { name: 'Administración' })).not.toHaveAttribute('aria-current')
+    })
   })
 
   describe('dealer nav (UH17)', () => {

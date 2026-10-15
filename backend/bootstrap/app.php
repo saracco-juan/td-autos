@@ -2,11 +2,13 @@
 
 use App\Http\Middleware\EnsureDealerIsActive;
 use App\Http\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsDealer;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -26,7 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest' => RedirectIfAuthenticated::class,
             'dealer' => EnsureUserIsDealer::class,
             'dealer.active' => EnsureDealerIsActive::class,
+            'admin' => EnsureUserIsAdmin::class,
         ]);
+
+        // Check the role before resolving route models, so a non-admin never learns which ids exist.
+        $middleware->prependToPriorityList(SubstituteBindings::class, EnsureUserIsAdmin::class);
 
         //
     })
