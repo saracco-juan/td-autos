@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Concesionaria;
+use App\Models\VehiculoConcesionaria;
 use App\Services\Subscription\SubscriptionLifecycle;
 use Closure;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ class EnsureDealerIsActive
     public const MESSAGE_PENDING = 'Tu cuenta está pendiente de aprobación. Todavía no podés gestionar el inventario.';
 
     public const MESSAGE_INACTIVE_SUBSCRIPTION = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.';
+
+    public const CODE_INACTIVE_SUBSCRIPTION = 'subscription_inactive';
 
     public const MESSAGE_FORBIDDEN = 'No tenés permiso para realizar esta acción.';
 
@@ -50,7 +53,19 @@ class EnsureDealerIsActive
         $subscription = $dealer->suscripcion()->first();
 
         if ($subscription && $this->lifecycle->sync($subscription) === SubscriptionLifecycle::STATE_INACTIVE) {
-            return response()->json(['message' => self::MESSAGE_INACTIVE_SUBSCRIPTION], 403);
+            return response()->json([
+                'message' => self::MESSAGE_INACTIVE_SUBSCRIPTION,
+                'code' => self::CODE_INACTIVE_SUBSCRIPTION,
+                'suscripcion' => [
+                    'vigente_hasta' => $subscription->vigente_hasta?->toDateString(),
+                    'retencion_hasta' => $subscription->retencion_hasta?->toDateString(),
+                ],
+                // The vehicles the inactivation hid; they are kept until the retention deadline.
+                'vehiculos_conservados' => VehiculoConcesionaria::query()
+                    ->where('concesionaria_id', $dealer->id)
+                    ->where('visible', false)
+                    ->count(),
+            ], 403);
         }
 
         return $next($request);

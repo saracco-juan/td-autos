@@ -125,6 +125,7 @@ class AdminDealersAndReceiptsTest extends TestCase
                 'email' => $zeta->usuario->email,
                 'telefono' => $zeta->telefono_responsable,
             ],
+            'suscripcion_estado' => 'pendiente',
             'comprobante_pendiente_id' => $pending->id,
             'ultimo_comprobante_id' => $pending->id,
             'ultimo_comprobante_estado' => ComprobantePago::ESTADO_PENDIENTE_REVISION,

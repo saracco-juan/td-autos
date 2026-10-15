@@ -77,7 +77,12 @@ class SubscriptionAccessTest extends TestCase
 
         $this->actingAs($dealer->usuario)->getJson(self::INVENTORY)
             ->assertForbidden()
-            ->assertExactJson(['message' => EnsureDealerIsActive::MESSAGE_INACTIVE_SUBSCRIPTION]);
+            ->assertExactJson([
+                'message' => EnsureDealerIsActive::MESSAGE_INACTIVE_SUBSCRIPTION,
+                'code' => 'subscription_inactive',
+                'suscripcion' => ['vigente_hasta' => '2026-10-10', 'retencion_hasta' => '2026-11-13'],
+                'vehiculos_conservados' => 2,
+            ]);
 
         $this->assertSame(Suscripcion::ESTADO_INACTIVA, $dealer->suscripcion()->first()->estado);
         $this->assertSame(0, VehiculoConcesionaria::where('visible', true)->count());
@@ -166,5 +171,36 @@ class SubscriptionAccessTest extends TestCase
             ->assertJsonPath('suscripcion.estado', 'gracia')
             ->assertJsonPath('suscripcion.gracia_hasta', '2026-10-15')
             ->assertJsonPath('suscripcion.vigente_hasta', '2026-10-12');
+    }
+
+    public function test_the_inactive_block_counts_only_the_hidden_vehicles_of_that_dealer(): void
+    {
+        $dealer = $this->dealer('2026-10-10');
+        $other = $this->dealer('2026-10-30');
+        VehiculoConcesionaria::factory()->create(['concesionaria_id' => $dealer->id]);
+        VehiculoConcesionaria::factory()->create(['concesionaria_id' => $other->id]);
+        $this->travelTo('2026-10-14 12:00:00');
+
+        $this->actingAs($dealer->usuario)->getJson(self::INVENTORY)
+            ->assertForbidden()
+            ->assertJsonPath('vehiculos_conservados', 1);
+    }
+
+    public function test_the_admin_list_reports_the_effective_subscription_state_of_each_dealer(): void
+    {
+        $inactive = $this->dealer('2026-10-10');
+        $grace = $this->dealer('2026-10-12');
+        $active = $this->dealer('2026-10-30');
+        $withoutSubscription = $this->dealer(null);
+        $this->travelTo('2026-10-14 12:00:00');
+        $admin = User::factory()->admin()->create();
+
+        $states = collect($this->actingAs($admin)->getJson('/api/admin/concesionarias')->assertOk()->json('concesionarias'))
+            ->pluck('suscripcion_estado', 'id');
+
+        $this->assertSame('inactiva', $states[$inactive->id]);
+        $this->assertSame('gracia', $states[$grace->id]);
+        $this->assertSame('activa', $states[$active->id]);
+        $this->assertNull($states[$withoutSubscription->id]);
     }
 }

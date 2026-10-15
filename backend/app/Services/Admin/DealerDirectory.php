@@ -19,7 +19,7 @@ final class DealerDirectory
     public function summary(): array
     {
         $dealers = Concesionaria::query()
-            ->with('usuario:id,email')
+            ->with(['usuario:id,email', 'suscripcion'])
             ->addSelect([
                 'concesionaria.*',
                 'comprobante_pendiente_id' => $this->latestReceiptId()->pendientes(),
@@ -34,7 +34,8 @@ final class DealerDirectory
             ->values();
 
         // An inactive subscription keeps estado_alta = activa; the counters are disjoint, so it only counts as inactive.
-        $inactive = app(SubscriptionLifecycle::class)->inactiveCount();
+        $lifecycle = app(SubscriptionLifecycle::class);
+        $inactive = $lifecycle->inactiveCount();
 
         return [
             'conteos' => [
@@ -44,6 +45,8 @@ final class DealerDirectory
             ],
             'concesionarias' => $dealers->map(fn (Concesionaria $dealer) => [
                 ...AdminPresenter::dealer($dealer),
+                // Effective state evaluated from the dates, so a due subscription reads inactive before the command runs.
+                'suscripcion_estado' => $dealer->suscripcion ? $lifecycle->state($dealer->suscripcion) : null,
                 'comprobante_pendiente_id' => $dealer->comprobante_pendiente_id,
                 'ultimo_comprobante_id' => $dealer->ultimo_comprobante_id,
                 'ultimo_comprobante_estado' => $dealer->ultimo_comprobante_estado,
