@@ -77,6 +77,13 @@ export default function ImportInventoryPage() {
           ya existe se actualiza, si no existe se crea.
         </p>
         <p className={styles.cardBody}>{FORMAT_HELP}</p>
+        <a
+          href="/plantilla-inventario.csv"
+          download="plantilla-inventario.csv"
+          className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.template}`}
+        >
+          DESCARGAR PLANTILLA
+        </a>
       </section>
       <div className={styles.fileRow}>
         <div className={styles.fileField}>

@@ -106,6 +106,14 @@ class PreviewImportTest extends TestCase
         ])->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
     }
 
+    public function test_the_web_template_is_a_valid_file(): void
+    {
+        $template = file_get_contents(base_path('../frontend/web/public/plantilla-inventario.csv'));
+
+        $this->preview($this->dealer(), $this->csvFile($template, 'plantilla-inventario.csv'))
+            ->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
+    }
+
     public function test_transmission_and_fuel_ignore_case_and_accents(): void
     {
         $this->previewRows($this->dealer(), [

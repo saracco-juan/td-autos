@@ -71,6 +71,14 @@ describe('ImportInventoryPage', () => {
     expect(previewHeading()).not.toBeInTheDocument()
   })
 
+  it('offers the CSV template as a download in the format card', () => {
+    renderPage()
+
+    const template = screen.getByRole('link', { name: 'DESCARGAR PLANTILLA' })
+    expect(template).toHaveAttribute('href', '/plantilla-inventario.csv')
+    expect(template).toHaveAttribute('download', 'plantilla-inventario.csv')
+  })
+
   it('previews the file as soon as it is picked, with a loader on the preview card only', async () => {
     let resolve: (value: Counts) => void = () => {}
     vi.mocked(previewImport).mockReturnValue(new Promise((done) => (resolve = done)))

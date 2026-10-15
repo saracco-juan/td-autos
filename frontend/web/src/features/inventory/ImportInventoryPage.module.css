@@ -112,6 +112,12 @@
   width: 220px;
 }
 
+/* Template download: a link styled as a button, sized to its text at the start of the card. */
+.template {
+  align-self: flex-start;
+  width: 220px;
+}
+
 .confirm {
   width: 240px;
 }
