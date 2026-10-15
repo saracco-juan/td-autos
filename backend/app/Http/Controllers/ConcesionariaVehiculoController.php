@@ -6,6 +6,7 @@ use App\Http\Requests\StoreVehiculoRequest;
 use App\Http\Requests\UpdateVehiculoRequest;
 use App\Models\FotoVehiculo;
 use App\Models\Vehiculo;
+use App\Services\Inventario\VehiculoDestroyer;
 use App\Support\VehiculoFotos;
 use App\Support\VehiculoOptions;
 use App\Support\VehiculoPresenter;
@@ -20,22 +21,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ConcesionariaVehiculoController extends Controller
 {
-    /**
-     * Checklists of a vehicle: table => [table of its completed marks, column that points back].
-     *
-     * @var array<string, array{string, string}>
-     */
-    private const CHECKLISTS = [
-        'checklist_inspeccion' => ['item_inspeccion_completado', 'checklist_id'],
-        'checklist_transferencia' => ['etapa_transferencia_completada', 'seguimiento_id'],
-    ];
-
-    /**
-     * Other tables with a `vehiculo_id` foreign key, emptied for a deleted vehicle.
-     *
-     * @var list<string>
-     */
-    private const VEHICLE_DEPENDENTS = ['favorito', 'recomendacion', 'publicacion_externa', 'foto_vehiculo'];
+    public function __construct(private readonly VehiculoDestroyer $destroyer) {}
 
     /**
      * The dealer's vehicles, newest first.
@@ -140,26 +126,7 @@ class ConcesionariaVehiculoController extends Controller
      */
     public function destroy(Request $request, string $id): Response
     {
-        $vehiculo = $request->user()->concesionaria->vehiculos()->with('fotos')->findOrFail($id);
-        $paths = $vehiculo->fotos->pluck('ubicacion_archivo')->all();
-
-        DB::transaction(function () use ($vehiculo) {
-            foreach (self::CHECKLISTS as $table => [$marks, $foreignKey]) {
-                $checklists = DB::table($table)->where('vehiculo_id', $vehiculo->id);
-                DB::table($marks)->whereIn($foreignKey, (clone $checklists)->select('id'))->delete();
-                $checklists->delete();
-            }
-
-            foreach (self::VEHICLE_DEPENDENTS as $table) {
-                DB::table($table)->where('vehiculo_id', $vehiculo->id)->delete();
-            }
-
-            DB::table('lead')->where('vehiculo_concesionaria_id', $vehiculo->id)->delete();
-            $vehiculo->propiedad()->delete();
-            $vehiculo->delete();
-        });
-
-        VehiculoFotos::forget($paths);
+        $this->destroyer->destroy($request->user()->concesionaria->vehiculos()->findOrFail($id));
 
         return response()->noContent();
     }
