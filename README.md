@@ -35,6 +35,17 @@ php artisan serve
 
 La base de datos es Supabase (PostgreSQL). Antes de migrar, completar en `.env` `DB_CONNECTION=pgsql` y `DB_URL` con la cadena de conexión del proyecto de Supabase.
 
+#### Base de datos local
+
+Para probar sin Supabase, `php artisan db:local` arma desde cero `backend/database/manual.sqlite` (migraciones y datos de demo). Nunca toca la conexión del `.env` y no corre en producción; se puede volver a ejecutar para recrearla. Crea un administrador, un comprador, 7 concesionarias en todos los estados con sus comprobantes y 2 vehículos para cada concesionaria activa (las fotos son solo rutas, sin archivos). Para usarla, en `.env`:
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=<ruta absoluta de backend/database/manual.sqlite>
+```
+
+Cuentas de demo (contraseña `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` y las concesionarias `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` y `litoral` con el sufijo `@demo.tdautos.test`.
+
 ### 2. Frontend web
 
 ```bash
