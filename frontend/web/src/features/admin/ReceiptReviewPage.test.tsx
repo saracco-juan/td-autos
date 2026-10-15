@@ -113,6 +113,29 @@ describe('ReceiptReviewPage (UH19, Figma 38:1129)', () => {
       expect(screen.getAllByRole('link', { name: /volver a concesionarias/i })[0]).toHaveAttribute('href', '/admin/concesionarias')
     })
 
+    it.each([
+      ['inactiva', 'Inactiva', 'Suscripción vencida', 'rejected'],
+      ['gracia', 'Activa', 'En período de gracia', 'warning'],
+    ] as const)('UH-20: shows an active dealer with a %s subscription as %s with the %s tag', async (estado, label, tag, tone) => {
+      vi.mocked(fetchReceipt).mockResolvedValue(
+        receipt({ estado: 'aprobado', concesionaria: { ...receipt().concesionaria, estado_alta: 'activa', suscripcion_estado: estado } }),
+      )
+      await loaded()
+
+      expect(card('Estado de la concesionaria').getByText(label)).toBeInTheDocument()
+      expect(card('Estado de la concesionaria').getByText(tag)).toHaveAttribute('data-tone', tone)
+    })
+
+    it('shows no tag for a dealer whose subscription is in force', async () => {
+      vi.mocked(fetchReceipt).mockResolvedValue(
+        receipt({ concesionaria: { ...receipt().concesionaria, estado_alta: 'activa', suscripcion_estado: 'activa' } }),
+      )
+      await loaded()
+
+      expect(card('Estado de la concesionaria').getByText('Activa')).toBeInTheDocument()
+      expect(card('Estado de la concesionaria').queryByText(/vencida|gracia/)).not.toBeInTheDocument()
+    })
+
     it('shows the dealer, contact, dealer state, receipt state and the paid period', async () => {
       await loaded()
 

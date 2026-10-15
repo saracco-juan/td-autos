@@ -128,6 +128,7 @@ export function receipt(overrides: Partial<AdminReceipt> = {}): AdminReceipt {
       provincia: 'CABA',
       estado_alta: 'pendiente',
       contacto: { email: 'sur@example.com', telefono: '11 4000-0000' },
+      suscripcion_estado: 'pendiente',
     },
     ...overrides,
   }
