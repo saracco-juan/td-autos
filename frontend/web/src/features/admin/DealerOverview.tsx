@@ -3,7 +3,7 @@ import buttonStyles from '../../components/button.module.css'
 import { formatSentDate } from '../subscription/format'
 import adminStyles from './admin.module.css'
 import styles from './DealerEditPage.module.css'
-import { accountState, dealerState, formatDay, receiptState, receiptTone } from './format'
+import { accountState, dealerState, formatDay, receiptState, receiptTone, retentionReached } from './format'
 import StateTag from './StateTag'
 import type { DealerDetail, DealerReceiptRow } from './types'
 
@@ -44,7 +44,7 @@ function SubscriptionCard({ dealer }: { dealer: DealerDetail }) {
             <p className={adminStyles.cardBody}>{`Gracia hasta el ${formatDay(suscripcion.gracia_hasta)}`}</p>
           ) : null}
           {suscripcion.retencion_hasta ? (
-            <p className={adminStyles.cardBody}>{`Vehículos conservados hasta el ${formatDay(suscripcion.retencion_hasta)}`}</p>
+            <p className={adminStyles.cardBody}>{`${retentionReached(suscripcion.retencion_hasta) ? 'Vehículos eliminados el' : 'Vehículos conservados hasta el'} ${formatDay(suscripcion.retencion_hasta)}`}</p>
           ) : null}
         </>
       )}

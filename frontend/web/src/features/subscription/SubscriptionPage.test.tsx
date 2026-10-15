@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchSubscription, sendReceipt } from './api'
 import { TRANSFERENCIA, comprobantePendiente, comprobanteRechazado, suscripcion, vigencia } from './fixtures'
@@ -31,6 +31,12 @@ describe('SubscriptionPage', () => {
     vi.mocked(fetchSubscription).mockReset()
     vi.mocked(sendReceipt).mockReset()
     vi.mocked(fetchSubscription).mockResolvedValue(suscripcion())
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 15, 12))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   describe('loading', () => {
@@ -234,7 +240,9 @@ describe('SubscriptionPage', () => {
     const GRACE =
       'Tu suscripción venció el 13/10/2026. Tenés hasta el 16/10/2026 para que se apruebe la renovación; después tus vehículos dejan de publicarse.'
     const INACTIVE =
-      'Tu suscripción está inactiva y tus vehículos no se publican. Los conservamos hasta el 15/11/2026: subí el comprobante de renovación para recuperarlos.'
+      'Tu suscripción está inactiva y tus vehículos no se publican. Los conservamos hasta el 15/11/2026; después se eliminan definitivamente. Subí el comprobante de renovación para recuperarlos.'
+    const DELETED =
+      'Tu suscripción está inactiva y tus vehículos se eliminaron porque pasaron 30 días sin renovación. Subí el comprobante de renovación para volver a gestionar tu inventario.'
 
     const withValidity = (validity: Parameters<typeof vigencia>[0]) =>
       vi.mocked(fetchSubscription).mockResolvedValue(
@@ -272,6 +280,25 @@ describe('SubscriptionPage', () => {
       expect(screen.queryByRole('link', { name: 'VER INVENTARIO' })).not.toBeInTheDocument()
       expect(screen.getByLabelText(SELECT)).toBeEnabled()
       expect(sendButton()).toBeEnabled()
+    })
+
+    it('says in an error box that the vehicles were deleted once the retention is reached', async () => {
+      withValidity({ estado: 'inactiva', vigente_hasta: '2026-09-01', gracia_hasta: '2026-09-04', retencion_hasta: '2026-10-15' })
+      await loaded()
+
+      expect(screen.getByRole('alert')).toHaveTextContent(DELETED)
+      expect(screen.queryByText(/Los conservamos/)).not.toBeInTheDocument()
+      expect(sendButton()).toBeEnabled()
+    })
+
+    it('explains in the renewal card that approving republishes the vehicles and that they are deleted after 30 days', async () => {
+      await loaded()
+
+      expect(
+        card('Renovación y recuperación').getByText(
+          /Al aprobar la renovación dentro de la retención, tus vehículos se publican de nuevo automáticamente; pasados los 30 días se eliminan definitivamente\./,
+        ),
+      ).toBeInTheDocument()
     })
 
     it('shows neither notice for a pending subscription', async () => {

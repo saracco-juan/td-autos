@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchDealer, updateDealer } from './api'
 import DealerEditPage from './DealerEditPage'
@@ -45,6 +45,12 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
   beforeEach(() => {
     vi.mocked(fetchDealer).mockReset().mockResolvedValue(dealerDetail())
     vi.mocked(updateDealer).mockReset().mockResolvedValue(dealerDetail())
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 15, 12))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   describe('loading', () => {
@@ -297,6 +303,24 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
       expect(definition('Estado de la concesionaria')).not.toHaveTextContent('Activa')
       expect(section('Suscripción').getByText('Gracia hasta el 16/09/2026')).toBeInTheDocument()
       expect(section('Suscripción').getByText('Vehículos conservados hasta el 17/10/2026')).toBeInTheDocument()
+    })
+
+    it('says the vehicles were deleted once the retention deadline is reached', async () => {
+      vi.mocked(fetchDealer).mockResolvedValue(
+        dealerDetail({
+          suscripcion: dealerSubscription({
+            estado: 'inactiva',
+            vigente_desde: '2026-08-14',
+            vigente_hasta: '2026-09-13',
+            gracia_hasta: '2026-09-16',
+            retencion_hasta: '2026-10-15',
+          }),
+        }),
+      )
+      await loaded()
+
+      expect(section('Suscripción').getByText('Vehículos eliminados el 15/10/2026')).toBeInTheDocument()
+      expect(section('Suscripción').queryByText(/conservados/)).not.toBeInTheDocument()
     })
 
     it('says so when the dealer has no subscription yet', async () => {

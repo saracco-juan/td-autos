@@ -7,7 +7,7 @@ import screenStyles from '../../components/screen.module.css'
 import { NetworkError } from '../../lib/http'
 import { DEALER_STATE_ACTIVE } from '../auth/roles'
 import SessionLoading from '../auth/session/SessionLoading'
-import { formatDay } from '../admin/format'
+import { formatDay, retentionReached } from '../admin/format'
 import { accountStatusText } from '../dealer/accountStatus'
 import { INVENTORY_PATH } from '../inventory/inventoryRoutes'
 import { fetchSubscription, sendReceipt } from './api'
@@ -78,9 +78,12 @@ function ValidityNotice({ validity }: { validity: VigenciaSuscripcion }) {
     )
   }
   if (validity.estado === 'inactiva' && validity.retencion_hasta) {
+    const text = retentionReached(validity.retencion_hasta)
+      ? 'Tu suscripción está inactiva y tus vehículos se eliminaron porque pasaron 30 días sin renovación. Subí el comprobante de renovación para volver a gestionar tu inventario.'
+      : `Tu suscripción está inactiva y tus vehículos no se publican. Los conservamos hasta el ${formatDay(validity.retencion_hasta)}; después se eliminan definitivamente. Subí el comprobante de renovación para recuperarlos.`
     return (
       <p role="alert" className={alertStyles.alert}>
-        {`Tu suscripción está inactiva y tus vehículos no se publican. Los conservamos hasta el ${formatDay(validity.retencion_hasta)}: subí el comprobante de renovación para recuperarlos.`}
+        {text}
       </p>
     )
   }
@@ -206,8 +209,8 @@ export default function SubscriptionPage() {
       </Card>
       <Card title="Renovación y recuperación">
         <Body>
-          Tras vencer el pago: 3 días plenamente operativos; después, inventario oculto durante 30 días. Al aprobar dentro de la
-          retención se reactiva automáticamente.
+          Tras vencer el pago: 3 días plenamente operativos; después, inventario oculto durante 30 días. Al aprobar la renovación
+          dentro de la retención, tus vehículos se publican de nuevo automáticamente; pasados los 30 días se eliminan definitivamente.
         </Body>
       </Card>
       {message ? (

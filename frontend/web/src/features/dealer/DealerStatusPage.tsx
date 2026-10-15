@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import alertStyles from '../../components/alert.module.css'
-import { formatDay } from '../admin/format'
+import { formatDay, retentionReached } from '../admin/format'
 import { DEALER_STATE_ACTIVE } from '../auth/roles'
 import { useAuth } from '../auth/session/useAuth'
 import { fetchSubscription } from '../subscription/api'
@@ -21,11 +21,18 @@ function subscriptionStatus(validity: VigenciaSuscripcion): Status | null {
   if (validity.estado === 'inactiva') {
     return {
       text: 'Inactiva · suscripción vencida',
-      detail: validity.retencion_hasta ? `Tus vehículos se conservan hasta el ${formatDay(validity.retencion_hasta)}.` : undefined,
+      detail: retentionDetail(validity.retencion_hasta),
       tone: 'error',
     }
   }
   return null
+}
+
+function retentionDetail(retencionHasta: string | null | undefined): string | undefined {
+  if (!retencionHasta) return undefined
+  return retentionReached(retencionHasta)
+    ? 'Tus vehículos se eliminaron al terminar el período de retención.'
+    : `Tus vehículos se conservan hasta el ${formatDay(retencionHasta)}; después se eliminan definitivamente.`
 }
 
 // Reads the subscription of an active dealer only; any failure leaves the text of the session.

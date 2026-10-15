@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { INACTIVE_MESSAGE, PAUSED_TEXT, inactiveBody } from './fixtures'
 import { inactiveSubscription, pausedInventoryText } from './inactiveSubscription'
@@ -41,19 +41,34 @@ describe('inactiveSubscription', () => {
 describe('pausedInventoryText', () => {
   const info = { message: '', vigenteHasta: '2026-10-10', retencionHasta: '2026-11-13', vehiculosConservados: 2 }
 
-  it('says how many vehicles are kept and until when', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 15, 12))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('says how many vehicles are kept, until when and that they are deleted after that', () => {
     expect(pausedInventoryText(info)).toBe(PAUSED_TEXT)
   })
 
   it('uses the singular for one vehicle', () => {
     expect(pausedInventoryText({ ...info, vehiculosConservados: 1 })).toBe(
-      'Tu suscripción venció el 10/10/2026 y terminó el período de gracia. Tu vehículo no se publica, pero lo conservamos hasta el 13/11/2026.',
+      'Tu suscripción venció el 10/10/2026 y terminó el período de gracia. Tu vehículo no se publica, pero lo conservamos hasta el 13/11/2026; después se elimina definitivamente.',
     )
   })
 
-  it('says that vehicles can be loaded again when there is nothing to keep', () => {
+  it('says that vehicles can be loaded again when there is nothing to keep yet', () => {
     expect(pausedInventoryText({ ...info, vehiculosConservados: 0 })).toBe(
       'Tu suscripción venció el 10/10/2026 y terminó el período de gracia. Cuando se apruebe la renovación vas a poder volver a cargar vehículos.',
+    )
+  })
+
+  it.each(['2026-10-15', '2026-10-14'])('says the vehicles were deleted once the retention is reached (%s)', (retencionHasta) => {
+    expect(pausedInventoryText({ ...info, retencionHasta, vehiculosConservados: 0 })).toBe(
+      'Tu suscripción venció el 10/10/2026 y terminó el período de gracia. Tus vehículos se eliminaron porque pasaron 30 días sin renovación; cuando se apruebe la renovación vas a poder volver a cargar vehículos.',
     )
   })
 })
