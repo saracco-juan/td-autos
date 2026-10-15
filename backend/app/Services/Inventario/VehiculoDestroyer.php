@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  * foreign key is violated. Used by the dealer's manual delete (RF22) and by the removal of
  * retained inventory (RF27).
  */
-final class VehiculoDestroyer
+class VehiculoDestroyer
 {
     /**
      * Checklists of a vehicle: table => [table of its completed marks, column that points back].

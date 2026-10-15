@@ -3,11 +3,15 @@
 namespace Tests\Feature\Suscripcion;
 
 use App\Models\Concesionaria;
+use App\Models\FotoVehiculo;
 use App\Models\Suscripcion;
+use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
+use App\Services\Inventario\VehiculoDestroyer;
 use App\Services\Subscription\SubscriptionLifecycle;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SubscriptionLifecycleTest extends TestCase
@@ -166,6 +170,104 @@ class SubscriptionLifecycleTest extends TestCase
             ->expectsOutput('Suscripciones inactivadas: 2')
             ->assertSuccessful();
         $this->assertSame(2, Suscripcion::where('estado', Suscripcion::ESTADO_INACTIVA)->count());
+    }
+
+    private function hidden(Suscripcion $subscription, string $deleteFrom): VehiculoConcesionaria
+    {
+        return VehiculoConcesionaria::factory()->create([
+            'concesionaria_id' => $subscription->concesionaria_id,
+            'visible' => false,
+            'ocultado_en' => '2026-10-14 09:00:00',
+            'eliminar_desde' => $deleteFrom,
+        ]);
+    }
+
+    public function test_tc62_purge_deletes_vehicles_whose_retention_ended_with_their_photo_files(): void
+    {
+        $disk = config('filesystems.vehicle_photos_disk');
+        Storage::fake($disk);
+        Storage::disk($disk)->put('vehiculos/gone.jpg', 'x');
+
+        $subscription = $this->subscription('2026-10-10', Suscripcion::ESTADO_INACTIVA);
+        $expired = $this->hidden($subscription, '2026-11-13 00:00:00');
+        FotoVehiculo::factory()->create(['vehiculo_id' => $expired->vehiculo_id, 'ubicacion_archivo' => 'vehiculos/gone.jpg']);
+
+        $this->travelTo('2026-11-13 00:00:00');
+
+        $this->assertSame(1, $this->lifecycle()->purgeExpiredVehicles());
+        $this->assertNull(Vehiculo::find($expired->vehiculo_id));
+        $this->assertNull(VehiculoConcesionaria::find($expired->vehiculo_id));
+        $this->assertSame(0, FotoVehiculo::count());
+        Storage::disk($disk)->assertMissing('vehiculos/gone.jpg');
+        // D4: the subscription stays inactive.
+        $this->assertSame(Suscripcion::ESTADO_INACTIVA, $subscription->fresh()->estado);
+    }
+
+    public function test_tc62_purge_never_touches_vehicles_still_in_retention_or_visible_ones(): void
+    {
+        $subscription = $this->subscription('2026-10-10', Suscripcion::ESTADO_INACTIVA);
+        $retained = $this->hidden($subscription, '2026-11-13 00:00:00');
+        $this->vehicles($subscription, 2);
+
+        $this->travelTo('2026-11-12 23:59:00');
+
+        $this->assertSame(0, $this->lifecycle()->purgeExpiredVehicles());
+        $this->assertNotNull(Vehiculo::find($retained->vehiculo_id));
+        $this->assertSame(3, VehiculoConcesionaria::count());
+    }
+
+    public function test_tc62_purge_covers_every_dealer(): void
+    {
+        $first = $this->hidden($this->subscription('2026-10-10', Suscripcion::ESTADO_INACTIVA), '2026-11-13 00:00:00');
+        $second = $this->hidden($this->subscription('2026-10-01', Suscripcion::ESTADO_INACTIVA), '2026-11-04 00:00:00');
+
+        $this->travelTo('2026-12-01 10:00:00');
+
+        $this->assertSame(2, $this->lifecycle()->purgeExpiredVehicles());
+        $this->assertSame(0, VehiculoConcesionaria::count());
+        $this->assertNull(Vehiculo::find($first->vehiculo_id));
+        $this->assertNull(Vehiculo::find($second->vehiculo_id));
+    }
+
+    public function test_tc62_a_failing_vehicle_is_reported_and_does_not_block_the_rest(): void
+    {
+        $subscription = $this->subscription('2026-10-10', Suscripcion::ESTADO_INACTIVA);
+        $broken = $this->hidden($subscription, '2026-11-13 00:00:00');
+        $fine = $this->hidden($subscription, '2026-11-13 00:00:00');
+
+        $real = new VehiculoDestroyer;
+        $this->app->instance(VehiculoDestroyer::class, new class($real, $broken->vehiculo_id) extends VehiculoDestroyer
+        {
+            public function __construct(private readonly VehiculoDestroyer $real, private readonly int $failing) {}
+
+            public function destroy(Vehiculo $vehiculo): void
+            {
+                if ($vehiculo->id === $this->failing) {
+                    throw new \RuntimeException('boom');
+                }
+
+                $this->real->destroy($vehiculo);
+            }
+        });
+
+        $this->travelTo('2026-12-01 10:00:00');
+
+        $this->assertSame(1, $this->lifecycle()->purgeExpiredVehicles());
+        $this->assertNotNull(Vehiculo::find($broken->vehiculo_id));
+        $this->assertNull(Vehiculo::find($fine->vehiculo_id));
+    }
+
+    public function test_command_reports_how_many_vehicles_it_deleted(): void
+    {
+        $this->hidden($this->subscription('2026-10-10', Suscripcion::ESTADO_INACTIVA), '2026-11-13 00:00:00');
+
+        $this->travelTo('2026-11-14 10:00:00');
+
+        $this->artisan('suscripciones:procesar')
+            ->expectsOutput('Suscripciones inactivadas: 0')
+            ->expectsOutput('Vehículos eliminados: 1')
+            ->assertSuccessful();
+        $this->assertSame(0, VehiculoConcesionaria::count());
     }
 
     public function test_command_is_scheduled_hourly(): void
