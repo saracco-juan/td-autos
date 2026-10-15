@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\ComprobantePago;
 use App\Models\Concesionaria;
+use App\Services\Subscription\SubscriptionLifecycle;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -36,8 +37,7 @@ final class DealerDirectory
             'conteos' => [
                 'activas' => $dealers->where('estado_alta', Concesionaria::ESTADO_ACTIVA)->count(),
                 'pendientes' => $dealers->where('estado_alta', Concesionaria::ESTADO_PENDIENTE)->count(),
-                // Inactivation arrives with HU20; the key is part of the contract already.
-                'inactivas' => 0,
+                'inactivas' => app(SubscriptionLifecycle::class)->inactiveCount(),
             ],
             'concesionarias' => $dealers->map(fn (Concesionaria $dealer) => [
                 ...AdminPresenter::dealer($dealer),

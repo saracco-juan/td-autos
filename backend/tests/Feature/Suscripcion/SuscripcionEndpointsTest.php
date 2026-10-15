@@ -137,6 +137,13 @@ class SuscripcionEndpointsTest extends TestCase
                 ],
                 'comprobante_pendiente' => null,
                 'ultimo_comprobante' => null,
+                'suscripcion' => [
+                    'estado' => 'pendiente',
+                    'vigente_desde' => null,
+                    'vigente_hasta' => null,
+                    'gracia_hasta' => null,
+                    'retencion_hasta' => null,
+                ],
             ]);
     }
 
