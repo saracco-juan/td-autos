@@ -37,6 +37,15 @@ Rules:
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
 - Do not discard uncommitted work (`git reset --hard`, `git clean`, `git checkout -- <path>`, `git stash drop`) without explicit confirmation from the developer.
 
+## Shared agent memory (Engram)
+
+Agent memory travels between machines through the repo, one folder per developer: `engram/juan/` and `engram/mariano/`. Each developer writes only to their own folder.
+
+- Run every `engram sync` from inside the folder and pass `--project td-autos` when exporting: Engram takes the project name from the current folder otherwise.
+- Session start (after pulling): from your folder, `engram sync --import`.
+- Session end: from your folder, `engram sync --project td-autos`, then the developer commits `engram/<name>/` with the rest of the work.
+- To see the other developer's context, run `engram sync --import` from their folder, then search Engram with project `td-autos`. This copies their memories into your local database; it never writes to their folder.
+
 ## Closing a task
 
 - Every time a task is finished, the closing message includes how to test it manually: what to start (see `README.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
