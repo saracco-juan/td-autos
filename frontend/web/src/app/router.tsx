@@ -1,5 +1,6 @@
 import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-router'
 import AdminDashboardPage from '../features/admin/AdminDashboardPage'
+import DealerEditPage from '../features/admin/DealerEditPage'
 import DealersPage from '../features/admin/DealersPage'
 import ReceiptReviewPage from '../features/admin/ReceiptReviewPage'
 import AuthProvider from '../features/auth/session/AuthProvider'
@@ -78,6 +79,7 @@ export const routes: RouteObject[] = [
                 children: [
                   { path: '/admin', element: <AdminDashboardPage /> },
                   { path: '/admin/concesionarias', element: <DealersPage /> },
+                  { path: '/admin/concesionarias/:id', element: <DealerEditPage /> },
                   { path: '/admin/comprobantes/:id', element: <ReceiptReviewPage /> },
                 ],
               },

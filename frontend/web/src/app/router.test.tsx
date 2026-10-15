@@ -9,8 +9,8 @@ import { fetchBodyTypes, fetchVehicle, fetchVehicles } from '../features/invento
 import { VEHICULOS, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '../features/inspection/fixtures'
-import { fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api'
-import { directory, receipt } from '../features/admin/fixtures'
+import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api'
+import { dealerDetail, directory, receipt } from '../features/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
 import { fetchTransfer } from '../features/transfer/api'
@@ -49,6 +49,8 @@ vi.mock('../features/inventory/api', () => ({
 
 vi.mock('../features/admin/api', () => ({
   fetchDealerDirectory: vi.fn(),
+  fetchDealer: vi.fn(),
+  updateDealer: vi.fn(),
   fetchReceipt: vi.fn(),
   fetchReceiptFile: vi.fn(),
   approveReceipt: vi.fn(),
@@ -124,6 +126,8 @@ describe('app routes', () => {
     vi.mocked(fetchBodyTypes).mockResolvedValue([{ id: 2, nombre: 'Sedán' }])
     vi.mocked(fetchDealerDirectory).mockReset()
     vi.mocked(fetchDealerDirectory).mockResolvedValue(directory())
+    vi.mocked(fetchDealer).mockReset()
+    vi.mocked(fetchDealer).mockResolvedValue(dealerDetail())
     vi.mocked(fetchReceipt).mockReset()
     vi.mocked(fetchReceipt).mockResolvedValue(receipt())
     vi.mocked(fetchReceiptFile).mockReset()
@@ -913,6 +917,56 @@ describe('app routes', () => {
 
       expect(await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/admin/concesionarias')
+    })
+
+    it('UH27: opens the dealer page from EDITAR in the list and comes back with CANCELAR', async () => {
+      asAdmin()
+      const router = renderAt('/admin/concesionarias')
+      const user = userEvent.setup()
+
+      await user.click(await screen.findByRole('link', { name: 'Editar Concesionaria Sur' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Editar concesionaria' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin/concesionarias/5')
+      expect(fetchDealer).toHaveBeenCalledWith(5)
+      expect(screen.getByLabelText('Nombre comercial')).toHaveValue('Concesionaria Sur')
+      expect(screen.getByRole('link', { name: 'Concesionarias' })).toHaveAttribute('aria-current', 'page')
+
+      await user.click(screen.getByRole('button', { name: 'CANCELAR' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin/concesionarias')
+    })
+
+    it('UH27: reaches the receipt review from the dealer page', async () => {
+      asAdmin()
+      const router = renderAt('/admin/concesionarias/5')
+
+      await userEvent.setup().click(await screen.findByRole('link', { name: 'REVISAR' }))
+
+      expect(await screen.findByRole('heading', { level: 1, name: 'Revisar comprobante' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/admin/comprobantes/31')
+    })
+
+    it.each([
+      ['a buyer', () => undefined, 'Inicio'],
+      ['a dealer', () => asDealer('activa'), 'Verificación de suscripción'],
+    ])('UH27: sends %s opening a dealer page away without reading the dealer', async (_label, signIn, heading) => {
+      signIn()
+      const router = renderAt('/admin/concesionarias/5')
+
+      expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+      expect(router.state.location.pathname).not.toBe('/admin/concesionarias/5')
+      expect(fetchDealer).not.toHaveBeenCalled()
+    })
+
+    it('redirects a guest opening a dealer page to the login screen without reading the dealer', async () => {
+      asGuest()
+      const router = renderAt('/admin/concesionarias/5')
+
+      expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/login')
+      expect(fetchDealer).not.toHaveBeenCalled()
     })
 
     it('sends a buyer opening a receipt review to / without reading the receipt', async () => {
