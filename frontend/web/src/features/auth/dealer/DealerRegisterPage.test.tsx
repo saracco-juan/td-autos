@@ -58,9 +58,13 @@ const validFields = {
 type Label = keyof typeof validFields
 type User = ReturnType<typeof userEvent.setup>
 
+// Pastes each value in one input event: typing ~130 keystrokes pushed these tests past the 5 s timeout under
+// full-suite load. Per-keystroke behavior is covered by the live checklist and error-clearing tests.
 async function fillForm(user: User, overrides: Partial<Record<Label, string>> = {}) {
   for (const [label, value] of Object.entries({ ...validFields, ...overrides })) {
-    if (value) await user.type(screen.getByLabelText(label), value)
+    if (!value) continue
+    await user.click(screen.getByLabelText(label))
+    await user.paste(value)
   }
 }
 
