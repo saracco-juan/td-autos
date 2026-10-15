@@ -108,10 +108,10 @@ describe('AppShell', () => {
   })
 
   it.each([
-    ['buyer', ana, ['Diagnóstico', 'Recomendados', 'Transferencia', 'Perfil']],
-    ['dealer', marta, ['Suscripción', 'Verificación']],
-    ['administrator', { ...ana, rol: 'administrador' }, ['Concesionarias', 'Administración']],
-  ])('groups the %s links in the main navigation beside the logo and keeps the logout apart', (_, user, links) => {
+    ['buyer', ana, ['Diagnóstico', 'Recomendados', 'Transferencia'], 'Perfil'],
+    ['dealer', marta, ['Suscripción', 'Verificación'], null],
+    ['administrator', { ...ana, rol: 'administrador' }, ['Concesionarias'], 'Administración'],
+  ])('groups the %s links in the main navigation beside the logo and keeps the account items apart', (_, user, links, accountLink) => {
     mockAuth('authenticated', undefined, user as User)
     renderShell()
 
@@ -120,6 +120,12 @@ describe('AppShell', () => {
     expect(within(navigation).queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
     const logo = screen.getByRole('link', { name: 'TD Autos' })
     expect(logo.compareDocumentPosition(navigation) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    if (accountLink) {
+      const account = screen.getByRole('link', { name: accountLink })
+      expect(navigation).not.toContainElement(account)
+      const logout = screen.getByRole('button', { name: 'Cerrar sesión' })
+      expect(account.compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
   })
 
   it('shows no diagnosis or recommendations link to a guest', () => {

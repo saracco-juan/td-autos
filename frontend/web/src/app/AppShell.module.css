@@ -29,7 +29,7 @@
   margin-left: 40px;
 }
 
-/* Right group: the dealer's name and "Cerrar sesión". */
+/* Right group: "Perfil" (buyer) or "Administración" (admin), the dealer's name, and "Cerrar sesión". */
 .navActions {
   display: flex;
   align-items: center;
