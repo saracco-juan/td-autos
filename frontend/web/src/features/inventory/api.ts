@@ -1,7 +1,7 @@
 import { apiFetch } from '../../lib/http'
 import { fetchDiagnosis } from '../diagnosis/api'
 import type { BodyType } from '../diagnosis/types'
-import type { Vehiculo, VehiculoResponse, VehiculosResponse } from './types'
+import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse } from './types'
 import { normalizePlate, type VehicleValues } from './vehicleFields'
 
 export async function fetchVehicles(): Promise<Vehiculo[]> {
@@ -62,4 +62,20 @@ export async function updateVehicle(id: number, submission: VehicleSubmission): 
 export async function fetchBodyTypes(): Promise<BodyType[]> {
   const { carrocerias } = await fetchDiagnosis()
   return carrocerias
+}
+
+function sendImport(path: string, file: File): Promise<ImportCounts> {
+  const data = new FormData()
+  data.append('archivo', file)
+  return apiFetch<ImportCounts>(path, { method: 'POST', body: data })
+}
+
+// Dry run of the CSV import: validates the whole file and counts what it would do, changing nothing.
+export function previewImport(file: File): Promise<ImportCounts> {
+  return sendImport('/api/concesionaria/vehiculos/importar/vista-previa', file)
+}
+
+// Applies the same file in one transaction: every row or none.
+export function confirmImport(file: File): Promise<ImportCounts> {
+  return sendImport('/api/concesionaria/vehiculos/importar', file)
 }

@@ -23,7 +23,7 @@ function noticeFrom(state: unknown): string | null {
 }
 
 // Dealer inventory (Figma 38:884, UH-21): the dealer's vehicles with EDITAR and ELIMINAR, and the load action.
-// IMPORTAR CSV and SUSCRIPCIÓN of the frame wait for their own stories.
+// IMPORTAR CSV opens the import (UH-22); SUSCRIPCIÓN of the frame waits for its own story.
 export default function InventoryPage() {
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const [vehicles, setVehicles] = useState<Vehiculo[]>([])
@@ -149,6 +149,9 @@ export default function InventoryPage() {
       <div className={styles.actions}>
         <Link to="/concesionaria/inventario/nuevo" className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.load}`}>
           CARGAR VEHÍCULO
+        </Link>
+        <Link to="/concesionaria/inventario/importar" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.load}`}>
+          IMPORTAR CSV
         </Link>
       </div>
     </div>

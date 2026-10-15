@@ -48,6 +48,46 @@
       "sessions": 0,
       "memories": 8,
       "prompts": 0
+    },
+    {
+      "id": "dd2792bc",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T02:18:51Z",
+      "sessions": 0,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "3aa4b739",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T02:32:29Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
+    },
+    {
+      "id": "e4364949",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T03:31:07Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "135045a0",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T17:24:30Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "5a63d1fb",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T17:54:59Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }

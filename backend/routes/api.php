@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteController;
 use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
+use App\Http\Controllers\ConcesionariaVehiculoImportController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\ProfileController;
@@ -36,6 +37,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
+        Route::post('/importar/vista-previa', [ConcesionariaVehiculoImportController::class, 'preview']);
+        Route::post('/importar', [ConcesionariaVehiculoImportController::class, 'import']);
         Route::get('/', [ConcesionariaVehiculoController::class, 'index']);
         Route::post('/', [ConcesionariaVehiculoController::class, 'store']);
         Route::get('/{id}', [ConcesionariaVehiculoController::class, 'show'])->whereNumber('id');

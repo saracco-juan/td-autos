@@ -56,12 +56,12 @@ describe('InventoryPage', () => {
       ),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveAttribute('href', '/concesionaria/inventario/nuevo')
+    expect(screen.getByRole('link', { name: 'IMPORTAR CSV' })).toHaveAttribute('href', '/concesionaria/inventario/importar')
   })
 
-  it('S3: does not render IMPORTAR CSV or SUSCRIPCIÓN, whose screens do not exist yet', async () => {
+  it('S3: does not render SUSCRIPCIÓN, whose screen does not exist yet', async () => {
     await loaded()
 
-    expect(screen.queryByText('IMPORTAR CSV')).not.toBeInTheDocument()
     expect(screen.queryByText('SUSCRIPCIÓN')).not.toBeInTheDocument()
   })
 

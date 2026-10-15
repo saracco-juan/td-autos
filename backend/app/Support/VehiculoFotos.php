@@ -19,9 +19,18 @@ final class VehiculoFotos
         return Storage::disk(config('filesystems.vehicle_photos_disk'));
     }
 
+    /**
+     * Whether the stored location is an external URL (a photo loaded by CSV) rather than a file
+     * on the disk. External photos are served as they are and never deleted from the disk.
+     */
+    public static function isExternal(string $location): bool
+    {
+        return str_starts_with($location, 'http://') || str_starts_with($location, 'https://');
+    }
+
     public static function url(string $path): string
     {
-        return self::disk()->url($path);
+        return self::isExternal($path) ? $path : self::disk()->url($path);
     }
 
     /**
@@ -59,11 +68,14 @@ final class VehiculoFotos
 
     /**
      * Delete stored files; used to leave no orphans when a write fails after storing them.
+     * External URLs have nothing on the disk and are skipped.
      *
      * @param  list<string>  $paths
      */
     public static function forget(array $paths): void
     {
+        $paths = array_values(array_filter($paths, fn (string $path) => ! self::isExternal($path)));
+
         if ($paths !== []) {
             self::disk()->delete($paths);
         }

@@ -3,7 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
 
 import { apiFetch } from '../../lib/http'
-import { buildVehicleFormData, createVehicle, deleteVehicle, fetchBodyTypes, fetchVehicle, fetchVehicles, updateVehicle } from './api'
+import {
+  buildVehicleFormData,
+  confirmImport,
+  createVehicle,
+  deleteVehicle,
+  fetchBodyTypes,
+  fetchVehicle,
+  fetchVehicles,
+  previewImport,
+  updateVehicle,
+} from './api'
 import { VEHICULOS, vehiculo } from './fixtures'
 import { emptyValues, type VehicleValues } from './vehicleFields'
 
@@ -24,6 +34,21 @@ describe('inventory api', () => {
 
     await expect(deleteVehicle(7)).resolves.toBeUndefined()
     expect(apiFetch).toHaveBeenCalledWith('/api/concesionaria/vehiculos/7', { method: 'DELETE' })
+  })
+
+  it.each([
+    ['previewImport', previewImport, '/api/concesionaria/vehiculos/importar/vista-previa'],
+    ['confirmImport', confirmImport, '/api/concesionaria/vehiculos/importar'],
+  ])('%s POSTs the file in the archivo field and returns the counts', async (_name, send, path) => {
+    const file = new File(['patente;marca'], 'stock.csv', { type: 'text/csv' })
+    vi.mocked(apiFetch).mockResolvedValue({ nuevos: 3, actualizaciones: 1 })
+
+    await expect(send(file)).resolves.toEqual({ nuevos: 3, actualizaciones: 1 })
+
+    const [calledPath, options] = vi.mocked(apiFetch).mock.calls[0]
+    expect(calledPath).toBe(path)
+    expect(options?.method).toBe('POST')
+    expect((options?.body as FormData).get('archivo')).toBe(file)
   })
 
   it('lets the errors of apiFetch propagate', async () => {

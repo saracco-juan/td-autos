@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Support\VehiculoOptions;
+use App\Support\VehiculoFields;
 
 /**
  * CU-19: a dealer loads a new vehicle with its photos.
@@ -14,11 +14,9 @@ class StoreVehiculoRequest extends VehiculoRequest
      */
     public function rules(): array
     {
-        $count = ['bail', 'required', 'array', 'min:'.VehiculoOptions::FOTOS_MINIMO, 'max:'.VehiculoOptions::FOTOS_MAXIMO];
-
         return [
             ...$this->vehiculoRules(),
-            'fotos' => $count,
+            'fotos' => VehiculoFields::fotosCountRules(),
             ...$this->fotoRules(),
         ];
     }
@@ -30,10 +28,7 @@ class StoreVehiculoRequest extends VehiculoRequest
     {
         return [
             ...parent::messages(),
-            'fotos.required' => self::FOTOS_MINIMO_MESSAGE,
-            'fotos.array' => self::FOTOS_MINIMO_MESSAGE,
-            'fotos.min' => self::FOTOS_MINIMO_MESSAGE,
-            'fotos.max' => self::FOTOS_MAXIMO_MESSAGE,
+            ...VehiculoFields::fotosCountMessages(),
         ];
     }
 }
