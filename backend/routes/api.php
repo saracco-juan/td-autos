@@ -46,6 +46,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Administration area (RF19, CU-17).
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/concesionarias', [AdminConcesionariaController::class, 'index'])->name('concesionarias.index');
+        Route::get('/concesionarias/{id}', [AdminConcesionariaController::class, 'show'])
+            ->whereNumber('id')->name('concesionarias.show');
+        Route::put('/concesionarias/{id}', [AdminConcesionariaController::class, 'update'])
+            ->whereNumber('id')->name('concesionarias.update');
         Route::get('/comprobantes/{comprobante}', [AdminComprobanteController::class, 'show'])
             ->whereNumber('comprobante')->name('comprobantes.show');
         Route::get('/comprobantes/{comprobante}/archivo', [AdminComprobanteController::class, 'file'])
