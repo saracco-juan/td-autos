@@ -5,10 +5,12 @@ import buttonStyles from '../../components/button.module.css'
 import { HttpError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { confirmImport, previewImport } from './api'
+import { inactiveSubscriptionMessage } from './inactiveSubscription'
 import { importFailureFrom, type ImportFailure } from './importErrors'
 import { appliedNotice, previewSummary } from './importMessages'
 import styles from './ImportInventoryPage.module.css'
 import { goToInventory, INVENTORY_PATH } from './inventoryRoutes'
+import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
 import type { ImportCounts } from './types'
 import VehicleFormPage from './VehicleFormPage'
 
@@ -24,6 +26,7 @@ export default function ImportInventoryPage() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<Preview>('none')
   const [failure, setFailure] = useState<ImportFailure | null>(null)
+  const [blocked, setBlocked] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
   const failureRef = useRef<HTMLDivElement>(null)
   // The latest picked file: the answer of an earlier one is dropped.
@@ -34,10 +37,18 @@ export default function ImportInventoryPage() {
     if (failure) failureRef.current?.focus()
   }, [failure])
 
+  // An inactive subscription gets its own box with the way to renew; any other failure is the import's own.
+  const showFailure = (error: unknown) => {
+    const inactive = inactiveSubscriptionMessage(error)
+    if (inactive) setBlocked(inactive)
+    else setFailure(importFailureFrom(error))
+  }
+
   const pickFile = async (picked: File) => {
     currentFile.current = picked
     setFile(picked)
     setFailure(null)
+    setBlocked(null)
     setPreview('loading')
     try {
       const counts = await previewImport(picked)
@@ -45,13 +56,14 @@ export default function ImportInventoryPage() {
     } catch (error) {
       if (currentFile.current !== picked) return
       setPreview('none')
-      setFailure(importFailureFrom(error))
+      showFailure(error)
     }
   }
 
   const confirm = async () => {
     if (!file) return
     setFailure(null)
+    setBlocked(null)
     setConfirming(true)
     try {
       const counts = await confirmImport(file)
@@ -59,7 +71,7 @@ export default function ImportInventoryPage() {
     } catch (error) {
       // A 422 means the file no longer passes (e.g. a plate taken meanwhile): the preview is stale. Other failures can be retried.
       if (error instanceof HttpError && error.status === 422) setPreview('none')
-      setFailure(importFailureFrom(error))
+      showFailure(error)
       setConfirming(false)
     }
   }
@@ -120,6 +132,7 @@ export default function ImportInventoryPage() {
           <p className={styles.cardBody}>{previewSummary(preview)}</p>
         </section>
       ) : null}
+      {blocked ? <SubscriptionBlockedNotice message={blocked} /> : null}
       {failure ? (
         <div ref={failureRef} tabIndex={-1} role="alert" className={`${alertStyles.alert} ${styles.failure}`}>
           <p className={styles.failureMessage}>{failure.message}</p>

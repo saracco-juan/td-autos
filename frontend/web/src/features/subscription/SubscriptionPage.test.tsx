@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchSubscription, sendReceipt } from './api'
-import { TRANSFERENCIA, comprobantePendiente, comprobanteRechazado, suscripcion } from './fixtures'
+import { TRANSFERENCIA, comprobantePendiente, comprobanteRechazado, suscripcion, vigencia } from './fixtures'
 import SubscriptionPage from './SubscriptionPage'
 
 vi.mock('./api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
@@ -227,6 +227,56 @@ describe('SubscriptionPage', () => {
       await loaded()
 
       expect(screen.getByRole('link', { name: 'VER INVENTARIO' })).toBeInTheDocument()
+    })
+  })
+
+  describe('subscription validity (UH-20)', () => {
+    const GRACE =
+      'Tu suscripción venció el 13/10/2026. Tenés hasta el 16/10/2026 para que se apruebe la renovación; después tus vehículos dejan de publicarse.'
+    const INACTIVE =
+      'Tu suscripción está inactiva y tus vehículos no se publican. Los conservamos hasta el 15/11/2026: subí el comprobante de renovación para recuperarlos.'
+
+    const withValidity = (validity: Parameters<typeof vigencia>[0]) =>
+      vi.mocked(fetchSubscription).mockResolvedValue(
+        suscripcion({ estado_alta: 'activa', tipo_pago: 'renovacion', suscripcion: vigencia(validity) }),
+      )
+
+    it('shows when an active subscription is valid until, with no notice', async () => {
+      withValidity({ estado: 'activa', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13', gracia_hasta: '2026-10-16' })
+      await loaded()
+
+      expect(card('Estado de la cuenta').getByText('Suscripción vigente hasta el 13/10/2026')).toBeInTheDocument()
+      expect(screen.queryByText(/venció/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/está inactiva/)).not.toBeInTheDocument()
+    })
+
+    it('warns in a filled box during the grace period and keeps VER INVENTARIO', async () => {
+      withValidity({ estado: 'gracia', vigente_hasta: '2026-10-13', gracia_hasta: '2026-10-16' })
+      await loaded()
+
+      expect(screen.getByText(GRACE)).toBeInTheDocument()
+      expect(screen.getByRole('status')).toHaveTextContent(GRACE)
+      expect(screen.queryByText(/Suscripción vigente hasta/)).not.toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'VER INVENTARIO' })).toBeInTheDocument()
+    })
+
+    it('says in an error box that it is inactive until the retention deadline, hides VER INVENTARIO and keeps the upload', async () => {
+      withValidity({ estado: 'inactiva', vigente_hasta: '2026-10-01', gracia_hasta: '2026-10-04', retencion_hasta: '2026-11-15' })
+      await loaded()
+
+      expect(screen.getByText(INACTIVE)).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent(INACTIVE)
+      expect(screen.queryByRole('link', { name: 'VER INVENTARIO' })).not.toBeInTheDocument()
+      expect(screen.getByLabelText(SELECT)).toBeEnabled()
+      expect(sendButton()).toBeEnabled()
+    })
+
+    it('shows neither notice for a pending subscription', async () => {
+      await loaded()
+
+      expect(screen.queryByText(/venció/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/está inactiva/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/Suscripción vigente hasta/)).not.toBeInTheDocument()
     })
   })
 

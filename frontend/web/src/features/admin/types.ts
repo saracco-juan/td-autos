@@ -10,7 +10,6 @@ export type AdminDealer = {
   nombre: string
   localidad: string | null
   provincia: string | null
-  // 'pendiente' | 'activa' today; HU20 adds 'inactiva'.
   estado_alta: string | null
   contacto: DealerContact
 }
@@ -58,6 +57,10 @@ export type DealerSubscription = {
   // yyyy-mm-dd; null while there is no validity yet.
   vigente_desde: string | null
   vigente_hasta: string | null
+  // Last day of full access after expiring; set once the subscription was active.
+  gracia_hasta: string | null
+  // Last day the hidden vehicles are kept; only while inactive.
+  retencion_hasta: string | null
 }
 
 // A receipt of the dealer's history (newest first).

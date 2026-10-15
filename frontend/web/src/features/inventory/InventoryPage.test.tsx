@@ -11,6 +11,7 @@ vi.mock('./api', () => ({ fetchVehicles: vi.fn(), deleteVehicle: vi.fn() }))
 
 const COROLLA = 'Toyota Corolla XEI 2021'
 const CRONOS = 'Fiat Cronos Drive 2022'
+const INACTIVE = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
 
 function renderPage() {
   render(
@@ -63,6 +64,16 @@ describe('InventoryPage', () => {
     await loaded()
 
     expect(screen.queryByText('SUSCRIPCIÓN')).not.toBeInTheDocument()
+  })
+
+  it('explains an inactive subscription with a way to the subscription page instead of the generic error', async () => {
+    vi.mocked(fetchVehicles).mockRejectedValue(new HttpError(403, { message: INACTIVE }))
+    renderPage()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(INACTIVE)
+    expect(screen.getByRole('link', { name: 'IR A SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
   })
 
   it('lists every vehicle with title, meta, EDITAR and ELIMINAR', async () => {

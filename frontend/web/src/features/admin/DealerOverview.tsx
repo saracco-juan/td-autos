@@ -29,11 +29,19 @@ function SubscriptionCard({ dealer }: { dealer: DealerDetail }) {
       {suscripcion === null ? (
         <p className={adminStyles.cardBody}>Todavía no tiene una suscripción.</p>
       ) : (
-        <p className={adminStyles.cardBody}>
-          {suscripcion.vigente_desde && suscripcion.vigente_hasta
-            ? `Vigente desde ${formatDay(suscripcion.vigente_desde)} hasta ${formatDay(suscripcion.vigente_hasta)}`
-            : 'Todavía no tiene vigencia.'}
-        </p>
+        <>
+          <p className={adminStyles.cardBody}>
+            {suscripcion.vigente_desde && suscripcion.vigente_hasta
+              ? `Vigente desde ${formatDay(suscripcion.vigente_desde)} hasta ${formatDay(suscripcion.vigente_hasta)}`
+              : 'Todavía no tiene vigencia.'}
+          </p>
+          {suscripcion.gracia_hasta ? (
+            <p className={adminStyles.cardBody}>{`Gracia hasta el ${formatDay(suscripcion.gracia_hasta)}`}</p>
+          ) : null}
+          {suscripcion.retencion_hasta ? (
+            <p className={adminStyles.cardBody}>{`Vehículos conservados hasta el ${formatDay(suscripcion.retencion_hasta)}`}</p>
+          ) : null}
+        </>
       )}
     </section>
   )

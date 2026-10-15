@@ -71,6 +71,18 @@ describe('ImportInventoryPage', () => {
     expect(previewHeading()).not.toBeInTheDocument()
   })
 
+  it('explains an inactive subscription with a way to the subscription page when the preview is refused', async () => {
+    const message = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
+    vi.mocked(previewImport).mockRejectedValue(new HttpError(403, { message }))
+    renderPage()
+
+    await pick()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(message)
+    expect(screen.getByRole('link', { name: 'IR A SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByText('No pudimos procesar el archivo. Probá de nuevo.')).not.toBeInTheDocument()
+  })
+
   it('offers the CSV template as a download in the format card', () => {
     renderPage()
 

@@ -260,6 +260,21 @@ describe('VehicleForm', () => {
       expect(submitButton()).toBeEnabled()
     })
 
+    it('explains an inactive subscription with a way to the subscription page instead of the generic error', async () => {
+      const message = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
+      await renderForm({ onSubmit: () => Promise.reject(new HttpError(403, { message })) })
+      fillValid()
+      const user = userEvent.setup({ applyAccept: false })
+      await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
+
+      await user.click(submitButton())
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(message)
+      expect(screen.getByRole('link', { name: 'IR A SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+      expect(screen.queryByText('No pudimos guardar el vehículo. Probá de nuevo.')).not.toBeInTheDocument()
+      expect(submitButton()).toBeEnabled()
+    })
+
     it('shows the generic error on a server failure or a 422 it cannot map', async () => {
       const submit = await renderForm({ onSubmit: () => Promise.reject(new HttpError(500, 'Server Error')) })
       fillValid()

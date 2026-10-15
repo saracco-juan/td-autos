@@ -82,6 +82,16 @@ describe('EditVehiclePage', () => {
     expect(sent.removedPhotoIds).toEqual([7])
   })
 
+  it('explains an inactive subscription with a way to the subscription page', async () => {
+    const message = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
+    vi.mocked(fetchVehicle).mockRejectedValue(new HttpError(403, { message }))
+    renderPage()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(message)
+    expect(screen.getByRole('link', { name: 'IR A SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
+  })
+
   it('tells the dealer when the vehicle is not theirs or does not exist, with a way back', async () => {
     vi.mocked(fetchVehicle).mockRejectedValue(new HttpError(404, { message: 'No query results' }))
     renderPage()

@@ -2,10 +2,11 @@ import type { AdminDealer, AdminDealerRow, ReceiptState } from './types'
 
 export type DealerTone = 'pending' | 'active' | 'inactive' | 'unknown'
 
-// Figma 38:1037 "Estado" labels; HU20 brings `inactiva`.
+// Figma 38:1037 "Estado" labels; `gracia` and `inactiva` (UH-20) are subscription states the frame does not have.
 const DEALER_STATES: Record<string, { label: string; tone: DealerTone }> = {
   pendiente: { label: 'Pendiente de aprobación', tone: 'pending' },
   activa: { label: 'Activa', tone: 'active' },
+  gracia: { label: 'En período de gracia', tone: 'pending' },
   inactiva: { label: 'Inactiva', tone: 'inactive' },
 }
 

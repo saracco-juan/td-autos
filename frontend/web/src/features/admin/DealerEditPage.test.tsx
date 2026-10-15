@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchDealer, updateDealer } from './api'
 import DealerEditPage from './DealerEditPage'
-import { dealerDetail } from './fixtures'
+import { dealerDetail, dealerSubscription } from './fixtures'
 
 vi.mock('./api', () => ({ fetchDealer: vi.fn(), updateDealer: vi.fn() }))
 
@@ -254,13 +254,40 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
   describe('subscription (read-only, scenario 2)', () => {
     it('shows the dealer state, the subscription state and its validity', async () => {
       vi.mocked(fetchDealer).mockResolvedValue(
-        dealerDetail({ estado_alta: 'activa', suscripcion: { estado: 'pendiente', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13' } }),
+        dealerDetail({ estado_alta: 'activa', suscripcion: dealerSubscription({ estado: 'pendiente', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13' }) }),
       )
       await loaded()
 
       expect(definition('Estado de la concesionaria')).toHaveTextContent('Activa')
       expect(definition('Estado de la suscripción')).toHaveTextContent('Pendiente de aprobación')
       expect(section('Suscripción').getByText('Vigente desde 14/09/2026 hasta 13/10/2026')).toBeInTheDocument()
+    })
+
+    it('shows the grace period with its deadline', async () => {
+      vi.mocked(fetchDealer).mockResolvedValue(
+        dealerDetail({
+          suscripcion: { estado: 'gracia', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13', gracia_hasta: '2026-10-16', retencion_hasta: null },
+        }),
+      )
+      await loaded()
+
+      expect(definition('Estado de la suscripción')).toHaveTextContent('En período de gracia')
+      expect(section('Suscripción').getByText('Vigente desde 14/09/2026 hasta 13/10/2026')).toBeInTheDocument()
+      expect(section('Suscripción').getByText('Gracia hasta el 16/10/2026')).toBeInTheDocument()
+      expect(screen.queryByText(/Retención/)).not.toBeInTheDocument()
+    })
+
+    it('shows an inactive subscription with the grace and retention deadlines', async () => {
+      vi.mocked(fetchDealer).mockResolvedValue(
+        dealerDetail({
+          suscripcion: { estado: 'inactiva', vigente_desde: '2026-08-14', vigente_hasta: '2026-09-13', gracia_hasta: '2026-09-16', retencion_hasta: '2026-10-17' },
+        }),
+      )
+      await loaded()
+
+      expect(definition('Estado de la suscripción')).toHaveTextContent('Inactiva')
+      expect(section('Suscripción').getByText('Gracia hasta el 16/09/2026')).toBeInTheDocument()
+      expect(section('Suscripción').getByText('Vehículos conservados hasta el 17/10/2026')).toBeInTheDocument()
     })
 
     it('says so when the dealer has no subscription yet', async () => {
@@ -274,7 +301,7 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
 
     it('shows a subscription without validity dates as not valid yet', async () => {
       vi.mocked(fetchDealer).mockResolvedValue(
-        dealerDetail({ suscripcion: { estado: 'pendiente', vigente_desde: null, vigente_hasta: null } }),
+        dealerDetail({ suscripcion: dealerSubscription({ estado: 'pendiente' }) }),
       )
       await loaded()
 
