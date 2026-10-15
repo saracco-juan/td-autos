@@ -13,7 +13,7 @@ use stdClass;
 final class MercadoLibreAccessProbe
 {
     public function run(AuthorizationAttempt $attempt, #[SensitiveParameter] string $clientId,
-        #[SensitiveParameter] string $secret, #[SensitiveParameter] string $callback): array
+        #[SensitiveParameter] string $secret, #[SensitiveParameter] string $callback, bool $compareCategory = false): array
     {
         $report = ['ok' => false, 'stage' => 'authorization'];
         try {
@@ -37,6 +37,12 @@ final class MercadoLibreAccessProbe
                 return $report + ['error' => 'malformed_token_response'];
             }
             $token = $data->access_token;
+            $sensitive = [$secret, $token, $grant['code'], $grant['code_verifier'], $callback];
+            parse_str((string) parse_url($callback, PHP_URL_QUERY), $callbackValues);
+            $sensitive[] = $callbackValues['state'];
+            if (is_string($data->refresh_token ?? null) && $data->refresh_token !== '') {
+                $sensitive[] = $data->refresh_token;
+            }
             $report['stage'] = 'account';
             $response = $this->request()->withToken($token)->get('https://api.mercadolibre.com/users/me');
             $report['account'] = $this->diagnostic($response);
@@ -44,10 +50,16 @@ final class MercadoLibreAccessProbe
             $accountValid = $response->status() === 200 && $account instanceof stdClass
                 && is_int($account->id ?? null) && $account->id > 0;
             $report['stage'] = 'search';
-            $response = $this->request()->withToken($token)->get('https://api.mercadolibre.com/sites/MLA/search', [
-                'q' => 'Toyota Corolla', 'category' => 'MLA1744', 'limit' => 5,
-            ]);
-            $report['search'] = $this->diagnostic($response);
+            $query = ['q' => 'Toyota Corolla', 'category' => 'MLA1744', 'limit' => 5];
+            [$response, $report['search']] = $this->search($token, $query, $sensitive);
+            if ($compareCategory) {
+                unset($query['category']);
+                [$control, $diagnostic] = $this->search($token, $query, $sensitive);
+                $report['search_without_category'] = $diagnostic + $this->controlOutcome($control);
+            }
+            if ($response === null) {
+                return $report + ['error' => 'connection_error'];
+            }
             if ($response->status() !== 200) {
                 return $report + ['error' => 'search_rejected'];
             }
@@ -71,11 +83,8 @@ final class MercadoLibreAccessProbe
             $report = array_replace($report, ['ok' => true, 'outcome' => $listings ? 'listings_received' : 'empty_results',
                 'result_count' => count($listings), 'listings' => $listings]);
             // Even allowlisted listing fields must not echo credentials reflected by a provider.
-            $sensitive = [$secret, $token, $grant['code'], $grant['code_verifier']];
-            if (is_string($data->refresh_token ?? null) && $data->refresh_token !== '') {
-                $sensitive[] = $data->refresh_token;
-            }
-            array_walk_recursive($report, static function (&$value) use ($sensitive) {
+            // Only provider-derived listing fields are redacted; diagnostic labels are trusted.
+            array_walk_recursive($report['listings'], static function (&$value) use ($sensitive) {
                 if (is_string($value)) {
                     $value = str_replace($sensitive, '[redacted]', $value);
                 }
@@ -90,6 +99,33 @@ final class MercadoLibreAccessProbe
         } catch (ConnectionException) {
             return $report + ['error' => 'connection_error'];
         }
+    }
+
+    private function search(#[SensitiveParameter] string $token, array $query, #[SensitiveParameter] array $sensitive): array
+    {
+        try {
+            $response = $this->request()->withToken($token)->get('https://api.mercadolibre.com/sites/MLA/search', $query);
+
+            return [$response, $this->diagnostic($response) + (new MercadoLibreErrorDiagnostic)->project($response, $sensitive)];
+        } catch (ConnectionException) {
+            return [null, ['status' => null, 'format' => 'unavailable', 'error' => 'connection_error']];
+        }
+    }
+
+    private function controlOutcome(#[SensitiveParameter] ?Response $response): array
+    {
+        if ($response === null || $response->status() !== 200) {
+            return ['outcome' => $response === null ? 'connection_error' : 'search_rejected'];
+        }
+        $data = json_decode($response->body());
+        if (! $data instanceof stdClass || ! is_array($data->results ?? null) || count($data->results) > 5
+            || array_filter($data->results, fn ($item) => ! $item instanceof stdClass
+                || ! is_string($item->id ?? null) || ! preg_match('/^MLA[0-9]+$/D', $item->id)) !== []) {
+            return ['outcome' => 'malformed_search_response'];
+        }
+
+        return ['outcome' => $data->results === [] ? 'empty_results' : 'results_received_unclassified',
+            'result_count' => count($data->results)];
     }
 
     private function request(): PendingRequest

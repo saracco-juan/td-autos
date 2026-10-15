@@ -99,6 +99,29 @@ No se imprimen el perfil, respuestas crudas, código OAuth, secretos ni tokens. 
 el token al terminar; una nueva ejecución requiere nueva autorización. No uses grabación de
 terminal ni compartas la URL OAuth/callback. La renovación automática queda fuera de este incremento.
 
+#### Comparar el rechazo con y sin categoría
+
+Desde `backend`, repetí el flujo de autorización manual con un intento nuevo (el token anterior
+se descartó al salir). No necesitás iniciar servidores ni túneles:
+
+```powershell
+php artisan mercadolibre:probe-access --compare-category
+```
+
+El JSON conserva **A: `search`**, con `category=MLA1744`, y agrega **B: `search_without_category`**:
+misma URL, token, `q` y `limit`, quitando únicamente `category`, incluso si A falla.
+Cada resultado incluye `status`/`format` y, si el proveedor los envía, `provider_error` con
+`error`, `code`, `blocked_by`, `status`, `message` y `cause` acotados y redactados.
+A403/B403 confirma ambos rechazos; A403/B200 muestra una diferencia, **no demuestra su causa
+ni acceso a autos**. B no convierte el `ok: false` de A en éxito. A200/B403 conserva el resultado
+de A; revisá B por separado. `results_received_unclassified` en B solo cuenta publicaciones,
+sin afirmar que sean vehículos; `empty_results` no prueba recuperación real. Un timeout queda
+como `status: null`/`connection_error`, sin reintento ni pérdida del otro resultado.
+Compartí únicamente el JSON sanitizado, nunca credenciales, URL de autorización o callback.
+Si ambos siguen devolviendo un 403 genérico, consultá la
+[guía oficial de errores 403](https://developers.mercadolibre.com.ar/es_ar/error-403): hay varias
+causas posibles y este diagnóstico no habilita permisos ni sustituye la búsqueda por inventario de un vendedor.
+
 Tests sin acceso real: `php artisan test --filter MercadoLibreAccessProbe` desde `backend`.
 Referencias: [OAuth oficial](https://developers.mercadolibre.com.ar/es_ar/sobre-nuestra-api/autenticacion-y-autorizacion)
 y [búsquedas oficiales](https://developers.mercadolibre.com.ar/es_ar/api-docs-es/items-y-busquedas).

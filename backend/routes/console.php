@@ -13,7 +13,7 @@ Artisan::command('inspire', function () {
 // Fail closed for piped input; the capability can be substituted by console tests.
 app()->bind('mercadolibre.stdin-is-terminal', fn () => defined('STDIN') && stream_isatty(STDIN));
 
-Artisan::command('mercadolibre:probe-access', function (MercadoLibreAccessProbe $probe) {
+Artisan::command('mercadolibre:probe-access {--compare-category : Comparar la misma búsqueda sin categoría}', function (MercadoLibreAccessProbe $probe) {
     if (! $this->input->isInteractive() || ! app('mercadolibre.stdin-is-terminal')) {
         $this->error('Ejecutá este diagnóstico en una terminal interactiva privada.');
 
@@ -27,7 +27,7 @@ Artisan::command('mercadolibre:probe-access', function (MercadoLibreAccessProbe 
         $this->line($attempt->authorizationUrl((string) $clientId));
         $this->line('Pegá la URL final completa, con code y state, aunque ngrok muestre offline. No la compartas.');
         $callback = $this->secret('URL final del navegador', false);
-        $result = $probe->run($attempt, (string) $clientId, (string) $secret, (string) $callback);
+        $result = $probe->run($attempt, (string) $clientId, (string) $secret, (string) $callback, (bool) $this->option('compare-category'));
     } catch (Throwable) {
         $result = ['ok' => false, 'error' => 'private_input_or_probe_failed'];
     }
