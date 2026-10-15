@@ -61,6 +61,48 @@ npm run dev
 | Backend | `php artisan test` | `./vendor/bin/pint` | — |
 | Frontend web | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` | `npm run build` |
 
+## Diagnóstico manual de Mercado Libre (HU06 / RF05)
+
+Este diagnóstico comprueba autenticación y acceso a publicaciones de vehículos, todavía no
+implementa el servicio de búsqueda productivo ni el matching. No guarda tokens ni publicaciones.
+Con las dependencias del backend instaladas, ejecutá en una terminal privada e interactiva:
+
+```powershell
+cd backend
+php artisan mercadolibre:probe-access
+```
+
+No necesitás iniciar Laravel, el frontend ni un túnel para este diagnóstico manual.
+
+1. Ingresá el **App ID** y **Client secret** cuando se pidan: la entrada queda oculta.
+   No los pases como argumentos ni los pegues en el chat. El App ID sí aparece en la URL pública.
+2. Abrí personalmente la URL generada y autorizá tu app. Conservá habilitado PKCE.
+   El redirect usado en autorización e intercambio es exactamente
+   `https://brought-clover-landmass.ngrok-free.dev`, sin barra final: corresponde solo a la app
+   de desarrollo actualmente registrada; no es una configuración para otras apps.
+3. Dentro de cinco minutos, copiá la URL final completa del navegador y pegala en el prompt
+   oculto. Debe contener `code` y `state`. El dominio puede mostrar `ERR_NGROK_3200` y conservar
+   esos parámetros en la barra: el error por sí solo **no demuestra autorización**. El comando
+   no levanta un callback ni un servidor. Si faltan los parámetros, no hubo una captura válida.
+4. Revisá el JSON sanitizado. Se intercambia el código una sola vez y se consulta `/users/me`
+   y `/sites/MLA/search` con el mismo token, `q=Toyota Corolla`, `category=MLA1744`, `limit=5`,
+   sin seleccionar vendedor. No se reintenta automáticamente ni se sigue ninguna redirección.
+
+| Resultado | Qué demuestra / siguiente paso |
+| --- | --- |
+| `listings_received`, `result_count > 0` | Recibimos publicaciones. Abrí sus URLs originales y comprobá que sean autos activos, de otros vendedores y que correspondan a los criterios. No prueba por sí solo el matching ni todos los filtros. |
+| `empty_results` | La consulta respondió con una lista vacía; todavía no demuestra acceso a publicaciones reales. |
+| Cuenta 200 y búsqueda 403 / `search_rejected` | Autenticación válida no implica permiso de búsqueda global. Conservá el diagnóstico sanitizado; la causa del rechazo sigue sin demostrarse. |
+| `malformed_*`, `connection_error` u otro error | No se confirmó una respuesta válida. La salida es no cero; iniciá un intento nuevo si corresponde, nunca reutilices el código. |
+
+No se imprimen el perfil, respuestas crudas, código OAuth, secretos ni tokens. El proceso descarta
+el token al terminar; una nueva ejecución requiere nueva autorización. No uses grabación de
+terminal ni compartas la URL OAuth/callback. La renovación automática queda fuera de este incremento.
+
+Tests sin acceso real: `php artisan test --filter MercadoLibreAccessProbe` desde `backend`.
+Referencias: [OAuth oficial](https://developers.mercadolibre.com.ar/es_ar/sobre-nuestra-api/autenticacion-y-autorizacion)
+y [búsquedas oficiales](https://developers.mercadolibre.com.ar/es_ar/api-docs-es/items-y-busquedas).
+
 ## Integración continua
 
 El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada push y pull request hacia `develop` y `main`:
