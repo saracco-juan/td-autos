@@ -54,5 +54,5 @@ export function inactiveBody(overrides: Record<string, unknown> = {}) {
 }
 
 export const PAUSED_TEXT =
-  'Tu suscripción venció el 10/10/2026 y terminó el período de gracia. Tus 2 vehículos no se publican, pero los conservamos hasta el 13/11/2026.'
+  'Tu suscripción venció el 10/10/2026 y terminó el período de gracia. Tus 2 vehículos no se publican, pero los conservamos hasta el 13/11/2026; después se eliminan definitivamente.'
 export const PAUSED_HINT = 'Subí el comprobante de renovación: cuando se apruebe, vas a poder volver a gestionar tu inventario.'

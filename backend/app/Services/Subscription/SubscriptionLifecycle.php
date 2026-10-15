@@ -3,7 +3,9 @@
 namespace App\Services\Subscription;
 
 use App\Models\Suscripcion;
+use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
+use App\Services\Inventario\VehiculoDestroyer;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,6 +29,8 @@ final class SubscriptionLifecycle
     public const GRACE_DAYS = 3;
 
     public const RETENTION_DAYS = 30;
+
+    public function __construct(private readonly VehiculoDestroyer $destroyer) {}
 
     /**
      * Last day with full access after the validity ended; null while there is no validity.
@@ -82,6 +86,18 @@ final class SubscriptionLifecycle
     }
 
     /**
+     * Permanently delete the hidden vehicles of every dealer whose retention ended (RF27); returns
+     * how many were deleted. Each vehicle goes in its own transaction, so one failure is reported
+     * and the rest are still deleted. The subscription itself stays inactive.
+     */
+    public function purgeExpiredVehicles(): int
+    {
+        $ids = $this->expiredVehicles()->pluck('vehiculo_id');
+
+        return $ids->filter(fn (int $id): bool => $this->purgeVehicle($id))->count();
+    }
+
+    /**
      * Evaluate one subscription on read: persist its inactivation (and hide the vehicles) when it is
      * due, so a gate or a screen never waits for the scheduled command. Returns the effective state.
      */
@@ -127,6 +143,34 @@ final class SubscriptionLifecycle
         return $query
             ->where('estado', Suscripcion::ESTADO_ACTIVA)
             ->whereDate('vigente_hasta', '<=', $lastGraceDay->toDateString());
+    }
+
+    /**
+     * Hidden dealer vehicles whose retention is over.
+     *
+     * \return Builder<VehiculoConcesionaria>
+     */
+    private function expiredVehicles(): Builder
+    {
+        return VehiculoConcesionaria::query()->where('visible', false)->where('eliminar_desde', '<=', now());
+    }
+
+    private function purgeVehicle(int $id): bool
+    {
+        try {
+            // Re-checked right before deleting: an approval may have published it again since the query.
+            if (! $this->expiredVehicles()->whereKey($id)->exists()) {
+                return false;
+            }
+
+            $this->destroyer->destroy(Vehiculo::query()->findOrFail($id));
+
+            return true;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return false;
+        }
     }
 
     private function inactivate(int $id): bool

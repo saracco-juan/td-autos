@@ -95,7 +95,7 @@ class RenewalApprovalDatesTest extends TestCase
         $this->assertSame('2026-11-11', $receipt->periodo_hasta->toDateString());
     }
 
-    public function test_tc54_renewal_approved_after_inactivation_starts_today_and_keeps_vehicles_hidden(): void
+    public function test_tc54_renewal_approved_after_inactivation_starts_today_and_republishes_vehicles(): void
     {
         $this->travelTo('2026-10-20 10:00:00');
         $receipt = $this->renewal('2026-10-10', [
@@ -122,10 +122,11 @@ class RenewalApprovalDatesTest extends TestCase
         $this->assertNull($subscription->retencion_hasta);
         $this->assertSame('2026-10-20', $receipt->fresh()->periodo_desde->toDateString());
 
-        // Republishing is HU23: the vehicle stays hidden.
+        // Republishing the retained inventory is HU23 (TC-61).
         $vehicle->refresh();
-        $this->assertFalse($vehicle->visible);
-        $this->assertSame('2026-11-13 00:00:00', $vehicle->eliminar_desde->toDateTimeString());
+        $this->assertTrue($vehicle->visible);
+        $this->assertNull($vehicle->ocultado_en);
+        $this->assertNull($vehicle->eliminar_desde);
 
         $this->actingAs($receipt->suscripcion->concesionaria->usuario)->getJson('/api/concesionaria/vehiculos')->assertOk();
     }

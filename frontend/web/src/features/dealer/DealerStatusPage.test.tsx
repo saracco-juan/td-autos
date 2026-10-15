@@ -1,5 +1,5 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../auth/session/useAuth'
 import type { User } from '../auth/types'
 import { fetchSubscription } from '../subscription/api'
@@ -23,6 +23,12 @@ describe('DealerStatusPage', () => {
     vi.mocked(useAuth).mockReset()
     vi.mocked(fetchSubscription).mockReset()
     vi.mocked(fetchSubscription).mockRejectedValue(new Error('offline'))
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 12, 12))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('renders the page header and the account status card', () => {
@@ -84,7 +90,16 @@ describe('DealerStatusPage', () => {
       renderPage(dealerIn('activa'))
 
       expect(await card().findByText('Inactiva · suscripción vencida')).toHaveAttribute('data-tone', 'error')
-      expect(card().getByText('Tus vehículos se conservan hasta el 13/10/2026.')).toBeInTheDocument()
+      expect(card().getByText('Tus vehículos se conservan hasta el 13/10/2026; después se eliminan definitivamente.')).toBeInTheDocument()
+    })
+
+    it.each(['2026-10-12', '2026-10-11'])('says the vehicles were deleted once the retention is reached (%s)', async (retencion) => {
+      dealerWith({ estado: 'inactiva', vigente_hasta: '2026-09-10', gracia_hasta: '2026-09-13', retencion_hasta: retencion })
+      renderPage(dealerIn('activa'))
+
+      expect(await card().findByText('Inactiva · suscripción vencida')).toHaveAttribute('data-tone', 'error')
+      expect(card().getByText('Tus vehículos se eliminaron al terminar el período de retención.')).toBeInTheDocument()
+      expect(card().queryByText(/se conservan/)).not.toBeInTheDocument()
     })
 
     it('keeps the plain text when the subscription has no state yet', async () => {

@@ -73,6 +73,15 @@ export function formatDay(day: string): string {
   return `${date}/${month}/${year}`
 }
 
+// True once the retention deadline (yyyy-mm-dd) is today or earlier in the browser's time zone: the backend deletes the
+// retained vehicles from the start of that day (UH-23). Compared as text, like the days themselves.
+export function retentionReached(retencionHasta: string | null | undefined): boolean {
+  if (!retencionHasta) return false
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return retencionHasta <= today
+}
+
 // Same limit and messages as the backend (RejectComprobanteRequest).
 export const MAX_REJECT_REASON = 500
 

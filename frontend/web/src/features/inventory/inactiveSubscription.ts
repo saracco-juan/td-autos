@@ -1,5 +1,5 @@
 import { HttpError } from '../../lib/http'
-import { formatDay } from '../admin/format'
+import { formatDay, retentionReached } from '../admin/format'
 
 export const SUBSCRIPTION_PATH = '/concesionaria/suscripcion'
 
@@ -42,9 +42,12 @@ export function inactiveSubscription(error: unknown): InactiveSubscription | nul
 export function pausedInventoryText({ vigenteHasta, retencionHasta, vehiculosConservados }: InactiveSubscription): string {
   const expired = vigenteHasta ? `Tu suscripción venció el ${formatDay(vigenteHasta)}` : 'Tu suscripción venció'
   const base = `${expired} y terminó el período de gracia.`
+  if (vehiculosConservados === 0 && retentionReached(retencionHasta)) {
+    return `${base} Tus vehículos se eliminaron porque pasaron 30 días sin renovación; cuando se apruebe la renovación vas a poder volver a cargar vehículos.`
+  }
   if (vehiculosConservados === 0) return `${base} Cuando se apruebe la renovación vas a poder volver a cargar vehículos.`
   const until = retencionHasta ? `hasta el ${formatDay(retencionHasta)}` : 'por tiempo limitado'
   return vehiculosConservados === 1
-    ? `${base} Tu vehículo no se publica, pero lo conservamos ${until}.`
-    : `${base} Tus ${vehiculosConservados} vehículos no se publican, pero los conservamos ${until}.`
+    ? `${base} Tu vehículo no se publica, pero lo conservamos ${until}; después se elimina definitivamente.`
+    : `${base} Tus ${vehiculosConservados} vehículos no se publican, pero los conservamos ${until}; después se eliminan definitivamente.`
 }

@@ -6,7 +6,10 @@ use App\Models\ComprobantePago;
 use App\Models\Concesionaria;
 use App\Models\Suscripcion;
 use App\Models\User;
+use App\Models\VehiculoConcesionaria;
 use App\Notifications\PaymentReceiptReviewedNotification;
+use App\Services\Inventario\VehiculoDestroyer;
+use App\Support\VehiculoFotos;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -17,17 +20,22 @@ use Illuminate\Support\Facades\DB;
  */
 final class ReceiptReview
 {
-    public function __construct(private readonly SubscriptionLifecycle $lifecycle) {}
+    public function __construct(
+        private readonly SubscriptionLifecycle $lifecycle,
+        private readonly VehiculoDestroyer $destroyer,
+    ) {}
 
     /**
      * @throws ReceiptAlreadyReviewedException
      */
     public function approve(ComprobantePago $receipt, User $admin): ComprobantePago
     {
-        $activated = DB::transaction(function () use ($receipt, $admin): bool {
+        $paths = [];
+
+        $activated = DB::transaction(function () use ($receipt, $admin, &$paths): bool {
             $this->decide($receipt, $admin, ComprobantePago::ESTADO_APROBADO);
 
-            $this->applyPeriod($receipt);
+            $paths = $this->applyPeriod($receipt);
 
             $dealer = $receipt->suscripcion->concesionaria;
 
@@ -41,6 +49,9 @@ final class ReceiptReview
             return true;
         });
 
+        // The photo files of vehicles deleted by the approval go once the rows are gone for good.
+        VehiculoFotos::forget($paths);
+
         $this->notifyDealer($receipt, $activated);
 
         return $receipt;
@@ -50,19 +61,22 @@ final class ReceiptReview
      * Set the validity the approval grants and make the receipt record the period actually applied.
      * The first payment keeps the receipt period; a renewal continues from the end of the current
      * validity (valid or in grace, no free days and never backwards), or starts today once the
-     * subscription is inactive. Vehicles hidden by the inactivation stay hidden: republishing them
-     * belongs to HU23.
+     * subscription is inactive. Reactivating an inactive subscription also settles its retained
+     * vehicles (RF26, RF27): the ones whose retention already ended are deleted, the rest are published
+     * again. Returns the photo paths to delete from the disk once the transaction commits.
+     *
+     * \return list<string>
      */
-    private function applyPeriod(ComprobantePago $receipt): void
+    private function applyPeriod(ComprobantePago $receipt): array
     {
         $subscription = $receipt->suscripcion;
         $from = $receipt->periodo_desde;
         $to = $receipt->periodo_hasta;
+        $wasInactive = false;
 
         if ($subscription->vigente_hasta !== null) {
-            $from = $this->lifecycle->state($subscription) === SubscriptionLifecycle::STATE_INACTIVE
-                ? Carbon::today()
-                : $subscription->vigente_hasta->copy()->addDay();
+            $wasInactive = $this->lifecycle->state($subscription) === SubscriptionLifecycle::STATE_INACTIVE;
+            $from = $wasInactive ? Carbon::today() : $subscription->vigente_hasta->copy()->addDay();
             // Same month arithmetic as the receipt upload (SuscripcionController::createReceipt).
             $to = $from->copy()->addMonth();
 
@@ -77,6 +91,28 @@ final class ReceiptReview
             'inactiva_desde' => null,
             'retencion_hasta' => null,
         ])->save();
+
+        return $wasInactive ? $this->settleRetainedVehicles($subscription->concesionaria_id) : [];
+    }
+
+    /**
+     * Delete the dealer's hidden vehicles whose retention ended before this approval and publish
+     * the others again. Returns the photo paths of the deleted ones.
+     *
+     * \return list<string>
+     */
+    private function settleRetainedVehicles(int $dealerId): array
+    {
+        $hidden = VehiculoConcesionaria::query()->where('concesionaria_id', $dealerId)->where('visible', false);
+        $paths = [];
+
+        foreach ((clone $hidden)->where('eliminar_desde', '<=', now())->with('vehiculo')->get() as $ownership) {
+            $paths = [...$paths, ...$this->destroyer->deleteRows($ownership->vehiculo)];
+        }
+
+        $hidden->update(['visible' => true, 'ocultado_en' => null, 'eliminar_desde' => null]);
+
+        return $paths;
     }
 
     /**
