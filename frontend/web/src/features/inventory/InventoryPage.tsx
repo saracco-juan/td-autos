@@ -7,12 +7,24 @@ import screenStyles from '../../components/screen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { deleteVehicle, fetchVehicles } from './api'
+import { inactiveSubscription, type InactiveSubscription } from './inactiveSubscription'
 import styles from './InventoryPage.module.css'
 import type { InventoryLocationState } from './inventoryRoutes'
+import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
 import type { Vehiculo } from './types'
 import VehicleRow from './VehicleRow'
 
-type LoadState = 'loading' | 'ready' | { error: ErrorKind }
+type LoadState = 'loading' | 'ready' | { error: ErrorKind } | { blocked: InactiveSubscription }
+
+function PageHeader({ subtitle }: { subtitle: string }) {
+  return (
+    <div className={styles.header}>
+      <p className={screenStyles.eyebrow}>INVENTARIO</p>
+      <h1 className={screenStyles.title}>Inventario</h1>
+      <p className={styles.subtitle}>{subtitle}</p>
+    </div>
+  )
+}
 
 const REMOVED_NOTICE = 'Eliminaste el vehículo.'
 
@@ -51,7 +63,8 @@ export default function InventoryPage() {
       })
       .catch((error: unknown) => {
         if (isCancelled()) return
-        setLoadState({ error: error instanceof NetworkError ? 'network' : 'server' })
+        const blocked = inactiveSubscription(error)
+        setLoadState(blocked ? { blocked } : { error: error instanceof NetworkError ? 'network' : 'server' })
       })
   }, [])
 
@@ -95,7 +108,9 @@ export default function InventoryPage() {
       removeRow(id)
     } catch (error) {
       // A 404 means the vehicle is already gone: the list was stale, not the delete.
-      if (error instanceof HttpError && error.status === 404) removeRow(id)
+      const blocked = inactiveSubscription(error)
+      if (blocked) setLoadState({ blocked })
+      else if (error instanceof HttpError && error.status === 404) removeRow(id)
       else setFailedId(id)
     } finally {
       setDeletingId(null)
@@ -104,15 +119,19 @@ export default function InventoryPage() {
 
   // The loader and the error are direct children of the content area so they are centered there.
   if (loadState === 'loading') return <SessionLoading />
+  if (typeof loadState === 'object' && 'blocked' in loadState) {
+    return (
+      <div className={screenStyles.page}>
+        <PageHeader subtitle="Inactiva · funciones bloqueadas" />
+        <SubscriptionBlockedNotice info={loadState.blocked} />
+      </div>
+    )
+  }
   if (typeof loadState === 'object') return <ErrorState kind={loadState.error} onRetry={retry} />
 
   return (
     <div className={screenStyles.page}>
-      <div className={styles.header}>
-        <p className={screenStyles.eyebrow}>INVENTARIO</p>
-        <h1 className={screenStyles.title}>Inventario</h1>
-        <p className={styles.subtitle}>Activa · funciones habilitadas</p>
-      </div>
+      <PageHeader subtitle="Activa · funciones habilitadas" />
       <section className={styles.card} aria-labelledby="inventory-inclusion-title">
         <h2 id="inventory-inclusion-title" className={styles.cardTitle}>
           Inclusión automática

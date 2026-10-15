@@ -6,8 +6,9 @@ describe('admin format', () => {
   it.each([
     ['pendiente', 'Pendiente de aprobación', 'pending'],
     ['activa', 'Activa', 'active'],
+    ['gracia', 'En período de gracia', 'pending'],
     ['inactiva', 'Inactiva', 'inactive'],
-  ])('dealerState maps %s to the Figma label %s', (estado, label, tone) => {
+  ])('dealerState maps %s to the label %s', (estado, label, tone) => {
     expect(dealerState(estado)).toEqual({ label, tone })
   })
 

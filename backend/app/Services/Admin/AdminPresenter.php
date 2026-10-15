@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\ComprobantePago;
 use App\Models\Concesionaria;
+use App\Services\Subscription\SubscriptionLifecycle;
 use App\Support\PaymentReceipts;
 use App\Support\SuscripcionPresenter;
 
@@ -46,7 +47,11 @@ final class AdminPresenter
             'archivo_url' => route('admin.comprobantes.archivo', $receipt),
             'motivo_rechazo' => $receipt->motivo_rechazo,
             'fecha_revision' => $receipt->fecha_revision?->toIso8601String(),
-            'concesionaria' => self::dealer($receipt->suscripcion->concesionaria),
+            'concesionaria' => [
+                ...self::dealer($receipt->suscripcion->concesionaria),
+                // Effective state evaluated from the dates, as in the dealer directory.
+                'suscripcion_estado' => app(SubscriptionLifecycle::class)->state($receipt->suscripcion),
+            ],
         ];
     }
 }

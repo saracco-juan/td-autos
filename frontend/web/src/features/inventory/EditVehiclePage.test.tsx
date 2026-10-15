@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchBodyTypes, fetchVehicle, updateVehicle } from './api'
 import EditVehiclePage from './EditVehiclePage'
-import { vehiculo } from './fixtures'
+import { PAUSED_HINT, PAUSED_TEXT, inactiveBody, vehiculo } from './fixtures'
 
 vi.mock('./api', () => ({ fetchVehicle: vi.fn(), updateVehicle: vi.fn(), fetchBodyTypes: vi.fn() }))
 
@@ -80,6 +80,18 @@ describe('EditVehiclePage', () => {
     expect(sent.values.precio).toBe('17000000')
     expect(sent.newPhotos).toHaveLength(1)
     expect(sent.removedPhotoIds).toEqual([7])
+  })
+
+  it('shows the paused card under its own header when the subscription is inactive', async () => {
+    vi.mocked(fetchVehicle).mockRejectedValue(new HttpError(403, inactiveBody()))
+    renderPage()
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Tu inventario está pausado' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Editar vehículo' })).toBeInTheDocument()
+    expect(screen.getByText(PAUSED_TEXT)).toBeInTheDocument()
+    expect(screen.getByText(PAUSED_HINT)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
   })
 
   it('tells the dealer when the vehicle is not theirs or does not exist, with a way back', async () => {

@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { confirmImport, previewImport } from './api'
+import { inactiveBody } from './fixtures'
 import ImportInventoryPage from './ImportInventoryPage'
 
 vi.mock('./api', () => ({ previewImport: vi.fn(), confirmImport: vi.fn() }))
@@ -69,6 +70,19 @@ describe('ImportInventoryPage', () => {
     expect(screen.getByRole('link', { name: 'VOLVER AL INVENTARIO' })).toHaveAttribute('href', '/concesionaria/inventario')
     expect(confirmButton()).toBeDisabled()
     expect(previewHeading()).not.toBeInTheDocument()
+  })
+
+  it('explains an inactive subscription in a compact box with a way to renew when the preview is refused', async () => {
+    const body = inactiveBody()
+    vi.mocked(previewImport).mockRejectedValue(new HttpError(403, body))
+    renderPage()
+
+    await pick()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(body.message)
+    expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByText('Tu inventario está pausado')).not.toBeInTheDocument()
+    expect(screen.queryByText('No pudimos procesar el archivo. Probá de nuevo.')).not.toBeInTheDocument()
   })
 
   it('offers the CSV template as a download in the format card', () => {

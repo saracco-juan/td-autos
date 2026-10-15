@@ -34,8 +34,22 @@ export type UltimoComprobante = {
   fecha_revision: string | null
 }
 
+// Where the subscription stands by its dates: `gracia` is the three days after it expires (full access),
+// `inactiva` the retention window (inventory blocked, vehicles hidden).
+export type EstadoSuscripcion = 'pendiente' | 'activa' | 'gracia' | 'inactiva'
+
+// Dates are yyyy-mm-dd; `gracia_hasta` comes with activa, gracia and inactiva, `retencion_hasta` only with inactiva.
+export type VigenciaSuscripcion = {
+  estado: EstadoSuscripcion
+  vigente_desde: string | null
+  vigente_hasta: string | null
+  gracia_hasta: string | null
+  retencion_hasta: string | null
+}
+
 export type Suscripcion = {
   estado_alta: EstadoAlta
+  suscripcion: VigenciaSuscripcion
   tipo_pago: TipoPago
   // null when the transfer data are not configured: the dealer cannot send a receipt.
   transferencia: DatosTransferencia | null

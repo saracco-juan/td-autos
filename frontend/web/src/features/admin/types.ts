@@ -10,13 +10,16 @@ export type AdminDealer = {
   nombre: string
   localidad: string | null
   provincia: string | null
-  // 'pendiente' | 'activa' today; HU20 adds 'inactiva'.
   estado_alta: string | null
   contacto: DealerContact
 }
 
+// Effective subscription state (dates evaluated); null while the dealer has no subscription.
+export type SubscriptionState = 'pendiente' | 'activa' | 'gracia' | 'inactiva' | null
+
 // A row of GET /api/admin/concesionarias: dealers with a receipt to review come first.
 export type AdminDealerRow = AdminDealer & {
+  suscripcion_estado: SubscriptionState
   comprobante_pendiente_id: number | null
   // The latest receipt in any state, so an already decided one can still be opened.
   ultimo_comprobante_id: number | null
@@ -58,6 +61,10 @@ export type DealerSubscription = {
   // yyyy-mm-dd; null while there is no validity yet.
   vigente_desde: string | null
   vigente_hasta: string | null
+  // Last day of full access after expiring; set once the subscription was active.
+  gracia_hasta: string | null
+  // Last day the hidden vehicles are kept; only while inactive.
+  retencion_hasta: string | null
 }
 
 // A receipt of the dealer's history (newest first).
@@ -94,5 +101,5 @@ export type AdminReceipt = {
   archivo_url: string
   motivo_rechazo: string | null
   fecha_revision: string | null
-  concesionaria: AdminDealer
+  concesionaria: AdminDealer & { suscripcion_estado: SubscriptionState }
 }

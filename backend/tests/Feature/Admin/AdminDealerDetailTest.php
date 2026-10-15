@@ -94,6 +94,7 @@ class AdminDealerDetailTest extends TestCase
             'fecha_de_pago' => '2026-10-14 10:00:00',
         ]);
 
+        $this->travelTo('2026-10-01 10:00:00');
         $response = $this->actingAs($this->admin())->getJson($this->url($dealer))->assertOk();
 
         $response->assertJsonPath('id', $dealer->id);
@@ -112,6 +113,8 @@ class AdminDealerDetailTest extends TestCase
             'estado' => Suscripcion::ESTADO_ACTIVA,
             'vigente_desde' => '2026-09-14',
             'vigente_hasta' => '2026-10-14',
+            'gracia_hasta' => '2026-10-17',
+            'retencion_hasta' => null,
         ]);
         $this->assertSame([$second->id, $first->id], array_column($response->json('comprobantes'), 'id'));
         $response->assertJsonPath('comprobantes.0', [

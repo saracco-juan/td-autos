@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\ComprobantePago;
 use App\Models\Concesionaria;
 use App\Models\Suscripcion;
+use App\Services\Subscription\SubscriptionLifecycle;
 
 /**
  * Builds the subscription summary the dealer sees: account state, transfer data, pending receipt
@@ -31,6 +32,28 @@ final class SuscripcionPresenter
             'transferencia' => self::transfer(),
             'comprobante_pendiente' => $receipt ? self::receipt($receipt, $suscripcion) : null,
             'ultimo_comprobante' => $latest ? self::outcome($latest) : null,
+            'suscripcion' => self::validity($suscripcion),
+        ];
+    }
+
+    /**
+     * The effective subscription state and its dates (RF20, RF26), evaluated on read so the screen
+     * agrees with the inventory gate even before the scheduled command has run.
+     *
+     * @return array{estado: string, vigente_desde: ?string, vigente_hasta: ?string, gracia_hasta: ?string, retencion_hasta: ?string}
+     */
+    public static function validity(?Suscripcion $suscripcion): array
+    {
+        $lifecycle = app(SubscriptionLifecycle::class);
+        $state = $suscripcion ? $lifecycle->sync($suscripcion) : SubscriptionLifecycle::STATE_PENDING;
+        $graceUntil = $suscripcion ? ($suscripcion->gracia_hasta ?? $lifecycle->graceUntil($suscripcion)) : null;
+
+        return [
+            'estado' => $state,
+            'vigente_desde' => $state === SubscriptionLifecycle::STATE_PENDING ? null : $suscripcion->vigente_desde?->toDateString(),
+            'vigente_hasta' => $suscripcion?->vigente_hasta?->toDateString(),
+            'gracia_hasta' => $graceUntil?->toDateString(),
+            'retencion_hasta' => $suscripcion?->retencion_hasta?->toDateString(),
         ];
     }
 

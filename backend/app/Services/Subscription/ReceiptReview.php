@@ -7,6 +7,7 @@ use App\Models\Concesionaria;
 use App\Models\Suscripcion;
 use App\Models\User;
 use App\Notifications\PaymentReceiptReviewedNotification;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class ReceiptReview
 {
+    public function __construct(private readonly SubscriptionLifecycle $lifecycle) {}
+
     /**
      * @throws ReceiptAlreadyReviewedException
      */
@@ -24,11 +27,7 @@ final class ReceiptReview
         $activated = DB::transaction(function () use ($receipt, $admin): bool {
             $this->decide($receipt, $admin, ComprobantePago::ESTADO_APROBADO);
 
-            $receipt->suscripcion->forceFill([
-                'estado' => Suscripcion::ESTADO_ACTIVA,
-                'vigente_desde' => $receipt->periodo_desde,
-                'vigente_hasta' => $receipt->periodo_hasta,
-            ])->save();
+            $this->applyPeriod($receipt);
 
             $dealer = $receipt->suscripcion->concesionaria;
 
@@ -45,6 +44,39 @@ final class ReceiptReview
         $this->notifyDealer($receipt, $activated);
 
         return $receipt;
+    }
+
+    /**
+     * Set the validity the approval grants and make the receipt record the period actually applied.
+     * The first payment keeps the receipt period; a renewal continues from the end of the current
+     * validity (valid or in grace, no free days and never backwards), or starts today once the
+     * subscription is inactive. Vehicles hidden by the inactivation stay hidden: republishing them
+     * belongs to HU23.
+     */
+    private function applyPeriod(ComprobantePago $receipt): void
+    {
+        $subscription = $receipt->suscripcion;
+        $from = $receipt->periodo_desde;
+        $to = $receipt->periodo_hasta;
+
+        if ($subscription->vigente_hasta !== null) {
+            $from = $this->lifecycle->state($subscription) === SubscriptionLifecycle::STATE_INACTIVE
+                ? Carbon::today()
+                : $subscription->vigente_hasta->copy()->addDay();
+            // Same month arithmetic as the receipt upload (SuscripcionController::createReceipt).
+            $to = $from->copy()->addMonth();
+
+            $receipt->forceFill(['periodo_desde' => $from, 'periodo_hasta' => $to])->save();
+        }
+
+        $subscription->forceFill([
+            'estado' => Suscripcion::ESTADO_ACTIVA,
+            'vigente_desde' => $from,
+            'vigente_hasta' => $to,
+            'gracia_hasta' => null,
+            'inactiva_desde' => null,
+            'retencion_hasta' => null,
+        ])->save();
     }
 
     /**

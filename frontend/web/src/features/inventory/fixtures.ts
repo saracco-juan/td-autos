@@ -39,3 +39,20 @@ export const VEHICULOS: Vehiculo[] = [
     ubicacion: 'Rosario',
   }),
 ]
+
+// Body of the 403 that blocks the inventory of an inactive subscription (RF21).
+export const INACTIVE_MESSAGE = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
+
+export function inactiveBody(overrides: Record<string, unknown> = {}) {
+  return {
+    message: INACTIVE_MESSAGE,
+    code: 'subscription_inactive',
+    suscripcion: { vigente_hasta: '2026-10-10', retencion_hasta: '2026-11-13' },
+    vehiculos_conservados: 2,
+    ...overrides,
+  }
+}
+
+export const PAUSED_TEXT =
+  'Tu suscripción venció el 10/10/2026 y terminó el período de gracia. Tus 2 vehículos no se publican, pero los conservamos hasta el 13/11/2026.'
+export const PAUSED_HINT = 'Subí el comprobante de renovación: cuando se apruebe, vas a poder volver a gestionar tu inventario.'

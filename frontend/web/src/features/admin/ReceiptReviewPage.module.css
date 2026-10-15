@@ -47,6 +47,13 @@
   font-weight: 600;
 }
 
+.dealerState {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
 .cardText,
 .muted {
   margin: 0;

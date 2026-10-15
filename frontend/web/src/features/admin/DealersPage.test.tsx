@@ -77,11 +77,37 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
     expect(centro.getByText('Activa')).toHaveAttribute('data-tone', 'active')
   })
 
-  it('shows Inactiva with its own tone', async () => {
-    vi.mocked(fetchDealerDirectory).mockResolvedValue(directory({ concesionarias: [dealerRow({ estado_alta: 'inactiva' })] }))
+  it('shows Inactiva muted with a red tag when the subscription is inactive', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [dealerRow({ estado_alta: 'activa', suscripcion_estado: 'inactiva', comprobante_pendiente_id: null, ultimo_comprobante_estado: null })],
+      }),
+    )
     renderPage()
 
     expect(await screen.findByText('Inactiva')).toHaveAttribute('data-tone', 'inactive')
+    expect(screen.getByText('Suscripción vencida')).toHaveAttribute('data-tone', 'rejected')
+    expect(screen.queryByText('Activa')).not.toBeInTheDocument()
+  })
+
+  it('shows Activa with a warning tag during the grace period', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [dealerRow({ estado_alta: 'activa', suscripcion_estado: 'gracia', comprobante_pendiente_id: null, ultimo_comprobante_estado: null })],
+      }),
+    )
+    renderPage()
+
+    expect(await screen.findByText('Activa')).toHaveAttribute('data-tone', 'active')
+    expect(screen.getByText('En período de gracia')).toHaveAttribute('data-tone', 'warning')
+  })
+
+  it('shows no tag for a dealer with a valid or without a subscription', async () => {
+    renderPage()
+    await screen.findByRole('table')
+
+    expect(screen.queryByText('Suscripción vencida')).not.toBeInTheDocument()
+    expect(screen.queryByText('En período de gracia')).not.toBeInTheDocument()
   })
 
   it('VER COMPROBANTE opens the pending receipt, or the latest one when none is pending', async () => {

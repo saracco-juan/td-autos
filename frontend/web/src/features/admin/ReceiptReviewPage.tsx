@@ -10,11 +10,12 @@ import Field from '../auth/shared/Field'
 import fieldStyles from '../auth/shared/authForm.module.css'
 import { formatSentDate } from '../subscription/format'
 import { approveReceipt, fetchReceipt, rejectReceipt } from './api'
-import { dealerLocation, dealerState, formatDay, receiptState, receiptTone, validateRejectReason } from './format'
+import { accountState, dealerLocation, formatDay, receiptState, receiptTone, validateRejectReason } from './format'
 import BackLink from './BackLink'
 import MissingState from './MissingState'
 import ReceiptPreview from './ReceiptPreview'
 import styles from './ReceiptReviewPage.module.css'
+import StateTag from './StateTag'
 import type { AdminReceipt } from './types'
 
 type LoadState = 'loading' | 'missing' | { error: ErrorKind } | { receipt: AdminReceipt }
@@ -182,6 +183,7 @@ export default function ReceiptReviewPage() {
   const pending = receipt.estado === PENDING
   const contact = [dealer.contacto.email, dealer.contacto.telefono].filter(Boolean).join(' · ')
   const place = dealerLocation(dealer)
+  const dealerStatus = accountState(dealer.estado_alta, dealer.suscripcion_estado)
   const tipo = receipt.tipo === 'renovacion' ? 'Renovación' : 'Alta'
 
   return (
@@ -212,7 +214,10 @@ export default function ReceiptReviewPage() {
             <p className={styles.cardText}>{contact || 'Sin datos de contacto'}</p>
           </InfoCard>
           <InfoCard id="receipt-dealer-state" title="Estado de la concesionaria">
-            <p className={styles.cardText}>{dealerState(dealer.estado_alta).label}</p>
+            <div className={styles.dealerState}>
+              <p className={styles.cardText}>{dealerStatus.label}</p>
+              {dealerStatus.tag ? <StateTag tag={dealerStatus.tag} /> : null}
+            </div>
           </InfoCard>
           <InfoCard id="receipt-state" title="Estado del comprobante">
             <p className={styles.receiptState} data-tone={receiptTone(receipt.estado)}>

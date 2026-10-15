@@ -125,6 +125,7 @@ class AdminDealersAndReceiptsTest extends TestCase
                 'email' => $zeta->usuario->email,
                 'telefono' => $zeta->telefono_responsable,
             ],
+            'suscripcion_estado' => 'pendiente',
             'comprobante_pendiente_id' => $pending->id,
             'ultimo_comprobante_id' => $pending->id,
             'ultimo_comprobante_estado' => ComprobantePago::ESTADO_PENDIENTE_REVISION,
@@ -192,8 +193,35 @@ class AdminDealersAndReceiptsTest extends TestCase
                         'email' => $dealer->usuario->email,
                         'telefono' => $dealer->telefono_responsable,
                     ],
+                    'suscripcion_estado' => 'pendiente',
                 ],
             ]);
+    }
+
+    public function test_the_receipt_detail_carries_the_effective_subscription_state_of_its_dealer(): void
+    {
+        $dealer = Concesionaria::factory()->active()->create();
+        $subscription = Suscripcion::factory()->create([
+            'concesionaria_id' => $dealer->id,
+            'estado' => Suscripcion::ESTADO_ACTIVA,
+            'vigente_desde' => '2026-08-01',
+            'vigente_hasta' => '2026-09-10',
+        ]);
+        $receipt = $this->receipt($dealer, ['estado' => ComprobantePago::ESTADO_APROBADO]);
+        $admin = $this->admin();
+
+        // Due on 2026-09-10 and more than three days ago: inactive although estado_alta is still activa.
+        $this->actingAs($admin)
+            ->getJson($this->receiptUrl($receipt))
+            ->assertOk()
+            ->assertJsonPath('concesionaria.estado_alta', Concesionaria::ESTADO_ACTIVA)
+            ->assertJsonPath('concesionaria.suscripcion_estado', 'inactiva');
+
+        $subscription->update(['vigente_hasta' => '2026-10-12']);
+
+        $this->actingAs($admin)
+            ->getJson($this->receiptUrl($receipt))
+            ->assertJsonPath('concesionaria.suscripcion_estado', 'gracia');
     }
 
     public function test_a_receipt_after_an_approved_one_is_a_renewal(): void

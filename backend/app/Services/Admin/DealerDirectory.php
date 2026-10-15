@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\ComprobantePago;
 use App\Models\Concesionaria;
+use App\Services\Subscription\SubscriptionLifecycle;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -18,7 +19,7 @@ final class DealerDirectory
     public function summary(): array
     {
         $dealers = Concesionaria::query()
-            ->with('usuario:id,email')
+            ->with(['usuario:id,email', 'suscripcion'])
             ->addSelect([
                 'concesionaria.*',
                 'comprobante_pendiente_id' => $this->latestReceiptId()->pendientes(),
@@ -32,15 +33,20 @@ final class DealerDirectory
             ->sortBy(fn (Concesionaria $dealer) => $dealer->comprobante_pendiente_id === null ? 1 : 0)
             ->values();
 
+        // An inactive subscription keeps estado_alta = activa; the counters are disjoint, so it only counts as inactive.
+        $lifecycle = app(SubscriptionLifecycle::class);
+        $inactive = $lifecycle->inactiveCount();
+
         return [
             'conteos' => [
-                'activas' => $dealers->where('estado_alta', Concesionaria::ESTADO_ACTIVA)->count(),
+                'activas' => $dealers->where('estado_alta', Concesionaria::ESTADO_ACTIVA)->count() - $inactive,
                 'pendientes' => $dealers->where('estado_alta', Concesionaria::ESTADO_PENDIENTE)->count(),
-                // Inactivation arrives with HU20; the key is part of the contract already.
-                'inactivas' => 0,
+                'inactivas' => $inactive,
             ],
             'concesionarias' => $dealers->map(fn (Concesionaria $dealer) => [
                 ...AdminPresenter::dealer($dealer),
+                // Effective state evaluated from the dates, so a due subscription reads inactive before the command runs.
+                'suscripcion_estado' => $dealer->suscripcion ? $lifecycle->state($dealer->suscripcion) : null,
                 'comprobante_pendiente_id' => $dealer->comprobante_pendiente_id,
                 'ultimo_comprobante_id' => $dealer->ultimo_comprobante_id,
                 'ultimo_comprobante_estado' => $dealer->ultimo_comprobante_estado,

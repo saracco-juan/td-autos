@@ -7,13 +7,14 @@ import screenStyles from '../../components/screen.module.css'
 import { NetworkError } from '../../lib/http'
 import { DEALER_STATE_ACTIVE } from '../auth/roles'
 import SessionLoading from '../auth/session/SessionLoading'
+import { formatDay } from '../admin/format'
 import { accountStatusText } from '../dealer/accountStatus'
 import { INVENTORY_PATH } from '../inventory/inventoryRoutes'
 import { fetchSubscription, sendReceipt } from './api'
 import { formatMonthlyAmount, formatSentDate } from './format'
 import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from './receipt'
 import styles from './SubscriptionPage.module.css'
-import type { DatosTransferencia, Suscripcion, UltimoComprobante } from './types'
+import type { DatosTransferencia, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from './types'
 
 function reviewText(pending: boolean, rejected: boolean): string {
   if (pending) return 'Tu comprobante está en revisión.'
@@ -65,6 +66,25 @@ function TransferData({ data, kind }: { data: DatosTransferencia | null; kind: s
       </dl>
     </>
   )
+}
+
+// Not in Figma: the subscription expired. Grace keeps full access until the deadline; inactive hides the vehicles for 30 days.
+function ValidityNotice({ validity }: { validity: VigenciaSuscripcion }) {
+  if (validity.estado === 'gracia' && validity.vigente_hasta && validity.gracia_hasta) {
+    return (
+      <p role="status" className={alertStyles.warning}>
+        {`Tu suscripción venció el ${formatDay(validity.vigente_hasta)}. Tenés hasta el ${formatDay(validity.gracia_hasta)} para que se apruebe la renovación; después tus vehículos dejan de publicarse.`}
+      </p>
+    )
+  }
+  if (validity.estado === 'inactiva' && validity.retencion_hasta) {
+    return (
+      <p role="alert" className={alertStyles.alert}>
+        {`Tu suscripción está inactiva y tus vehículos no se publican. Los conservamos hasta el ${formatDay(validity.retencion_hasta)}: subí el comprobante de renovación para recuperarlos.`}
+      </p>
+    )
+  }
+  return null
 }
 
 // Not in Figma: the latest receipt was rejected. The reason tells the dealer what to fix before sending a new one.
@@ -150,6 +170,7 @@ export default function SubscriptionPage() {
   if ('error' in load) return <ErrorState kind={load.error} onRetry={retry} />
 
   const summary = load.ready
+  const validity = summary.suscripcion
   const receipt = summary.comprobante_pendiente
   const rejected = !receipt && summary.ultimo_comprobante?.estado === 'rechazado' ? summary.ultimo_comprobante : null
   const kind = summary.tipo_pago === 'alta' ? 'Pago de alta inicial' : 'Renovación mensual'
@@ -164,10 +185,14 @@ export default function SubscriptionPage() {
         <h1 className={screenStyles.title}>Suscripción y comprobantes</h1>
         <p className={styles.subtitle}>Transferencia bancaria para el alta inicial y la renovación mensual.</p>
       </div>
+      <ValidityNotice validity={validity} />
       {rejected ? <RejectedNotice receipt={rejected} /> : null}
       <div className={styles.cards}>
         <Card title="Estado de la cuenta">
-          <Body accent>{accountStatusText(summary.estado_alta)}</Body>
+          <Body accent>{validity.estado === 'inactiva' ? 'Inactiva · suscripción vencida' : accountStatusText(summary.estado_alta)}</Body>
+          {validity.estado === 'activa' && validity.vigente_hasta ? (
+            <Body>{`Suscripción vigente hasta el ${formatDay(validity.vigente_hasta)}`}</Body>
+          ) : null}
         </Card>
         <Card title="Comprobante">
           <Body>{receiptText}</Body>
@@ -226,7 +251,7 @@ export default function SubscriptionPage() {
             </button>
           </>
         )}
-        {summary.estado_alta === DEALER_STATE_ACTIVE ? (
+        {summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva' ? (
           <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.inventory}`}>
             VER INVENTARIO
           </Link>

@@ -1,4 +1,4 @@
-import type { AdminDealerRow, AdminReceipt, DealerDetail, DealerDirectory } from './types'
+import type { AdminDealerRow, AdminReceipt, DealerDetail, DealerDirectory, DealerSubscription } from './types'
 
 export function dealerRow(overrides: Partial<AdminDealerRow> = {}): AdminDealerRow {
   return {
@@ -7,6 +7,7 @@ export function dealerRow(overrides: Partial<AdminDealerRow> = {}): AdminDealerR
     localidad: 'CABA',
     provincia: 'CABA',
     estado_alta: 'pendiente',
+    suscripcion_estado: null,
     contacto: { email: 'sur@example.com', telefono: '11 4000-0000' },
     comprobante_pendiente_id: 31,
     ultimo_comprobante_id: 31,
@@ -26,6 +27,7 @@ export function directory(overrides: Partial<DealerDirectory> = {}): DealerDirec
         localidad: 'Rosario',
         provincia: 'Santa Fe',
         estado_alta: 'activa',
+        suscripcion_estado: 'activa',
         contacto: { email: 'centro@example.com', telefono: '341 400-0000' },
         comprobante_pendiente_id: null,
         ultimo_comprobante_id: 27,
@@ -47,6 +49,10 @@ export function directory(overrides: Partial<DealerDirectory> = {}): DealerDirec
   }
 }
 
+export function dealerSubscription(overrides: Partial<DealerSubscription> = {}): DealerSubscription {
+  return { estado: 'pendiente', vigente_desde: null, vigente_hasta: null, gracia_hasta: null, retencion_hasta: null, ...overrides }
+}
+
 export function dealerDetail(overrides: Partial<DealerDetail> = {}): DealerDetail {
   return {
     id: 5,
@@ -61,7 +67,12 @@ export function dealerDetail(overrides: Partial<DealerDetail> = {}): DealerDetai
     localidad: 'CABA',
     provincia: 'CABA',
     estado_alta: 'activa',
-    suscripcion: { estado: 'activa', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13' },
+    suscripcion: dealerSubscription({
+      estado: 'activa',
+      vigente_desde: '2026-09-14',
+      vigente_hasta: '2026-10-13',
+      gracia_hasta: '2026-10-16',
+    }),
     comprobantes: [
       {
         id: 31,
@@ -117,6 +128,7 @@ export function receipt(overrides: Partial<AdminReceipt> = {}): AdminReceipt {
       provincia: 'CABA',
       estado_alta: 'pendiente',
       contacto: { email: 'sur@example.com', telefono: '11 4000-0000' },
+      suscripcion_estado: 'pendiente',
     },
     ...overrides,
   }

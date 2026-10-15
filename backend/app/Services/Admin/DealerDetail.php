@@ -34,11 +34,7 @@ final class DealerDetail
             'localidad' => $dealer->localidad,
             'provincia' => $dealer->provincia,
             'estado_alta' => $dealer->estado_alta,
-            'suscripcion' => $subscription ? [
-                'estado' => $subscription->estado,
-                'vigente_desde' => $subscription->vigente_desde?->toDateString(),
-                'vigente_hasta' => $subscription->vigente_hasta?->toDateString(),
-            ] : null,
+            'suscripcion' => $subscription ? SuscripcionPresenter::validity($subscription) : null,
             'comprobantes' => $this->receipts($subscription),
         ];
     }

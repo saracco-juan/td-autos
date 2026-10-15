@@ -4,7 +4,7 @@ import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { deleteVehicle, fetchVehicles } from './api'
-import { VEHICULOS, vehiculo } from './fixtures'
+import { PAUSED_HINT, PAUSED_TEXT, VEHICULOS, inactiveBody, vehiculo } from './fixtures'
 import InventoryPage from './InventoryPage'
 
 vi.mock('./api', () => ({ fetchVehicles: vi.fn(), deleteVehicle: vi.fn() }))
@@ -63,6 +63,23 @@ describe('InventoryPage', () => {
     await loaded()
 
     expect(screen.queryByText('SUSCRIPCIÓN')).not.toBeInTheDocument()
+  })
+
+  it('keeps the header and shows the paused card with a way to renew when the subscription is inactive', async () => {
+    vi.mocked(fetchVehicles).mockRejectedValue(new HttpError(403, inactiveBody()))
+    renderPage()
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Tu inventario está pausado' })).toBeInTheDocument()
+    expect(screen.getByText('INVENTARIO')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Inventario' })).toBeInTheDocument()
+    expect(screen.getByText('Inactiva · funciones bloqueadas')).toBeInTheDocument()
+    expect(screen.getByText(PAUSED_TEXT)).toBeInTheDocument()
+    expect(screen.getByText(PAUSED_HINT)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByRole('link', { name: 'CARGAR VEHÍCULO' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'IMPORTAR CSV' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
   })
 
   it('lists every vehicle with title, meta, EDITAR and ELIMINAR', async () => {
