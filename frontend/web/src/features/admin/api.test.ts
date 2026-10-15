@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('../../lib/http', () => ({ apiFetch: vi.fn(), apiFetchBlob: vi.fn() }))
 
 import { apiFetch, apiFetchBlob } from '../../lib/http'
-import { approveReceipt, fetchDealerDirectory, fetchReceipt, fetchReceiptFile, rejectReceipt } from './api'
-import { directory, receipt } from './fixtures'
+import { approveReceipt, fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile, rejectReceipt, updateDealer } from './api'
+import { dealerDetail, directory, receipt } from './fixtures'
 
 describe('admin api', () => {
   beforeEach(() => {
@@ -54,6 +54,23 @@ describe('admin api', () => {
     })
   })
 
+  it('fetchDealer GETs the dealer detail', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(dealerDetail())
+
+    await expect(fetchDealer(5)).resolves.toEqual(dealerDetail())
+    expect(apiFetch).toHaveBeenCalledWith('/api/admin/concesionarias/5')
+  })
+
+  it('updateDealer PUTs the editable data and returns the dealer as it is after saving', async () => {
+    const saved = dealerDetail({ nombre: 'Sur Motors' })
+    const { id, estado_alta, suscripcion, comprobantes, ...values } = saved
+    void [id, estado_alta, suscripcion, comprobantes]
+    vi.mocked(apiFetch).mockResolvedValue(saved)
+
+    await expect(updateDealer(5, values)).resolves.toEqual(saved)
+    expect(apiFetch).toHaveBeenCalledWith('/api/admin/concesionarias/5', { method: 'PUT', body: values })
+  })
+
   it('lets the errors of apiFetch propagate', async () => {
     const failure = new Error('HTTP 500')
     vi.mocked(apiFetch).mockRejectedValue(failure)
@@ -62,5 +79,7 @@ describe('admin api', () => {
     await expect(fetchReceipt(31)).rejects.toBe(failure)
     await expect(approveReceipt(31)).rejects.toBe(failure)
     await expect(rejectReceipt(31, 'x')).rejects.toBe(failure)
+    await expect(fetchDealer(5)).rejects.toBe(failure)
+    await expect(updateDealer(5, dealerDetail())).rejects.toBe(failure)
   })
 })

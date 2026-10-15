@@ -144,6 +144,13 @@
   white-space: nowrap;
 }
 
+/* EDITAR next to VER COMPROBANTE (or "Sin comprobante"), 12 apart as in Figma "Acciones". */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .rowAction {
   width: 150px;
   height: 36px;

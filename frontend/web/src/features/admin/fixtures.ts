@@ -1,4 +1,4 @@
-import type { AdminDealerRow, AdminReceipt, DealerDirectory } from './types'
+import type { AdminDealerRow, AdminReceipt, DealerDetail, DealerDirectory } from './types'
 
 export function dealerRow(overrides: Partial<AdminDealerRow> = {}): AdminDealerRow {
   return {
@@ -42,6 +42,57 @@ export function directory(overrides: Partial<DealerDirectory> = {}): DealerDirec
         ultimo_comprobante_id: null,
         ultimo_comprobante_estado: null,
       }),
+    ],
+    ...overrides,
+  }
+}
+
+export function dealerDetail(overrides: Partial<DealerDetail> = {}): DealerDetail {
+  return {
+    id: 5,
+    nombre: 'Concesionaria Sur',
+    responsable_nombre: 'Marta',
+    responsable_apellido: 'Gómez',
+    responsable_dni: '30111222',
+    telefono_responsable: '11 4444-5555',
+    telefono_publico: '11 4000-0000',
+    email: 'sur@example.com',
+    direccion: 'Av. Ejemplo 1234',
+    localidad: 'CABA',
+    provincia: 'CABA',
+    estado_alta: 'activa',
+    suscripcion: { estado: 'activa', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13' },
+    comprobantes: [
+      {
+        id: 31,
+        tipo: 'renovacion',
+        estado: 'pendiente de revisión',
+        periodo_desde: '2026-10-14',
+        periodo_hasta: '2026-11-13',
+        enviado_en: '2026-10-14T13:00:00+00:00',
+        motivo_rechazo: null,
+        fecha_revision: null,
+      },
+      {
+        id: 27,
+        tipo: 'alta',
+        estado: 'aprobado',
+        periodo_desde: '2026-09-14',
+        periodo_hasta: '2026-10-13',
+        enviado_en: '2026-09-14T13:00:00+00:00',
+        motivo_rechazo: null,
+        fecha_revision: '2026-09-15T13:00:00+00:00',
+      },
+      {
+        id: 20,
+        tipo: 'alta',
+        estado: 'rechazado',
+        periodo_desde: '2026-08-14',
+        periodo_hasta: '2026-09-13',
+        enviado_en: '2026-08-14T13:00:00+00:00',
+        motivo_rechazo: 'El monto no coincide con la cuota.',
+        fecha_revision: '2026-08-15T13:00:00+00:00',
+      },
     ],
     ...overrides,
   }
