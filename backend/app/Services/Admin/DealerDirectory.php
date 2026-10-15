@@ -33,11 +33,14 @@ final class DealerDirectory
             ->sortBy(fn (Concesionaria $dealer) => $dealer->comprobante_pendiente_id === null ? 1 : 0)
             ->values();
 
+        // An inactive subscription keeps estado_alta = activa; the counters are disjoint, so it only counts as inactive.
+        $inactive = app(SubscriptionLifecycle::class)->inactiveCount();
+
         return [
             'conteos' => [
-                'activas' => $dealers->where('estado_alta', Concesionaria::ESTADO_ACTIVA)->count(),
+                'activas' => $dealers->where('estado_alta', Concesionaria::ESTADO_ACTIVA)->count() - $inactive,
                 'pendientes' => $dealers->where('estado_alta', Concesionaria::ESTADO_PENDIENTE)->count(),
-                'inactivas' => app(SubscriptionLifecycle::class)->inactiveCount(),
+                'inactivas' => $inactive,
             ],
             'concesionarias' => $dealers->map(fn (Concesionaria $dealer) => [
                 ...AdminPresenter::dealer($dealer),

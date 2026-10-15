@@ -154,7 +154,8 @@ class SubscriptionAccessTest extends TestCase
 
         $this->actingAs($admin)->getJson('/api/admin/concesionarias')
             ->assertOk()
-            ->assertJsonPath('conteos.inactivas', 2);
+            // The dashboard shows the counters as parts of one total: an inactive dealer is not also active.
+            ->assertJsonPath('conteos', ['activas' => 2, 'pendientes' => 0, 'inactivas' => 2]);
 
         $this->actingAs($admin)->getJson("/api/admin/concesionarias/{$due->id}")
             ->assertJsonPath('suscripcion.estado', 'inactiva')
