@@ -11,6 +11,8 @@ import fieldStyles from '../auth/shared/authForm.module.css'
 import { formatSentDate } from '../subscription/format'
 import { approveReceipt, fetchReceipt, rejectReceipt } from './api'
 import { dealerLocation, dealerState, formatDay, receiptState, receiptTone, validateRejectReason } from './format'
+import BackLink from './BackLink'
+import MissingState from './MissingState'
 import ReceiptPreview from './ReceiptPreview'
 import styles from './ReceiptReviewPage.module.css'
 import type { AdminReceipt } from './types'
@@ -38,17 +40,6 @@ function InfoCard({ id, title, children }: { id: string; title: string; children
       </h2>
       {children}
     </section>
-  )
-}
-
-function BackLink() {
-  return (
-    <Link to="/admin/concesionarias" className={styles.backLink}>
-      <span aria-hidden="true" className={styles.backIcon}>
-        ‹
-      </span>
-      Volver a concesionarias
-    </Link>
   )
 }
 
@@ -182,14 +173,7 @@ export default function ReceiptReviewPage() {
 
   if (loadState === 'loading') return <SessionLoading />
   if (loadState === 'missing') {
-    return (
-      <div className={styles.missing}>
-        <p role="alert" className={alertStyles.alert}>
-          No encontramos el comprobante.
-        </p>
-        <BackLink />
-      </div>
-    )
+    return <MissingState message="No encontramos el comprobante." />
   }
   if ('error' in loadState) return <ErrorState kind={loadState.error} onRetry={retry} />
 

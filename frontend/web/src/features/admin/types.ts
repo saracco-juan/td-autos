@@ -37,6 +37,49 @@ export type DealerDirectory = {
 
 export type ReceiptState = 'pendiente de revisión' | 'aprobado' | 'rechazado'
 
+// Editable data of a dealer: the body of PUT /api/admin/concesionarias/{id} (RF32); every key is required.
+export type DealerFormValues = {
+  nombre: string
+  responsable_nombre: string
+  responsable_apellido: string
+  responsable_dni: string
+  telefono_responsable: string
+  telefono_publico: string
+  email: string
+  direccion: string
+  localidad: string
+  provincia: string
+}
+
+export type DealerFormField = keyof DealerFormValues
+
+export type DealerSubscription = {
+  estado: string
+  // yyyy-mm-dd; null while there is no validity yet.
+  vigente_desde: string | null
+  vigente_hasta: string | null
+}
+
+// A receipt of the dealer's history (newest first).
+export type DealerReceiptRow = {
+  id: number
+  tipo: 'alta' | 'renovacion'
+  estado: ReceiptState
+  periodo_desde: string
+  periodo_hasta: string
+  enviado_en: string | null
+  motivo_rechazo: string | null
+  fecha_revision: string | null
+}
+
+// GET /api/admin/concesionarias/{id}, and the answer of the PUT.
+export type DealerDetail = DealerFormValues & {
+  id: number
+  estado_alta: string | null
+  suscripcion: DealerSubscription | null
+  comprobantes: DealerReceiptRow[]
+}
+
 // GET /api/admin/comprobantes/{id}, and the answer of aprobar / rechazar.
 export type AdminReceipt = {
   id: number

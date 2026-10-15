@@ -36,24 +36,33 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
         </div>
       </td>
       <td>
-        {receiptId === null ? (
-          <span className={styles.muted}>Sin comprobante</span>
-        ) : (
+        <div className={styles.actions}>
           <Link
-            to={`/admin/comprobantes/${receiptId}`}
-            aria-label={`Ver comprobante de ${dealer.nombre}`}
+            to={`/admin/concesionarias/${dealer.id}`}
+            aria-label={`Editar ${dealer.nombre}`}
             className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.rowAction}`}
           >
-            VER COMPROBANTE
+            EDITAR
           </Link>
-        )}
+          {receiptId === null ? (
+            <span className={styles.muted}>Sin comprobante</span>
+          ) : (
+            <Link
+              to={`/admin/comprobantes/${receiptId}`}
+              aria-label={`Ver comprobante de ${dealer.nombre}`}
+              className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.rowAction}`}
+            >
+              VER COMPROBANTE
+            </Link>
+          )}
+        </div>
       </td>
     </tr>
   )
 }
 
 // Dealer list (Figma 38:1037, UH19): dealers waiting for a review first, as the API orders them.
-// EDITAR of the frame belongs to HU27.
+// EDITAR opens the dealer page (UH27).
 export default function DealersPage() {
   const { state, retry } = useDealerDirectory()
 

@@ -205,6 +205,11 @@ describe('AppShell', () => {
       renderShell('/admin/comprobantes/7')
       expect(screen.getByRole('link', { name: 'Concesionarias' })).toHaveAttribute('aria-current', 'page')
       expect(screen.getByRole('link', { name: 'Administración' })).not.toHaveAttribute('aria-current')
+      cleanup()
+
+      renderShell('/admin/concesionarias/5')
+      expect(screen.getByRole('link', { name: 'Concesionarias' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('link', { name: 'Administración' })).not.toHaveAttribute('aria-current')
     })
   })
 

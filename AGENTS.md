@@ -44,6 +44,7 @@ Agent memory travels between machines through the repo, one folder per developer
 - Run every `engram sync` from inside the folder and pass `--project td-autos` when exporting: Engram takes the project name from the current folder otherwise.
 - Session start (after pulling): from your folder, `engram sync --import`.
 - Session end: from your folder, `engram sync --project td-autos`, then the developer commits `engram/<name>/` with the rest of the work.
+- Before handing over commit commands, run that export and include `engram/<name>/` in the commands whenever it changed, so the memory travels with the work it describes.
 - To see the other developer's context, run `engram sync --import` from their folder, then search Engram with project `td-autos`. This copies their memories into your local database; it never writes to their folder.
 
 ## Closing a task

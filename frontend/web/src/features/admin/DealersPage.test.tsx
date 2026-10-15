@@ -15,6 +15,7 @@ function renderPage() {
       <Routes>
         <Route path="/admin/concesionarias" element={<DealersPage />} />
         <Route path="/admin/comprobantes/:id" element={<p>Revisión del comprobante</p>} />
+        <Route path="/admin/concesionarias/:id" element={<p>Edición de la concesionaria</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -99,15 +100,34 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
     expect(screen.getByText('Revisión del comprobante')).toBeInTheDocument()
   })
 
-  it('shows "Sin comprobante" instead of VER COMPROBANTE for a dealer that never sent one, and no EDITAR (HU27)', async () => {
+  it('shows "Sin comprobante" instead of VER COMPROBANTE for a dealer that never sent one', async () => {
     renderPage()
     await screen.findByRole('table')
 
     const norte = within(row('Autos Norte'))
     expect(norte.queryByRole('link', { name: /Ver comprobante/ })).not.toBeInTheDocument()
     expect(norte.getByText('Sin comprobante')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /editar/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /editar/i })).not.toBeInTheDocument()
+  })
+
+  it('UH27: EDITAR opens the dealer page, on every row, with or without a receipt', async () => {
+    renderPage()
+    await screen.findByRole('table')
+
+    expect(within(row('Concesionaria Sur')).getByRole('link', { name: 'Editar Concesionaria Sur' })).toHaveAttribute(
+      'href',
+      '/admin/concesionarias/5',
+    )
+    expect(within(row('Automotores Centro')).getByRole('link', { name: 'Editar Automotores Centro' })).toHaveAttribute(
+      'href',
+      '/admin/concesionarias/6',
+    )
+    expect(within(row('Autos Norte')).getByRole('link', { name: 'Editar Autos Norte' })).toHaveAttribute(
+      'href',
+      '/admin/concesionarias/7',
+    )
+
+    await userEvent.setup().click(within(row('Autos Norte')).getByRole('link', { name: 'Editar Autos Norte' }))
+    expect(screen.getByText('Edición de la concesionaria')).toBeInTheDocument()
   })
 
   it('flags a dealer whose latest receipt was rejected, next to its unchanged state', async () => {
