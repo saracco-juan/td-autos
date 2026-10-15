@@ -24,3 +24,6 @@ export type Vehiculo = {
 
 export type VehiculosResponse = { vehiculos: Vehiculo[] }
 export type VehiculoResponse = { vehiculo: Vehiculo }
+
+// What both CSV import endpoints answer: how many vehicles the file creates and how many it updates.
+export type ImportCounts = { nuevos: number; actualizaciones: number }

@@ -18,6 +18,7 @@ import DiagnosisPage from '../features/diagnosis/DiagnosisPage'
 import HomeRoute from '../features/home/HomeRoute'
 import InspectionPage from '../features/inspection/InspectionPage'
 import EditVehiclePage from '../features/inventory/EditVehiclePage'
+import ImportInventoryPage from '../features/inventory/ImportInventoryPage'
 import InventoryPage from '../features/inventory/InventoryPage'
 import NewVehiclePage from '../features/inventory/NewVehiclePage'
 import ProfilePage from '../features/profile/ProfilePage'
@@ -68,6 +69,7 @@ export const routes: RouteObject[] = [
                     children: [
                       { path: '/concesionaria/inventario', element: <InventoryPage /> },
                       { path: '/concesionaria/inventario/nuevo', element: <NewVehiclePage /> },
+                      { path: '/concesionaria/inventario/importar', element: <ImportInventoryPage /> },
                       { path: '/concesionaria/inventario/:id/editar', element: <EditVehiclePage /> },
                     ],
                   },
