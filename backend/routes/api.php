@@ -38,6 +38,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
         Route::post('/importar/vista-previa', [ConcesionariaVehiculoImportController::class, 'preview']);
+        Route::post('/importar', [ConcesionariaVehiculoImportController::class, 'import']);
         Route::get('/', [ConcesionariaVehiculoController::class, 'index']);
         Route::post('/', [ConcesionariaVehiculoController::class, 'store']);
         Route::get('/{id}', [ConcesionariaVehiculoController::class, 'show'])->whereNumber('id');
