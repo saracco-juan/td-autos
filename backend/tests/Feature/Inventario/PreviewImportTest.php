@@ -106,6 +106,14 @@ class PreviewImportTest extends TestCase
         ])->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
     }
 
+    public function test_transmission_and_fuel_ignore_case_and_accents(): void
+    {
+        $this->previewRows($this->dealer(), [
+            $this->csvRow(['transmision' => 'Automática', 'combustible' => 'NAFTA']),
+            $this->csvRow(['patente' => 'ABC123', 'transmision' => ' manual ', 'combustible' => 'Híbrido']),
+        ])->assertOk()->assertExactJson(['nuevos' => 2, 'actualizaciones' => 0]);
+    }
+
     public function test_tc59_fewer_than_seven_photo_urls_reject_the_batch(): void
     {
         $errors = $this->errorsOf($this->previewRows($this->dealer(), [

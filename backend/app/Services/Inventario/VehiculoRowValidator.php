@@ -29,6 +29,7 @@ class VehiculoRowValidator
         $validator = Validator::make(
             [
                 ...$this->nullIfEmpty($data),
+                ...$this->normalizedOptions($data),
                 'patente' => $plate === '' ? null : $plate,
                 'carroceria_id' => $this->bodyTypeId($data['carroceria'] ?? ''),
                 'fotos' => $photos,
@@ -59,6 +60,23 @@ class VehiculoRowValidator
     private function nullIfEmpty(array $data): array
     {
         return array_map(fn (string $cell) => $cell === '' ? null : $cell, $data);
+    }
+
+    /**
+     * Transmission and fuel values without case or accents (the catalog values are lowercase
+     * ASCII), so "Automática" or "NAFTA" match. Blank cells are left to the `required` rule.
+     *
+     * @param  array<string, string>  $data
+     * @return array<string, string>
+     */
+    private function normalizedOptions(array $data): array
+    {
+        $options = array_intersect_key($data, array_flip(['transmision', 'combustible']));
+
+        return array_map(
+            fn (string $value) => $this->normalizeName($value),
+            array_filter($options, fn (string $value) => trim($value) !== ''),
+        );
     }
 
     /**
