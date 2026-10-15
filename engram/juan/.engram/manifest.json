@@ -120,6 +120,14 @@
       "sessions": 0,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "bad408bb",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T19:36:29Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
