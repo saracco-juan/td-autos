@@ -18,8 +18,11 @@ class Suscripcion extends Model
 
     public const ESTADO_PENDIENTE = 'pendiente';
 
-    // Set when an administrator approves a payment receipt (grace and inactivation arrive with HU20).
+    // Set when an administrator approves a payment receipt.
     public const ESTADO_ACTIVA = 'activa';
+
+    // Set once the grace period ends without an approved renewal (RF20).
+    public const ESTADO_INACTIVA = 'inactiva';
 
     protected $table = 'suscripcion';
 
