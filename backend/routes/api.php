@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteController;
+use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
@@ -39,5 +41,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{id}', [ConcesionariaVehiculoController::class, 'show'])->whereNumber('id');
         Route::post('/{id}', [ConcesionariaVehiculoController::class, 'update'])->whereNumber('id');
         Route::delete('/{id}', [ConcesionariaVehiculoController::class, 'destroy'])->whereNumber('id');
+    });
+
+    // Administration area (RF19, CU-17).
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/concesionarias', [AdminConcesionariaController::class, 'index'])->name('concesionarias.index');
+        Route::get('/comprobantes/{comprobante}', [AdminComprobanteController::class, 'show'])
+            ->whereNumber('comprobante')->name('comprobantes.show');
+        Route::get('/comprobantes/{comprobante}/archivo', [AdminComprobanteController::class, 'file'])
+            ->whereNumber('comprobante')->name('comprobantes.archivo');
+        Route::post('/comprobantes/{comprobante}/aprobar', [AdminComprobanteController::class, 'approve'])
+            ->whereNumber('comprobante')->name('comprobantes.aprobar');
+        Route::post('/comprobantes/{comprobante}/rechazar', [AdminComprobanteController::class, 'reject'])
+            ->whereNumber('comprobante')->name('comprobantes.rechazar');
     });
 });

@@ -1,4 +1,7 @@
 import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-router'
+import AdminDashboardPage from '../features/admin/AdminDashboardPage'
+import DealersPage from '../features/admin/DealersPage'
+import ReceiptReviewPage from '../features/admin/ReceiptReviewPage'
 import AuthProvider from '../features/auth/session/AuthProvider'
 import GuestRoute from '../features/auth/session/GuestRoute'
 import ProtectedRoute from '../features/auth/session/ProtectedRoute'
@@ -40,7 +43,8 @@ export const routes: RouteObject[] = [
             element: <ProtectedRoute />,
             children: [
               {
-                // Buyer screens: a dealer is sent to /concesionaria, so the home never sends one to the diagnosis.
+                // Buyer screens: a dealer is sent to /concesionaria and an administrator to /admin,
+                // so the home never sends either to the diagnosis.
                 element: <RoleRoute allow="buyer" />,
                 children: [
                   { path: '/', element: <HomeRoute /> },
@@ -52,7 +56,7 @@ export const routes: RouteObject[] = [
                 ],
               },
               {
-                // Dealer screens: anyone else is sent to /.
+                // Dealer screens: a buyer is sent to / and an administrator to /admin.
                 element: <RoleRoute allow="dealer" />,
                 children: [
                   { path: '/concesionaria', element: <DealerStatusPage /> },
@@ -66,6 +70,15 @@ export const routes: RouteObject[] = [
                       { path: '/concesionaria/inventario/:id/editar', element: <EditVehiclePage /> },
                     ],
                   },
+                ],
+              },
+              {
+                // Admin screens (UH19): buyers and dealers are sent to their own area.
+                element: <RoleRoute allow="admin" />,
+                children: [
+                  { path: '/admin', element: <AdminDashboardPage /> },
+                  { path: '/admin/concesionarias', element: <DealersPage /> },
+                  { path: '/admin/comprobantes/:id', element: <ReceiptReviewPage /> },
                 ],
               },
             ],

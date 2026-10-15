@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isActiveDealer, isBuyer, isDealer } from './roles'
+import { isActiveDealer, isAdmin, isBuyer, isDealer } from './roles'
 import type { User } from './types'
 
 const buyer: User = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
@@ -33,5 +33,14 @@ describe('roles', () => {
     expect(isActiveDealer({ ...buyer, rol: 'concesionaria', concesionaria: null })).toBe(false)
     expect(isActiveDealer({ ...dealer('activa'), rol: 'comprador' })).toBe(false)
     expect(isActiveDealer(null)).toBe(false)
+  })
+
+  it('isAdmin is true only for the administrador role, never for another, a missing one or a guest', () => {
+    expect(isAdmin({ ...buyer, rol: 'administrador' })).toBe(true)
+    expect(isAdmin(buyer)).toBe(false)
+    expect(isAdmin(dealer('activa'))).toBe(false)
+    expect(isAdmin({ ...buyer, rol: 'admin' })).toBe(false)
+    expect(isAdmin({ ...buyer, rol: undefined as unknown as string })).toBe(false)
+    expect(isAdmin(null)).toBe(false)
   })
 })

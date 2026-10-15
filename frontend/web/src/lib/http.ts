@@ -92,3 +92,11 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   if (!response.ok) throw new HttpError(response.status, data)
   return data as T
 }
+
+// A file served behind the session (e.g. a private receipt): read as a Blob so the page can show it
+// through an object URL, since an <img> or <iframe> pointing at the API would not carry the credentials reliably.
+export async function apiFetchBlob(path: string): Promise<Blob> {
+  const response = await send(path, { method: 'GET' })
+  if (!response.ok) throw new HttpError(response.status, await parseBody(response))
+  return response.blob()
+}

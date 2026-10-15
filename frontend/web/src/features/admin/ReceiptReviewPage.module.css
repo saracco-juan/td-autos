@@ -1,0 +1,200 @@
+/* Figma 38:1129: back link, eyebrow, title and subtitle. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma "Back Link": a boxed chevron and the text. */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.backIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.backLink:hover {
+  color: var(--accent-default);
+}
+
+.message {
+  margin: 0;
+  outline: none;
+}
+
+/* Three columns: data cards, the receipt, the decision. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 12px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cardText,
+.muted {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* Outcome of a decided receipt: the alert box (red) or the notice box (green), with a bold title. */
+.outcome {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-width: 2px;
+}
+
+.outcomeTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.outcome[data-tone='rejected'] .outcomeTitle {
+  color: var(--action-danger);
+}
+
+.outcome[data-tone='approved'] .outcomeTitle {
+  color: var(--status-success);
+}
+
+.outcomeText {
+  margin: 0;
+  font-size: 13px;
+}
+
+.reasonLabel {
+  font-weight: 600;
+}
+
+/* Receipt state card: tinted and bold once decided. */
+.receiptState {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.receiptState[data-tone='rejected'] {
+  color: var(--action-danger);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.receiptState[data-tone='approved'] {
+  color: var(--status-success);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reason {
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Figma centre card: outlined, tall. */
+.preview {
+  gap: 12px;
+  min-height: 380px;
+  padding: 16px;
+  border-color: var(--border-strong);
+}
+
+.previewEyebrow {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.previewImage {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.previewFrame {
+  width: 100%;
+  height: 420px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.link {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.missing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  max-width: 1216px;
+  margin-bottom: auto;
+  padding-top: 40px;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

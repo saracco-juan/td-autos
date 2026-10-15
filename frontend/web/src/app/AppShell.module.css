@@ -21,7 +21,15 @@
   text-decoration: none;
 }
 
-/* Figma "Nav/Top · Buyer" right group ("Diagnóstico", "Recomendados", "Perfil", "Cerrar sesión"). */
+/* Role links, beside the logo. */
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-left: 40px;
+}
+
+/* Right group: "Perfil" (buyer) or "Administración" (admin), the dealer's name, and "Cerrar sesión". */
 .navActions {
   display: flex;
   align-items: center;

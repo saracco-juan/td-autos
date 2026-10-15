@@ -18,6 +18,9 @@ class Suscripcion extends Model
 
     public const ESTADO_PENDIENTE = 'pendiente';
 
+    // Set when an administrator approves a payment receipt (grace and inactivation arrive with HU20).
+    public const ESTADO_ACTIVA = 'activa';
+
     protected $table = 'suscripcion';
 
     public $timestamps = false;

@@ -1,4 +1,4 @@
-import type { ComprobantePendiente, DatosTransferencia, Suscripcion } from './types'
+import type { ComprobantePendiente, DatosTransferencia, Suscripcion, UltimoComprobante } from './types'
 
 export const TRANSFERENCIA: DatosTransferencia = {
   titular: 'TD Autos S.A.',
@@ -21,12 +21,23 @@ export function comprobantePendiente(overrides: Partial<ComprobantePendiente> = 
   }
 }
 
+export function comprobanteRechazado(overrides: Partial<UltimoComprobante> = {}): UltimoComprobante {
+  return {
+    id: 2,
+    estado: 'rechazado',
+    motivo_rechazo: 'El monto no coincide con la cuota.',
+    fecha_revision: '2026-10-15T15:00:00+00:00',
+    ...overrides,
+  }
+}
+
 export function suscripcion(overrides: Partial<Suscripcion> = {}): Suscripcion {
   return {
     estado_alta: 'pendiente',
     tipo_pago: 'alta',
     transferencia: TRANSFERENCIA,
     comprobante_pendiente: null,
+    ultimo_comprobante: null,
     ...overrides,
   }
 }

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Where and how payment receipt files are stored: a private disk from configuration,
@@ -43,6 +44,21 @@ final class PaymentReceipts
     public static function forget(string $path): void
     {
         self::disk()->delete($path);
+    }
+
+    public static function exists(string $path): bool
+    {
+        return self::disk()->exists($path);
+    }
+
+    /**
+     * Stream a stored receipt to be shown in the browser (not downloaded).
+     */
+    public static function inline(string $path): StreamedResponse
+    {
+        $mime = self::disk()->mimeType($path) ?: 'application/octet-stream';
+
+        return self::disk()->response($path, self::fileName($path), ['Content-Type' => $mime], 'inline');
     }
 
     /**
