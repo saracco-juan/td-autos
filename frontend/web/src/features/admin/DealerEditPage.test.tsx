@@ -263,29 +263,38 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
       expect(section('Suscripción').getByText('Vigente desde 14/09/2026 hasta 13/10/2026')).toBeInTheDocument()
     })
 
-    it('shows the grace period with its deadline', async () => {
+    it('shows the grace period with its deadline, the account still active', async () => {
       vi.mocked(fetchDealer).mockResolvedValue(
         dealerDetail({
-          suscripcion: { estado: 'gracia', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13', gracia_hasta: '2026-10-16', retencion_hasta: null },
+          suscripcion: dealerSubscription({ estado: 'gracia', vigente_desde: '2026-09-14', vigente_hasta: '2026-10-13', gracia_hasta: '2026-10-16' }),
         }),
       )
       await loaded()
 
-      expect(definition('Estado de la suscripción')).toHaveTextContent('En período de gracia')
+      expect(definition('Estado de la concesionaria')).toHaveTextContent('Activa')
+      expect(definition('Estado de la concesionaria')).toHaveTextContent('En período de gracia')
       expect(section('Suscripción').getByText('Vigente desde 14/09/2026 hasta 13/10/2026')).toBeInTheDocument()
       expect(section('Suscripción').getByText('Gracia hasta el 16/10/2026')).toBeInTheDocument()
       expect(screen.queryByText(/Retención/)).not.toBeInTheDocument()
     })
 
-    it('shows an inactive subscription with the grace and retention deadlines', async () => {
+    it('shows an inactive subscription as Inactiva with a tag and the grace and retention deadlines', async () => {
       vi.mocked(fetchDealer).mockResolvedValue(
         dealerDetail({
-          suscripcion: { estado: 'inactiva', vigente_desde: '2026-08-14', vigente_hasta: '2026-09-13', gracia_hasta: '2026-09-16', retencion_hasta: '2026-10-17' },
+          suscripcion: dealerSubscription({
+            estado: 'inactiva',
+            vigente_desde: '2026-08-14',
+            vigente_hasta: '2026-09-13',
+            gracia_hasta: '2026-09-16',
+            retencion_hasta: '2026-10-17',
+          }),
         }),
       )
       await loaded()
 
-      expect(definition('Estado de la suscripción')).toHaveTextContent('Inactiva')
+      expect(definition('Estado de la concesionaria')).toHaveTextContent('Inactiva')
+      expect(definition('Estado de la concesionaria')).toHaveTextContent('Suscripción vencida')
+      expect(definition('Estado de la concesionaria')).not.toHaveTextContent('Activa')
       expect(section('Suscripción').getByText('Gracia hasta el 16/09/2026')).toBeInTheDocument()
       expect(section('Suscripción').getByText('Vehículos conservados hasta el 17/10/2026')).toBeInTheDocument()
     })

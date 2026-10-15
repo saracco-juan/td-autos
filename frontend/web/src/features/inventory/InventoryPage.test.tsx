@@ -4,14 +4,13 @@ import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { deleteVehicle, fetchVehicles } from './api'
-import { VEHICULOS, vehiculo } from './fixtures'
+import { PAUSED_HINT, PAUSED_TEXT, VEHICULOS, inactiveBody, vehiculo } from './fixtures'
 import InventoryPage from './InventoryPage'
 
 vi.mock('./api', () => ({ fetchVehicles: vi.fn(), deleteVehicle: vi.fn() }))
 
 const COROLLA = 'Toyota Corolla XEI 2021'
 const CRONOS = 'Fiat Cronos Drive 2022'
-const INACTIVE = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
 
 function renderPage() {
   render(
@@ -66,12 +65,19 @@ describe('InventoryPage', () => {
     expect(screen.queryByText('SUSCRIPCIÓN')).not.toBeInTheDocument()
   })
 
-  it('explains an inactive subscription with a way to the subscription page instead of the generic error', async () => {
-    vi.mocked(fetchVehicles).mockRejectedValue(new HttpError(403, { message: INACTIVE }))
+  it('keeps the header and shows the paused card with a way to renew when the subscription is inactive', async () => {
+    vi.mocked(fetchVehicles).mockRejectedValue(new HttpError(403, inactiveBody()))
     renderPage()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(INACTIVE)
-    expect(screen.getByRole('link', { name: 'IR A SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(await screen.findByRole('heading', { level: 2, name: 'Tu inventario está pausado' })).toBeInTheDocument()
+    expect(screen.getByText('INVENTARIO')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Inventario' })).toBeInTheDocument()
+    expect(screen.getByText('Inactiva · funciones bloqueadas')).toBeInTheDocument()
+    expect(screen.getByText(PAUSED_TEXT)).toBeInTheDocument()
+    expect(screen.getByText(PAUSED_HINT)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByRole('link', { name: 'CARGAR VEHÍCULO' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'IMPORTAR CSV' })).not.toBeInTheDocument()
     expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
   })

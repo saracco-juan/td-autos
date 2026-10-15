@@ -10,7 +10,7 @@ import SelectField from '../auth/shared/SelectField'
 import TextAreaField from '../auth/shared/TextAreaField'
 import TextField from '../auth/shared/TextField'
 import { fetchBodyTypes, type VehicleSubmission } from './api'
-import { inactiveSubscriptionMessage } from './inactiveSubscription'
+import { inactiveSubscription, type InactiveSubscription } from './inactiveSubscription'
 import { INVENTORY_PATH } from './inventoryRoutes'
 import PhotoPicker from './PhotoPicker'
 import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
@@ -56,7 +56,7 @@ export default function VehicleForm({ initialValues, initialPhotos, submitLabel,
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState<VehicleErrors>({})
   const [formError, setFormError] = useState<string>()
-  const [blocked, setBlocked] = useState<string>()
+  const [blocked, setBlocked] = useState<InactiveSubscription>()
   const [submitting, setSubmitting] = useState(false)
   const draft = usePhotoDraft(initialPhotos)
 
@@ -105,7 +105,7 @@ export default function VehicleForm({ initialValues, initialPhotos, submitLabel,
     try {
       await onSubmit({ values, newPhotos: draft.added.map((photo) => photo.file), removedPhotoIds: draft.removedIds })
     } catch (error) {
-      const inactive = inactiveSubscriptionMessage(error)
+      const inactive = inactiveSubscription(error)
       if (inactive) {
         setBlocked(inactive)
         setSubmitting(false)
@@ -186,7 +186,7 @@ export default function VehicleForm({ initialValues, initialPhotos, submitLabel,
         </div>
         <PhotoPicker draft={draft} errors={errors.fotos} />
       </div>
-      {blocked ? <SubscriptionBlockedNotice message={blocked} /> : null}
+      {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
       {formError ? (
         <p role="alert" className={alertStyles.alert}>
           {formError}

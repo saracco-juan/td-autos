@@ -6,7 +6,7 @@ import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { fetchVehicle, updateVehicle } from './api'
 import styles from './EditVehiclePage.module.css'
-import { inactiveSubscriptionMessage } from './inactiveSubscription'
+import { inactiveSubscription, type InactiveSubscription } from './inactiveSubscription'
 import { INVENTORY_PATH, goToInventory } from './inventoryRoutes'
 import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
 import type { Vehiculo } from './types'
@@ -14,7 +14,9 @@ import VehicleForm from './VehicleForm'
 import VehicleFormPage from './VehicleFormPage'
 import { valuesFromVehicle } from './vehicleFields'
 
-type LoadState = 'loading' | 'not-found' | { vehicle: Vehiculo } | { error: ErrorKind } | { blocked: string }
+type LoadState = 'loading' | 'not-found' | { vehicle: Vehiculo } | { error: ErrorKind } | { blocked: InactiveSubscription }
+
+const EDIT_SUBTITLE = 'La patente debe ser única en toda la plataforma.'
 
 function NotFound() {
   return (
@@ -46,7 +48,7 @@ export default function EditVehiclePage() {
         })
         .catch((error: unknown) => {
           if (isCancelled()) return
-          const blocked = inactiveSubscriptionMessage(error)
+          const blocked = inactiveSubscription(error)
           if (blocked) setLoadState({ blocked })
           else if (error instanceof HttpError && error.status === 404) setLoadState('not-found')
           else setLoadState({ error: error instanceof NetworkError ? 'network' : 'server' })
@@ -71,12 +73,18 @@ export default function EditVehiclePage() {
   // The loader and the error are direct children of the content area so they are centered there.
   if (vehicleId === null || loadState === 'not-found') return <NotFound />
   if (loadState === 'loading') return <SessionLoading />
-  if ('blocked' in loadState) return <SubscriptionBlockedNotice message={loadState.blocked} />
+  if ('blocked' in loadState) {
+    return (
+      <VehicleFormPage title="Editar vehículo" subtitle={EDIT_SUBTITLE}>
+        <SubscriptionBlockedNotice info={loadState.blocked} />
+      </VehicleFormPage>
+    )
+  }
   if ('error' in loadState) return <ErrorState kind={loadState.error} onRetry={retry} />
 
   const { vehicle } = loadState
   return (
-    <VehicleFormPage title="Editar vehículo" subtitle="La patente debe ser única en toda la plataforma.">
+    <VehicleFormPage title="Editar vehículo" subtitle={EDIT_SUBTITLE}>
       <VehicleForm
         initialValues={valuesFromVehicle(vehicle)}
         initialPhotos={vehicle.fotos}

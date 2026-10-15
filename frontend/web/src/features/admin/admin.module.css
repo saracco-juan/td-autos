@@ -125,7 +125,7 @@
   color: var(--text-secondary);
 }
 
-/* The dealer state stays as is; a rejected receipt is flagged under it. */
+/* The state label stays as is; a rejected receipt or an expired subscription is flagged under it. */
 .stateCell {
   display: flex;
   flex-direction: column;
@@ -133,7 +133,7 @@
   gap: 6px;
 }
 
-.receiptBadge {
+.stateTag {
   padding: 2px 8px;
   border: 1px solid var(--status-error-border);
   border-radius: 999px;
@@ -142,6 +142,12 @@
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.stateTag[data-tone='warning'] {
+  border-color: var(--status-warning-border);
+  background: var(--status-warning-bg);
+  color: var(--text-primary);
 }
 
 /* EDITAR next to VER COMPROBANTE (or "Sin comprobante"), 12 apart as in Figma "Acciones". */

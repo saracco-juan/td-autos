@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { confirmImport, previewImport } from './api'
+import { inactiveBody } from './fixtures'
 import ImportInventoryPage from './ImportInventoryPage'
 
 vi.mock('./api', () => ({ previewImport: vi.fn(), confirmImport: vi.fn() }))
@@ -71,15 +72,16 @@ describe('ImportInventoryPage', () => {
     expect(previewHeading()).not.toBeInTheDocument()
   })
 
-  it('explains an inactive subscription with a way to the subscription page when the preview is refused', async () => {
-    const message = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
-    vi.mocked(previewImport).mockRejectedValue(new HttpError(403, { message }))
+  it('explains an inactive subscription in a compact box with a way to renew when the preview is refused', async () => {
+    const body = inactiveBody()
+    vi.mocked(previewImport).mockRejectedValue(new HttpError(403, body))
     renderPage()
 
     await pick()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(message)
-    expect(screen.getByRole('link', { name: 'IR A SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(await screen.findByRole('alert')).toHaveTextContent(body.message)
+    expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByText('Tu inventario está pausado')).not.toBeInTheDocument()
     expect(screen.queryByText('No pudimos procesar el archivo. Probá de nuevo.')).not.toBeInTheDocument()
   })
 

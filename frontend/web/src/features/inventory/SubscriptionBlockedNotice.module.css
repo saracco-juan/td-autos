@@ -1,4 +1,31 @@
-.notice {
+/* Card like the inventory cards, with the centered content of the empty states. */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 16px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+  text-align: center;
+}
+
+.card .message {
+  max-width: 480px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.compact {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -11,6 +38,7 @@
 
 .link {
   width: 240px;
+  margin-top: 4px;
 }
 
 @media (max-width: 600px) {

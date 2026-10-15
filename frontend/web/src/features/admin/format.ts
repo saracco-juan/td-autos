@@ -15,6 +15,20 @@ export function dealerState(estado: string | null): { label: string; tone: Deale
   return DEALER_STATES[estado] ?? { label: estado, tone: 'unknown' }
 }
 
+export type StateTag = { label: string; tone: 'rejected' | 'warning' }
+
+// What the admin reads as the account state: an expired subscription is not shown as an active account (UH-20).
+// `inactiva` reads Inactiva with a red tag; `gracia` keeps Activa with a warning tag, since access is still full.
+export function accountState(
+  estadoAlta: string | null,
+  subscriptionState: string | null | undefined,
+): { label: string; tone: DealerTone; tag: StateTag | null } {
+  if (subscriptionState === 'inactiva') return { ...dealerState('inactiva'), tag: { label: 'Suscripción vencida', tone: 'rejected' } }
+  const state = dealerState(estadoAlta)
+  if (subscriptionState === 'gracia') return { ...state, tag: { label: 'En período de gracia', tone: 'warning' } }
+  return { ...state, tag: null }
+}
+
 // "Rosario, Santa Fe"; the province is skipped when it repeats the locality (CABA, Córdoba).
 export function dealerLocation({ localidad, provincia }: Pick<AdminDealer, 'localidad' | 'provincia'>): string {
   const parts = [localidad, provincia].filter((part): part is string => Boolean(part?.trim()))

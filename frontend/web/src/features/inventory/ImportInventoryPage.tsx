@@ -5,7 +5,7 @@ import buttonStyles from '../../components/button.module.css'
 import { HttpError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { confirmImport, previewImport } from './api'
-import { inactiveSubscriptionMessage } from './inactiveSubscription'
+import { inactiveSubscription, type InactiveSubscription } from './inactiveSubscription'
 import { importFailureFrom, type ImportFailure } from './importErrors'
 import { appliedNotice, previewSummary } from './importMessages'
 import styles from './ImportInventoryPage.module.css'
@@ -26,7 +26,7 @@ export default function ImportInventoryPage() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<Preview>('none')
   const [failure, setFailure] = useState<ImportFailure | null>(null)
-  const [blocked, setBlocked] = useState<string | null>(null)
+  const [blocked, setBlocked] = useState<InactiveSubscription | null>(null)
   const [confirming, setConfirming] = useState(false)
   const failureRef = useRef<HTMLDivElement>(null)
   // The latest picked file: the answer of an earlier one is dropped.
@@ -39,7 +39,7 @@ export default function ImportInventoryPage() {
 
   // An inactive subscription gets its own box with the way to renew; any other failure is the import's own.
   const showFailure = (error: unknown) => {
-    const inactive = inactiveSubscriptionMessage(error)
+    const inactive = inactiveSubscription(error)
     if (inactive) setBlocked(inactive)
     else setFailure(importFailureFrom(error))
   }
@@ -132,7 +132,7 @@ export default function ImportInventoryPage() {
           <p className={styles.cardBody}>{previewSummary(preview)}</p>
         </section>
       ) : null}
-      {blocked ? <SubscriptionBlockedNotice message={blocked} /> : null}
+      {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
       {failure ? (
         <div ref={failureRef} tabIndex={-1} role="alert" className={`${alertStyles.alert} ${styles.failure}`}>
           <p className={styles.failureMessage}>{failure.message}</p>

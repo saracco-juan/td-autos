@@ -4,7 +4,8 @@ import ErrorState from '../../components/ErrorState'
 import screenStyles from '../../components/screen.module.css'
 import SessionLoading from '../auth/session/SessionLoading'
 import styles from './admin.module.css'
-import { dealerLocation, dealerState, hasRejectedReceipt, receiptTarget } from './format'
+import { accountState, dealerLocation, hasRejectedReceipt, receiptTarget } from './format'
+import StateTag from './StateTag'
 import type { AdminDealerRow } from './types'
 import { useDealerDirectory } from './useDealerDirectory'
 
@@ -13,7 +14,7 @@ function registeredCount(count: number): string {
 }
 
 function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
-  const state = dealerState(dealer.estado_alta)
+  const state = accountState(dealer.estado_alta, dealer.suscripcion_estado)
   const receiptId = receiptTarget(dealer)
 
   return (
@@ -28,11 +29,8 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
           <span className={styles.state} data-tone={state.tone}>
             {state.label}
           </span>
-          {hasRejectedReceipt(dealer) ? (
-            <span className={styles.receiptBadge} data-tone="rejected">
-              Comprobante rechazado
-            </span>
-          ) : null}
+          {state.tag ? <StateTag tag={state.tag} /> : null}
+          {hasRejectedReceipt(dealer) ? <StateTag tag={{ label: 'Comprobante rechazado', tone: 'rejected' }} /> : null}
         </div>
       </td>
       <td>

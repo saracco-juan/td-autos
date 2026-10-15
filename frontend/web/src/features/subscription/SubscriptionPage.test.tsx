@@ -257,6 +257,7 @@ describe('SubscriptionPage', () => {
       expect(screen.getByText(GRACE)).toBeInTheDocument()
       expect(screen.getByRole('status')).toHaveTextContent(GRACE)
       expect(screen.queryByText(/Suscripción vigente hasta/)).not.toBeInTheDocument()
+      expect(card('Estado de la cuenta').getByText('Activa')).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'VER INVENTARIO' })).toBeInTheDocument()
     })
 
@@ -266,6 +267,8 @@ describe('SubscriptionPage', () => {
 
       expect(screen.getByText(INACTIVE)).toBeInTheDocument()
       expect(screen.getByRole('alert')).toHaveTextContent(INACTIVE)
+      expect(card('Estado de la cuenta').getByText('Inactiva · suscripción vencida')).toBeInTheDocument()
+      expect(card('Estado de la cuenta').queryByText('Activa')).not.toBeInTheDocument()
       expect(screen.queryByRole('link', { name: 'VER INVENTARIO' })).not.toBeInTheDocument()
       expect(screen.getByLabelText(SELECT)).toBeEnabled()
       expect(sendButton()).toBeEnabled()

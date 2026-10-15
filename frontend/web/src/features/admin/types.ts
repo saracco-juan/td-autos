@@ -16,6 +16,8 @@ export type AdminDealer = {
 
 // A row of GET /api/admin/concesionarias: dealers with a receipt to review come first.
 export type AdminDealerRow = AdminDealer & {
+  // Effective subscription state (dates evaluated); null while the dealer has no subscription.
+  suscripcion_estado: 'pendiente' | 'activa' | 'gracia' | 'inactiva' | null
   comprobante_pendiente_id: number | null
   // The latest receipt in any state, so an already decided one can still be opened.
   ultimo_comprobante_id: number | null

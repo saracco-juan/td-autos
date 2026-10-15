@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchBodyTypes, type VehicleSubmission } from './api'
-import { vehiculo } from './fixtures'
+import { inactiveBody, vehiculo } from './fixtures'
 import VehicleForm from './VehicleForm'
 import { emptyValues, valuesFromVehicle, type VehicleValues } from './vehicleFields'
 
@@ -260,17 +260,17 @@ describe('VehicleForm', () => {
       expect(submitButton()).toBeEnabled()
     })
 
-    it('explains an inactive subscription with a way to the subscription page instead of the generic error', async () => {
-      const message = 'Tu suscripción está inactiva. Subí el comprobante de renovación para volver a gestionar tu inventario.'
-      await renderForm({ onSubmit: () => Promise.reject(new HttpError(403, { message })) })
+    it('explains an inactive subscription in a compact box with a way to renew instead of the generic error', async () => {
+      const body = inactiveBody()
+      await renderForm({ onSubmit: () => Promise.reject(new HttpError(403, body)) })
       fillValid()
       const user = userEvent.setup({ applyAccept: false })
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
 
       await user.click(submitButton())
 
-      expect(await screen.findByRole('alert')).toHaveTextContent(message)
-      expect(screen.getByRole('link', { name: 'IR A SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+      expect(await screen.findByRole('alert')).toHaveTextContent(body.message)
+      expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
       expect(screen.queryByText('No pudimos guardar el vehículo. Probá de nuevo.')).not.toBeInTheDocument()
       expect(submitButton()).toBeEnabled()
     })

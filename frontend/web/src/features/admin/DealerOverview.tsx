@@ -3,13 +3,15 @@ import buttonStyles from '../../components/button.module.css'
 import { formatSentDate } from '../subscription/format'
 import adminStyles from './admin.module.css'
 import styles from './DealerEditPage.module.css'
-import { dealerState, formatDay, receiptState, receiptTone } from './format'
+import { accountState, dealerState, formatDay, receiptState, receiptTone } from './format'
+import StateTag from './StateTag'
 import type { DealerDetail, DealerReceiptRow } from './types'
 
 const PENDING = 'pendiente de revisión'
 
 function SubscriptionCard({ dealer }: { dealer: DealerDetail }) {
   const { suscripcion } = dealer
+  const state = accountState(dealer.estado_alta, suscripcion?.estado)
 
   return (
     <section className={adminStyles.card} aria-labelledby="dealer-subscription">
@@ -18,7 +20,10 @@ function SubscriptionCard({ dealer }: { dealer: DealerDetail }) {
       </h2>
       <dl className={styles.facts}>
         <dt>Estado de la concesionaria</dt>
-        <dd>{dealerState(dealer.estado_alta).label}</dd>
+        <dd className={styles.accountState}>
+          {state.label}
+          {state.tag ? <StateTag tag={state.tag} /> : null}
+        </dd>
         {suscripcion ? (
           <>
             <dt>Estado de la suscripción</dt>

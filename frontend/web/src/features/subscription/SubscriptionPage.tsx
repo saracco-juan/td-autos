@@ -189,7 +189,7 @@ export default function SubscriptionPage() {
       {rejected ? <RejectedNotice receipt={rejected} /> : null}
       <div className={styles.cards}>
         <Card title="Estado de la cuenta">
-          <Body accent>{accountStatusText(summary.estado_alta)}</Body>
+          <Body accent>{validity.estado === 'inactiva' ? 'Inactiva · suscripción vencida' : accountStatusText(summary.estado_alta)}</Body>
           {validity.estado === 'activa' && validity.vigente_hasta ? (
             <Body>{`Suscripción vigente hasta el ${formatDay(validity.vigente_hasta)}`}</Body>
           ) : null}
