@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import buttonStyles from "../../components/button.module.css";
+import groupStyles from "../../components/buttonGroup.module.css";
 import ErrorState from "../../components/ErrorState";
 import ListFooter from "../../components/ListFooter";
 import Pagination from "../../components/Pagination";
@@ -67,21 +67,27 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
         </div>
       </td>
       <td>
-        <div className={styles.actions}>
+        {/* One segmented group per row; without a receipt the second segment stays, greyed out, so rows line up. */}
+        <div className={groupStyles.group}>
           <Link
             to={`/admin/concesionarias/${dealer.id}`}
             aria-label={`Editar ${dealer.nombre}`}
-            className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.rowAction}`}
+            className={groupStyles.item}
           >
             EDITAR
           </Link>
           {receiptId === null ? (
-            <span className={styles.muted}>Sin comprobante</span>
+            <span
+              aria-disabled="true"
+              className={`${groupStyles.item} ${styles.noReceipt}`}
+            >
+              Sin comprobante
+            </span>
           ) : (
             <Link
               to={`/admin/comprobantes/${receiptId}`}
               aria-label={`Ver comprobante de ${dealer.nombre}`}
-              className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.rowAction}`}
+              className={groupStyles.item}
             >
               VER COMPROBANTE
             </Link>

@@ -1,88 +1,80 @@
-/* Slim bar at the bottom-right of a list: arrows and numbered pages, MUI-like (current page filled, rounded). */
+/* Slim bar at the bottom-right of a list: the pages as one segmented group, then "Mostrar [10]" at the right edge. */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.group {
   max-width: 100%;
 }
 
 .pages {
   display: flex;
-  align-items: center;
-  gap: 4px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.item,
-.ellipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  min-width: 32px;
+.pages > li {
+  display: flex;
+}
+
+/* Subtle numbers: secondary text, the current page in the table header tone with primary text. */
+.item {
   height: 32px;
-  padding: 0 6px;
-  border-radius: 999px;
+  min-width: 34px;
+  padding: 0 8px;
+  color: var(--text-secondary);
   font: 500 13px/1 var(--font-sans);
 }
 
-.item {
-  border: 0;
-  background: transparent;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.item:hover:not(:disabled):not([aria-current='page']) {
-  background: var(--surface-default);
-  box-shadow: inset 0 0 0 1px var(--border-default);
-}
-
-.item:focus-visible {
-  outline: 2px solid var(--border-strong);
-  outline-offset: 2px;
-}
-
-/* Same tone as the table header row, so the pager belongs to the list it pages. */
 .item[aria-current='page'] {
-  background: var(--surface-raised);
-  box-shadow: inset 0 0 0 1px var(--border-default);
   color: var(--text-primary);
   font-weight: 600;
-  cursor: default;
 }
 
+/* Arrows at the ends just fade when there is no page that way. */
 .item:disabled {
+  background: transparent;
   opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .ellipsis {
+  height: 32px;
+  min-width: 34px;
+  padding: 0 8px;
   color: var(--text-secondary);
+  font: 500 13px/1 var(--font-sans);
+  cursor: default;
 }
 
-/* "Mostrar [10]" before the pages, like MUI's rows-per-page control. */
 .size {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-right: 12px;
   color: var(--text-secondary);
   font: 500 13px/1 var(--font-sans);
 }
 
+/* Same surface as the button group, so the selector reads as part of the pager. */
 .sizeSelect {
-  height: 32px;
+  height: 34px;
   padding: 0 8px;
   border: 1px solid var(--border-default);
-  border-radius: 8px;
-  background: var(--surface-raised);
+  border-radius: 10px;
+  background: var(--surface-default);
+  box-shadow: 0 1px 2px rgba(26, 20, 15, 0.06);
   color: var(--text-primary);
   font: inherit;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.sizeSelect:hover {
+  background: var(--surface-raised);
 }
 
 .sizeSelect:focus-visible {

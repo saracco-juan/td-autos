@@ -243,23 +243,9 @@
   color: var(--text-primary);
 }
 
-/* EDITAR next to VER COMPROBANTE (or "Sin comprobante") on one line, each as wide as its label. */
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Compact row buttons: smaller than the page actions, so the row stays light. */
-.rowAction {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: auto;
-  height: 28px;
-  padding-inline: 12px;
-  font-size: 11px;
-  white-space: nowrap;
+/* "Sin comprobante" sits in the row's button group as a greyed segment, in the same case as the buttons. */
+.noReceipt {
+  text-transform: uppercase;
 }
 
 .colActions {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import groupStyles from './buttonGroup.module.css'
 import styles from './Pagination.module.css'
 
 type PaginationProps = {
@@ -100,6 +101,50 @@ export default function Pagination({
 
   return (
     <nav aria-label="Paginación" className={styles.pagination}>
+      {/* Pages as one segmented group; the "Mostrar" selector goes after it, at the right edge (DESIGN.md). */}
+      <div className={`${groupStyles.group} ${styles.group}`}>
+        <button
+          type="button"
+          aria-label="Página anterior"
+          disabled={page <= 1}
+          onClick={() => onChange(page - 1)}
+          className={`${groupStyles.item} ${groupStyles.first} ${styles.item}`}
+        >
+          <Arrow direction="previous" />
+        </button>
+        <ul className={styles.pages}>
+          {items.map((item) =>
+            typeof item === 'number' ? (
+              <li key={item}>
+                <button
+                  type="button"
+                  aria-label={`Página ${item}`}
+                  aria-current={item === page ? 'page' : undefined}
+                  onClick={() => {
+                    if (item !== page) onChange(item)
+                  }}
+                  className={`${groupStyles.item} ${styles.item}`}
+                >
+                  {item}
+                </button>
+              </li>
+            ) : (
+              <li key={item} className={`${groupStyles.item} ${styles.ellipsis}`}>
+                …
+              </li>
+            ),
+          )}
+        </ul>
+        <button
+          type="button"
+          aria-label="Página siguiente"
+          disabled={page >= lastPage}
+          onClick={() => onChange(page + 1)}
+          className={`${groupStyles.item} ${styles.item}`}
+        >
+          <Arrow direction="next" />
+        </button>
+      </div>
       {onPageSizeChange ? (
         <label className={styles.size}>
           Mostrar
@@ -116,47 +161,6 @@ export default function Pagination({
           </select>
         </label>
       ) : null}
-      <button
-        type="button"
-        aria-label="Página anterior"
-        disabled={page <= 1}
-        onClick={() => onChange(page - 1)}
-        className={styles.item}
-      >
-        <Arrow direction="previous" />
-      </button>
-      <ul className={styles.pages}>
-        {items.map((item) =>
-          typeof item === 'number' ? (
-            <li key={item}>
-              <button
-                type="button"
-                aria-label={`Página ${item}`}
-                aria-current={item === page ? 'page' : undefined}
-                onClick={() => {
-                  if (item !== page) onChange(item)
-                }}
-                className={styles.item}
-              >
-                {item}
-              </button>
-            </li>
-          ) : (
-            <li key={item} className={styles.ellipsis}>
-              …
-            </li>
-          ),
-        )}
-      </ul>
-      <button
-        type="button"
-        aria-label="Página siguiente"
-        disabled={page >= lastPage}
-        onClick={() => onChange(page + 1)}
-        className={styles.item}
-      >
-        <Arrow direction="next" />
-      </button>
     </nav>
   )
 }
