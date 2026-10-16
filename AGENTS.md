@@ -34,8 +34,8 @@ Rules:
 ## Working rules
 
 - Code, identifiers, comments and tests are written in English. User-facing copy is Spanish (Argentine voseo, sentence case, buttons in uppercase).
+- Before building or changing any screen, read `DESIGN.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
-- Tables and result lists scroll inside their own container, never the page: give them a max height that fits the viewport, a vertical scroll when rows exceed it, and no horizontal page scroll (wrap, truncate or scroll horizontally inside the container only when columns cannot fit).
 - Do not discard uncommitted work (`git reset --hard`, `git clean`, `git checkout -- <path>`, `git stash drop`) without explicit confirmation from the developer.
 
 ## Shared agent memory (Engram)
