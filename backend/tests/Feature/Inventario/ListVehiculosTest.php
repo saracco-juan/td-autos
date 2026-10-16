@@ -65,6 +65,14 @@ class ListVehiculosTest extends TestCase
             ->assertJsonPath('vehiculos.1.id', $first->id);
     }
 
+    public function test_an_external_marketplace_vehicle_is_not_listed(): void
+    {
+        $dealer = Concesionaria::factory()->active()->create();
+        Vehiculo::factory()->create(['origen' => 'externo', 'combustible' => 'nafta', 'transmision' => 'manual']);
+
+        $this->actingAs($dealer->usuario)->getJson(self::URL)->assertOk()->assertJsonCount(0, 'vehiculos');
+    }
+
     public function test_a_vehicle_with_the_dealer_origin_but_no_ownership_row_is_not_listed(): void
     {
         $dealer = Concesionaria::factory()->active()->create();

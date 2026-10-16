@@ -17,6 +17,9 @@ final class VehiculoOptions
     /** Value of vehiculo.origen for cars loaded by a dealer. */
     public const ORIGEN_CONCESIONARIA = 'concesionaria';
 
+    /** Value of vehiculo.origen for listings read from an external marketplace. */
+    public const ORIGEN_EXTERNO = 'externo';
+
     public const FOTOS_MINIMO = 7;
 
     public const FOTOS_MAXIMO = 20;
