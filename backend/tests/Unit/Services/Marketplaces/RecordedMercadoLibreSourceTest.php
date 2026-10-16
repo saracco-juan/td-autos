@@ -32,6 +32,13 @@ class RecordedMercadoLibreSourceTest extends TestCase
         $this->assertCount(count($listings), array_unique(array_map(fn ($l) => $l->externalId, $listings)));
     }
 
+    public function test_demo_listings_have_no_photo_so_nothing_points_at_a_real_cdn(): void
+    {
+        foreach ($this->source()->search(new ListingQuery) as $listing) {
+            $this->assertNull($listing->imagenUrl, "{$listing->externalId} must not hotlink an image");
+        }
+    }
+
     public function test_filters_by_text(): void
     {
         $listings = $this->source()->search(new ListingQuery('corolla'));

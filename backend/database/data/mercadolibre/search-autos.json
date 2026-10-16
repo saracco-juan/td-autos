@@ -1,5 +1,5 @@
 {
-    "_demo_notice": "Fictitious demo data recorded in the format of the Mercado Libre /sites/MLA/search response. The search API is closed to the app, so this file stands in for it. Ids and permalinks are not real listings.",
+    "_demo_notice": "Fictitious demo data recorded in the format of the Mercado Libre /sites/MLA/search response. The search API is closed to the app, so this file stands in for it. Ids and permalinks are not real listings. Thumbnails are null on purpose: the demo must not hotlink images from Mercado Libre's CDN.",
     "site_id": "MLA",
     "query": null,
     "paging": {
@@ -16,7 +16,7 @@
             "price": 21500000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000001-demo-toyota-corolla-2-0-xei-cvt-2019",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000001-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000001",
@@ -81,7 +81,7 @@
             "price": 15800000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000002-demo-toyota-corolla-1-8-xli-mt-2016",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000002-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000002",
@@ -146,7 +146,7 @@
             "price": 41000000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000003-demo-toyota-hilux-2-8-cd-srv-4x4-tdi-2021",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000003-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000003",
@@ -211,7 +211,7 @@
             "price": 11900000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000004-demo-toyota-etios-1-5-xls-2018",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000004-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000004",
@@ -276,7 +276,7 @@
             "price": 17900000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000005-demo-fiat-cronos-1-3-drive-pack-conectividad-2022",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000005-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000005",
@@ -341,7 +341,7 @@
             "price": 12400000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000006-demo-fiat-argo-1-8-hgt-2019",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000006-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000006",
@@ -466,7 +466,7 @@
             "price": 18500000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000008-demo-peugeot-208-1-6-feline-2021",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000008-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000008",
@@ -531,7 +531,7 @@
             "price": 11200000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000009-demo-peugeot-308-1-6-allure-hdi-2015",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000009-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000009",
@@ -596,7 +596,7 @@
             "price": 9500000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000010-demo-peugeot-partner-1-6-hdi-confort-2014",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000010-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000010",
@@ -661,7 +661,7 @@
             "price": 22300000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000011-demo-chevrolet-cruze-1-4-ltz-turbo-at-2020",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000011-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000011",
@@ -726,7 +726,7 @@
             "price": 15600000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000012-demo-chevrolet-onix-1-2-joy-2022",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000012-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000012",
@@ -846,7 +846,7 @@
             "price": 8900000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000014-demo-volkswagen-gol-trend-1-6-trendline-2017",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000014-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000014",
@@ -911,7 +911,7 @@
             "price": 16700000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000015-demo-volkswagen-vento-2-0-tsi-highline-2016",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000015-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000015",
@@ -976,7 +976,7 @@
             "price": 38000000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000016-demo-volkswagen-amarok-2-0-cd-tdi-4x4-highline-2019",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000016-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000016",
@@ -1041,7 +1041,7 @@
             "price": 12100000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000017-demo-renault-sandero-1-6-stepway-intens-2019",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000017-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000017",
@@ -1106,7 +1106,7 @@
             "price": 10300000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000018-demo-renault-kangoo-1-5-dci-confort-2015",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000018-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000018",
@@ -1171,7 +1171,7 @@
             "price": 27800000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000019-demo-ford-ranger-3-2-cd-limited-4x4-tdci-2017",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000019-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000019",
@@ -1236,7 +1236,7 @@
             "price": 8200000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000020-demo-ford-ecosport-1-6-se-2013",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000020-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000020",
@@ -1301,7 +1301,7 @@
             "price": 24800000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000021-demo-honda-hr-v-1-8-exl-cvt-2020",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000021-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000021",
@@ -1417,7 +1417,7 @@
             "price": 31000000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000023-demo-nissan-kicks-1-6-exclusive-cvt-2023",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000023-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000023",
@@ -1482,7 +1482,7 @@
             "price": 14500,
             "currency_id": "USD",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000024-demo-nissan-frontier-2-3-cd-le-4x4-tdi-2020",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000024-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000024",
@@ -1547,7 +1547,7 @@
             "price": 16200000,
             "currency_id": "ARS",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000025-demo-citro-en-c3-1-6-vti-feel-pack-2021",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000025-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000025",
@@ -1612,7 +1612,7 @@
             "price": 13900,
             "currency_id": "USD",
             "permalink": "https://auto.mercadolibre.com.ar/MLA-9000000026-demo-citro-en-c4-cactus-1-6-thp-shine-at-2019",
-            "thumbnail": "http://http2.mlstatic.com/D_NQ_NP_demo-9000000026-I.jpg",
+            "thumbnail": null,
             "location": {
                 "city": {
                     "id": "TUxBQ9000000026",
