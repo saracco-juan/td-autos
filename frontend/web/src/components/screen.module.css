@@ -10,6 +10,13 @@
   padding-top: 20px;
 }
 
+/* List screens: the page takes the free height of <main> and hands it to the list, so the pager lands at the bottom of the screen. */
+.fill {
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
 .eyebrow {
   color: var(--palette-charcoal);
   font-size: 12px;

@@ -57,27 +57,84 @@ describe('useAutoPageSize', () => {
     expect(screen.getByText('size 12')).toBeInTheDocument()
   })
 
-  it('measures the rows once they have a height and again when the window is resized', () => {
+  it('sizes the page from the height of the scroll region, not from the window', () => {
     vi.useFakeTimers()
-    let height = 100
+    let regionHeight = 500
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      return this.dataset.scrollRegion !== undefined ? regionHeight : 0
+    })
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-      if (this.tagName === 'LI') return { height: 50, top: 0, bottom: 50 } as DOMRect
-      if (this.tagName === 'UL') return { height: 250, top: 100, bottom: 350 } as DOMRect
+      if (this.tagName === 'LI') return { height: 235, top: 0, bottom: 235 } as DOMRect
+      if (this.tagName === 'UL') return { height: 235, top: 0, bottom: 235 } as DOMRect
       return { height: 0, top: 0, bottom: 0 } as DOMRect
     })
-    Object.defineProperty(window, 'innerHeight', { configurable: true, get: () => height + 0 })
-    // Free height = innerHeight - list top (100) - reserve (56): 600 - 100 - 56 = 444 -> 8 rows of 50 (overhead 0).
-    height = 600
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(
+      () =>
+        ({
+          rowGap: '20px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr',
+          paddingTop: '0px',
+          paddingBottom: '0px',
+        }) as unknown as CSSStyleDeclaration,
+    )
 
-    render(<List count={5} />)
+    function Grid() {
+      const ref = useRef<HTMLUListElement>(null)
+      const size = useAutoPageSize(ref, { itemSelector: 'li', fallback: 12 })
+      return (
+        <div data-scroll-region="">
+          <p>size {size}</p>
+          <ul ref={ref}>
+            <li>a</li>
+          </ul>
+        </div>
+      )
+    }
+    render(<Grid />)
+
+    // floor((500 - 0 + 20) / (235 + 20)) = 2 rows x 4 columns.
     expect(screen.getByText('size 8')).toBeInTheDocument()
 
-    height = 400
+    regionHeight = 800
     act(() => {
       window.dispatchEvent(new Event('resize'))
       vi.advanceTimersByTime(300)
     })
-    // 400 - 100 - 56 = 244 -> 4 rows.
-    expect(screen.getByText('size 4')).toBeInTheDocument()
+    // floor(820 / 255) = 3 rows.
+    expect(screen.getByText('size 12')).toBeInTheDocument()
+  })
+
+  it('subtracts the padding of the region and uses an explicit container when given', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
+      return this.id === 'box' ? 140 : 0
+    })
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      if (this.tagName === 'LI') return { height: 50, top: 0, bottom: 50 } as DOMRect
+      if (this.tagName === 'UL') return { height: 50, top: 0, bottom: 50 } as DOMRect
+      return { height: 0, top: 0, bottom: 0 } as DOMRect
+    })
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(
+      () =>
+        ({ rowGap: '0px', display: 'block', gridTemplateColumns: 'none', paddingTop: '10px', paddingBottom: '10px' }) as unknown as CSSStyleDeclaration,
+    )
+
+    function Boxed() {
+      const ref = useRef<HTMLUListElement>(null)
+      const box = useRef<HTMLDivElement>(null)
+      const size = useAutoPageSize(ref, { itemSelector: 'li', fallback: 12, containerRef: box })
+      return (
+        <div id="box" ref={box}>
+          <p>size {size}</p>
+          <ul ref={ref}>
+            <li>a</li>
+          </ul>
+        </div>
+      )
+    }
+    render(<Boxed />)
+
+    // (140 - 20) / 50 = 2 rows.
+    expect(screen.getByText('size 2')).toBeInTheDocument()
   })
 })

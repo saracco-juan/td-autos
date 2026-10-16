@@ -25,11 +25,11 @@
   font-size: 12px;
 }
 
-/* Figma "Image": 82 high on the raised surface; a real photo fills it. */
+/* Figma "Image": 82 high on the raised surface; fluid with the screen height (56 to 96) so more rows fit; a real photo fills it. */
 .image {
   display: block;
   width: 100%;
-  height: 82px;
+  height: clamp(56px, 7vh, 96px);
   border: 1px solid var(--border-default);
   object-fit: cover;
 }

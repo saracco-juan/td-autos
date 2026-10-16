@@ -78,4 +78,33 @@ describe("ScrollArea", () => {
     expect(region).not.toHaveClass("extra");
     expect(region).toHaveClass("inner");
   });
+
+  it("in fill mode stretches the frame and skips the height fit", () => {
+    render(
+      <main>
+        <ScrollArea label="Lista" fill>
+          <p>fila</p>
+        </ScrollArea>
+      </main>,
+    );
+
+    const region = screen.getByRole("region", { name: "Lista" });
+    const frame = region.parentElement as HTMLElement;
+    expect(frame).toHaveAttribute("data-fill");
+    expect(region).toHaveAttribute("data-scroll-region");
+    expect(region.style.getPropertyValue("--scroll-fit")).toBe("");
+  });
+
+  it("without fill keeps measuring and is not marked as filling", () => {
+    render(
+      <main>
+        <ScrollArea label="Lista">
+          <p>fila</p>
+        </ScrollArea>
+      </main>,
+    );
+
+    const region = screen.getByRole("region", { name: "Lista" });
+    expect(region.parentElement).not.toHaveAttribute("data-fill");
+  });
 });

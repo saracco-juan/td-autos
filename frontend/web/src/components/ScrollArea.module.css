@@ -6,6 +6,23 @@
   border-radius: 14px;
 }
 
+/* Fill mode: the frame takes all the free height of its flex parent whatever it holds, and the region scrolls inside.
+   contain: size keeps the content from stretching the parents, so the height comes only from the layout.
+   The minimum is the fallback for very small screens, where the region scrolls. */
+.frame[data-fill] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 240px;
+  contain: size;
+}
+
+.frame[data-fill] > .area {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
 /* Fills what the page has left (--scroll-fit, measured by the component); before the first
    measurement, or outside <main>, falls back to the viewport minus --scroll-offset. */
 .area {

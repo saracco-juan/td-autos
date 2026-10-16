@@ -162,7 +162,7 @@ export default function InventoryPage() {
     return <ErrorState kind={loadState.error} onRetry={retry} />;
 
   return (
-    <div className={screenStyles.page}>
+    <div className={`${screenStyles.page} ${screenStyles.fill}`}>
       <PageHeader subtitle="Activa · funciones habilitadas" />
       <section
         className={styles.card}
@@ -192,7 +192,7 @@ export default function InventoryPage() {
       ) : (
         <ScrollArea
           label="Vehículos del inventario"
-          offset={560}
+          fill
           viewportClassName={styles.listArea}
         >
           <ul ref={listRef} className={styles.list}>

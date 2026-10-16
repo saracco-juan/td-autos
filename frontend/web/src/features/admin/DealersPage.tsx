@@ -113,7 +113,7 @@ export default function DealersPage() {
     return <ErrorState kind={state.error} onRetry={retry} />;
 
   return (
-    <div className={screenStyles.page}>
+    <div className={`${screenStyles.page} ${screenStyles.fill}`}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>ADMINISTRACIÓN</p>
         <h1 id="admin-dealers-title" className={screenStyles.title}>
@@ -128,7 +128,7 @@ export default function DealersPage() {
       ) : (
         <ScrollArea
           label="Listado de concesionarias"
-          offset={340}
+          fill
           className={styles.tableWrap}
         >
           <table

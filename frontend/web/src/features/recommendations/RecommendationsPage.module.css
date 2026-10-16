@@ -4,8 +4,10 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  /* The shell centers its content vertically; the page starts at the top. */
-  margin-bottom: auto;
+  /* Fills the free height of <main> (the shell centers the rest vertically); the page starts at the top. */
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 0;
   padding-top: 16px;
 }
 
@@ -66,6 +68,7 @@
 /* The loader and the states live here and are centered in it; the header and the search stay in place. */
 .results {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 12px;
   min-height: 240px;
@@ -80,7 +83,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  gap: 20px;
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -138,6 +141,6 @@
   }
 
   .grid {
-    gap: 16px;
+    gap: 12px;
   }
 }

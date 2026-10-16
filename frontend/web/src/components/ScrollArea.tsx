@@ -11,6 +11,8 @@ type ScrollAreaProps = {
   stickyHeader?: boolean;
   /** Goes on the outer frame (border, background, shadow, radius). */
   className?: string;
+  /** Stretches the box over the free height of its flex parent (the list screens' column) instead of fitting a measured height. */
+  fill?: boolean;
   /** Goes on the element that scrolls (padding that must scroll with the content, for example). */
   viewportClassName?: string;
 };
@@ -52,6 +54,7 @@ export default function ScrollArea({
   children,
   offset = 360,
   stickyHeader = false,
+  fill = false,
   className,
   viewportClassName,
 }: ScrollAreaProps) {
@@ -59,7 +62,8 @@ export default function ScrollArea({
 
   useLayoutEffect(() => {
     const area = ref.current;
-    if (!area) return;
+    // A filling box gets its height from the layout; nothing to measure.
+    if (!area || fill) return;
 
     const fit = () => fitToPage(area);
     fit();
@@ -78,15 +82,16 @@ export default function ScrollArea({
       window.removeEventListener("resize", fit);
       observer?.disconnect();
     };
-  }, []);
+  }, [fill]);
 
   return (
-    <div data-scroll-frame="" className={className ? `${styles.frame} ${className}` : styles.frame}>
+    <div data-scroll-frame="" data-fill={fill ? "" : undefined} className={className ? `${styles.frame} ${className}` : styles.frame}>
       <div
         ref={ref}
         role="region"
         aria-label={label}
         tabIndex={0}
+        data-scroll-region=""
         data-sticky-header={stickyHeader ? "" : undefined}
         className={viewportClassName ? `${styles.area} ${viewportClassName}` : styles.area}
         style={{ "--scroll-offset": `${offset}px` } as CSSProperties}
