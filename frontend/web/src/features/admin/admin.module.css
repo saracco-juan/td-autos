@@ -91,13 +91,11 @@
   scrollbar-gutter: stable;
 }
 
-/* Table box and pager; the box takes all the free height (ScrollArea fill), the pager stays under it. */
+/* Table box and the pager right under it; the box is as tall as its rows. */
 .tableBlock {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 16px;
-  min-height: 0;
 }
 
 /* Fixed layout with fixed column widths: the columns never depend on the rows of the current page.
