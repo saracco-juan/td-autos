@@ -6,7 +6,7 @@ type Props = {
   children: ReactNode
   // Buttons of the screen. They sit in a bar pinned to the bottom of the content area; null shows no bar.
   actions: ReactNode
-  // Content that does not need the full width (diagnosis, inspection, transfer): a centered column up to 1040 px.
+  // Content that does not need the full width (diagnosis, inspection, transfer, dealer verification): a centered column up to 1040 px.
   narrow?: boolean
 }
 

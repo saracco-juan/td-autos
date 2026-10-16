@@ -63,7 +63,7 @@ export default function DealerStatusPage() {
   const toneClass = status?.tone === 'error' ? alertStyles.alert : status?.tone === 'warning' ? alertStyles.warning : styles.status
 
   return (
-    <FlowLayout actions={null}>
+    <FlowLayout actions={null} narrow>
       <div className={styles.header}>
         <h1 className={styles.title}>Verificación de suscripción</h1>
         <p className={styles.subtitle}>Estado de tu solicitud de adhesión.</p>
