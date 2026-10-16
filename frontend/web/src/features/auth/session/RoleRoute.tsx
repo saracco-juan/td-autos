@@ -14,7 +14,8 @@ type Props = {
 // Where each role's screens start.
 const HOME: Record<Area, string> = {
   buyer: '/',
-  dealer: '/concesionaria',
+  // The subscription screen is the dealer's default: it works for a pending dealer too (first payment).
+  dealer: '/concesionaria/suscripcion',
   admin: '/admin',
 }
 
@@ -29,7 +30,7 @@ function areaOf(user: User | null): Area | null {
 }
 
 // Layout route under ProtectedRoute: keeps each role on its own screens.
-// A user opening another role's route is sent to the start of their own area: a dealer to /concesionaria,
+// A user opening another role's route is sent to the start of their own area: a dealer to /concesionaria/suscripcion,
 // a buyer to /, an administrator to /admin (so logging in, which goes to /, lands an administrator on /admin).
 // A user with no known role has no screen to be sent to: the denial replaces the route content,
 // so the URL stays put and nothing loops between areas.

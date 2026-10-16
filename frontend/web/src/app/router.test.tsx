@@ -583,6 +583,7 @@ describe('app routes', () => {
 
   describe('dealer session (UH17)', () => {
     const statusHeading = () => screen.findByRole('heading', { level: 1, name: 'Verificación de suscripción' })
+    const landingHeading = () => screen.findByRole('heading', { level: 1, name: 'Suscripción y comprobantes' })
 
     it('TC-46: a pending dealer sees the request status at /concesionaria inside the shell', async () => {
       asDealer()
@@ -595,7 +596,7 @@ describe('app routes', () => {
       expect(screen.getAllByRole('main')).toHaveLength(1)
     })
 
-    it('TC-46: a pending dealer logs in from /login and lands on the request status', async () => {
+    it('TC-46: a pending dealer logs in from /login and lands on the subscription screen', async () => {
       asGuest()
       vi.mocked(loginUser).mockImplementation(async () => {
         asDealer()
@@ -607,11 +608,11 @@ describe('app routes', () => {
       await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
       await user.click(screen.getByRole('button', { name: 'INGRESAR' }))
 
-      expect(await statusHeading()).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(await landingHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
     })
 
-    it('TC-44: a guest registers a dealer at /registro/concesionaria and lands on the request status, never on the diagnosis', async () => {
+    it('TC-44: a guest registers a dealer at /registro/concesionaria and lands on the subscription screen, never on the diagnosis', async () => {
       asGuest()
       vi.mocked(registerDealer).mockReset()
       vi.mocked(registerDealer).mockImplementation(async () => {
@@ -636,8 +637,8 @@ describe('app routes', () => {
       await user.type(screen.getByLabelText('Confirmar contraseña'), 'Abcdef12')
       await user.click(screen.getByRole('button', { name: 'CREAR CUENTA' }))
 
-      expect(await statusHeading()).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(await landingHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
       expect(screen.getByText('Pendiente de aprobación inicial · inventario bloqueado')).toBeInTheDocument()
       expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
       expect(registerDealer).toHaveBeenCalledTimes(1)
@@ -663,41 +664,41 @@ describe('app routes', () => {
       expect(fetchDiagnosis).not.toHaveBeenCalled()
     })
 
-    it('sends a dealer from / to /concesionaria, never to the diagnosis', async () => {
+    it('sends a dealer from / to /concesionaria/suscripcion, never to the diagnosis', async () => {
       asDealer()
       const router = renderAt('/')
 
-      expect(await statusHeading()).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(await landingHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
       expect(fetchDiagnosis).not.toHaveBeenCalled()
       expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
     })
 
     it.each(['/diagnostico', '/recomendaciones', '/transferencia', '/vehiculos/7/inspeccion', '/perfil'])(
-      'sends a dealer opening the buyer route %s to /concesionaria without loading it',
+      'sends a dealer opening the buyer route %s to /concesionaria/suscripcion without loading it',
       async (path) => {
         asDealer()
         const router = renderAt(path)
 
-        expect(await statusHeading()).toBeInTheDocument()
-        expect(router.state.location.pathname).toBe('/concesionaria')
+        expect(await landingHeading()).toBeInTheDocument()
+        expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
         expect(fetchDiagnosis).not.toHaveBeenCalled()
         expect(fetchTransfer).not.toHaveBeenCalled()
         expect(fetchInspection).not.toHaveBeenCalled()
       },
     )
 
-    it('sends a dealer opening an unknown path or a guest-only screen to /concesionaria', async () => {
+    it('sends a dealer opening an unknown path or a guest-only screen to /concesionaria/suscripcion', async () => {
       asDealer()
       const router = renderAt('/no-existe')
 
-      expect(await statusHeading()).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(await landingHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
 
       await act(() => router.navigate('/registro/concesionaria'))
 
-      expect(await statusHeading()).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(await landingHeading()).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
     })
 
     it.each(['/concesionaria', '/concesionaria/inventario'])('sends a buyer opening the dealer route %s to /', async (path) => {
@@ -975,7 +976,7 @@ describe('app routes', () => {
 
     it.each([
       ['a buyer', () => undefined, 'Inicio'],
-      ['a dealer', () => asDealer('activa'), 'Verificación de suscripción'],
+      ['a dealer', () => asDealer('activa'), 'Suscripción y comprobantes'],
     ])('UH27: sends %s opening a dealer page away without reading the dealer', async (_label, signIn, heading) => {
       signIn()
       const router = renderAt('/admin/concesionarias/5')
@@ -1010,12 +1011,12 @@ describe('app routes', () => {
       expect(fetchDealerDirectory).not.toHaveBeenCalled()
     })
 
-    it.each(['/admin', '/admin/concesionarias'])('sends a dealer opening %s to /concesionaria without reading the dealers', async (path) => {
+    it.each(['/admin', '/admin/concesionarias'])('sends a dealer opening %s to /concesionaria/suscripcion without reading the dealers', async (path) => {
       asDealer('activa')
       const router = renderAt(path)
 
-      expect(await screen.findByRole('heading', { level: 1, name: 'Verificación de suscripción' })).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(await screen.findByRole('heading', { level: 1, name: 'Suscripción y comprobantes' })).toBeInTheDocument()
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
       expect(fetchDealerDirectory).not.toHaveBeenCalled()
     })
 

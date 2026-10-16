@@ -83,7 +83,7 @@ export default function DealerRegisterPage() {
       await registerDealer(toPayload(values))
       // The route guards read the session state: load the new dealer before leaving the guest-only screen.
       await refresh()
-      navigate('/concesionaria', { replace: true })
+      navigate('/concesionaria/suscripcion', { replace: true })
     } catch (error) {
       if (error instanceof HttpError && error.status === 409) {
         // Whoever is already logged in decides where / leads.
