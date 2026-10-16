@@ -84,16 +84,16 @@ export default function EditVehiclePage() {
 
   const { vehicle } = loadState
   return (
-    <VehicleFormPage title="Editar vehículo" subtitle={EDIT_SUBTITLE}>
-      <VehicleForm
-        initialValues={valuesFromVehicle(vehicle)}
-        initialPhotos={vehicle.fotos}
-        submitLabel="GUARDAR CAMBIOS"
-        onSubmit={async (submission) => {
-          await updateVehicle(vehicle.id, submission)
-          goToInventory(navigate, 'Guardaste los cambios.')
-        }}
-      />
-    </VehicleFormPage>
+    <VehicleForm
+      title="Editar vehículo"
+      subtitle={EDIT_SUBTITLE}
+      initialValues={valuesFromVehicle(vehicle)}
+      initialPhotos={vehicle.fotos}
+      submitLabel="GUARDAR CAMBIOS"
+      onSubmit={async (submission) => {
+        await updateVehicle(vehicle.id, submission)
+        goToInventory(navigate, 'Guardaste los cambios.')
+      }}
+    />
   )
 }

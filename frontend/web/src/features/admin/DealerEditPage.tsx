@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useId, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import barStyles from '../../components/checklist/pinnedBar.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
+import FlowLayout from '../../components/FlowLayout'
 import screenStyles from '../../components/screen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
@@ -64,9 +66,13 @@ type FormProps = {
   dealer: DealerDetail
   onSaved: (dealer: DealerDetail) => void
   onMissing: () => void
+  // Page header above the form and the read-only blocks below it; the form owns the pinned buttons.
+  header: ReactNode
+  children: ReactNode
 }
 
-function DealerForm({ dealer, onSaved, onMissing }: FormProps) {
+function DealerForm({ dealer, onSaved, onMissing, header, children }: FormProps) {
+  const formId = useId()
   const navigate = useNavigate()
   const [values, setValues] = useState(() => formValues(dealer))
   const [errors, setErrors] = useState<DealerFormErrors>({})
@@ -101,8 +107,30 @@ function DealerForm({ dealer, onSaved, onMissing }: FormProps) {
     }
   }
 
+  const actions = (
+    <div className={barStyles.actions}>
+      <button
+        type="button"
+        className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}
+        onClick={() => void navigate('/admin/concesionarias')}
+      >
+        CANCELAR
+      </button>
+      <button
+        type="submit"
+        form={formId}
+        disabled={submitting}
+        aria-busy={submitting}
+        className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+      >
+        {submitting ? 'GUARDANDO…' : 'GUARDAR CONCESIONARIA'}
+      </button>
+    </div>
+  )
+
   return (
-    <>
+    <FlowLayout actions={actions}>
+      {header}
       {result ? (
         <p role="status" className={`${alertStyles.notice} ${styles.message}`}>
           {result}
@@ -113,7 +141,7 @@ function DealerForm({ dealer, onSaved, onMissing }: FormProps) {
           {failure}
         </p>
       ) : null}
-      <form onSubmit={(event) => void handleSubmit(event)} noValidate className={styles.form}>
+      <form id={formId} onSubmit={(event) => void handleSubmit(event)} noValidate className={styles.form}>
         <div className={styles.fields}>
           {FIELDS.map(({ field, ...textField }) => (
             <TextField
@@ -130,25 +158,9 @@ function DealerForm({ dealer, onSaved, onMissing }: FormProps) {
             />
           ))}
         </div>
-        <div className={styles.actions}>
-          <button
-            type="button"
-            className={`${buttonStyles.button} ${buttonStyles.danger}`}
-            onClick={() => void navigate('/admin/concesionarias')}
-          >
-            CANCELAR
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            aria-busy={submitting}
-            className={`${buttonStyles.button} ${buttonStyles.success}`}
-          >
-            {submitting ? 'GUARDANDO…' : 'GUARDAR CONCESIONARIA'}
-          </button>
-        </div>
       </form>
-    </>
+      {children}
+    </FlowLayout>
   )
 }
 
@@ -197,16 +209,21 @@ function DealerEditContent({ id }: { id: number }) {
   const { dealer } = loadState
 
   return (
-    <div className={screenStyles.page}>
-      <div className={adminStyles.header}>
-        <BackLink />
-        <p className={screenStyles.eyebrow}>CONCESIONARIAS</p>
-        <h1 className={screenStyles.title}>Editar concesionaria</h1>
-        <p className={adminStyles.subtitle}>Cambios sobre el registro seleccionado.</p>
-      </div>
-      <DealerForm dealer={dealer} onSaved={(saved) => setLoadState({ dealer: saved })} onMissing={() => setLoadState('missing')} />
+    <DealerForm
+      dealer={dealer}
+      onSaved={(saved) => setLoadState({ dealer: saved })}
+      onMissing={() => setLoadState('missing')}
+      header={
+        <div className={adminStyles.header}>
+          <BackLink />
+          <p className={screenStyles.eyebrow}>CONCESIONARIAS</p>
+          <h1 className={screenStyles.title}>Editar concesionaria</h1>
+          <p className={adminStyles.subtitle}>Cambios sobre el registro seleccionado.</p>
+        </div>
+      }
+    >
       <DealerOverview dealer={dealer} />
-    </div>
+    </DealerForm>
   )
 }
 

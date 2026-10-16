@@ -24,36 +24,9 @@
   grid-column: 1 / -1;
 }
 
-/* Figma "Actions" (2122:1977): CANCELAR (150) at the left edge, the save button (220) at the right. */
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.cancel {
-  width: min(100%, 150px);
-}
-
-.submit {
-  width: min(100%, 220px);
-}
-
 @media (max-width: 1000px) {
   .body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (max-width: 600px) {
-  .actions {
-    flex-direction: column-reverse;
-  }
-
-  .cancel,
-  .submit {
-    width: 100%;
-  }
-}

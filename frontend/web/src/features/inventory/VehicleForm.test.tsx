@@ -25,7 +25,7 @@ async function renderForm({ values = emptyValues(), photos = [], onSubmit = () =
   const submit = vi.fn(onSubmit)
   render(
     <MemoryRouter>
-      <VehicleForm initialValues={values} initialPhotos={photos} submitLabel="GUARDAR VEHÍCULO" onSubmit={submit} />
+      <VehicleForm title="Cargar vehículo" subtitle="Subtítulo" initialValues={values} initialPhotos={photos} submitLabel="GUARDAR VEHÍCULO" onSubmit={submit} />
     </MemoryRouter>,
   )
   await screen.findByLabelText('Patente')
@@ -57,12 +57,20 @@ describe('VehicleForm', () => {
     vi.mocked(fetchBodyTypes).mockResolvedValue(BODY_TYPES)
   })
 
+  it('keeps CANCELAR and the save button in the pinned action bar', async () => {
+    await renderForm()
+
+    const bar = screen.getByRole('group', { name: 'Acciones' })
+    expect(within(bar).getByRole('link', { name: 'CANCELAR' })).toBeInTheDocument()
+    expect(within(bar).getByRole('button', { name: 'GUARDAR VEHÍCULO' })).toHaveAttribute('type', 'submit')
+  })
+
   describe('loading the body types', () => {
     it('shows a section loader and no form while the catalog loads', () => {
       vi.mocked(fetchBodyTypes).mockReturnValue(new Promise(() => {}))
       render(
         <MemoryRouter>
-          <VehicleForm initialValues={emptyValues()} initialPhotos={[]} submitLabel="GUARDAR VEHÍCULO" onSubmit={vi.fn()} />
+          <VehicleForm title="Cargar vehículo" subtitle="Subtítulo" initialValues={emptyValues()} initialPhotos={[]} submitLabel="GUARDAR VEHÍCULO" onSubmit={vi.fn()} />
         </MemoryRouter>,
       )
 
@@ -74,7 +82,7 @@ describe('VehicleForm', () => {
       vi.mocked(fetchBodyTypes).mockRejectedValueOnce(new NetworkError(new Error('down')))
       render(
         <MemoryRouter>
-          <VehicleForm initialValues={emptyValues()} initialPhotos={[]} submitLabel="GUARDAR VEHÍCULO" onSubmit={vi.fn()} />
+          <VehicleForm title="Cargar vehículo" subtitle="Subtítulo" initialValues={emptyValues()} initialPhotos={[]} submitLabel="GUARDAR VEHÍCULO" onSubmit={vi.fn()} />
         </MemoryRouter>,
       )
 

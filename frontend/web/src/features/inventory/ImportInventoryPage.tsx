@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import alertStyles from "../../components/alert.module.css";
 import buttonStyles from "../../components/button.module.css";
+import barStyles from "../../components/checklist/pinnedBar.module.css";
 import ScrollArea from "../../components/ScrollArea";
 import { HttpError } from "../../lib/http";
 import SessionLoading from "../auth/session/SessionLoading";
@@ -87,6 +88,25 @@ export default function ImportInventoryPage() {
     <VehicleFormPage
       title="Importar CSV"
       subtitle="Subí un archivo para cargar o actualizar varios vehículos a la vez."
+      actions={
+        <div className={barStyles.actions}>
+          <Link
+            to={INVENTORY_PATH}
+            className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
+          >
+            VOLVER AL INVENTARIO
+          </Link>
+          <button
+            type="button"
+            disabled={!ready || confirming}
+            aria-busy={confirming}
+            className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+            onClick={() => void confirm()}
+          >
+            {confirming ? "IMPORTANDO…" : "CONFIRMAR IMPORTACIÓN"}
+          </button>
+        </div>
+      }
     >
       <section className={styles.card} aria-labelledby="import-format-title">
         <h2 id="import-format-title" className={styles.cardTitle}>
@@ -165,23 +185,6 @@ export default function ImportInventoryPage() {
           ) : null}
         </div>
       ) : null}
-      <div className={styles.actions}>
-        <Link
-          to={INVENTORY_PATH}
-          className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.back}`}
-        >
-          VOLVER AL INVENTARIO
-        </Link>
-        <button
-          type="button"
-          disabled={!ready || confirming}
-          aria-busy={confirming}
-          className={`${buttonStyles.button} ${buttonStyles.success} ${styles.confirm}`}
-          onClick={() => void confirm()}
-        >
-          {confirming ? "IMPORTANDO…" : "CONFIRMAR IMPORTACIÓN"}
-        </button>
-      </div>
     </VehicleFormPage>
   );
 }

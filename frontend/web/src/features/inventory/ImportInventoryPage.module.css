@@ -102,25 +102,10 @@
   padding-left: 20px;
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.back {
-  width: min(100%, 220px);
-}
-
 /* Template download: a link styled as a button, sized to its text at the start of the card. */
 .template {
   align-self: flex-start;
   width: min(100%, 220px);
-}
-
-.confirm {
-  width: min(100%, 240px);
 }
 
 @media (max-width: 600px) {
@@ -130,15 +115,6 @@
   }
 
   .pick {
-    width: 100%;
-  }
-
-  .actions {
-    flex-direction: column-reverse;
-  }
-
-  .back,
-  .confirm {
     width: 100%;
   }
 }

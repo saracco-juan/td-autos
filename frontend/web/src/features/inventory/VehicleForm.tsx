@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useId, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import barStyles from '../../components/checklist/pinnedBar.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
 import type { BodyType } from '../diagnosis/types'
@@ -16,6 +17,7 @@ import PhotoPicker from './PhotoPicker'
 import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
 import type { FotoVehiculo } from './types'
 import { usePhotoDraft } from './usePhotoDraft'
+import VehicleFormPage from './VehicleFormPage'
 import styles from './VehicleForm.module.css'
 import {
   COMBUSTIBLE_OPTIONS,
@@ -35,6 +37,8 @@ const SAVE_ERROR = 'No pudimos guardar el vehículo. Probá de nuevo.'
 type CatalogState = 'loading' | { ready: BodyType[] } | { error: ErrorKind }
 
 type Props = {
+  title: string
+  subtitle: string
   initialValues: VehicleValues
   // Photos the vehicle already has (edit); empty on create.
   initialPhotos: FotoVehiculo[]
@@ -51,7 +55,8 @@ function focusField(name: VehicleErrorKey) {
 }
 
 // Shared by loading and editing a vehicle (Figma 38:923 / 2119:1841): fields on the left, photos on the right, actions below.
-export default function VehicleForm({ initialValues, initialPhotos, submitLabel, onSubmit }: Props) {
+export default function VehicleForm({ title, subtitle, initialValues, initialPhotos, submitLabel, onSubmit }: Props) {
+  const formId = useId()
   const [catalog, setCatalog] = useState<CatalogState>('loading')
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState<VehicleErrors>({})
@@ -118,8 +123,20 @@ export default function VehicleForm({ initialValues, initialPhotos, submitLabel,
   }
 
   // The loader and the error are direct children of the content area so they are centered there.
-  if (catalog === 'loading') return <SessionLoading />
-  if ('error' in catalog) return <ErrorState kind={catalog.error} onRetry={retry} />
+  if (catalog === 'loading') {
+    return (
+      <VehicleFormPage title={title} subtitle={subtitle}>
+        <SessionLoading />
+      </VehicleFormPage>
+    )
+  }
+  if ('error' in catalog) {
+    return (
+      <VehicleFormPage title={title} subtitle={subtitle}>
+        <ErrorState kind={catalog.error} onRetry={retry} />
+      </VehicleFormPage>
+    )
+  }
 
   const text = (name: VehicleFieldName, label: string, inputMode?: 'numeric' | 'decimal') => (
     <TextField
@@ -134,77 +151,83 @@ export default function VehicleForm({ initialValues, initialPhotos, submitLabel,
     />
   )
 
+  const actions = (
+    <div className={barStyles.actions}>
+      <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}>
+        CANCELAR
+      </Link>
+      <button
+        type="submit"
+        form={formId}
+        disabled={submitting}
+        aria-busy={submitting}
+        className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+      >
+        {submitting ? 'GUARDANDO…' : submitLabel}
+      </button>
+    </div>
+  )
+
   return (
-    <form noValidate onSubmit={(event) => void handleSubmit(event)} className={styles.form}>
-      <div className={styles.body}>
-        <div className={styles.fields}>
-          {text('patente', 'Patente')}
-          {text('marca', 'Marca')}
-          {text('modelo', 'Modelo')}
-          {text('version', 'Versión (opcional)')}
-          {text('anio', 'Año', 'numeric')}
-          {text('kilometraje', 'Kilometraje', 'numeric')}
-          {text('precio', 'Precio', 'decimal')}
-          <SelectField
-            id={fieldId('transmision')}
-            name="transmision"
-            label="Transmisión"
-            value={values.transmision}
-            options={TRANSMISION_OPTIONS}
-            errors={errors.transmision}
-            onChange={handleChange('transmision')}
-          />
-          <SelectField
-            id={fieldId('combustible')}
-            name="combustible"
-            label="Combustible"
-            value={values.combustible}
-            options={COMBUSTIBLE_OPTIONS}
-            errors={errors.combustible}
-            onChange={handleChange('combustible')}
-          />
-          <SelectField
-            id={fieldId('carroceria_id')}
-            name="carroceria_id"
-            label="Carrocería"
-            value={values.carroceria_id}
-            options={catalog.ready.map((bodyType) => ({ value: String(bodyType.id), label: bodyType.nombre }))}
-            errors={errors.carroceria_id}
-            onChange={handleChange('carroceria_id')}
-          />
-          {text('ubicacion', 'Ubicación')}
-          <div className={styles.fullRow}>
-            <TextAreaField
-              id={fieldId('descripcion')}
-              name="descripcion"
-              label="Descripción (opcional)"
-              value={values.descripcion}
-              errors={errors.descripcion}
-              onChange={handleChange('descripcion')}
+    <VehicleFormPage title={title} subtitle={subtitle} actions={actions}>
+      <form id={formId} noValidate onSubmit={(event) => void handleSubmit(event)} className={styles.form}>
+        <div className={styles.body}>
+          <div className={styles.fields}>
+            {text('patente', 'Patente')}
+            {text('marca', 'Marca')}
+            {text('modelo', 'Modelo')}
+            {text('version', 'Versión (opcional)')}
+            {text('anio', 'Año', 'numeric')}
+            {text('kilometraje', 'Kilometraje', 'numeric')}
+            {text('precio', 'Precio', 'decimal')}
+            <SelectField
+              id={fieldId('transmision')}
+              name="transmision"
+              label="Transmisión"
+              value={values.transmision}
+              options={TRANSMISION_OPTIONS}
+              errors={errors.transmision}
+              onChange={handleChange('transmision')}
             />
+            <SelectField
+              id={fieldId('combustible')}
+              name="combustible"
+              label="Combustible"
+              value={values.combustible}
+              options={COMBUSTIBLE_OPTIONS}
+              errors={errors.combustible}
+              onChange={handleChange('combustible')}
+            />
+            <SelectField
+              id={fieldId('carroceria_id')}
+              name="carroceria_id"
+              label="Carrocería"
+              value={values.carroceria_id}
+              options={catalog.ready.map((bodyType) => ({ value: String(bodyType.id), label: bodyType.nombre }))}
+              errors={errors.carroceria_id}
+              onChange={handleChange('carroceria_id')}
+            />
+            {text('ubicacion', 'Ubicación')}
+            <div className={styles.fullRow}>
+              <TextAreaField
+                id={fieldId('descripcion')}
+                name="descripcion"
+                label="Descripción (opcional)"
+                value={values.descripcion}
+                errors={errors.descripcion}
+                onChange={handleChange('descripcion')}
+              />
+            </div>
           </div>
+          <PhotoPicker draft={draft} errors={errors.fotos} />
         </div>
-        <PhotoPicker draft={draft} errors={errors.fotos} />
-      </div>
-      {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
-      {formError ? (
-        <p role="alert" className={alertStyles.alert}>
-          {formError}
-        </p>
-      ) : null}
-      <div className={styles.actions}>
-        <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.danger} ${styles.cancel}`}>
-          CANCELAR
-        </Link>
-        <button
-          type="submit"
-          disabled={submitting}
-          aria-busy={submitting}
-          className={`${buttonStyles.button} ${buttonStyles.success} ${styles.submit}`}
-        >
-          {submitting ? 'GUARDANDO…' : submitLabel}
-        </button>
-      </div>
-    </form>
+        {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
+        {formError ? (
+          <p role="alert" className={alertStyles.alert}>
+            {formError}
+          </p>
+        ) : null}
+      </form>
+    </VehicleFormPage>
   )
 }
