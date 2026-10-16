@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState, type MouseEvent } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import alertStyles from '../components/alert.module.css'
 import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/roles'
@@ -20,6 +20,8 @@ export default function AppShell() {
   const { user, status, logout } = useAuth()
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutFailed, setLogoutFailed] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuId = useId()
 
   const handleLogout = async () => {
     setLogoutFailed(false)
@@ -33,76 +35,101 @@ export default function AppShell() {
     }
   }
 
+  // A followed link closes the phone menu; the logout keeps it open so its busy state stays visible.
+  const handleMenuClick = (event: MouseEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest('a')) setMenuOpen(false)
+  }
+
   return (
     <div className={styles.shell}>
-      <header className={styles.nav}>
+      <header
+        className={styles.nav}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') setMenuOpen(false)
+        }}
+      >
         <Link to="/" className={styles.logo}>
           TD Autos
         </Link>
         {status === 'authenticated' ? (
           <>
-            <nav aria-label="Principal" className={styles.navLinks}>
-              {isDealer(user) ? (
-                <>
-                  <NavLink to="/concesionaria/suscripcion" className={styles.navAction}>
-                    Suscripción
-                  </NavLink>
-                  <NavLink to="/concesionaria" end className={styles.navAction}>
-                    Verificación
-                  </NavLink>
-                  {isActiveDealer(user) ? (
-                    <NavLink to="/concesionaria/inventario" className={styles.navAction}>
-                      Inventario
+            <button
+              type="button"
+              className={styles.menuToggle}
+              aria-expanded={menuOpen}
+              aria-controls={menuId}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              Menú
+            </button>
+            <div
+              id={menuId}
+              className={`${styles.menuPanel} ${menuOpen ? styles.menuPanelOpen : ''}`}
+              onClick={handleMenuClick}
+            >
+              <nav aria-label="Principal" className={styles.navLinks}>
+                {isDealer(user) ? (
+                  <>
+                    <NavLink to="/concesionaria/suscripcion" className={styles.navAction}>
+                      Suscripción
                     </NavLink>
-                  ) : null}
-                </>
-              ) : null}
-              {isAdmin(user) ? (
-                <Link
-                  to="/admin/concesionarias"
+                    <NavLink to="/concesionaria" end className={styles.navAction}>
+                      Verificación
+                    </NavLink>
+                    {isActiveDealer(user) ? (
+                      <NavLink to="/concesionaria/inventario" className={styles.navAction}>
+                        Inventario
+                      </NavLink>
+                    ) : null}
+                  </>
+                ) : null}
+                {isAdmin(user) ? (
+                  <Link
+                    to="/admin/concesionarias"
+                    className={styles.navAction}
+                    aria-current={ADMIN_DEALER_PATHS.some((path) => pathname.startsWith(path)) ? 'page' : undefined}
+                  >
+                    Concesionarias
+                  </Link>
+                ) : null}
+                {isBuyer(user) ? (
+                  <>
+                    <NavLink to="/diagnostico" className={styles.navAction}>
+                      Diagnóstico
+                    </NavLink>
+                    <NavLink to="/recomendaciones" className={styles.navAction}>
+                      Recomendados
+                    </NavLink>
+                    <NavLink to="/transferencia" className={styles.navAction}>
+                      Transferencia
+                    </NavLink>
+                  </>
+                ) : null}
+              </nav>
+              <div className={styles.navActions}>
+                {isDealer(user) && user?.concesionaria ? (
+                  <span className={styles.navText}>{user.concesionaria.nombre}</span>
+                ) : null}
+                {isBuyer(user) ? (
+                  <NavLink to="/perfil" className={styles.navAction}>
+                    Perfil
+                  </NavLink>
+                ) : null}
+                {isAdmin(user) ? (
+                  <NavLink to="/admin" end className={styles.navAction}>
+                    Administración
+                  </NavLink>
+                ) : null}
+                <button
+                  type="button"
                   className={styles.navAction}
-                  aria-current={ADMIN_DEALER_PATHS.some((path) => pathname.startsWith(path)) ? 'page' : undefined}
+                  disabled={loggingOut}
+                  aria-busy={loggingOut}
+                  onClick={handleLogout}
                 >
-                  Concesionarias
-                </Link>
-              ) : null}
-              {isBuyer(user) ? (
-                <>
-                  <NavLink to="/diagnostico" className={styles.navAction}>
-                    Diagnóstico
-                  </NavLink>
-                  <NavLink to="/recomendaciones" className={styles.navAction}>
-                    Recomendados
-                  </NavLink>
-                  <NavLink to="/transferencia" className={styles.navAction}>
-                    Transferencia
-                  </NavLink>
-                </>
-              ) : null}
-            </nav>
-            <div className={styles.navActions}>
-              {isDealer(user) && user?.concesionaria ? (
-                <span className={styles.navText}>{user.concesionaria.nombre}</span>
-              ) : null}
-              {isBuyer(user) ? (
-                <NavLink to="/perfil" className={styles.navAction}>
-                  Perfil
-                </NavLink>
-              ) : null}
-              {isAdmin(user) ? (
-                <NavLink to="/admin" end className={styles.navAction}>
-                  Administración
-                </NavLink>
-              ) : null}
-              <button
-                type="button"
-                className={styles.navAction}
-                disabled={loggingOut}
-                aria-busy={loggingOut}
-                onClick={handleLogout}
-              >
-                Cerrar sesión
-              </button>
+                  Cerrar sesión
+                </button>
+              </div>
             </div>
           </>
         ) : null}

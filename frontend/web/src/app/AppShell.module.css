@@ -8,8 +8,9 @@
 .nav {
   display: flex;
   align-items: center;
-  height: 64px;
-  padding: 0 32px;
+  position: relative;
+  min-height: 64px;
+  padding: 0 clamp(16px, 4vw, 32px);
   background: var(--palette-red);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
@@ -19,6 +20,15 @@
   font-size: 20px;
   font-weight: 700;
   text-decoration: none;
+}
+
+/* Wide screens: the panel only groups the links and the logout; its children lay out in the bar. */
+.menuPanel {
+  display: contents;
+}
+
+.menuToggle {
+  display: none;
 }
 
 /* Role links, beside the logo. */
@@ -77,38 +87,72 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px 16px;
+  padding: 20px clamp(16px, 4vw, 32px);
 }
 
 /* Figma "Footer" */
 .footer {
   display: flex;
   align-items: center;
-  height: 40px;
-  padding: 0 32px;
+  min-height: 40px;
+  padding: 0 clamp(16px, 4vw, 32px);
   background: var(--palette-red);
   color: var(--text-on-color);
   font-size: 11px;
 }
 
-@media (max-width: 600px) {
-  .nav,
-  .footer {
-    padding: 0 16px;
+/* Phones and small tablets: the bar keeps logo + MENÚ in one row; links and logout drop down from it. */
+@media (max-width: 800px) {
+  .menuToggle {
+    display: inline-flex;
+    align-items: center;
+    margin-left: auto;
+    padding: 8px 0;
+    border: 0;
+    background: none;
+    color: var(--text-on-color);
+    font: 700 12px/normal var(--font-sans);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
   }
 
-  /* Logo and four links do not fit one row: the bar grows and the links wrap under the logo. */
-  .nav {
-    flex-wrap: wrap;
-    height: auto;
-    min-height: 64px;
-    padding-top: 12px;
-    padding-bottom: 12px;
-    row-gap: 8px;
+  .menuPanel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 8px clamp(16px, 4vw, 32px) 16px;
+    background: var(--palette-red);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.18);
+  }
+
+  .menuPanelOpen {
+    display: flex;
+  }
+
+  .navLinks,
+  .navActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    margin-left: 0;
   }
 
   .navActions {
-    flex-wrap: wrap;
-    gap: 8px 16px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .navAction,
+  .navText {
+    padding: 10px 0;
+    font-size: 14px;
+    text-align: left;
   }
 }
