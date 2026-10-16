@@ -7,7 +7,6 @@ import ListFooter from '../../components/ListFooter'
 import Pagination from '../../components/Pagination'
 import ScrollArea from '../../components/ScrollArea'
 import screenStyles from '../../components/screen.module.css'
-import useAutoPageSize from '../../components/useAutoPageSize'
 import { HttpError, NetworkError } from '../../lib/http'
 import Field from '../auth/shared/Field'
 import SessionLoading from '../auth/session/SessionLoading'
@@ -22,9 +21,8 @@ type View =
   | { status: 'ready'; query?: string; page: number; perPage: number; response: SearchResponse }
   | { status: 'error'; query?: string; page: number; perPage: number; kind: ErrorKind }
 
-// Cards per page while the screen has not been measured; the API accepts up to 60.
-const FALLBACK_PER_PAGE = 12
-const MAX_PER_PAGE = 60
+// A 3 x 3 page: two rows fill the screen and the third is reached by scrolling the list (DESIGN.md).
+const PER_PAGE = 9
 
 const TOO_LONG = 'Usá hasta 100 caracteres.'
 
@@ -38,14 +36,13 @@ function joinNames(names: string[]): string {
 }
 
 // Recommendations screen (Figma 38:168, UH-06): dealer vehicles and external listings in one paginated list, which HU05 later ranks.
-// Match percentage, COMPARAR, VER FICHA and the filter sidebar wait for their own stories; BUSCAR is added to the search box.
+// Match percentage, COMPARAR, VER FICHA and the filter sidebar wait for their own stories. The search runs on Enter, as in Figma.
 export default function RecommendationsPage() {
-  const [view, setView] = useState<View>({ status: 'loading', page: 1, perPage: FALLBACK_PER_PAGE })
+  const [view, setView] = useState<View>({ status: 'loading', page: 1, perPage: PER_PAGE })
   const [draft, setDraft] = useState('')
   const [fieldError, setFieldError] = useState<string[] | undefined>()
   // Only the last request may answer: a slower, older one is dropped.
   const latest = useRef(0)
-  const gridRef = useRef<HTMLUListElement>(null)
 
   // `previous` is the view to go back to when the text is rejected (422), so the list stays on screen.
   const fetchListings = useCallback((query: string | undefined, page: number, perPage: number, previous: View | null) => {
@@ -66,21 +63,8 @@ export default function RecommendationsPage() {
       })
   }, [])
 
-  // Cards that fit the free height of the screen: no inner scrollbar on desktop.
-  const gridShown = view.status === 'ready' && view.response.publicaciones.length > 0
-  const pageSize = useAutoPageSize(gridRef, {
-    itemSelector: 'li',
-    fallback: FALLBACK_PER_PAGE,
-    max: MAX_PER_PAGE,
-    enabled: gridShown,
-  })
-  const sizeRef = useRef(pageSize)
   useEffect(() => {
-    sizeRef.current = pageSize
-  }, [pageSize])
-
-  useEffect(() => {
-    fetchListings(undefined, 1, sizeRef.current, null)
+    fetchListings(undefined, 1, PER_PAGE, null)
     return () => {
       latest.current += 1
     }
@@ -89,19 +73,9 @@ export default function RecommendationsPage() {
   // The list is replaced by the loader while it loads, so the scroll area comes back at the top.
   const search = (query: string | undefined, page: number, previous: View | null) => {
     setFieldError(undefined)
-    setView({ status: 'loading', query, page, perPage: sizeRef.current })
-    fetchListings(query, page, sizeRef.current, previous)
+    setView({ status: 'loading', query, page, perPage: PER_PAGE })
+    fetchListings(query, page, PER_PAGE, previous)
   }
-
-  // The screen changed size: ask again with the new page size, keeping roughly the same first card on screen.
-  useEffect(() => {
-    if (view.status !== 'ready' || view.perPage === pageSize) return
-    const firstIndex = (view.page - 1) * view.perPage
-    // The measured size comes from the layout, outside React: reacting to it here is the point of the effect.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    search(view.query, Math.floor(firstIndex / pageSize) + 1, null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageSize, view])
 
   const loading = view.status === 'loading'
 
@@ -129,33 +103,26 @@ export default function RecommendationsPage() {
           <h1 className={styles.title}>Mejores opciones para vos</h1>
           {response && listings ? <p className={styles.subtitle}>{countText(response.meta.total)}</p> : null}
         </div>
-        <form role="search" onSubmit={handleSubmit} noValidate className={styles.search}>
-          <Field id="listing-search" label="Buscar por marca, modelo o versión" errors={fieldError}>
-            {(control) => (
-              <input
-                {...control}
-                type="search"
-                name="q"
-                autoComplete="off"
-                enterKeyHint="search"
-                placeholder="Ej: Corolla automático 2021"
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-              />
-            )}
-          </Field>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
-          >
-            BUSCAR
-          </button>
-        </form>
-        <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.adjust}`}>
+        <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${styles.adjust}`}>
           AJUSTAR DIAGNÓSTICO
         </Link>
       </div>
+      <form role="search" onSubmit={handleSubmit} noValidate className={styles.search}>
+        <Field id="listing-search" label="Buscar por marca, modelo o versión" errors={fieldError}>
+          {(control) => (
+            <input
+              {...control}
+              type="search"
+              name="q"
+              autoComplete="off"
+              enterKeyHint="search"
+              placeholder="Ej: Corolla automático 2021"
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+            />
+          )}
+        </Field>
+      </form>
       <section className={styles.results} aria-label="Resultados">
         {loading ? <SessionLoading /> : null}
         {view.status === 'error' ? (
@@ -178,7 +145,7 @@ export default function RecommendationsPage() {
             ) : (
               <>
                 <ScrollArea label="Publicaciones" fill viewportClassName={styles.gridArea}>
-                  <ul ref={gridRef} className={styles.grid} aria-label="Publicaciones">
+                  <ul className={styles.grid} aria-label="Publicaciones">
                     {listings.map((listing) => (
                       <VehicleCard key={listing.id} listing={listing} />
                     ))}

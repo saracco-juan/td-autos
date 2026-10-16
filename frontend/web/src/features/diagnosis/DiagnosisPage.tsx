@@ -129,13 +129,14 @@ export default function DiagnosisPage() {
 
   return (
     <FlowLayout
+      narrow
       actions={
         <div className={barStyles.actions}>
           {step > 0 ? (
             <button
               type="button"
               disabled={saving}
-              className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
+              className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${barStyles.action}`}
               onClick={() => goToStep(step - 1)}
             >
               ATRÁS
@@ -146,7 +147,7 @@ export default function DiagnosisPage() {
               type="button"
               disabled={saving}
               aria-busy={saving}
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.actionWide}`}
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.actionWide}`}
               onClick={handleFinish}
             >
               {saving ? 'GUARDANDO…' : 'VER RECOMENDACIONES'}
@@ -154,7 +155,7 @@ export default function DiagnosisPage() {
           ) : (
             <button
               type="button"
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.action}`}
               onClick={handleNext}
             >
               CONTINUAR

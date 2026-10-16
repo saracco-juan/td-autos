@@ -9,7 +9,7 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## Page layout
 
-- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards and long reading text keep a max width.
+- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text and the buyer flows that do not need the width (diagnosis and transfer: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width.
 - Every screen fills the viewport height: header on top, footer at the bottom, content in between with no empty band under the actions.
 - On flow and form screens (diagnosis, transfer and inspection checklists, subscription, vehicle form, CSV import, dealer edit), the primary actions sit in a bar pinned to the bottom of the content area, never in the middle of the page. If the content is taller than the screen, the content scrolls and the action bar stays visible.
 
@@ -28,8 +28,13 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Tables are only as wide as their fields need, with room to breathe (about 20 px of horizontal cell padding): fixed pixel column widths (`table-layout: fixed`, table width = sum of the columns), every row the same height, compact row actions (smaller than page buttons) on one line. The title, the table and the pager form a column centered on the page; the pager aligns with the table's right edge.
 - The table box takes the free height of the screen and has no surface of its own (no background, border or shadow): the table itself carries the white rows and the rounded border, so it looks as tall as its rows. The pager stays pinned at the bottom of the screen. When the chosen rows do not fit, the box scrolls inside. Reserve the scrollbar lane (`scrollbar-gutter: stable`) so a vertical scrollbar never causes a sideways one. (Decided 2026-10-16 over a box sized by its rows, whose height and pager jumped with the row count.)
 - On narrow screens a table drops its least needed columns (first contact, then place) instead of squeezing all of them; long cell text ends in an ellipsis with the full text in `title`.
-- A search box for a list goes in the header row beside the title when there is room; on phones it drops under the title.
+- A search box for a list goes in the header row beside the title when there is room; on phones it drops under the title. Exception: recommendations follow Figma 38:168, with the search field full width under the header and no BUSCAR button (Enter searches).
+- Recommendations show a 3 x 3 page (9 cards, fixed): two rows fill the list box and the third is reached by scrolling inside it. Tablets show two columns, phones one card per row.
 - Scroll containers keep their rounded box: the frame clips, the inner region scrolls, slim inset scrollbar in the border color.
+
+## Buttons
+
+- Buyer screens (diagnosis, recommendations, inspection, transfer, profile) use the soft button (`buttonStyles.soft` on top of the variant): white surface, thin light border, soft shadow, dark grey label, subtle hover in the table header tone, soft focus ring. The primary keeps a slightly stronger border and a bolder label.
 
 ## Feedback
 

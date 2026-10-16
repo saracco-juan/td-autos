@@ -156,6 +156,7 @@ export default function TransferPage() {
 
   return (
     <FlowLayout
+      narrow
       actions={
         <ChecklistActionBar
           labels={ACTION_LABELS}

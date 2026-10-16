@@ -11,6 +11,12 @@
   min-width: 0;
 }
 
+/* Buyer flows that read better in a column than across a wide screen; the bar keeps to the same column. */
+.narrow {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
 .body {
   display: flex;
   flex: 1;

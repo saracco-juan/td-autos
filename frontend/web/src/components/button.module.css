@@ -68,3 +68,35 @@
   color: var(--text-on-color);
   box-shadow: 0 6px 10px rgba(26, 20, 15, 0.14);
 }
+
+/* Soft look (buyer screens): white surface, thin light border, soft shadow, dark grey label and a subtle hover.
+   Goes after the variant so it overrides its colors; the primary keeps only a bolder border to stay the main action. */
+.soft {
+  border-color: var(--border-default);
+  background: var(--surface-default);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(26, 20, 15, 0.06);
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+.soft.primary {
+  border-color: var(--border-input);
+  font-weight: 700;
+}
+
+.soft:hover:not(:disabled):not([aria-busy='true']) {
+  background: var(--surface-raised);
+}
+
+.soft:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--surface-raised);
+  border-color: var(--border-input);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soft {
+    transition: none;
+  }
+}

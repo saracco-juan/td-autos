@@ -28,8 +28,8 @@ type Props = {
   onKeepWorking: () => void
 }
 
-const secondary = `${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`
-const primary = `${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`
+const secondary = `${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${barStyles.action}`
+const primary = `${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.action}`
 
 // Content of the pinned bar (FlowLayout draws the bar). The primary button is always the right-most one, so it never moves
 // when previous or next come and go.
