@@ -22,7 +22,8 @@ export default function AdminDashboardPage() {
   ]
 
   return (
-    <div className={screenStyles.page}>
+    // A centered column: the dashboard does not need the full width (DESIGN.md).
+    <div className={`${screenStyles.page} ${styles.dashboard}`}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>ADMINISTRACIÓN</p>
         <h1 className={screenStyles.title}>Panel de administración</h1>
@@ -42,7 +43,7 @@ export default function AdminDashboardPage() {
           Concesionarias
         </h2>
         <p className={styles.cardBody}>Revisá altas nuevas, aprobá comprobantes y editá los datos de cada concesionaria.</p>
-        <Link to="/admin/concesionarias" className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+        <Link to="/admin/concesionarias" className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${styles.areaAction}`}>
           VER CONCESIONARIAS
         </Link>
       </section>

@@ -11,6 +11,20 @@
   font-size: 14px;
 }
 
+/* Dashboard (Figma 2101:1493): a centered column up to 1040 px, like the buyer flows. */
+.dashboard {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+/* The area link is as wide as its label, on the left of the card. */
+.areaAction {
+  align-self: flex-start;
+  width: auto;
+  min-width: 180px;
+  padding-inline: 20px;
+}
+
 /* Figma "Card": white surface, radius 14. */
 .card {
   display: flex;
