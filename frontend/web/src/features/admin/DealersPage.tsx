@@ -1,36 +1,62 @@
-import { Link } from 'react-router'
-import buttonStyles from '../../components/button.module.css'
-import ErrorState from '../../components/ErrorState'
-import screenStyles from '../../components/screen.module.css'
-import SessionLoading from '../auth/session/SessionLoading'
-import styles from './admin.module.css'
-import { accountState, dealerLocation, hasRejectedReceipt, receiptTarget } from './format'
-import StateTag from './StateTag'
-import type { AdminDealerRow } from './types'
-import { useDealerDirectory } from './useDealerDirectory'
+import { Link } from "react-router";
+import buttonStyles from "../../components/button.module.css";
+import ErrorState from "../../components/ErrorState";
+import ScrollArea from "../../components/ScrollArea";
+import screenStyles from "../../components/screen.module.css";
+import SessionLoading from "../auth/session/SessionLoading";
+import styles from "./admin.module.css";
+import {
+  accountState,
+  dealerLocation,
+  hasRejectedReceipt,
+  receiptTarget,
+} from "./format";
+import StateTag from "./StateTag";
+import type { AdminDealerRow } from "./types";
+import { useDealerDirectory } from "./useDealerDirectory";
 
 function registeredCount(count: number): string {
-  return count === 1 ? '1 concesionaria registrada' : `${count} concesionarias registradas`
+  return count === 1
+    ? "1 concesionaria registrada"
+    : `${count} concesionarias registradas`;
 }
 
 function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
-  const state = accountState(dealer.estado_alta, dealer.suscripcion_estado)
-  const receiptId = receiptTarget(dealer)
+  const state = accountState(dealer.estado_alta, dealer.suscripcion_estado);
+  const receiptId = receiptTarget(dealer);
 
   return (
     <tr>
-      <th scope="row" className={styles.dealerName}>
+      <th
+        scope="row"
+        className={`${styles.dealerName} ${styles.truncate}`}
+        title={dealer.nombre}
+      >
         {dealer.nombre}
       </th>
-      <td className={styles.muted}>{dealerLocation(dealer)}</td>
-      <td className={styles.muted}>{dealer.contacto.email}</td>
+      <td
+        className={`${styles.muted} ${styles.truncate}`}
+        title={dealerLocation(dealer)}
+      >
+        {dealerLocation(dealer)}
+      </td>
+      <td
+        className={`${styles.muted} ${styles.truncate}`}
+        title={dealer.contacto.email ?? undefined}
+      >
+        {dealer.contacto.email}
+      </td>
       <td>
         <div className={styles.stateCell}>
           <span className={styles.state} data-tone={state.tone}>
             {state.label}
           </span>
           {state.tag ? <StateTag tag={state.tag} /> : null}
-          {hasRejectedReceipt(dealer) ? <StateTag tag={{ label: 'Comprobante rechazado', tone: 'rejected' }} /> : null}
+          {hasRejectedReceipt(dealer) ? (
+            <StateTag
+              tag={{ label: "Comprobante rechazado", tone: "rejected" }}
+            />
+          ) : null}
         </div>
       </td>
       <td>
@@ -56,18 +82,19 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
         </div>
       </td>
     </tr>
-  )
+  );
 }
 
 // Dealer list (Figma 38:1037, UH19): dealers waiting for a review first, as the API orders them.
 // EDITAR opens the dealer page (UH27).
 export default function DealersPage() {
-  const { state, retry } = useDealerDirectory()
+  const { state, retry } = useDealerDirectory();
 
-  if (state === 'loading') return <SessionLoading />
-  if ('error' in state) return <ErrorState kind={state.error} onRetry={retry} />
+  if (state === "loading") return <SessionLoading />;
+  if ("error" in state)
+    return <ErrorState kind={state.error} onRetry={retry} />;
 
-  const dealers = state.data.concesionarias
+  const dealers = state.data.concesionarias;
 
   return (
     <div className={screenStyles.page}>
@@ -79,9 +106,16 @@ export default function DealersPage() {
         <p className={styles.subtitle}>{registeredCount(dealers.length)}</p>
       </div>
       {dealers.length === 0 ? (
-        <p className={styles.empty}>Todavía no hay concesionarias registradas.</p>
+        <p className={styles.empty}>
+          Todavía no hay concesionarias registradas.
+        </p>
       ) : (
-        <div className={styles.tableWrap}>
+        <ScrollArea
+          label="Listado de concesionarias"
+          stickyHeader
+          offset={340}
+          className={styles.tableWrap}
+        >
           <table className={styles.table} aria-labelledby="admin-dealers-title">
             <thead>
               <tr>
@@ -98,8 +132,8 @@ export default function DealersPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       )}
     </div>
-  )
+  );
 }

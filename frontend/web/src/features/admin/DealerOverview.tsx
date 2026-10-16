@@ -1,17 +1,25 @@
-import { Link } from 'react-router'
-import buttonStyles from '../../components/button.module.css'
-import { formatSentDate } from '../subscription/format'
-import adminStyles from './admin.module.css'
-import styles from './DealerEditPage.module.css'
-import { accountState, dealerState, formatDay, receiptState, receiptTone, retentionReached } from './format'
-import StateTag from './StateTag'
-import type { DealerDetail, DealerReceiptRow } from './types'
+import { Link } from "react-router";
+import buttonStyles from "../../components/button.module.css";
+import ScrollArea from "../../components/ScrollArea";
+import { formatSentDate } from "../subscription/format";
+import adminStyles from "./admin.module.css";
+import styles from "./DealerEditPage.module.css";
+import {
+  accountState,
+  dealerState,
+  formatDay,
+  receiptState,
+  receiptTone,
+  retentionReached,
+} from "./format";
+import StateTag from "./StateTag";
+import type { DealerDetail, DealerReceiptRow } from "./types";
 
-const PENDING = 'pendiente de revisión'
+const PENDING = "pendiente de revisión";
 
 function SubscriptionCard({ dealer }: { dealer: DealerDetail }) {
-  const { suscripcion } = dealer
-  const state = accountState(dealer.estado_alta, suscripcion?.estado)
+  const { suscripcion } = dealer;
+  const state = accountState(dealer.estado_alta, suscripcion?.estado);
 
   return (
     <section className={adminStyles.card} aria-labelledby="dealer-subscription">
@@ -32,41 +40,57 @@ function SubscriptionCard({ dealer }: { dealer: DealerDetail }) {
         ) : null}
       </dl>
       {suscripcion === null ? (
-        <p className={adminStyles.cardBody}>Todavía no tiene una suscripción.</p>
+        <p className={adminStyles.cardBody}>
+          Todavía no tiene una suscripción.
+        </p>
       ) : (
         <>
           <p className={adminStyles.cardBody}>
             {suscripcion.vigente_desde && suscripcion.vigente_hasta
               ? `Vigente desde ${formatDay(suscripcion.vigente_desde)} hasta ${formatDay(suscripcion.vigente_hasta)}`
-              : 'Todavía no tiene vigencia.'}
+              : "Todavía no tiene vigencia."}
           </p>
           {suscripcion.gracia_hasta ? (
-            <p className={adminStyles.cardBody}>{`Gracia hasta el ${formatDay(suscripcion.gracia_hasta)}`}</p>
+            <p
+              className={adminStyles.cardBody}
+            >{`Gracia hasta el ${formatDay(suscripcion.gracia_hasta)}`}</p>
           ) : null}
           {suscripcion.retencion_hasta ? (
-            <p className={adminStyles.cardBody}>{`${retentionReached(suscripcion.retencion_hasta) ? 'Vehículos eliminados el' : 'Vehículos conservados hasta el'} ${formatDay(suscripcion.retencion_hasta)}`}</p>
+            <p
+              className={adminStyles.cardBody}
+            >{`${retentionReached(suscripcion.retencion_hasta) ? "Vehículos eliminados el" : "Vehículos conservados hasta el"} ${formatDay(suscripcion.retencion_hasta)}`}</p>
           ) : null}
         </>
       )}
     </section>
-  )
+  );
 }
 
 function ReceiptItem({ receipt }: { receipt: DealerReceiptRow }) {
-  const pending = receipt.estado === PENDING
+  const pending = receipt.estado === PENDING;
 
   return (
     <li className={styles.receipt}>
       <div className={styles.receiptInfo}>
-        <span className={styles.receiptTitle}>{receipt.tipo === 'renovacion' ? 'Renovación' : 'Alta'}</span>
-        <span>
-          {formatDay(receipt.periodo_desde)} al {formatDay(receipt.periodo_hasta)}
+        <span className={styles.receiptTitle}>
+          {receipt.tipo === "renovacion" ? "Renovación" : "Alta"}
         </span>
-        {receipt.enviado_en ? <span className={adminStyles.cardBody}>Enviado el {formatSentDate(receipt.enviado_en)}</span> : null}
-        <span className={styles.receiptState} data-tone={receiptTone(receipt.estado)}>
+        <span>
+          {formatDay(receipt.periodo_desde)} al{" "}
+          {formatDay(receipt.periodo_hasta)}
+        </span>
+        {receipt.enviado_en ? (
+          <span className={adminStyles.cardBody}>
+            Enviado el {formatSentDate(receipt.enviado_en)}
+          </span>
+        ) : null}
+        <span
+          className={styles.receiptState}
+          data-tone={receiptTone(receipt.estado)}
+        >
           {receiptState(receipt.estado)}
         </span>
-        {receipt.estado === 'rechazado' && receipt.motivo_rechazo ? (
+        {receipt.estado === "rechazado" && receipt.motivo_rechazo ? (
           <span className={styles.reason}>
             <span className={styles.reasonLabel}>Motivo: </span>
             {receipt.motivo_rechazo}
@@ -77,10 +101,10 @@ function ReceiptItem({ receipt }: { receipt: DealerReceiptRow }) {
         to={`/admin/comprobantes/${receipt.id}`}
         className={`${buttonStyles.button} ${pending ? buttonStyles.primary : buttonStyles.secondary} ${styles.receiptLink}`}
       >
-        {pending ? 'REVISAR' : 'VER'}
+        {pending ? "REVISAR" : "VER"}
       </Link>
     </li>
-  )
+  );
 }
 
 function ReceiptHistory({ receipts }: { receipts: DealerReceiptRow[] }) {
@@ -92,14 +116,16 @@ function ReceiptHistory({ receipts }: { receipts: DealerReceiptRow[] }) {
       {receipts.length === 0 ? (
         <p className={adminStyles.cardBody}>Todavía no envió comprobantes.</p>
       ) : (
-        <ul className={styles.list}>
-          {receipts.map((receipt) => (
-            <ReceiptItem key={receipt.id} receipt={receipt} />
-          ))}
-        </ul>
+        <ScrollArea label="Comprobantes de la concesionaria" offset={520}>
+          <ul className={styles.list}>
+            {receipts.map((receipt) => (
+              <ReceiptItem key={receipt.id} receipt={receipt} />
+            ))}
+          </ul>
+        </ScrollArea>
       )}
     </section>
-  )
+  );
 }
 
 // Read-only part of the dealer page (D1): subscription state and validity, and the receipts newest first.
@@ -110,5 +136,5 @@ export default function DealerOverview({ dealer }: { dealer: DealerDetail }) {
       <SubscriptionCard dealer={dealer} />
       <ReceiptHistory receipts={dealer.comprobantes} />
     </div>
-  )
+  );
 }

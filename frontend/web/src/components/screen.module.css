@@ -4,6 +4,7 @@
   flex-direction: column;
   gap: 32px;
   width: 100%;
+  min-width: 0;
   max-width: 1216px;
   /* The shell centers its content vertically; these screens start at the top. */
   margin-bottom: auto;

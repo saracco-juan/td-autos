@@ -1,0 +1,15 @@
+/* Fits the viewport minus what the page shows around it (--scroll-offset); never shorter than a few rows. */
+.area {
+  min-width: 0;
+  max-width: 100%;
+  max-height: max(240px, calc(100dvh - var(--scroll-offset, 360px)));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* The header cells need their own background, or the rows show through while they scroll under it. */
+.area[data-sticky-header] thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}

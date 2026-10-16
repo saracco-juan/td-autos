@@ -72,7 +72,6 @@
 
 /* Figma 38:1037 table: raised header row, white rows split by a line. */
 .tableWrap {
-  overflow-x: auto;
   background: var(--surface-default);
   border: 1px solid var(--border-default);
   border-radius: 14px;
@@ -102,6 +101,13 @@
 
 .table tbody tr + tr {
   border-top: 1px solid var(--border-default);
+}
+
+/* Long names, places and emails get an ellipsis (the full text is in the title); the table only scrolls sideways inside its box. */
+.truncate {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dealerName {

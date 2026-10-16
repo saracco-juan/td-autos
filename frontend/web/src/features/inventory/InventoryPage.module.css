@@ -34,6 +34,11 @@
   font-size: 12px;
 }
 
+/* Room for the row shadows, which the scroll box would clip. */
+.listArea {
+  padding: 4px;
+}
+
 .list {
   display: flex;
   flex-direction: column;
