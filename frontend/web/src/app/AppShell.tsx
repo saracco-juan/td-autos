@@ -5,6 +5,51 @@ import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/rol
 import { useAuth } from '../features/auth/session/useAuth'
 import styles from './AppShell.module.css'
 
+// Brand mark beside the wordmark: a car silhouette on a white tile. Decorative; the link is named by its text.
+function LogoMark() {
+  return (
+    <span className={styles.logoMark} aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" focusable="false">
+        <path
+          d="M5 16h14v-3.2a2 2 0 0 0-.6-1.4L16.5 9.5 15 6.6A2 2 0 0 0 13.2 5.5H10.8A2 2 0 0 0 9 6.6L7.5 9.5l-1.9 1.9A2 2 0 0 0 5 12.8z"
+          fill="currentColor"
+        />
+        <circle cx="8" cy="16.5" r="1.8" fill="currentColor" />
+        <circle cx="16" cy="16.5" r="1.8" fill="currentColor" />
+      </svg>
+    </span>
+  )
+}
+
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        d={open ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16"}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function LogoutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+      <path
+        d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
 // The receipt review lives inside the dealer list (Figma 38:1129 highlights Concesionarias).
@@ -49,6 +94,7 @@ export default function AppShell() {
         }}
       >
         <Link to="/" className={styles.logo}>
+          <LogoMark />
           TD Autos
         </Link>
         {status === 'authenticated' ? (
@@ -60,6 +106,7 @@ export default function AppShell() {
               aria-controls={menuId}
               onClick={() => setMenuOpen((open) => !open)}
             >
+              <MenuIcon open={menuOpen} />
               Menú
             </button>
             <div
@@ -108,7 +155,7 @@ export default function AppShell() {
               </nav>
               <div className={styles.navActions}>
                 {isDealer(user) && user?.concesionaria ? (
-                  <span className={styles.navText}>{user.concesionaria.nombre}</span>
+                  <span className={styles.navChip}>{user.concesionaria.nombre}</span>
                 ) : null}
                 {isBuyer(user) ? (
                   <NavLink to="/perfil" className={styles.navAction}>
@@ -122,11 +169,12 @@ export default function AppShell() {
                 ) : null}
                 <button
                   type="button"
-                  className={styles.navAction}
+                  className={styles.logout}
                   disabled={loggingOut}
                   aria-busy={loggingOut}
                   onClick={handleLogout}
                 >
+                  <LogoutIcon />
                   Cerrar sesión
                 </button>
               </div>
