@@ -94,7 +94,7 @@ export default function ProfileForm({
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${styles.submit}`}
+        className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
       >
         {submitting ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}
       </button>

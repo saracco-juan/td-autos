@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
           Concesionarias
         </h2>
         <p className={styles.cardBody}>Revisá altas nuevas, aprobá comprobantes y editá los datos de cada concesionaria.</p>
-        <Link to="/admin/concesionarias" className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${styles.areaAction}`}>
+        <Link to="/admin/concesionarias" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.areaAction}`}>
           VER CONCESIONARIAS
         </Link>
       </section>

@@ -253,13 +253,13 @@ export default function InventoryPage() {
             <>
               <Link
                 to="/concesionaria/inventario/nuevo"
-                className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${styles.load}`}
+                className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.load}`}
               >
                 CARGAR VEHÍCULO
               </Link>
               <Link
                 to="/concesionaria/inventario/importar"
-                className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${styles.load}`}
+                className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.load}`}
               >
                 IMPORTAR CSV
               </Link>

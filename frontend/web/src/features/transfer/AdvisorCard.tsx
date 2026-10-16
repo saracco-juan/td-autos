@@ -27,7 +27,7 @@ export default function AdvisorCard({ whatsapp }: Props) {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${styles.link}`}
+        className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.link}`}
       >
         HABLAR CON UN ASESOR
       </a>

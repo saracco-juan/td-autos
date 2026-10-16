@@ -2,6 +2,10 @@
 
 Visual and interaction rules for every web screen (and the mobile app where the pattern exists). Read this file before building or changing a screen. Figma (`TD Autos · Wireframes High v2`, see `AGENTS.md`) is the visual source of truth; these rules cover what Figma does not say and win over it when they conflict, and every difference is logged for the Figma sync described in `AGENTS.md`.
 
+## Navbar
+
+- Red bar pinned to the top with a soft shadow: logo mark (white tile with the car) and wordmark on the left, role links as pills beside it (subtle hover, a brighter pill for the current page), and on the right the account group: Perfil or Administración as a pill, the dealer name as a chip, Cerrar sesión as an outlined pill with an icon. On phones a MENÚ pill with a hamburger icon opens a panel with full-width pills.
+
 ## Copy
 
 - User-facing copy is Spanish, Argentine voseo ("Registrá tu cuenta"), sentence case for titles and labels, buttons in uppercase, links in sentence case.
@@ -37,7 +41,7 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - The actions of a flow screen share one row in the pinned bottom bar; they stack only on phones.
 
-- Buyer screens (diagnosis, recommendations, inspection, transfer, profile) and dealer screens (subscription, inventory) use the soft button (`buttonStyles.soft` on top of the variant): white surface, thin light border, soft shadow, dark grey label, subtle hover in the table header tone, soft focus ring. The primary keeps a slightly stronger border and a bolder label.
+- Every button uses the soft look (`components/button.module.css`): white surface, thin light border, soft shadow, dark grey label, subtle hover in the table header tone, soft focus ring, never a dark fill or a dark outline. The variant only changes the border and the label: primary a stronger border and bolder label, danger a red label, success a green label. Button-like controls (back chevrons, file pickers, photo remove) follow the same look.
 
 ## Feedback
 

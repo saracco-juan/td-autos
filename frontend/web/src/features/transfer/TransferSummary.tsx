@@ -39,7 +39,7 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
         <div className={barStyles.actions}>
           <button
             type="button"
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.action}`}
+            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
             onClick={onKeepCompleting}
           >
             {showPending ? 'SEGUIR COMPLETANDO' : 'VOLVER AL CHECKLIST'}

@@ -42,13 +42,13 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
         <div className={barStyles.actions}>
           <Link
             to={`/vehiculos/${vehicle.id}`}
-            className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${barStyles.action}`}
+            className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
           >
             VOLVER A LA FICHA
           </Link>
           <button
             type="button"
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.action}`}
+            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
             onClick={onKeepReviewing}
           >
             SEGUIR REVISANDO

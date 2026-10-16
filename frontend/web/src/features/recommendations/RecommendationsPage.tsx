@@ -117,7 +117,7 @@ export default function RecommendationsPage() {
           <h1 className={styles.title}>Mejores opciones para vos</h1>
           {counted ? <p className={styles.subtitle}>{countText(counted.meta.total)}</p> : null}
         </div>
-        <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${styles.adjust}`}>
+        <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.adjust}`}>
           AJUSTAR DIAGNÓSTICO
         </Link>
       </div>

@@ -136,7 +136,7 @@ export default function DiagnosisPage() {
             <button
               type="button"
               disabled={saving}
-              className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${barStyles.action}`}
+              className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
               onClick={() => goToStep(step - 1)}
             >
               ATRÁS
@@ -147,7 +147,7 @@ export default function DiagnosisPage() {
               type="button"
               disabled={saving}
               aria-busy={saving}
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.actionWide}`}
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.actionWide}`}
               onClick={handleFinish}
             >
               {saving ? 'GUARDANDO…' : 'VER RECOMENDACIONES'}
@@ -155,7 +155,7 @@ export default function DiagnosisPage() {
           ) : (
             <button
               type="button"
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.action}`}
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
               onClick={handleNext}
             >
               CONTINUAR
