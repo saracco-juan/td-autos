@@ -134,7 +134,7 @@
 }
 
 /* Narrow screens drop the least needed columns instead of squeezing all five: contact first, then place. */
-@media (max-width: 1000px) {
+@media (max-width: 1220px) {
   .dealersColumn {
     --dealers-table: 880px;
   }
@@ -145,7 +145,7 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .dealersColumn {
     --dealers-table: 680px;
   }

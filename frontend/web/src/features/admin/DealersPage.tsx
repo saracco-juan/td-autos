@@ -115,7 +115,7 @@ export default function DealersPage() {
   return (
     // A centered column as wide as the table: title, table and pager share its edges. The box is as tall as its rows
     // (up to the free height, then it scrolls inside) and the pager sits right under it.
-    <div className={`${screenStyles.page} ${screenStyles.fill} ${styles.dealersColumn}`}>
+    <div className={`${screenStyles.page} ${styles.dealersColumn}`}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>ADMINISTRACIÓN</p>
         <h1 id="admin-dealers-title" className={screenStyles.title}>
