@@ -2,48 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Marketplaces\ExternalListingStore;
-use App\Services\Marketplaces\ListingQuery;
+use App\Services\Busqueda\CatalogSearch;
+use App\Services\Marketplaces\MarketplaceRefresher;
 use App\Services\Marketplaces\MarketplaceSearch;
+use App\Services\Marketplaces\MarketplaceSearchResult;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Centralized search of the external marketplaces (RF05, CU-05).
+ * Centralized search: dealer vehicles plus the external marketplaces (RF05, CU-05).
  */
 class BusquedaController extends Controller
 {
+    public const DEFAULT_PER_PAGE = 24;
+
+    public const MAX_PER_PAGE = 60;
+
     /**
-     * Unified list plus the status of each source; answers 200 even when every source fails, so
-     * the page decides what to show.
+     * One page of the unified list plus the status of each external source; answers 200 even when
+     * every source fails, so the page decides what to show. Marketplaces are called at most once
+     * per cache window, never because of a search text or a page change.
      */
-    public function index(Request $request, ExternalListingStore $store): JsonResponse
+    public function index(Request $request, MarketplaceRefresher $refresher, CatalogSearch $catalog): JsonResponse
     {
-        $data = $request->validate(['q' => ['nullable', 'string', 'max:100']]);
+        $data = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_PER_PAGE],
+        ]);
 
-        $result = app(MarketplaceSearch::class)->search(new ListingQuery($data['q'] ?? null));
-        $ids = $store->sync($result->listings);
-        $names = array_column($result->sources, 'nombre', 'clave');
+        $sources = $refresher->refresh(app(MarketplaceSearch::class));
+        $healthy = array_column(array_filter($sources, fn (array $s): bool => $s['estado'] === MarketplaceSearchResult::OK), 'clave');
 
-        $publicaciones = [];
-        foreach ($result->listings as $index => $listing) {
-            $publicaciones[] = [
-                'id' => $ids[$index],
-                'titulo' => $listing->title,
-                'marca' => $listing->marca,
-                'modelo' => $listing->modelo,
-                'version' => $listing->version,
-                'anio' => $listing->anio,
-                'kilometraje' => $listing->kilometraje,
-                'precio' => $listing->precio,
-                'moneda' => $listing->moneda,
-                'ubicacion' => $listing->ubicacion,
-                'imagen_url' => $listing->imagenUrl,
-                'url_original' => $listing->urlOriginal,
-                'fuente' => ['clave' => $listing->marketplace, 'nombre' => $names[$listing->marketplace] ?? $listing->marketplace],
-            ];
-        }
+        $page = $catalog->search(
+            $data['q'] ?? null,
+            $healthy,
+            array_column($sources, 'nombre', 'clave'),
+            (int) ($data['page'] ?? 1),
+            (int) ($data['per_page'] ?? self::DEFAULT_PER_PAGE),
+        );
 
-        return response()->json(['publicaciones' => $publicaciones, 'fuentes' => $result->sources]);
+        return response()->json([
+            'publicaciones' => $page->items(),
+            'fuentes' => $sources,
+            'meta' => [
+                'page' => $page->currentPage(),
+                'per_page' => $page->perPage(),
+                'total' => $page->total(),
+                'last_page' => $page->lastPage(),
+            ],
+        ]);
     }
 }

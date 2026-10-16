@@ -20,7 +20,8 @@ class BusquedaEndpointTest extends TestCase
     {
         $response = $this->actingAs(User::factory()->create())->getJson(self::URL)->assertOk();
 
-        $this->assertCount(26, $response->json('publicaciones'));
+        $this->assertCount(24, $response->json('publicaciones'));
+        $response->assertJsonPath('meta', ['page' => 1, 'per_page' => 24, 'total' => 26, 'last_page' => 2]);
         $response->assertJsonPath('fuentes.0', ['clave' => 'mercadolibre', 'nombre' => 'Mercado Libre', 'estado' => 'ok']);
         $response->assertJsonStructure(['publicaciones' => [[
             'id', 'titulo', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda',

@@ -16,6 +16,9 @@ return [
 
     'limit' => 50,
 
+    // Minutes an external refresh (and its ok / sin_respuesta outcome) is reused before the sources are called again.
+    'refresh_minutes' => (int) env('MARKETPLACES_REFRESH_MINUTES', 15),
+
     'sources' => ['mercadolibre'],
 
     'recorded_path' => [

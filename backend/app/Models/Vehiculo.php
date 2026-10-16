@@ -66,4 +66,24 @@ class Vehiculo extends Model
     {
         return $this->hasMany(FotoVehiculo::class, 'vehiculo_id')->orderBy('orden');
     }
+
+    /**
+     * Link to the external listing, when the vehicle comes from a marketplace.
+     *
+     * @return HasOne<PublicacionExterna, $this>
+     */
+    public function publicacionExterna(): HasOne
+    {
+        return $this->hasOne(PublicacionExterna::class, 'vehiculo_id');
+    }
+
+    /**
+     * The cover photo (lowest `orden`), loadable for a whole page in one query.
+     *
+     * @return HasOne<FotoVehiculo, $this>
+     */
+    public function portada(): HasOne
+    {
+        return $this->hasOne(FotoVehiculo::class, 'vehiculo_id')->ofMany('orden', 'min');
+    }
 }

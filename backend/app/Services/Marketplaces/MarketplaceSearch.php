@@ -31,6 +31,27 @@ class MarketplaceSearch
         return new self(array_values($sources));
     }
 
+    /**
+     * @return list<string> Keys of the sources this aggregator calls.
+     */
+    public function keys(): array
+    {
+        return array_map(fn (ListingSource $source): string => $source->key(), $this->sources);
+    }
+
+    /**
+     * An aggregator that calls only the given sources, so each can be refreshed on its own schedule.
+     *
+     * @param  list<string>  $keys
+     */
+    public function only(array $keys): self
+    {
+        return new self(array_values(array_filter(
+            $this->sources,
+            fn (ListingSource $source): bool => in_array($source->key(), $keys, true),
+        )));
+    }
+
     public function search(ListingQuery $query): MarketplaceSearchResult
     {
         $listings = [];

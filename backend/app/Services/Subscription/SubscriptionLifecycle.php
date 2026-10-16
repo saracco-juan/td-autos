@@ -2,6 +2,7 @@
 
 namespace App\Services\Subscription;
 
+use App\Models\Concesionaria;
 use App\Models\Suscripcion;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
@@ -73,6 +74,25 @@ final class SubscriptionLifecycle
     public function allowsInventory(Suscripcion $subscription, ?CarbonInterface $at = null): bool
     {
         return in_array($this->state($subscription, $at), [self::STATE_ACTIVE, self::STATE_GRACE], true);
+    }
+
+    /**
+     * Ids of the approved dealers whose subscription is valid or in grace right now: the ones whose
+     * vehicles the public catalog may show. A dealer without an approved subscription is not operative.
+     *
+     * @return list<int>
+     */
+    public function operativeDealerIds(?CarbonInterface $at = null): array
+    {
+        return Suscripcion::query()
+            ->where('estado', Suscripcion::ESTADO_ACTIVA)
+            ->whereIn('concesionaria_id', Concesionaria::query()->where('estado_alta', Concesionaria::ESTADO_ACTIVA)->select('id'))
+            ->get()
+            ->filter(fn (Suscripcion $subscription): bool => $this->allowsInventory($subscription, $at))
+            ->pluck('concesionaria_id')
+            ->map(fn ($id): int => (int) $id)
+            ->values()
+            ->all();
     }
 
     /**
