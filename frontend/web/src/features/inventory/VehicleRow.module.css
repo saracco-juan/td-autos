@@ -1,86 +1,73 @@
-/* Figma 38:884 "Row": white card, radius 14, 20/16 padding; info on the left, EDITAR and ELIMINAR on the right. */
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 20px;
-  overflow: hidden;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+/*
+ * Inventory table columns (components/dataTable.module.css): --table-width on .inventoryColumn is the sum of these widths.
+ * The hideable columns are classes, not positions, so the confirmation cell that spans them is never hidden.
+ */
+.inventoryColumn {
+  --table-width: 1120px;
 }
 
-.main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
+.colName {
+  width: 260px;
 }
 
-.info {
-  display: flex;
-  flex: 1 1 200px;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+.colPlate {
+  width: 100px;
 }
 
-.title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+.colPhotos {
+  width: 110px;
 }
 
-.meta {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 13px;
+.colKm {
+  width: 120px;
 }
 
-.actions {
-  display: flex;
-  gap: 16px;
+.colPrice {
+  width: 130px;
 }
 
-/* Figma: buttons 36 high; EDITAR 110 wide, ELIMINAR 120. */
-.edit,
-.delete {
-  height: 36px;
+.colPlace {
+  width: 210px;
 }
 
-.edit {
-  width: clamp(88px, 12vw, 110px);
+.colActions {
+  width: 190px;
 }
 
-.delete {
-  width: clamp(96px, 13vw, 120px);
+/* The confirmation wraps its text and stacks the question, the failure if any, and its two buttons. */
+.confirmCell {
+  white-space: normal;
 }
 
-/* Inline confirmation: the question, the failure if any, and its two buttons. */
 .confirm {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  padding-block: 6px;
 }
 
 .confirm p {
   margin: 0;
 }
 
-@media (max-width: 600px) {
-  .main {
-    flex-direction: column;
-    align-items: stretch;
+/* Narrow screens drop the least needed columns instead of squeezing all of them: place first, then plate and photos. */
+@media (max-width: 1200px) {
+  .inventoryColumn {
+    --table-width: 910px;
   }
 
-  .actions {
-    gap: 12px;
+  .colPlace {
+    display: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .inventoryColumn {
+    --table-width: 700px;
   }
 
-  .edit,
-  .delete {
-    flex: 1;
-    width: auto;
+  .colPlate,
+  .colPhotos {
+    display: none;
   }
 }

@@ -20,12 +20,12 @@ function renderPage() {
   )
 }
 
-const rowOf = (title: string) => screen.getByRole('listitem', { name: title })
-const rowGone = (title: string) => waitFor(() => expect(screen.queryByRole('listitem', { name: title })).not.toBeInTheDocument())
+const rowOf = (title: string) => screen.getByRole('row', { name: title })
+const rowGone = (title: string) => waitFor(() => expect(screen.queryByRole('row', { name: title })).not.toBeInTheDocument())
 
 async function loaded() {
   renderPage()
-  await screen.findByRole('list')
+  await screen.findByRole('table')
 }
 
 describe('InventoryPage', () => {
@@ -40,7 +40,7 @@ describe('InventoryPage', () => {
     renderPage()
 
     expect(screen.getByRole('status')).toHaveTextContent('Cargando')
-    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
   it('renders the header, the automatic inclusion card and the load action of Figma 38:884', async () => {
@@ -82,12 +82,14 @@ describe('InventoryPage', () => {
     expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
   })
 
-  it('lists every vehicle with title, meta, EDITAR and ELIMINAR', async () => {
+  it('lists every vehicle as a table row: title, plate, images, km, price, place, EDITAR and ELIMINAR', async () => {
     await loaded()
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getAllByRole('rowheader')).toHaveLength(2)
     const corolla = within(rowOf(COROLLA))
-    expect(corolla.getByText('AB123CD · 7 imágenes · 60.000 km · $ 18.500.000 · Córdoba')).toBeInTheDocument()
+    for (const cell of ['AB123CD', '7 imágenes', '60.000 km', '$ 18.500.000', 'Córdoba']) {
+      expect(corolla.getByRole('cell', { name: cell })).toBeInTheDocument()
+    }
     expect(corolla.getByRole('link', { name: `Editar ${COROLLA}` })).toHaveAttribute('href', '/concesionaria/inventario/1/editar')
     expect(corolla.getByRole('button', { name: `Eliminar ${COROLLA}` })).toBeInTheDocument()
     expect(within(rowOf(CRONOS)).getByRole('link', { name: `Editar ${CRONOS}` })).toHaveAttribute(
@@ -100,7 +102,7 @@ describe('InventoryPage', () => {
     vi.mocked(fetchVehicles).mockResolvedValue([vehiculo({ version: null })])
     await loaded()
 
-    expect(screen.getByRole('listitem', { name: 'Toyota Corolla 2021' })).toBeInTheDocument()
+    expect(screen.getByRole('row', { name: 'Toyota Corolla 2021' })).toBeInTheDocument()
   })
 
   it('shows the empty state with the load action when there are no vehicles', async () => {
@@ -108,7 +110,7 @@ describe('InventoryPage', () => {
     renderPage()
 
     expect(await screen.findByText('Todavía no cargaste vehículos.')).toBeInTheDocument()
-    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveLength(1)
   })
 
@@ -120,11 +122,11 @@ describe('InventoryPage', () => {
     renderPage()
 
     expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument()
-    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'REINTENTAR' }))
 
-    expect(await screen.findByRole('list')).toBeInTheDocument()
+    expect(await screen.findByRole('table')).toBeInTheDocument()
     expect(fetchVehicles).toHaveBeenCalledTimes(2)
   })
 
@@ -184,7 +186,7 @@ describe('InventoryPage', () => {
       await rowGone(COROLLA)
       expect(deleteVehicle).toHaveBeenCalledWith(1)
       expect(screen.getByRole('status')).toHaveTextContent('Eliminaste el vehículo.')
-      expect(screen.getByRole('listitem', { name: CRONOS })).toBeInTheDocument()
+      expect(screen.getByRole('row', { name: CRONOS })).toBeInTheDocument()
     })
 
     it('shows the busy state on the ELIMINAR button of that row only, while deleting', async () => {
@@ -201,7 +203,7 @@ describe('InventoryPage', () => {
       expect(row.getByRole('button', { name: 'ELIMINAR' })).toBeDisabled()
       expect(row.getByRole('button', { name: 'CANCELAR' })).toBeDisabled()
       expect(within(rowOf(CRONOS)).getByRole('button', { name: `Eliminar ${CRONOS}` })).toBeDisabled()
-      expect(screen.getByRole('list')).not.toHaveAttribute('aria-busy')
+      expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy')
 
       finish()
       await rowGone(COROLLA)
@@ -299,7 +301,7 @@ describe('InventoryPage save notice', () => {
 
   it('shows no message when the list is opened without state', async () => {
     renderWithState(undefined)
-    await screen.findByRole('list')
+    await screen.findByRole('table')
 
     expect(screen.queryByText('Cargaste el vehículo.')).not.toBeInTheDocument()
     expect(screen.queryByText('Guardaste los cambios.')).not.toBeInTheDocument()
@@ -307,7 +309,7 @@ describe('InventoryPage save notice', () => {
 
   it('ignores a state that is not a notice', async () => {
     renderWithState({ notice: 42, other: 'x' })
-    await screen.findByRole('list')
+    await screen.findByRole('table')
 
     expect(screen.queryByText('42')).not.toBeInTheDocument()
   })
@@ -324,7 +326,7 @@ describe('InventoryPage save notice', () => {
     it('puts the load actions on the left and the pager on the right of the same row', async () => {
       vi.mocked(fetchVehicles).mockResolvedValue(many(15))
       renderPage()
-      await screen.findAllByRole('listitem')
+      await screen.findByRole('table')
 
       const load = screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })
       const importCsv = screen.getByRole('link', { name: 'IMPORTAR CSV' })
@@ -337,16 +339,32 @@ describe('InventoryPage save notice', () => {
     it('shows one page of vehicles and page 2 shows the rest', async () => {
       vi.mocked(fetchVehicles).mockResolvedValue(many(15))
       renderPage()
-      await screen.findAllByRole('listitem')
+      await screen.findByRole('table')
 
-      expect(screen.getAllByRole('listitem').filter((item) => item.matches('li[aria-labelledby]'))).toHaveLength(10)
+      expect(screen.getAllByRole('rowheader')).toHaveLength(10)
       await userEvent.setup().click(screen.getByRole('button', { name: 'Página 2' }))
-      expect(screen.getAllByRole('listitem').filter((item) => item.matches('li[aria-labelledby]'))).toHaveLength(5)
+      expect(screen.getAllByRole('rowheader')).toHaveLength(5)
+    })
+
+    it('shows 10 per page by default and "Mostrar" changes it, back to page 1', async () => {
+      vi.mocked(fetchVehicles).mockResolvedValue(many(30))
+      const user = userEvent.setup()
+      renderPage()
+      await screen.findByRole('table')
+      const select = screen.getByRole('combobox', { name: 'Mostrar' })
+
+      expect(select).toHaveValue('10')
+      await user.click(screen.getByRole('button', { name: 'Página 3' }))
+      await user.selectOptions(select, '25')
+
+      expect(screen.getAllByRole('rowheader')).toHaveLength(25)
+      expect(screen.getAllByRole('rowheader')[0]).toHaveTextContent('Modelo 1')
+      expect(screen.getByRole('button', { name: 'Página 1' })).toHaveAttribute('aria-current', 'page')
     })
 
     it('shows no pager when the vehicles fit in one page, and keeps the actions', async () => {
       renderPage()
-      await screen.findAllByRole('listitem')
+      await screen.findByRole('table')
 
       expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })).toBeInTheDocument()

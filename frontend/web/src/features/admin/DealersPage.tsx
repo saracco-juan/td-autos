@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import groupStyles from "../../components/buttonGroup.module.css";
+import tableStyles from "../../components/dataTable.module.css";
 import ErrorState from "../../components/ErrorState";
 import ListFooter from "../../components/ListFooter";
 import Pagination from "../../components/Pagination";
@@ -36,19 +37,19 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
     <tr>
       <th
         scope="row"
-        className={`${styles.dealerName} ${styles.truncate}`}
+        className={`${tableStyles.strong} ${tableStyles.truncate}`}
         title={dealer.nombre}
       >
         {dealer.nombre}
       </th>
       <td
-        className={`${styles.muted} ${styles.truncate}`}
+        className={`${tableStyles.muted} ${tableStyles.truncate}`}
         title={dealerLocation(dealer)}
       >
         {dealerLocation(dealer)}
       </td>
       <td
-        className={`${styles.muted} ${styles.truncate}`}
+        className={`${tableStyles.muted} ${tableStyles.truncate}`}
         title={dealer.contacto.email ?? undefined}
       >
         {dealer.contacto.email}
@@ -68,7 +69,7 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
       </td>
       <td>
         {/* EDITAR and the receipt button side by side, each its own button; without a receipt a greyed one keeps rows aligned. */}
-        <div className={styles.actions}>
+        <div className={tableStyles.actions}>
           <span className={groupStyles.group}>
             <Link
               to={`/admin/concesionarias/${dealer.id}`}
@@ -125,7 +126,7 @@ export default function DealersPage() {
   return (
     // A centered column as wide as the table: title, table and pager share its edges. The box takes the free height
     // and has no surface of its own, so only the rows show; the pager stays pinned at the bottom.
-    <div className={`${screenStyles.page} ${screenStyles.fill} ${styles.dealersColumn}`}>
+    <div className={`${screenStyles.page} ${screenStyles.fill} ${tableStyles.column} ${styles.dealersColumn}`}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>ADMINISTRACIÓN</p>
         <h1 id="admin-dealers-title" className={screenStyles.title}>
@@ -138,15 +139,15 @@ export default function DealersPage() {
           Todavía no hay concesionarias registradas.
         </p>
       ) : (
-        <div className={styles.tableBlock}>
+        <div className={tableStyles.block}>
         <ScrollArea
           label="Listado de concesionarias"
           fill
-          className={styles.tableWrap}
-          viewportClassName={styles.tableViewport}
+          className={tableStyles.wrap}
+          viewportClassName={tableStyles.viewport}
         >
           <table
-            className={styles.table}
+            className={tableStyles.table}
             aria-labelledby="admin-dealers-title"
           >
             {/* Fixed column widths: columns never depend on the rows of the current page. */}

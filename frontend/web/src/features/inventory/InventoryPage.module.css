@@ -34,20 +34,6 @@
   font-size: 12px;
 }
 
-/* Room for the row shadows, which the scroll box would clip. */
-.listArea {
-  padding: 4px;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .empty {
   margin: 0;
   color: var(--text-secondary);

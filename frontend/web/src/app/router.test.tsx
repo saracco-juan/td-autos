@@ -737,7 +737,7 @@ describe('app routes', () => {
       const router = renderAt('/concesionaria/inventario')
 
       expect(await screen.findByRole('heading', { level: 1, name: 'Inventario' })).toBeInTheDocument()
-      expect(await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
+      expect(await screen.findByRole('row', { name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/concesionaria/inventario')
       expect(fetchVehicles).toHaveBeenCalledTimes(1)
       expect(screen.getAllByRole('main')).toHaveLength(1)

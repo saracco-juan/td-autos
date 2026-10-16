@@ -70,61 +70,9 @@
   font-size: 14px;
 }
 
-/* The box only clips and scrolls: no surface of its own, so its height never shows. The table carries the look. */
-.tableWrap {
-  background: transparent;
-}
-
-/* --dealers-table: the sum of the column widths below (a fixed layout needs an explicit width).
-   The column is centered and as wide as the table (plus its 1 px borders), never wider than the screen. */
+/* Admin dealers table (components/dataTable.module.css): --table-width is the sum of the column widths below. */
 .dealersColumn {
-  --dealers-table: 1120px;
-  /* Table + 1 px borders + the reserved 10 px scrollbar lane, so 25 or 50 rows never add a sideways scroll. */
-  width: min(100%, calc(var(--dealers-table) + 12px));
-  margin-inline: auto;
-}
-
-.tableViewport {
-  scrollbar-gutter: stable;
-}
-
-/* Table box over the free height and the pager pinned under it. */
-.tableBlock {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 0;
-}
-
-/* Fixed layout with fixed column widths: the columns never depend on the rows of the current page.
-   When the screen is narrower than the columns, the table scrolls sideways inside its box (DESIGN.md).
-   Figma 38:1037 look on the table itself: white rows, raised header row, rounded border as tall as the rows. */
-.table {
-  width: var(--dealers-table);
-  table-layout: fixed;
-  border-collapse: separate;
-  border-spacing: 0;
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  background: var(--surface-default);
-  font-size: 13px;
-}
-
-.table thead th:first-child {
-  border-top-left-radius: 13px;
-}
-
-.table thead th:last-child {
-  border-top-right-radius: 13px;
-}
-
-.table tbody tr:last-child > :first-child {
-  border-bottom-left-radius: 13px;
-}
-
-.table tbody tr:last-child > :last-child {
-  border-bottom-right-radius: 13px;
+  --table-width: 1120px;
 }
 
 .colName {
@@ -143,63 +91,27 @@
   width: 200px;
 }
 
-.table th,
-.table td {
-  padding: 6px 20px;
-  overflow: hidden;
-  text-align: left;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
 /* Narrow screens drop the least needed columns instead of squeezing all five: contact first, then place. */
 @media (max-width: 1200px) {
   .dealersColumn {
-    --dealers-table: 860px;
+    --table-width: 860px;
   }
 
-  .table col:nth-child(3),
-  .table tr > :nth-child(3) {
+  .dealersColumn col:nth-child(3),
+  .dealersColumn tr > :nth-child(3) {
     display: none;
   }
 }
 
 @media (max-width: 940px) {
   .dealersColumn {
-    --dealers-table: 660px;
+    --table-width: 660px;
   }
 
-  .table col:nth-child(2),
-  .table tr > :nth-child(2) {
+  .dealersColumn col:nth-child(2),
+  .dealersColumn tr > :nth-child(2) {
     display: none;
   }
-}
-
-.table thead th {
-  background: var(--surface-raised);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Separate borders draw no row borders, so the line goes on the cells. */
-.table tbody tr + tr > * {
-  border-top: 1px solid var(--border-default);
-}
-
-/* Long names, places and emails get an ellipsis inside their column (the full text is in the title). */
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dealerName {
-  font-weight: 600;
-}
-
-.muted {
-  color: var(--text-secondary);
 }
 
 /* Figma: the state is bold text tinted by its meaning. */
@@ -241,13 +153,6 @@
   border-color: var(--status-warning-border);
   background: var(--status-warning-bg);
   color: var(--text-primary);
-}
-
-/* EDITAR and the receipt button on one line, 8 apart; the column is as wide as both plus the cell padding. */
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 /* "Sin comprobante" is a greyed button, in the same case as the buttons. */

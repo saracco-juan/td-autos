@@ -61,3 +61,8 @@
     transition: none;
   }
 }
+
+/* Destructive action (ELIMINAR): same surface, red label. */
+.danger {
+  color: var(--action-danger);
+}

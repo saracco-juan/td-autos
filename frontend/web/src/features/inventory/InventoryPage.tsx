@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import alertStyles from "../../components/alert.module.css";
 import buttonStyles from "../../components/button.module.css";
+import tableStyles from "../../components/dataTable.module.css";
 import ErrorState, { type ErrorKind } from "../../components/ErrorState";
 import ListFooter from "../../components/ListFooter";
 import Pagination from "../../components/Pagination";
 import ScrollArea from "../../components/ScrollArea";
 import screenStyles from "../../components/screen.module.css";
-import useAutoPageSize from "../../components/useAutoPageSize";
 import usePagedItems from "../../components/usePagedItems";
 import { HttpError, NetworkError } from "../../lib/http";
 import SessionLoading from "../auth/session/SessionLoading";
@@ -21,6 +21,7 @@ import type { InventoryLocationState } from "./inventoryRoutes";
 import SubscriptionBlockedNotice from "./SubscriptionBlockedNotice";
 import type { Vehiculo } from "./types";
 import VehicleRow from "./VehicleRow";
+import rowStyles from "./VehicleRow.module.css";
 
 type LoadState =
   | "loading"
@@ -39,6 +40,9 @@ function PageHeader({ subtitle }: { subtitle: string }) {
 }
 
 const REMOVED_NOTICE = "Eliminaste el vehículo.";
+
+// "Mostrar" options (DESIGN.md): the page size is the dealer's choice, never the screen's.
+const PAGE_SIZES = [10, 25, 50];
 
 // The message the form leaves in the navigation state (saved or edited); anything else is ignored.
 function noticeFrom(state: unknown): string | null {
@@ -61,17 +65,15 @@ export default function InventoryPage() {
     noticeFrom(location.state),
   );
   const noticeRef = useRef<HTMLParagraphElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
-  // Rows that fit the free height of the screen: no inner scrollbar on desktop (DESIGN.md).
-  const pageSize = useAutoPageSize(listRef, {
-    itemSelector: ":scope > li",
-    fallback: 10,
-    enabled: loadState === "ready" && vehicles.length > 0,
-  });
+  const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
   const { page, lastPage, setPage, pageItems } = usePagedItems(
     vehicles,
     pageSize,
   );
+  const changePageSize = (size: number) => {
+    setPageSize(size);
+    setPage(1);
+  };
 
   // The message lives in the history entry, which a reload keeps: take it out so it is shown once.
   useEffect(() => {
@@ -162,7 +164,10 @@ export default function InventoryPage() {
     return <ErrorState kind={loadState.error} onRetry={retry} />;
 
   return (
-    <div className={`${screenStyles.page} ${screenStyles.fill}`}>
+    // Same column and table as the admin dealers list (components/dataTable.module.css).
+    <div
+      className={`${screenStyles.page} ${screenStyles.fill} ${tableStyles.column} ${rowStyles.inventoryColumn}`}
+    >
       <PageHeader subtitle="Activa · funciones habilitadas" />
       <section
         className={styles.card}
@@ -187,53 +192,92 @@ export default function InventoryPage() {
           {notice}
         </p>
       ) : null}
-      {vehicles.length === 0 ? (
-        <p className={styles.empty}>Todavía no cargaste vehículos.</p>
-      ) : (
-        <ScrollArea
-          label="Vehículos del inventario"
-          fill
-          viewportClassName={styles.listArea}
+      <div className={tableStyles.block}>
+        {vehicles.length === 0 ? (
+          <p className={styles.empty}>Todavía no cargaste vehículos.</p>
+        ) : (
+          <ScrollArea
+            label="Vehículos del inventario"
+            fill
+            className={tableStyles.wrap}
+            viewportClassName={tableStyles.viewport}
+          >
+            <table className={tableStyles.table} aria-label="Inventario">
+              {/* Fixed column widths: columns never depend on the rows of the current page. */}
+              <colgroup>
+                <col className={rowStyles.colName} />
+                <col className={rowStyles.colPlate} />
+                <col className={rowStyles.colPhotos} />
+                <col className={rowStyles.colKm} />
+                <col className={rowStyles.colPrice} />
+                <col className={rowStyles.colPlace} />
+                <col className={rowStyles.colActions} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">Vehículo</th>
+                  <th scope="col" className={rowStyles.colPlate}>
+                    Patente
+                  </th>
+                  <th scope="col" className={rowStyles.colPhotos}>
+                    Imágenes
+                  </th>
+                  <th scope="col">Kilómetros</th>
+                  <th scope="col">Precio</th>
+                  <th scope="col" className={rowStyles.colPlace}>
+                    Ubicación
+                  </th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageItems.map((vehicle) => (
+                  <VehicleRow
+                    key={vehicle.id}
+                    vehicle={vehicle}
+                    confirming={confirmingId === vehicle.id}
+                    deleting={deletingId === vehicle.id}
+                    failed={failedId === vehicle.id}
+                    locked={deletingId !== null}
+                    onAskDelete={() => askDelete(vehicle.id)}
+                    onCancel={() => setConfirmingId(null)}
+                    onConfirm={() => void confirmDelete(vehicle.id)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </ScrollArea>
+        )}
+        <ListFooter
+          actions={
+            <>
+              <Link
+                to="/concesionaria/inventario/nuevo"
+                className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${styles.load}`}
+              >
+                CARGAR VEHÍCULO
+              </Link>
+              <Link
+                to="/concesionaria/inventario/importar"
+                className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${styles.load}`}
+              >
+                IMPORTAR CSV
+              </Link>
+            </>
+          }
         >
-          <ul ref={listRef} className={styles.list}>
-            {pageItems.map((vehicle) => (
-              <VehicleRow
-                key={vehicle.id}
-                vehicle={vehicle}
-                confirming={confirmingId === vehicle.id}
-                deleting={deletingId === vehicle.id}
-                failed={failedId === vehicle.id}
-                locked={deletingId !== null}
-                onAskDelete={() => askDelete(vehicle.id)}
-                onCancel={() => setConfirmingId(null)}
-                onConfirm={() => void confirmDelete(vehicle.id)}
-              />
-            ))}
-          </ul>
-        </ScrollArea>
-      )}
-      <ListFooter
-        actions={
-          <>
-            <Link
-              to="/concesionaria/inventario/nuevo"
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.load}`}
-            >
-              CARGAR VEHÍCULO
-            </Link>
-            <Link
-              to="/concesionaria/inventario/importar"
-              className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.load}`}
-            >
-              IMPORTAR CSV
-            </Link>
-          </>
-        }
-      >
-        {lastPage > 1 ? (
-          <Pagination page={page} lastPage={lastPage} onChange={setPage} />
-        ) : null}
-      </ListFooter>
+          {vehicles.length > PAGE_SIZES[0] ? (
+            <Pagination
+              page={page}
+              lastPage={lastPage}
+              onChange={setPage}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZES}
+              onPageSizeChange={changePageSize}
+            />
+          ) : null}
+        </ListFooter>
+      </div>
     </div>
   );
 }
