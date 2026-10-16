@@ -70,12 +70,9 @@
   font-size: 14px;
 }
 
-/* Figma 38:1037 table: raised header row, white rows split by a line. */
+/* The box only clips and scrolls: no surface of its own, so its height never shows. The table carries the look. */
 .tableWrap {
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+  background: transparent;
 }
 
 /* --dealers-table: the sum of the column widths below (a fixed layout needs an explicit width).
@@ -91,20 +88,43 @@
   scrollbar-gutter: stable;
 }
 
-/* Table box and the pager right under it; the box is as tall as its rows. */
+/* Table box over the free height and the pager pinned under it. */
 .tableBlock {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
 }
 
 /* Fixed layout with fixed column widths: the columns never depend on the rows of the current page.
-   When the screen is narrower than the columns, the table scrolls sideways inside its box (DESIGN.md). */
+   When the screen is narrower than the columns, the table scrolls sideways inside its box (DESIGN.md).
+   Figma 38:1037 look on the table itself: white rows, raised header row, rounded border as tall as the rows. */
 .table {
   width: var(--dealers-table);
   table-layout: fixed;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-default);
   font-size: 13px;
+}
+
+.table thead th:first-child {
+  border-top-left-radius: 13px;
+}
+
+.table thead th:last-child {
+  border-top-right-radius: 13px;
+}
+
+.table tbody tr:last-child > :first-child {
+  border-bottom-left-radius: 13px;
+}
+
+.table tbody tr:last-child > :last-child {
+  border-bottom-right-radius: 13px;
 }
 
 .colName {
@@ -163,7 +183,8 @@
   font-weight: 500;
 }
 
-.table tbody tr + tr {
+/* Separate borders draw no row borders, so the line goes on the cells. */
+.table tbody tr + tr > * {
   border-top: 1px solid var(--border-default);
 }
 
