@@ -1,0 +1,33 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.step {
+  flex: none;
+  width: 140px;
+}
+
+.position {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .pagination {
+    gap: 8px;
+  }
+
+  .step {
+    width: auto;
+    flex: 1;
+    padding: 0 12px;
+  }
+
+  .position {
+    flex: none;
+    font-size: 13px;
+  }
+}

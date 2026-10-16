@@ -1,6 +1,7 @@
-import type { Listing, SearchResponse, SourceReport } from './types'
+import type { Listing, SearchMeta, SearchResponse, SourceReport } from './types'
 
 export const MERCADO_LIBRE = { clave: 'mercadolibre', nombre: 'Mercado Libre' }
+export const DEALER = { clave: 'concesionaria', nombre: 'Autos del Sur' }
 
 export function listing(overrides: Partial<Listing> = {}): Listing {
   return {
@@ -52,6 +53,17 @@ export const LISTINGS: Listing[] = [
   }),
 ]
 
+export function searchMeta(overrides: Partial<SearchMeta> = {}): SearchMeta {
+  return { page: 1, per_page: 24, total: LISTINGS.length, last_page: 1, ...overrides }
+}
+
+// The meta follows the listings of the response unless it is given: one page holding all of them.
 export function searchResponse(overrides: Partial<SearchResponse> = {}): SearchResponse {
-  return { publicaciones: LISTINGS, fuentes: [sourceReport()], ...overrides }
+  const publicaciones = overrides.publicaciones ?? LISTINGS
+  return {
+    publicaciones,
+    fuentes: [sourceReport()],
+    meta: searchMeta({ total: publicaciones.length }),
+    ...overrides,
+  }
 }

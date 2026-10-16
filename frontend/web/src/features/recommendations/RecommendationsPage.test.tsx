@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { searchListings } from './api'
-import { LISTINGS, MERCADO_LIBRE, listing, searchResponse, sourceReport } from './fixtures'
+import { DEALER, LISTINGS, MERCADO_LIBRE, listing, searchMeta, searchResponse, sourceReport } from './fixtures'
 import RecommendationsPage from './RecommendationsPage'
 
 vi.mock('./api', () => ({ searchListings: vi.fn() }))
@@ -83,7 +83,7 @@ describe('RecommendationsPage', () => {
     await loaded()
 
     expect(searchListings).toHaveBeenCalledTimes(1)
-    expect(searchListings).toHaveBeenCalledWith(undefined)
+    expect(searchListings).toHaveBeenCalledWith({ q: undefined, page: 1 })
   })
 
   // TC-19
@@ -148,7 +148,7 @@ describe('RecommendationsPage', () => {
     await user.type(searchField(), 'corolla{Enter}')
     await user.click(await screen.findByRole('button', { name: 'REINTENTAR' }))
 
-    expect(searchListings).toHaveBeenLastCalledWith('corolla')
+    expect(searchListings).toHaveBeenLastCalledWith({ q: 'corolla', page: 1 })
     expect(searchListings).toHaveBeenCalledTimes(3)
   })
 
@@ -188,7 +188,7 @@ describe('RecommendationsPage', () => {
 
     await user.type(searchField(), '  Corolla automático  {Enter}')
 
-    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith('Corolla automático'))
+    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'Corolla automático', page: 1 }))
     expect(searchListings).toHaveBeenCalledTimes(2)
   })
 
@@ -199,7 +199,7 @@ describe('RecommendationsPage', () => {
     await user.type(searchField(), 'Fiat')
     await user.click(screen.getByRole('button', { name: 'BUSCAR' }))
 
-    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith('Fiat'))
+    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'Fiat', page: 1 }))
   })
 
   it('searches without a query when the text is blank', async () => {
@@ -209,7 +209,7 @@ describe('RecommendationsPage', () => {
     await user.type(searchField(), '   {Enter}')
 
     await waitFor(() => expect(searchListings).toHaveBeenCalledTimes(2))
-    expect(searchListings).toHaveBeenLastCalledWith(undefined)
+    expect(searchListings).toHaveBeenLastCalledWith({ q: undefined, page: 1 })
   })
 
   it('does not search again while a search is loading', async () => {
@@ -275,5 +275,122 @@ describe('RecommendationsPage', () => {
 
     expect(screen.getByText('Otro Portal')).toBeInTheDocument()
     expect(screen.getByText('Mercado Libre')).toBeInTheDocument()
+  })
+
+  it('counts the vehicles of the whole search (meta.total), not the ones on the page', async () => {
+    vi.mocked(searchListings).mockResolvedValue(searchResponse({ meta: searchMeta({ total: 120, last_page: 5 }) }))
+    await loaded()
+
+    expect(screen.getByText('Mostrando 120 vehículos')).toBeInTheDocument()
+  })
+
+  it('tags a dealer vehicle with the dealer name', async () => {
+    vi.mocked(searchListings).mockResolvedValue(
+      searchResponse({
+        publicaciones: [listing({ id: 9, fuente: DEALER, url_original: null }), listing({ id: 2, fuente: MERCADO_LIBRE })],
+      }),
+    )
+    await loaded()
+
+    expect(screen.getByText('Autos del Sur')).toBeInTheDocument()
+    expect(screen.getByText('Mercado Libre')).toBeInTheDocument()
+  })
+
+  it('keeps the list and names the failed portal when dealer vehicles exist and every portal failed', async () => {
+    vi.mocked(searchListings).mockResolvedValue(
+      searchResponse({
+        publicaciones: [listing({ id: 9, fuente: DEALER, url_original: null })],
+        fuentes: [MERCADO_LIBRE_DOWN],
+      }),
+    )
+    await loaded()
+
+    expect(screen.getByText(/No pudimos obtener las publicaciones de Mercado Libre/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
+    expect(screen.getByText('Mostrando 1 vehículo')).toBeInTheDocument()
+  })
+
+  it('wraps the grid in a scroll area', async () => {
+    await loaded()
+
+    const region = screen.getByRole('region', { name: 'Publicaciones' })
+    expect(within(region).getByRole('list', { name: 'Publicaciones' })).toBeInTheDocument()
+  })
+
+  describe('pagination', () => {
+    const manyPages = (page: number) => searchResponse({ meta: searchMeta({ page, total: 50, last_page: 3 }) })
+
+    it('shows no control when everything fits in one page', async () => {
+      await loaded()
+
+      expect(screen.queryByRole('button', { name: 'SIGUIENTE' })).not.toBeInTheDocument()
+      expect(screen.queryByText(/Página/)).not.toBeInTheDocument()
+    })
+
+    it('shows the page text and disables ANTERIOR on the first page', async () => {
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await loaded()
+
+      expect(screen.getByText('Página 1 de 3')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'ANTERIOR' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'SIGUIENTE' })).toBeEnabled()
+    })
+
+    it('SIGUIENTE asks for the next page keeping the text, and ANTERIOR goes back', async () => {
+      const user = userEvent.setup()
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await loaded()
+      await user.type(searchField(), 'fiat{Enter}')
+      await screen.findByText('Página 1 de 3')
+
+      vi.mocked(searchListings).mockResolvedValue(manyPages(2))
+      await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+
+      expect(await screen.findByText('Página 2 de 3')).toBeInTheDocument()
+      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 2 })
+
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await user.click(screen.getByRole('button', { name: 'ANTERIOR' }))
+
+      expect(await screen.findByText('Página 1 de 3')).toBeInTheDocument()
+      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1 })
+    })
+
+    it('disables SIGUIENTE on the last page', async () => {
+      vi.mocked(searchListings).mockResolvedValue(manyPages(3))
+      await loaded()
+
+      expect(screen.getByText('Página 3 de 3')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'SIGUIENTE' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'ANTERIOR' })).toBeEnabled()
+    })
+
+    it('shows the loader instead of the list and the control while a page loads, and returns the scroll to the top', async () => {
+      const user = userEvent.setup()
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await loaded()
+      screen.getByRole('region', { name: 'Publicaciones' }).scrollTop = 120
+
+      let finish: (value: ReturnType<typeof manyPages>) => void = () => {}
+      vi.mocked(searchListings).mockReturnValue(new Promise((resolve) => (finish = resolve)))
+      await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+
+      expect(screen.getByRole('status')).toHaveTextContent('Cargando')
+      expect(screen.queryByRole('button', { name: 'SIGUIENTE' })).not.toBeInTheDocument()
+
+      finish(manyPages(2))
+      await screen.findByText('Página 2 de 3')
+      expect(screen.getByRole('region', { name: 'Publicaciones' }).scrollTop).toBe(0)
+    })
+
+    it('a new search goes back to the first page', async () => {
+      const user = userEvent.setup()
+      vi.mocked(searchListings).mockResolvedValue(manyPages(2))
+      await loaded()
+
+      await user.type(searchField(), 'fiat{Enter}')
+
+      await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1 }))
+    })
   })
 })

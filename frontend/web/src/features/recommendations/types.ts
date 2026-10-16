@@ -22,11 +22,21 @@ export type Listing = {
   moneda: string | null
   ubicacion: string | null
   imagen_url: string | null
-  url_original: string
+  // Null for a dealer vehicle: it has no original listing.
+  url_original: string | null
   fuente: Source
+}
+
+export type SearchMeta = {
+  page: number
+  per_page: number
+  total: number
+  last_page: number
 }
 
 export type SearchResponse = {
   publicaciones: Listing[]
+  // The external marketplaces only: dealers are not a portal.
   fuentes: SourceReport[]
+  meta: SearchMeta
 }
