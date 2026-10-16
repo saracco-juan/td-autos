@@ -1,9 +1,11 @@
-/* Figma frame 38:609: content is left-aligned under the nav, 32 from the edges at 1280. The right column is not rendered. */
+/* Figma frame 38:609 without its right column: header and form card in a centered column as wide as the card (DESIGN.md). */
 .page {
   display: flex;
   flex-direction: column;
   gap: 24px;
   width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
   /* The shell centers its content vertically; the profile starts at the top. */
   margin-bottom: auto;
   padding-top: 40px;
