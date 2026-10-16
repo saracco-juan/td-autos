@@ -32,9 +32,9 @@ class ChecklistInspeccionModelTest extends TestCase
 
         $this->assertNotNull($vehiculo->marca);
         $this->assertSame('ARS', $vehiculo->moneda);
-        $this->assertNull($vehiculo->tipoCarroceria);
+        $this->assertNotNull($vehiculo->tipoCarroceria);
 
-        $tipo = TipoCarroceria::first();
+        $tipo = TipoCarroceria::where('id', '!=', $vehiculo->tipo_carroceria_id)->first();
         $vehiculo->update(['tipo_carroceria_id' => $tipo->id]);
 
         $this->assertTrue($vehiculo->fresh()->tipoCarroceria->is($tipo));

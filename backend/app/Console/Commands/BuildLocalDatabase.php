@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\LocalDevSeeder;
+use Database\Seeders\VolumeInventorySeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,8 @@ class BuildLocalDatabase extends Command
 {
     private const CONNECTION = 'local_dev';
 
-    protected $signature = 'db:local {--path= : SQLite file (default: database/manual.sqlite)}';
+    protected $signature = 'db:local {--path= : SQLite file (default: database/manual.sqlite)}
+        {--vehiculos= : Extra dealer vehicles to load on top of the demo seed (default: none)}';
 
     protected $description = 'Rebuild a local SQLite database with demo data';
 
@@ -23,6 +25,14 @@ class BuildLocalDatabase extends Command
     {
         if (app()->environment('production')) {
             $this->error('db:local is disabled in production.');
+
+            return self::FAILURE;
+        }
+
+        $vehicles = $this->vehiclesOption();
+
+        if ($vehicles === null) {
+            $this->error('--vehiculos must be a whole number, 0 or more.');
 
             return self::FAILURE;
         }
@@ -55,6 +65,10 @@ class BuildLocalDatabase extends Command
                 '--seeder' => LocalDevSeeder::class,
                 '--force' => true,
             ]);
+
+            if ($vehicles > 0) {
+                app(VolumeInventorySeeder::class)->withVehicles($vehicles)->setCommand($this)->run();
+            }
         } finally {
             config(['database.default' => $previous]);
             DB::purge(self::CONNECTION);
@@ -72,6 +86,27 @@ class BuildLocalDatabase extends Command
         $this->line('  '.LocalDevSeeder::BUYER_EMAIL.' (buyer)');
         $this->line('  *@demo.tdautos.test (dealers: sur, rosario, cuyo, norte, capital, pampa, litoral)');
 
+        if ($vehicles > 0) {
+            $this->line('  concesionariaNN@'.VolumeInventorySeeder::EMAIL_DOMAIN.' (active dealers with the volume inventory, NN = 01 to '.VolumeInventorySeeder::DEALERS.')');
+            $this->line('Vehicle photos are files on the public disk: run `php artisan storage:link` once so they load.');
+        }
+
         return self::SUCCESS;
+    }
+
+    /**
+     * The amount asked for, 0 when the option is absent, or null when it is not a whole number >= 0.
+     */
+    private function vehiclesOption(): ?int
+    {
+        $value = $this->option('vehiculos');
+
+        if ($value === null) {
+            return 0;
+        }
+
+        $amount = filter_var($value, FILTER_VALIDATE_INT);
+
+        return $amount === false || $amount < 0 ? null : $amount;
     }
 }
