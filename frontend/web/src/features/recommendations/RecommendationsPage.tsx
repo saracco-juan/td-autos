@@ -21,8 +21,8 @@ type View =
   | { status: 'ready'; query?: string; page: number; perPage: number; response: SearchResponse }
   | { status: 'error'; query?: string; page: number; perPage: number; kind: ErrorKind }
 
-// "Mostrar" options: whole rows of the three-column grid, 3 x 3 by default (DESIGN.md). The API accepts up to 60.
-const PAGE_SIZES = [9, 18, 27]
+// A fixed 3 x 3 page, with no "Mostrar" selector (DESIGN.md).
+const PER_PAGE = 9
 
 const TOO_LONG = 'Usá hasta 100 caracteres.'
 
@@ -38,8 +38,9 @@ function joinNames(names: string[]): string {
 // Recommendations screen (Figma 38:168, UH-06): dealer vehicles and external listings in one paginated list, which HU05 later ranks.
 // Match percentage, COMPARAR, VER FICHA and the filter sidebar wait for their own stories. The search runs on Enter, as in Figma.
 export default function RecommendationsPage() {
-  const [view, setView] = useState<View>({ status: 'loading', page: 1, perPage: PAGE_SIZES[0] })
-  const [pageSize, setPageSize] = useState(PAGE_SIZES[0])
+  const [view, setView] = useState<View>({ status: 'loading', page: 1, perPage: PER_PAGE })
+  // The last answer shown: while the next page loads, the count and the pager stay and only the cards wait.
+  const [lastResponse, setLastResponse] = useState<SearchResponse | null>(null)
   const [draft, setDraft] = useState('')
   const [fieldError, setFieldError] = useState<string[] | undefined>()
   // Only the last request may answer: a slower, older one is dropped.
@@ -51,7 +52,9 @@ export default function RecommendationsPage() {
     const request = latest.current
     searchListings({ q: query, page, perPage })
       .then((response) => {
-        if (request === latest.current) setView({ status: 'ready', query, page, perPage, response })
+        if (request !== latest.current) return
+        setView({ status: 'ready', query, page, perPage, response })
+        setLastResponse(response)
       })
       .catch((error: unknown) => {
         if (request !== latest.current) return
@@ -65,23 +68,17 @@ export default function RecommendationsPage() {
   }, [])
 
   useEffect(() => {
-    fetchListings(undefined, 1, PAGE_SIZES[0], null)
+    fetchListings(undefined, 1, PER_PAGE, null)
     return () => {
       latest.current += 1
     }
   }, [fetchListings])
 
-  // The list is replaced by the loader while it loads, so the scroll area comes back at the top.
-  const search = (query: string | undefined, page: number, previous: View | null, size = pageSize) => {
+  // The cards are replaced by the loader while they load, so the scroll area comes back at the top.
+  const search = (query: string | undefined, page: number, previous: View | null) => {
     setFieldError(undefined)
-    setView({ status: 'loading', query, page, perPage: size })
-    fetchListings(query, page, size, previous)
-  }
-
-  // A new page size starts again on the first page of the same search.
-  const changePageSize = (size: number) => {
-    setPageSize(size)
-    search(view.query, 1, null, size)
+    setView({ status: 'loading', query, page, perPage: PER_PAGE })
+    fetchListings(query, page, PER_PAGE, previous)
   }
 
   const loading = view.status === 'loading'
@@ -101,6 +98,16 @@ export default function RecommendationsPage() {
   const allFailed = response !== null && response.fuentes.length > 0 && failed.length === response.fuentes.length
   const noResultsAndAllFailed = response !== null && !hasResults && allFailed
   const listings = response && !noResultsAndAllFailed ? response.publicaciones : null
+  // Loading after a first answer: keep its count and pager on screen, marking the page that was asked for.
+  const kept = loading && lastResponse !== null && lastResponse.meta.total > 0 ? lastResponse : null
+  const counted = listings && response ? response : kept
+
+  const pager = (page: number, lastPage: number) =>
+    lastPage > 1 ? (
+      <ListFooter>
+        <Pagination page={page} lastPage={lastPage} onChange={(next) => search(view.query, next, null)} />
+      </ListFooter>
+    ) : null
 
   return (
     <div className={styles.page}>
@@ -108,7 +115,7 @@ export default function RecommendationsPage() {
         <div className={styles.header}>
           <p className={screenStyles.eyebrow}>AUTOS RECOMENDADOS</p>
           <h1 className={styles.title}>Mejores opciones para vos</h1>
-          {response && listings ? <p className={styles.subtitle}>{countText(response.meta.total)}</p> : null}
+          {counted ? <p className={styles.subtitle}>{countText(counted.meta.total)}</p> : null}
         </div>
         <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${styles.adjust}`}>
           AJUSTAR DIAGNÓSTICO
@@ -131,7 +138,15 @@ export default function RecommendationsPage() {
         </Field>
       </form>
       <section className={styles.results} aria-label="Resultados">
-        {loading ? <SessionLoading /> : null}
+        {loading && !kept ? <SessionLoading /> : null}
+        {kept ? (
+          <>
+            <div className={styles.gridLoading}>
+              <SessionLoading />
+            </div>
+            {pager(view.page, kept.meta.last_page)}
+          </>
+        ) : null}
         {view.status === 'error' ? (
           <ErrorState kind={view.kind} onRetry={() => search(view.query, view.page, null)} />
         ) : null}
@@ -158,19 +173,7 @@ export default function RecommendationsPage() {
                     ))}
                   </ul>
                 </ScrollArea>
-                {/* With "Mostrar" the pager stays while more listings than the smallest page exist, even on a single page. */}
-                {response && response.meta.total > PAGE_SIZES[0] ? (
-                  <ListFooter>
-                    <Pagination
-                      page={response.meta.page}
-                      lastPage={response.meta.last_page}
-                      onChange={(page) => search(view.query, page, null)}
-                      pageSize={pageSize}
-                      pageSizeOptions={PAGE_SIZES}
-                      onPageSizeChange={changePageSize}
-                    />
-                  </ListFooter>
-                ) : null}
+                {response ? pager(response.meta.page, response.meta.last_page) : null}
               </>
             )}
           </>

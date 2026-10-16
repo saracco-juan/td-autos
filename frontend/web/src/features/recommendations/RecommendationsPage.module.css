@@ -61,6 +61,14 @@
   min-height: 240px;
 }
 
+/* Where the cards were while the next page loads: the loader is centered in the space of the grid. */
+.gridLoading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 /* Room for the card shadows, which the scroll box would clip. */
 .gridArea {
   padding: 2px 4px 10px;

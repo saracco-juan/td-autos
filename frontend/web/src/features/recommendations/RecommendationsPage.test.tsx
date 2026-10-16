@@ -358,39 +358,25 @@ describe('RecommendationsPage', () => {
       expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeEnabled()
     })
 
-    it('offers "Mostrar" with whole rows (9, 18, 27) and asks again from page 1 with the chosen size', async () => {
-      const user = userEvent.setup()
+    it('has no "Mostrar" selector: the page is a fixed 3 x 3', async () => {
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
       await loaded()
-      await user.type(searchField(), 'fiat{Enter}')
-      vi.mocked(searchListings).mockResolvedValue(manyPages(2))
-      await user.click(await screen.findByRole('button', { name: 'Página 2' }))
-      await screen.findByRole('button', { name: 'Página 2', current: 'page' })
 
-      const select = screen.getByRole('combobox', { name: 'Mostrar' })
-      expect(select).toHaveValue('9')
-      expect(Array.from((select as HTMLSelectElement).options, (option) => option.value)).toEqual(['9', '18', '27'])
-
-      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
-      await user.selectOptions(select, '18')
-
-      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1, perPage: 18 })
-      expect(await screen.findByRole('combobox', { name: 'Mostrar' })).toHaveValue('18')
-
-      vi.mocked(searchListings).mockResolvedValue(manyPages(2))
-      await user.click(screen.getByRole('button', { name: 'Página 2' }))
-      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 2, perPage: 18 })
+      expect(screen.queryByRole('combobox', { name: 'Mostrar' })).not.toBeInTheDocument()
     })
 
-    it('keeps "Mostrar" when a bigger size leaves a single page', async () => {
+    it('keeps the count and the pager while the next page loads; only the cards wait', async () => {
       const user = userEvent.setup()
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
       await loaded()
 
-      vi.mocked(searchListings).mockResolvedValue(searchResponse({ meta: searchMeta({ page: 1, total: 15, last_page: 1 }) }))
-      await user.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '18')
+      vi.mocked(searchListings).mockReturnValue(new Promise(() => {}))
+      await user.click(screen.getByRole('button', { name: 'Página 2' }))
 
-      expect(await screen.findByRole('combobox', { name: 'Mostrar' })).toHaveValue('18')
+      expect(screen.getByText('Mostrando 50 vehículos')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Página 2' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.queryByRole('list', { name: 'Publicaciones' })).not.toBeInTheDocument()
+      expect(screen.getByText('Cargando…')).toBeInTheDocument()
     })
 
     it('the next arrow asks for the next page keeping the text, and the previous one goes back', async () => {
@@ -433,7 +419,7 @@ describe('RecommendationsPage', () => {
       expect(screen.getByRole('button', { name: 'Página anterior' })).toBeEnabled()
     })
 
-    it('shows the loader instead of the list and the control while a page loads, and returns the scroll to the top', async () => {
+    it('shows the loader instead of the cards while a page loads, keeps the pager, and returns the scroll to the top', async () => {
       const user = userEvent.setup()
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
       await loaded()
@@ -444,7 +430,7 @@ describe('RecommendationsPage', () => {
       await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
 
       expect(screen.getByRole('status')).toHaveTextContent('Cargando')
-      expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeInTheDocument()
 
       finish(manyPages(2))
       await screen.findByRole('button', { name: 'Página 2', current: 'page' })
