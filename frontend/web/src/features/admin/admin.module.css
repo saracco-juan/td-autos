@@ -78,18 +78,67 @@
   box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
 }
 
+/* Fixed layout: the columns keep their share whatever rows the page holds, so the page size is stable.
+   It grows as a flex item of its scroll region, so the rows stretch evenly over the box and no blank band is left
+   under the last one (a percentage height does not resolve there). Under ~720 px the table keeps that width and
+   scrolls sideways inside its box (DESIGN.md). */
+.tableViewport {
+  display: flex;
+  flex-direction: column;
+}
+
 .table {
+  flex: 1 0 auto;
   width: 100%;
+  min-width: 480px;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 13px;
+}
+
+.colName {
+  width: 20%;
+}
+
+.colPlace {
+  width: 18%;
+}
+
+.colContact {
+  width: 20%;
+}
+
+.colState {
+  width: 16%;
+}
+
+.colActions {
+  width: 26%;
 }
 
 .table th,
 .table td {
   padding: 12px 16px;
+  overflow: hidden;
   text-align: left;
+  text-overflow: ellipsis;
   vertical-align: middle;
   white-space: nowrap;
+}
+
+/* Narrow screens drop the least needed columns instead of squeezing all five: contact first, then place. */
+@media (max-width: 1000px) {
+  .table col:nth-child(3),
+  .table tr > :nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .table col:nth-child(2),
+  .table tr > :nth-child(2) {
+    display: none;
+  }
 }
 
 .table thead th {
@@ -103,9 +152,8 @@
   border-top: 1px solid var(--border-default);
 }
 
-/* Long names, places and emails get an ellipsis (the full text is in the title); the cap follows the viewport so the table fits its box. */
+/* Long names, places and emails get an ellipsis inside their column (the full text is in the title). */
 .truncate {
-  max-width: clamp(120px, 16vw, 240px);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -120,7 +168,10 @@
 
 /* Figma: the state is bold text tinted by its meaning. */
 .state {
+  max-width: 100%;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
 }
 
 .state[data-tone='active'] {
@@ -157,14 +208,69 @@
 }
 
 /* EDITAR next to VER COMPROBANTE (or "Sin comprobante"), 12 apart as in Figma "Acciones". */
+/* Both actions share the column on one line: a wrapped row would be taller than the rest. */
 .actions {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
 
+.actions > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Block box so a label that does not fit ends in an ellipsis instead of being cut on both sides. */
 .rowAction {
-  width: min(100%, 150px);
+  display: block;
+  width: auto;
   height: 36px;
+  padding-inline: 8px;
+  overflow: hidden;
+  line-height: 34px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Narrow screens (contact column hidden): wider state and actions, and each action takes the width of its label. */
+@media (max-width: 1000px) {
+  .colName {
+    width: 24%;
+  }
+
+  .colPlace {
+    width: 20%;
+  }
+
+  .colState {
+    width: 22%;
+  }
+
+  .colActions {
+    width: 34%;
+  }
+
+  .actions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* Phones: the table keeps a usable width and slides sideways in its box; actions keep their full label. */
+@media (max-width: 640px) {
+  .table {
+    min-width: 560px;
+  }
+
+  .colName {
+    width: 30%;
+  }
+
+  .colActions {
+    width: 40%;
+  }
+
+  .actions > * {
+    flex: 0 0 auto;
+  }
 }

@@ -20,12 +20,12 @@
 .ellipsis {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   box-sizing: border-box;
   min-width: 32px;
   height: 32px;
   padding: 0 6px;
-  border-radius: 16px;
+  border-radius: 999px;
   font: 500 13px/1 var(--font-sans);
 }
 
@@ -37,7 +37,8 @@
 }
 
 .item:hover:not(:disabled):not([aria-current='page']) {
-  background: var(--surface-raised);
+  background: var(--surface-default);
+  box-shadow: inset 0 0 0 1px var(--border-default);
 }
 
 .item:focus-visible {
@@ -45,9 +46,12 @@
   outline-offset: 2px;
 }
 
+/* Same tone as the table header row, so the pager belongs to the list it pages. */
 .item[aria-current='page'] {
-  background: var(--action-primary);
-  color: var(--text-on-action);
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--border-default);
+  color: var(--text-primary);
+  font-weight: 600;
   cursor: default;
 }
 

@@ -11,6 +11,11 @@ type Options = {
   containerRef?: RefObject<HTMLElement | null>
   /** False while the list is not on screen; turning it true measures it. */
   enabled?: boolean
+  /**
+   * Fixed height of one row. Use it when the rows stretch to fill the box (a table at height 100%):
+   * measuring a stretched row would shrink the page, which stretches the rows more.
+   */
+  itemHeight?: number
 }
 
 type Fit = { available: number; overhead: number; itemHeight: number; gap: number; columns: number }
@@ -33,6 +38,18 @@ function pixels(value: string): number {
 // Reads the layout: height of one item, columns of a grid, and the height the container gives the list.
 // The container height comes only from the flex layout of the screen, never from the page size, so measuring cannot oscillate.
 // Null when there is nothing to measure yet.
+function available(container: HTMLElement): number {
+  const style = getComputedStyle(container)
+  return container.clientHeight - pixels(style.paddingTop) - pixels(style.paddingBottom) - SAFETY
+}
+
+// Fixed row height: only the box and the table header are measured, so the result never depends on how the rows render.
+function measureFixed(list: HTMLElement, itemHeight: number, container: HTMLElement | null): number | null {
+  if (!container || !container.clientHeight) return null
+  const header = list instanceof HTMLTableElement && list.tHead ? list.tHead.getBoundingClientRect().height : 0
+  return fitCount({ available: available(container), overhead: header, itemHeight, gap: 0, columns: 1 })
+}
+
 function measure(list: HTMLElement, itemSelector: string, container: HTMLElement | null): number | null {
   const items = Array.from(list.querySelectorAll<HTMLElement>(itemSelector))
   const heights = items.map((item) => item.getBoundingClientRect().height)
@@ -51,17 +68,14 @@ function measure(list: HTMLElement, itemSelector: string, container: HTMLElement
   const rowsTotal = rowHeights.reduce((sum, height) => sum + height, 0)
   const overhead = Math.max(0, listRect.height - rowsTotal - Math.max(rowHeights.length - 1, 0) * gap)
 
-  const containerStyle = getComputedStyle(container)
-  const available = containerHeight - pixels(containerStyle.paddingTop) - pixels(containerStyle.paddingBottom) - SAFETY
-
-  return fitCount({ available, overhead, itemHeight, gap, columns })
+  return fitCount({ available: available(container), overhead, itemHeight, gap, columns })
 }
 
 // How many rows or cards fit in the height of the list's container, like MUI DataGrid's autoPageSize: lists are paginated, not scrolled.
 // Pass the element that holds the items (the <ul>, or the <table>). Remeasures when the container or the window resizes, debounced.
 export default function useAutoPageSize(
   ref: RefObject<HTMLElement | null>,
-  { itemSelector, fallback = 10, max, containerRef, enabled = true }: Options,
+  { itemSelector, fallback = 10, max, containerRef, enabled = true, itemHeight }: Options,
 ): number {
   const [size, setSize] = useState(fallback)
 
@@ -73,7 +87,9 @@ export default function useAutoPageSize(
       containerRef?.current ?? list.closest<HTMLElement>('[data-scroll-region]') ?? list.parentElement
 
     const update = () => {
-      const next = measure(list, itemSelector, container())
+      const next = itemHeight
+        ? measureFixed(list, itemHeight, container())
+        : measure(list, itemSelector, container())
       if (next !== null) setSize(max ? Math.min(next, max) : next)
     }
     update()
@@ -93,7 +109,7 @@ export default function useAutoPageSize(
       window.removeEventListener('resize', later)
       observer?.disconnect()
     }
-  }, [ref, containerRef, itemSelector, max, enabled])
+  }, [ref, containerRef, itemSelector, max, enabled, itemHeight])
 
   return size
 }

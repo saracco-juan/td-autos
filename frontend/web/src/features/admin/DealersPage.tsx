@@ -20,6 +20,10 @@ import StateTag from "./StateTag";
 import type { AdminDealerRow } from "./types";
 import { useDealerDirectory } from "./useDealerDirectory";
 
+// Natural height of a row (12 px padding around a 36 px button, plus the divider), with a little room for a state tag.
+// The page size comes from this constant, never from the rendered rows: they stretch to fill the box.
+const ROW_HEIGHT = 64;
+
 function registeredCount(count: number): string {
   return count === 1
     ? "1 concesionaria registrada"
@@ -102,6 +106,7 @@ export default function DealersPage() {
     itemSelector: "tbody tr",
     fallback: 10,
     enabled: dealers.length > 0,
+    itemHeight: ROW_HEIGHT,
   });
   const { page, lastPage, setPage, pageItems } = usePagedItems(
     dealers,
@@ -130,12 +135,21 @@ export default function DealersPage() {
           label="Listado de concesionarias"
           fill
           className={styles.tableWrap}
+          viewportClassName={styles.tableViewport}
         >
           <table
             ref={tableRef}
             className={styles.table}
             aria-labelledby="admin-dealers-title"
           >
+            {/* Fixed shares of the width: columns never depend on the rows of the current page. */}
+            <colgroup>
+              <col className={styles.colName} />
+              <col className={styles.colPlace} />
+              <col className={styles.colContact} />
+              <col className={styles.colState} />
+              <col className={styles.colActions} />
+            </colgroup>
             <thead>
               <tr>
                 <th scope="col">Concesionaria</th>
