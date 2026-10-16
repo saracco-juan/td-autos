@@ -9,7 +9,7 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## Page layout
 
-- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text and the buyer flows that do not need the width (diagnosis and transfer: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width.
+- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text and the buyer flows that do not need the width (diagnosis, inspection and transfer: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width.
 - Every screen fills the viewport height: header on top, footer at the bottom, content in between with no empty band under the actions.
 - On flow and form screens (diagnosis, transfer and inspection checklists, subscription, vehicle form, CSV import, dealer edit), the primary actions sit in a bar pinned to the bottom of the content area, never in the middle of the page. If the content is taller than the screen, the content scrolls and the action bar stays visible.
 

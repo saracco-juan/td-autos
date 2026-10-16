@@ -37,6 +37,7 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
 
   return (
     <FlowLayout
+      narrow
       actions={
         <div className={barStyles.actions}>
           <Link

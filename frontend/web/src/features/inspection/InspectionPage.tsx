@@ -174,6 +174,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
 
   return (
     <FlowLayout
+      narrow
       actions={
         <ChecklistActionBar
           labels={ACTION_LABELS}
