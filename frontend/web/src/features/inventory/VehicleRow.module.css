@@ -13,13 +13,14 @@
 
 .main {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 16px;
 }
 
 .info {
   display: flex;
-  flex: 1;
+  flex: 1 1 200px;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
@@ -49,11 +50,11 @@
 }
 
 .edit {
-  width: 110px;
+  width: clamp(88px, 12vw, 110px);
 }
 
 .delete {
-  width: 120px;
+  width: clamp(96px, 13vw, 120px);
 }
 
 /* Inline confirmation: the question, the failure if any, and its two buttons. */

@@ -54,7 +54,7 @@
 /* Not in Figma: the data to make the transfer (HU18 scenario 1). */
 .data {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 12px 24px;
   margin: 0;
 }
@@ -124,7 +124,7 @@
 
 .pick {
   position: relative;
-  width: 260px;
+  width: min(100%, 260px);
 }
 
 .pick:focus-within {
@@ -147,23 +147,15 @@
 }
 
 .send {
-  width: 320px;
+  width: min(100%, 320px);
 }
 
 .inventory {
-  width: 220px;
+  width: min(100%, 220px);
 }
 
 @media (max-width: 800px) {
   .cards {
     flex-direction: column;
-  }
-}
-
-@media (max-width: 600px) {
-  .pick,
-  .send,
-  .inventory {
-    width: 100%;
   }
 }

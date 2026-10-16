@@ -12,13 +12,14 @@
 /* Two columns of inputs, one column under 800 px. */
 .fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 20px 32px;
   align-items: start;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 16px;
 }
@@ -35,7 +36,7 @@
 /* Subscription and receipts, side by side on desktop. */
 .info {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
   align-items: start;
 }
@@ -121,13 +122,6 @@
   flex-shrink: 0;
   width: 110px;
   height: 36px;
-}
-
-@media (max-width: 800px) {
-  .fields,
-  .info {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 600px) {

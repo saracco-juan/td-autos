@@ -65,11 +65,5 @@
 }
 
 .load {
-  width: 240px;
-}
-
-@media (max-width: 600px) {
-  .load {
-    width: 100%;
-  }
+  width: min(100%, 240px);
 }

@@ -55,11 +55,11 @@
 
 .back,
 .next {
-  width: 150px;
+  width: min(100%, 150px);
 }
 
 .finish {
-  width: 220px;
+  width: min(100%, 220px);
 }
 
 .next,

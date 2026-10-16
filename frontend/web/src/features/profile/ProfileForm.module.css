@@ -4,7 +4,7 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
-  padding: 24px;
+  padding: clamp(16px, 4vw, 24px);
   background: var(--surface-default);
   border: 1px solid var(--border-default);
 }
@@ -18,7 +18,7 @@
 /* Figma "Row": two fields side by side, 24 apart; the read-only email takes its own full row. */
 .fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 20px 24px;
 }
 
@@ -33,7 +33,7 @@ input.readOnly {
 }
 
 .submit {
-  width: 220px;
+  width: min(100%, 220px);
 }
 
 @media (max-width: 600px) {

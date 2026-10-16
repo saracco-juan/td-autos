@@ -7,7 +7,7 @@
  */
 .columns {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: clamp(220px, 28%, 280px) minmax(0, 1fr);
   grid-template-areas: 'list panel';
   gap: 24px;
   align-items: stretch;

@@ -20,7 +20,7 @@
 /* Receives the focus when the view changes, so the new content is announced. */
 .title {
   margin: 0;
-  font-size: 32px;
+  font-size: clamp(24px, 5vw, 32px);
   font-weight: 700;
   outline: none;
 }

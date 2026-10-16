@@ -27,7 +27,7 @@
 }
 
 .action {
-  width: 180px;
+  width: min(100%, 180px);
 }
 
 @media (max-width: 767px) {
