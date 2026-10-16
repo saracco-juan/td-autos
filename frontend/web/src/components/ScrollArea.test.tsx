@@ -41,7 +41,7 @@ describe("ScrollArea", () => {
     // jsdom has no layout (every box measures 0), so the fit lands on the minimum height.
     expect(
       screen.getByRole("region", { name: "Lista" }).style.getPropertyValue("--scroll-fit"),
-    ).toBe("240px");
+    ).toBe("180px");
   });
 
   it("flags the sticky table header only when asked", () => {

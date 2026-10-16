@@ -3,7 +3,7 @@
 .area {
   min-width: 0;
   max-width: 100%;
-  max-height: var(--scroll-fit, max(240px, calc(100dvh - var(--scroll-offset, 360px))));
+  max-height: var(--scroll-fit, max(180px, calc(100dvh - var(--scroll-offset, 360px))));
   overflow: auto;
   overscroll-behavior: contain;
 }

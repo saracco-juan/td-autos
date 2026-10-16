@@ -12,7 +12,8 @@ type ScrollAreaProps = {
   className?: string;
 };
 
-const MIN_HEIGHT = 240;
+// Low enough for a phone screen with a header, a search box and pagination around the list.
+const MIN_HEIGHT = 180;
 
 // Grows or shrinks the box by the space the page has left: the page's overflow when it scrolls,
 // or the empty space at the bottom of <main> when it does not. Converges after one pass.
