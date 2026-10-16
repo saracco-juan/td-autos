@@ -358,6 +358,41 @@ describe('RecommendationsPage', () => {
       expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeEnabled()
     })
 
+    it('offers "Mostrar" with whole rows (9, 18, 27) and asks again from page 1 with the chosen size', async () => {
+      const user = userEvent.setup()
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await loaded()
+      await user.type(searchField(), 'fiat{Enter}')
+      vi.mocked(searchListings).mockResolvedValue(manyPages(2))
+      await user.click(await screen.findByRole('button', { name: 'Página 2' }))
+      await screen.findByRole('button', { name: 'Página 2', current: 'page' })
+
+      const select = screen.getByRole('combobox', { name: 'Mostrar' })
+      expect(select).toHaveValue('9')
+      expect(Array.from((select as HTMLSelectElement).options, (option) => option.value)).toEqual(['9', '18', '27'])
+
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await user.selectOptions(select, '18')
+
+      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1, perPage: 18 })
+      expect(await screen.findByRole('combobox', { name: 'Mostrar' })).toHaveValue('18')
+
+      vi.mocked(searchListings).mockResolvedValue(manyPages(2))
+      await user.click(screen.getByRole('button', { name: 'Página 2' }))
+      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 2, perPage: 18 })
+    })
+
+    it('keeps "Mostrar" when a bigger size leaves a single page', async () => {
+      const user = userEvent.setup()
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await loaded()
+
+      vi.mocked(searchListings).mockResolvedValue(searchResponse({ meta: searchMeta({ page: 1, total: 15, last_page: 1 }) }))
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '18')
+
+      expect(await screen.findByRole('combobox', { name: 'Mostrar' })).toHaveValue('18')
+    })
+
     it('the next arrow asks for the next page keeping the text, and the previous one goes back', async () => {
       const user = userEvent.setup()
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
