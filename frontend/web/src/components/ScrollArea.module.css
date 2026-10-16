@@ -1,8 +1,9 @@
-/* Fits the viewport minus what the page shows around it (--scroll-offset); never shorter than a few rows. */
+/* Fills what the page has left (--scroll-fit, measured by the component); before the first
+   measurement, or outside <main>, falls back to the viewport minus --scroll-offset. */
 .area {
   min-width: 0;
   max-width: 100%;
-  max-height: max(240px, calc(100dvh - var(--scroll-offset, 360px)));
+  max-height: var(--scroll-fit, max(240px, calc(100dvh - var(--scroll-offset, 360px))));
   overflow: auto;
   overscroll-behavior: contain;
 }

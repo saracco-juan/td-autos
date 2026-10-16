@@ -29,6 +29,21 @@ describe("ScrollArea", () => {
     ).toBe("480px");
   });
 
+  it("fits its height to the free space of the page when it sits in <main>", () => {
+    render(
+      <main>
+        <ScrollArea label="Lista">
+          <p>fila</p>
+        </ScrollArea>
+      </main>,
+    );
+
+    // jsdom has no layout (every box measures 0), so the fit lands on the minimum height.
+    expect(
+      screen.getByRole("region", { name: "Lista" }).style.getPropertyValue("--scroll-fit"),
+    ).toBe("240px");
+  });
+
   it("flags the sticky table header only when asked", () => {
     render(
       <>

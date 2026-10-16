@@ -1,19 +1,46 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useLayoutEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import styles from "./ScrollArea.module.css";
 
 type ScrollAreaProps = {
   /** Accessible name of the region (what the list holds). */
   label: string;
   children: ReactNode;
-  /** Pixels taken by what sits above the list on the page (header, cards, filters) plus what sits below it. */
+  /** Fallback when the box is not inside <main>: pixels taken by what sits above and below the list. */
   offset?: number;
   /** Keeps the `<thead>` cells of a table at the top while the rows scroll. */
   stickyHeader?: boolean;
   className?: string;
 };
 
-// Tables and result lists scroll inside this box, never the page: the height fits the viewport,
-// rows scroll vertically, and columns that cannot fit scroll horizontally in here only.
+const MIN_HEIGHT = 240;
+
+// Grows or shrinks the box by the space the page has left: the page's overflow when it scrolls,
+// or the empty space at the bottom of <main> when it does not. Converges after one pass.
+function fitToPage(area: HTMLElement) {
+  const main = area.closest("main");
+  if (!main) return;
+
+  const doc = document.documentElement;
+  const overflow = doc.scrollHeight - window.innerHeight;
+  let slack = -overflow;
+  if (overflow <= 0) {
+    const page = main.lastElementChild;
+    const paddingBottom = parseFloat(getComputedStyle(main).paddingBottom) || 0;
+    const pageBottom = page
+      ? page.getBoundingClientRect().bottom + (parseFloat(getComputedStyle(page).marginBottom) || 0)
+      : main.getBoundingClientRect().top;
+    slack = main.getBoundingClientRect().bottom - paddingBottom - pageBottom;
+  }
+
+  const target = Math.max(MIN_HEIGHT, Math.floor(area.getBoundingClientRect().height + slack));
+  const current = parseFloat(area.style.getPropertyValue("--scroll-fit"));
+  if (Number.isNaN(current) || Math.abs(current - target) > 1) {
+    area.style.setProperty("--scroll-fit", `${target}px`);
+  }
+}
+
+// Tables and result lists scroll inside this box, never the page: the height fills what the
+// viewport has left, rows scroll vertically, and columns that cannot fit scroll horizontally in here only.
 // Works for a <table>, a list or a CSS grid of cards.
 export default function ScrollArea({
   label,
@@ -22,8 +49,34 @@ export default function ScrollArea({
   stickyHeader = false,
   className,
 }: ScrollAreaProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const area = ref.current;
+    if (!area) return;
+
+    const fit = () => fitToPage(area);
+    fit();
+    window.addEventListener("resize", fit);
+
+    // Content above or below the list can change (an alert shows up, rows load): fit again.
+    const main = area.closest("main");
+    const observer =
+      typeof ResizeObserver === "undefined" || !main ? null : new ResizeObserver(fit);
+    if (observer && main) {
+      observer.observe(main);
+      if (main.lastElementChild) observer.observe(main.lastElementChild);
+    }
+
+    return () => {
+      window.removeEventListener("resize", fit);
+      observer?.disconnect();
+    };
+  }, []);
+
   return (
     <div
+      ref={ref}
       role="region"
       aria-label={label}
       tabIndex={0}

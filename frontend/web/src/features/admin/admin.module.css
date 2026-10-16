@@ -103,9 +103,9 @@
   border-top: 1px solid var(--border-default);
 }
 
-/* Long names, places and emails get an ellipsis (the full text is in the title); the table only scrolls sideways inside its box. */
+/* Long names, places and emails get an ellipsis (the full text is in the title); the cap follows the viewport so the table fits its box. */
 .truncate {
-  max-width: 260px;
+  max-width: clamp(120px, 16vw, 240px);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -159,6 +159,7 @@
 /* EDITAR next to VER COMPROBANTE (or "Sin comprobante"), 12 apart as in Figma "Acciones". */
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
