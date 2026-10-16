@@ -25,13 +25,12 @@
   font-size: 12px;
 }
 
-/* Figma "Image" on the raised surface: it takes the height the card has left, so the card fills its grid row;
-   a real photo fills it. */
+/* Figma "Image" on the raised surface, 16:10 like a listing photo; a real photo fills it. */
 .image {
   display: block;
-  flex: 1;
   width: 100%;
-  min-height: 48px;
+  aspect-ratio: 16 / 10;
+  box-sizing: border-box;
   border: 1px solid var(--border-default);
   object-fit: cover;
 }
@@ -54,12 +53,4 @@
   border-radius: 999px;
   color: var(--text-secondary);
   font-size: 11px;
-}
-
-/* Phones: the card is as tall as its content, so the image keeps the Figma height. */
-@media (max-width: 600px) {
-  .image {
-    flex: none;
-    height: 82px;
-  }
 }
