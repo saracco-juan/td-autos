@@ -67,31 +67,35 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
         </div>
       </td>
       <td>
-        {/* One segmented group per row; without a receipt the second segment stays, greyed out, so rows line up. */}
-        <div className={groupStyles.group}>
-          <Link
-            to={`/admin/concesionarias/${dealer.id}`}
-            aria-label={`Editar ${dealer.nombre}`}
-            className={groupStyles.item}
-          >
-            EDITAR
-          </Link>
-          {receiptId === null ? (
-            <span
-              aria-disabled="true"
-              className={`${groupStyles.item} ${styles.noReceipt}`}
-            >
-              Sin comprobante
-            </span>
-          ) : (
+        {/* EDITAR and the receipt button side by side, each its own button; without a receipt a greyed one keeps rows aligned. */}
+        <div className={styles.actions}>
+          <span className={groupStyles.group}>
             <Link
-              to={`/admin/comprobantes/${receiptId}`}
-              aria-label={`Ver comprobante de ${dealer.nombre}`}
+              to={`/admin/concesionarias/${dealer.id}`}
+              aria-label={`Editar ${dealer.nombre}`}
               className={groupStyles.item}
             >
-              VER COMPROBANTE
+              EDITAR
             </Link>
-          )}
+          </span>
+          <span className={groupStyles.group}>
+            {receiptId === null ? (
+              <span
+                aria-disabled="true"
+                className={`${groupStyles.item} ${styles.noReceipt}`}
+              >
+                Sin comprobante
+              </span>
+            ) : (
+              <Link
+                to={`/admin/comprobantes/${receiptId}`}
+                aria-label={`Ver comprobante de ${dealer.nombre}`}
+                className={groupStyles.item}
+              >
+                VER COMPROBANTE
+              </Link>
+            )}
+          </span>
         </div>
       </td>
     </tr>

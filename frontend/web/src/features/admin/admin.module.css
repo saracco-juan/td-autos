@@ -78,7 +78,7 @@
 /* --dealers-table: the sum of the column widths below (a fixed layout needs an explicit width).
    The column is centered and as wide as the table (plus its 1 px borders), never wider than the screen. */
 .dealersColumn {
-  --dealers-table: 1140px;
+  --dealers-table: 1120px;
   /* Table + 1 px borders + the reserved 10 px scrollbar lane, so 25 or 50 rows never add a sideways scroll. */
   width: min(100%, calc(var(--dealers-table) + 12px));
   margin-inline: auto;
@@ -154,9 +154,9 @@
 }
 
 /* Narrow screens drop the least needed columns instead of squeezing all five: contact first, then place. */
-@media (max-width: 1220px) {
+@media (max-width: 1200px) {
   .dealersColumn {
-    --dealers-table: 880px;
+    --dealers-table: 860px;
   }
 
   .table col:nth-child(3),
@@ -165,9 +165,9 @@
   }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 940px) {
   .dealersColumn {
-    --dealers-table: 680px;
+    --dealers-table: 660px;
   }
 
   .table col:nth-child(2),
@@ -243,11 +243,18 @@
   color: var(--text-primary);
 }
 
-/* "Sin comprobante" sits in the row's button group as a greyed segment, in the same case as the buttons. */
+/* EDITAR and the receipt button on one line, 8 apart; the column is as wide as both plus the cell padding. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* "Sin comprobante" is a greyed button, in the same case as the buttons. */
 .noReceipt {
   text-transform: uppercase;
 }
 
 .colActions {
-  width: 260px;
+  width: 240px;
 }

@@ -77,9 +77,14 @@
   background: var(--surface-raised);
 }
 
+/* No dark outline: a click leaves no ring, and keyboard focus gets a soft ring in the group's tones. */
+.sizeSelect:focus {
+  outline: none;
+}
+
 .sizeSelect:focus-visible {
-  outline: 2px solid var(--border-strong);
-  outline-offset: 2px;
+  border-color: var(--border-input);
+  box-shadow: 0 0 0 3px var(--surface-raised);
 }
 
 @media (max-width: 600px) {
