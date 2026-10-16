@@ -64,13 +64,18 @@ describe("ScrollArea", () => {
     );
   });
 
-  it("merges an extra class name", () => {
+  it("puts the box on an outer frame and scrolls the inner region", () => {
     render(
-      <ScrollArea label="Lista" className="extra">
+      <ScrollArea label="Lista" className="extra" viewportClassName="inner">
         <p>fila</p>
       </ScrollArea>,
     );
 
-    expect(screen.getByRole("region", { name: "Lista" })).toHaveClass("extra");
+    const region = screen.getByRole("region", { name: "Lista" });
+    const frame = region.parentElement as HTMLElement;
+    expect(frame).toHaveClass("extra");
+    expect(frame).toHaveAttribute("data-scroll-frame");
+    expect(region).not.toHaveClass("extra");
+    expect(region).toHaveClass("inner");
   });
 });

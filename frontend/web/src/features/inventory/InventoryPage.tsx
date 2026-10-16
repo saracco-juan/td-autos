@@ -178,7 +178,7 @@ export default function InventoryPage() {
         <ScrollArea
           label="Vehículos del inventario"
           offset={560}
-          className={styles.listArea}
+          viewportClassName={styles.listArea}
         >
           <ul className={styles.list}>
             {vehicles.map((vehicle) => (

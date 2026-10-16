@@ -1,3 +1,11 @@
+/* Outer frame: the rounded box. It clips the scrolling region, so the scrollbar is rounded with the box. */
+.frame {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
 /* Fills what the page has left (--scroll-fit, measured by the component); before the first
    measurement, or outside <main>, falls back to the viewport minus --scroll-offset. */
 .area {
@@ -6,6 +14,35 @@
   max-height: var(--scroll-fit, max(180px, calc(100dvh - var(--scroll-offset, 360px))));
   overflow: auto;
   overscroll-behavior: contain;
+  border-radius: inherit;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-input) transparent;
+}
+
+.area::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Inset thumb: the transparent border keeps it away from the rounded corners. */
+.area::-webkit-scrollbar-thumb {
+  background: var(--border-input);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 8px;
+}
+
+.area::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+  background-clip: content-box;
+}
+
+.area::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* The header cells need their own background, or the rows show through while they scroll under it. */

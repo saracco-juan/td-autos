@@ -9,7 +9,10 @@ type ScrollAreaProps = {
   offset?: number;
   /** Keeps the `<thead>` cells of a table at the top while the rows scroll. */
   stickyHeader?: boolean;
+  /** Goes on the outer frame (border, background, shadow, radius). */
   className?: string;
+  /** Goes on the element that scrolls (padding that must scroll with the content, for example). */
+  viewportClassName?: string;
 };
 
 // Low enough for a phone screen with a header, a search box and pagination around the list.
@@ -40,6 +43,7 @@ function fitToPage(area: HTMLElement) {
   }
 }
 
+// The frame owns the rounded box and clips it; the region inside scrolls, so the scrollbar follows the rounded corners.
 // Tables and result lists scroll inside this box, never the page: the height fills what the
 // viewport has left, rows scroll vertically, and columns that cannot fit scroll horizontally in here only.
 // Works for a <table>, a list or a CSS grid of cards.
@@ -49,6 +53,7 @@ export default function ScrollArea({
   offset = 360,
   stickyHeader = false,
   className,
+  viewportClassName,
 }: ScrollAreaProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -76,16 +81,18 @@ export default function ScrollArea({
   }, []);
 
   return (
-    <div
-      ref={ref}
-      role="region"
-      aria-label={label}
-      tabIndex={0}
-      data-sticky-header={stickyHeader ? "" : undefined}
-      className={className ? `${styles.area} ${className}` : styles.area}
-      style={{ "--scroll-offset": `${offset}px` } as CSSProperties}
-    >
-      {children}
+    <div data-scroll-frame="" className={className ? `${styles.frame} ${className}` : styles.frame}>
+      <div
+        ref={ref}
+        role="region"
+        aria-label={label}
+        tabIndex={0}
+        data-sticky-header={stickyHeader ? "" : undefined}
+        className={viewportClassName ? `${styles.area} ${viewportClassName}` : styles.area}
+        style={{ "--scroll-offset": `${offset}px` } as CSSProperties}
+      >
+        {children}
+      </div>
     </div>
   );
 }
