@@ -1,33 +1,70 @@
+/* Slim bar under the results: arrows and numbered pages, MUI-like (current page filled, rounded). */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 4px;
+  max-width: 100%;
 }
 
-.step {
-  flex: none;
-  width: 140px;
+.pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.position {
+.item,
+.ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 16px;
+  font: 500 13px/1 var(--font-sans);
+}
+
+.item {
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled):not([aria-current='page']) {
+  background: var(--surface-raised);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--border-strong);
+  outline-offset: 2px;
+}
+
+.item[aria-current='page'] {
+  background: var(--action-primary);
+  color: var(--text-on-action);
+  cursor: default;
+}
+
+.item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ellipsis {
   color: var(--text-secondary);
-  font-size: 14px;
 }
 
 @media (max-width: 600px) {
-  .pagination {
-    gap: 8px;
-  }
-
-  .step {
-    width: auto;
-    flex: 1;
-    padding: 0 12px;
-  }
-
-  .position {
-    flex: none;
-    font-size: 13px;
+  .item,
+  .ellipsis {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 4px;
   }
 }

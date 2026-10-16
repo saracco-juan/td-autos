@@ -323,46 +323,58 @@ describe('RecommendationsPage', () => {
     it('shows no control when everything fits in one page', async () => {
       await loaded()
 
-      expect(screen.queryByRole('button', { name: 'SIGUIENTE' })).not.toBeInTheDocument()
-      expect(screen.queryByText(/Página/)).not.toBeInTheDocument()
+      expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
     })
 
-    it('shows the page text and disables ANTERIOR on the first page', async () => {
+    it('marks the current page and disables the previous arrow on the first page', async () => {
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
       await loaded()
 
-      expect(screen.getByText('Página 1 de 3')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'ANTERIOR' })).toBeDisabled()
-      expect(screen.getByRole('button', { name: 'SIGUIENTE' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Página 1' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('button', { name: 'Página 3' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Página anterior' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeEnabled()
     })
 
-    it('SIGUIENTE asks for the next page keeping the text, and ANTERIOR goes back', async () => {
+    it('the next arrow asks for the next page keeping the text, and the previous one goes back', async () => {
       const user = userEvent.setup()
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
       await loaded()
       await user.type(searchField(), 'fiat{Enter}')
-      await screen.findByText('Página 1 de 3')
+      await screen.findByRole('button', { name: 'Página 1' })
 
       vi.mocked(searchListings).mockResolvedValue(manyPages(2))
-      await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+      await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
 
-      expect(await screen.findByText('Página 2 de 3')).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: 'Página 2', current: 'page' })).toBeInTheDocument()
       expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 2 })
 
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
-      await user.click(screen.getByRole('button', { name: 'ANTERIOR' }))
+      await user.click(screen.getByRole('button', { name: 'Página anterior' }))
 
-      expect(await screen.findByText('Página 1 de 3')).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: 'Página 1', current: 'page' })).toBeInTheDocument()
       expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1 })
     })
 
-    it('disables SIGUIENTE on the last page', async () => {
+    it('clicking a page number asks for that page', async () => {
+      const user = userEvent.setup()
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await loaded()
+
+      vi.mocked(searchListings).mockResolvedValue(manyPages(3))
+      await user.click(screen.getByRole('button', { name: 'Página 3' }))
+
+      expect(await screen.findByRole('button', { name: 'Página 3', current: 'page' })).toBeInTheDocument()
+      expect(searchListings).toHaveBeenLastCalledWith({ q: undefined, page: 3 })
+    })
+
+    it('disables the next arrow on the last page', async () => {
       vi.mocked(searchListings).mockResolvedValue(manyPages(3))
       await loaded()
 
-      expect(screen.getByText('Página 3 de 3')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'SIGUIENTE' })).toBeDisabled()
-      expect(screen.getByRole('button', { name: 'ANTERIOR' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Página anterior' })).toBeEnabled()
     })
 
     it('shows the loader instead of the list and the control while a page loads, and returns the scroll to the top', async () => {
@@ -373,13 +385,13 @@ describe('RecommendationsPage', () => {
 
       let finish: (value: ReturnType<typeof manyPages>) => void = () => {}
       vi.mocked(searchListings).mockReturnValue(new Promise((resolve) => (finish = resolve)))
-      await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+      await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
 
       expect(screen.getByRole('status')).toHaveTextContent('Cargando')
-      expect(screen.queryByRole('button', { name: 'SIGUIENTE' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
 
       finish(manyPages(2))
-      await screen.findByText('Página 2 de 3')
+      await screen.findByRole('button', { name: 'Página 2', current: 'page' })
       expect(screen.getByRole('region', { name: 'Publicaciones' }).scrollTop).toBe(0)
     })
 

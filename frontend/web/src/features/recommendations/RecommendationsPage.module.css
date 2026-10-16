@@ -2,12 +2,12 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
   width: 100%;
   max-width: 1216px;
   /* The shell centers its content vertically; the page starts at the top. */
   margin-bottom: auto;
-  padding-top: 32px;
+  padding-top: 16px;
 }
 
 /* Figma "Header row": the page header on the left, AJUSTAR DIAGNÓSTICO on the right, 24 apart. */
@@ -17,18 +17,18 @@
   gap: 24px;
 }
 
-/* Page header: eyebrow, title 32 bold and text 14 secondary, 8 apart. */
+/* Page header: eyebrow, title bold and text 14 secondary, packed close to leave the height to the results. */
 .header {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
   min-width: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
 }
 
@@ -40,14 +40,14 @@
 
 .adjust {
   flex: none;
-  width: 236px;
+  width: clamp(180px, 20%, 236px);
 }
 
 /* Figma "Filter Bar": the search field takes the row; BUSCAR sits next to it, level with the input (label 15 + gap 6). */
 .search {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 12px;
 }
 
 .search > :first-child {
@@ -57,7 +57,7 @@
 
 .submit {
   flex: none;
-  width: 140px;
+  width: clamp(110px, 12%, 140px);
   margin-top: 21px;
 }
 
@@ -65,15 +65,20 @@
 .results {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
   min-height: 240px;
 }
 
-/* Figma "Grid": 28 between cards, three per row at 1280. */
+/* Room for the card shadows, which the scroll box would clip. */
+.gridArea {
+  padding: 2px 4px 10px;
+}
+
+/* Fluid columns: as many 260 px (at least) cards as fit, so wide screens show three or four and phones one. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 20px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -100,15 +105,13 @@
   font-size: 14px;
 }
 
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 600px) {
   .title {
     font-size: 24px;
+  }
+
+  .page {
+    padding-top: 8px;
   }
 
   /* Figma mobile 2162:2422: the button drops under the header, full width. */
@@ -132,6 +135,6 @@
   }
 
   .grid {
-    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
 }

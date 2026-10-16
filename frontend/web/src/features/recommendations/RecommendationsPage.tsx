@@ -147,7 +147,7 @@ export default function RecommendationsPage() {
               </div>
             ) : (
               <>
-                <ScrollArea label="Publicaciones">
+                <ScrollArea label="Publicaciones" offset={300} viewportClassName={styles.gridArea}>
                   <ul className={styles.grid} aria-label="Publicaciones">
                     {listings.map((listing) => (
                       <VehicleCard key={listing.id} listing={listing} />
