@@ -64,6 +64,32 @@
   color: var(--text-secondary);
 }
 
+/* "Mostrar [10]" before the pages, like MUI's rows-per-page control. */
+.size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+  color: var(--text-secondary);
+  font: 500 13px/1 var(--font-sans);
+}
+
+.sizeSelect {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.sizeSelect:focus-visible {
+  outline: 2px solid var(--border-strong);
+  outline-offset: 2px;
+}
+
 @media (max-width: 600px) {
   .item,
   .ellipsis {

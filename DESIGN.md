@@ -22,9 +22,9 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 ## Lists and tables
 
 - Result lists and tables never scroll the page. The list fills the free height of the screen.
-- Lists are paginated, not scrolled: the number of rows or cards per page adapts to the visible area (like MUI DataGrid `autoPageSize`), so no inner scrollbar appears on desktop. An inner scroll is only a fallback on very small screens; a table whose columns cannot fit on a phone may scroll sideways inside its own box.
-- The pager sits at the bottom-right of the list, on the same row as the list's actions (for example CARGAR VEHÍCULO / IMPORTAR CSV on the left, pager on the right). Style: MUI `Pagination` (‹ 1 2 3 … N ›); the current page is a centered circle in the table header tone (`--surface-raised`), never black.
-- Tables fill their box with no blank band: fixed column shares (`table-layout: fixed` with `%` widths), every row the same height (actions on one line), the page size computed from a fixed row height, and the rows stretched evenly over the box. Zooming or resizing changes how many rows fit, never the layout.
+- Lists are paginated, not scrolled. The pager has a "Mostrar" selector (10, 25, 50; 10 by default): the page size is the user's choice and never changes with the window size or the zoom. When the chosen rows do not fit the screen, the list box scrolls inside (never the page); a table whose columns cannot fit on a phone may scroll sideways inside its own box.
+- The pager sits at the bottom-right of the list, on the same row as the list's actions (for example CARGAR VEHÍCULO / IMPORTAR CSV on the left, pager on the right). Style: MUI `Pagination` (Mostrar [10] ‹ 1 2 3 … N ›); the current page is a centered circle in the table header tone (`--surface-raised`), never black.
+- Tables are only as wide as their fields need: fixed pixel column widths (`table-layout: fixed`, table width = sum of the columns), every row the same height, compact row actions (smaller than page buttons) on one line. The pager aligns with the table's right edge.
 - On narrow screens a table drops its least needed columns (first contact, then place) instead of squeezing all of them; long cell text ends in an ellipsis with the full text in `title`.
 - A search box for a list goes in the header row beside the title when there is room; on phones it drops under the title.
 - Scroll containers keep their rounded box: the frame clips, the inner region scrolls, slim inset scrollbar in the border color.

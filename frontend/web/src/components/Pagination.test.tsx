@@ -82,4 +82,33 @@ describe('Pagination', () => {
 
     expect(onChange).not.toHaveBeenCalled()
   })
+
+  it('offers a "Mostrar" selector with the page sizes and reports the chosen one', async () => {
+    const user = userEvent.setup()
+    const onPageSizeChange = vi.fn()
+    render(
+      <Pagination
+        page={1}
+        lastPage={6}
+        onChange={() => {}}
+        pageSize={10}
+        pageSizeOptions={[10, 25, 50]}
+        onPageSizeChange={onPageSizeChange}
+      />,
+    )
+
+    const select = screen.getByRole('combobox', { name: 'Mostrar' })
+    expect(select).toHaveValue('10')
+    expect(within(select).getAllByRole('option').map((option) => option.textContent)).toEqual(['10', '25', '50'])
+
+    await user.selectOptions(select, '25')
+
+    expect(onPageSizeChange).toHaveBeenCalledWith(25)
+  })
+
+  it('shows no selector when no page size handler is given', () => {
+    render(<Pagination page={1} lastPage={6} onChange={() => {}} />)
+
+    expect(screen.queryByRole('combobox', { name: 'Mostrar' })).not.toBeInTheDocument()
+  })
 })

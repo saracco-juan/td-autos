@@ -243,5 +243,33 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
         'Concesionaria 12',
       ])
     })
+
+    it('shows 10 per page by default and "Mostrar" changes it, back to page 1', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(30))
+      const user = userEvent.setup()
+      renderPage()
+      const table = await screen.findByRole('table')
+      const select = screen.getByRole('combobox', { name: 'Mostrar' })
+
+      expect(select).toHaveValue('10')
+      await user.click(screen.getByRole('button', { name: 'Página 3' }))
+
+      await user.selectOptions(select, '25')
+
+      expect(within(table).getAllByRole('rowheader')).toHaveLength(25)
+      expect(within(table).getAllByRole('rowheader')[0]).toHaveTextContent('Concesionaria 01')
+      expect(screen.getByRole('button', { name: 'Página 2' })).toBeInTheDocument()
+    })
+
+    it('keeps "Mostrar" available when a bigger size leaves a single page', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(12))
+      const user = userEvent.setup()
+      renderPage()
+      await screen.findByRole('table')
+
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '25')
+
+      expect(screen.getByRole('combobox', { name: 'Mostrar' })).toHaveValue('25')
+    })
   })
 })

@@ -32,9 +32,9 @@ function fitToPage(area: HTMLElement) {
   if (overflow <= 0) {
     const page = main.lastElementChild;
     const paddingBottom = parseFloat(getComputedStyle(main).paddingBottom) || 0;
-    const pageBottom = page
-      ? page.getBoundingClientRect().bottom + (parseFloat(getComputedStyle(page).marginBottom) || 0)
-      : main.getBoundingClientRect().top;
+    // The page's own bottom edge, without its margin: an auto margin reports all the free space as margin,
+    // which would hide the slack and keep the box from growing back after a resize.
+    const pageBottom = page ? page.getBoundingClientRect().bottom : main.getBoundingClientRect().top;
     slack = main.getBoundingClientRect().bottom - paddingBottom - pageBottom;
   }
 
@@ -76,6 +76,8 @@ export default function ScrollArea({
     if (observer && main) {
       observer.observe(main);
       if (main.lastElementChild) observer.observe(main.lastElementChild);
+      // The viewport itself (zoom, window size), in case no resize event reaches the page.
+      observer.observe(document.documentElement);
     }
 
     return () => {

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { Link } from "react-router";
 import buttonStyles from "../../components/button.module.css";
 import ErrorState from "../../components/ErrorState";
@@ -6,7 +6,6 @@ import ListFooter from "../../components/ListFooter";
 import Pagination from "../../components/Pagination";
 import ScrollArea from "../../components/ScrollArea";
 import screenStyles from "../../components/screen.module.css";
-import useAutoPageSize from "../../components/useAutoPageSize";
 import usePagedItems from "../../components/usePagedItems";
 import SessionLoading from "../auth/session/SessionLoading";
 import styles from "./admin.module.css";
@@ -20,9 +19,8 @@ import StateTag from "./StateTag";
 import type { AdminDealerRow } from "./types";
 import { useDealerDirectory } from "./useDealerDirectory";
 
-// Natural height of a row (12 px padding around a 36 px button, plus the divider), with a little room for a state tag.
-// The page size comes from this constant, never from the rendered rows: they stretch to fill the box.
-const ROW_HEIGHT = 64;
+// "Mostrar" options; the page size is the user's choice, never the screen's, so zooming does not change it (DESIGN.md).
+const PAGE_SIZES = [10, 25, 50];
 
 function registeredCount(count: number): string {
   return count === 1
@@ -98,27 +96,24 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
 // EDITAR opens the dealer page (UH27).
 export default function DealersPage() {
   const { state, retry } = useDealerDirectory();
-  const tableRef = useRef<HTMLTableElement>(null);
+  const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
   const dealers =
     state === "loading" || "error" in state ? [] : state.data.concesionarias;
-  // Rows that fit the free height of the screen: no inner scrollbar on desktop (DESIGN.md).
-  const pageSize = useAutoPageSize(tableRef, {
-    itemSelector: "tbody tr",
-    fallback: 10,
-    enabled: dealers.length > 0,
-    itemHeight: ROW_HEIGHT,
-  });
   const { page, lastPage, setPage, pageItems } = usePagedItems(
     dealers,
     pageSize,
   );
+  const changePageSize = (size: number) => {
+    setPageSize(size);
+    setPage(1);
+  };
 
   if (state === "loading") return <SessionLoading />;
   if ("error" in state)
     return <ErrorState kind={state.error} onRetry={retry} />;
 
   return (
-    <div className={`${screenStyles.page} ${screenStyles.fill}`}>
+    <div className={screenStyles.page}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>ADMINISTRACIÓN</p>
         <h1 id="admin-dealers-title" className={screenStyles.title}>
@@ -131,18 +126,17 @@ export default function DealersPage() {
           Todavía no hay concesionarias registradas.
         </p>
       ) : (
+        // Table and pager share the width of the columns, not the whole screen: the fields are short.
+        <div className={styles.tableBlock}>
         <ScrollArea
           label="Listado de concesionarias"
-          fill
           className={styles.tableWrap}
-          viewportClassName={styles.tableViewport}
         >
           <table
-            ref={tableRef}
             className={styles.table}
             aria-labelledby="admin-dealers-title"
           >
-            {/* Fixed shares of the width: columns never depend on the rows of the current page. */}
+            {/* Fixed column widths: columns never depend on the rows of the current page. */}
             <colgroup>
               <col className={styles.colName} />
               <col className={styles.colPlace} />
@@ -166,12 +160,20 @@ export default function DealersPage() {
             </tbody>
           </table>
         </ScrollArea>
+        {dealers.length > PAGE_SIZES[0] ? (
+          <ListFooter>
+            <Pagination
+              page={page}
+              lastPage={lastPage}
+              onChange={setPage}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZES}
+              onPageSizeChange={changePageSize}
+            />
+          </ListFooter>
+        ) : null}
+        </div>
       )}
-      {lastPage > 1 ? (
-        <ListFooter>
-          <Pagination page={page} lastPage={lastPage} onChange={setPage} />
-        </ListFooter>
-      ) : null}
     </div>
   );
 }
