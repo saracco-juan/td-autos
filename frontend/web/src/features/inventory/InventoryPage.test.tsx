@@ -311,4 +311,45 @@ describe('InventoryPage save notice', () => {
 
     expect(screen.queryByText('42')).not.toBeInTheDocument()
   })
+
+  describe('footer row', () => {
+    beforeEach(() => {
+      vi.mocked(fetchVehicles).mockReset()
+      vi.mocked(fetchVehicles).mockResolvedValue(VEHICULOS)
+    })
+
+    const many = (count: number) =>
+      Array.from({ length: count }, (_, index) => vehiculo({ id: index + 1, patente: `AA${index}`, modelo: `Modelo ${index + 1}` }))
+
+    it('puts the load actions on the left and the pager on the right of the same row', async () => {
+      vi.mocked(fetchVehicles).mockResolvedValue(many(15))
+      renderPage()
+      await screen.findAllByRole('listitem')
+
+      const load = screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })
+      const importCsv = screen.getByRole('link', { name: 'IMPORTAR CSV' })
+      const pager = screen.getByRole('navigation', { name: 'Paginación' })
+      expect(load.parentElement).toBe(importCsv.parentElement)
+      expect(load.parentElement?.nextElementSibling).toBe(pager.parentElement)
+      expect(pager.parentElement?.parentElement).toBe(load.parentElement?.parentElement)
+    })
+
+    it('shows one page of vehicles and page 2 shows the rest', async () => {
+      vi.mocked(fetchVehicles).mockResolvedValue(many(15))
+      renderPage()
+      await screen.findAllByRole('listitem')
+
+      expect(screen.getAllByRole('listitem').filter((item) => item.matches('li[aria-labelledby]'))).toHaveLength(10)
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Página 2' }))
+      expect(screen.getAllByRole('listitem').filter((item) => item.matches('li[aria-labelledby]'))).toHaveLength(5)
+    })
+
+    it('shows no pager when the vehicles fit in one page, and keeps the actions', async () => {
+      renderPage()
+      await screen.findAllByRole('listitem')
+
+      expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })).toBeInTheDocument()
+    })
+  })
 })

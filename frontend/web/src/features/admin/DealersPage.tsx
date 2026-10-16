@@ -1,8 +1,13 @@
+import { useRef } from "react";
 import { Link } from "react-router";
 import buttonStyles from "../../components/button.module.css";
 import ErrorState from "../../components/ErrorState";
+import ListFooter from "../../components/ListFooter";
+import Pagination from "../../components/Pagination";
 import ScrollArea from "../../components/ScrollArea";
 import screenStyles from "../../components/screen.module.css";
+import useAutoPageSize from "../../components/useAutoPageSize";
+import usePagedItems from "../../components/usePagedItems";
 import SessionLoading from "../auth/session/SessionLoading";
 import styles from "./admin.module.css";
 import {
@@ -89,12 +94,23 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
 // EDITAR opens the dealer page (UH27).
 export default function DealersPage() {
   const { state, retry } = useDealerDirectory();
+  const tableRef = useRef<HTMLTableElement>(null);
+  const dealers =
+    state === "loading" || "error" in state ? [] : state.data.concesionarias;
+  // Rows that fit the free height of the screen: no inner scrollbar on desktop (DESIGN.md).
+  const pageSize = useAutoPageSize(tableRef, {
+    itemSelector: "tbody tr",
+    fallback: 10,
+    enabled: dealers.length > 0,
+  });
+  const { page, lastPage, setPage, pageItems } = usePagedItems(
+    dealers,
+    pageSize,
+  );
 
   if (state === "loading") return <SessionLoading />;
   if ("error" in state)
     return <ErrorState kind={state.error} onRetry={retry} />;
-
-  const dealers = state.data.concesionarias;
 
   return (
     <div className={screenStyles.page}>
@@ -112,11 +128,14 @@ export default function DealersPage() {
       ) : (
         <ScrollArea
           label="Listado de concesionarias"
-          stickyHeader
           offset={340}
           className={styles.tableWrap}
         >
-          <table className={styles.table} aria-labelledby="admin-dealers-title">
+          <table
+            ref={tableRef}
+            className={styles.table}
+            aria-labelledby="admin-dealers-title"
+          >
             <thead>
               <tr>
                 <th scope="col">Concesionaria</th>
@@ -127,13 +146,18 @@ export default function DealersPage() {
               </tr>
             </thead>
             <tbody>
-              {dealers.map((dealer) => (
+              {pageItems.map((dealer) => (
                 <DealerRow key={dealer.id} dealer={dealer} />
               ))}
             </tbody>
           </table>
         </ScrollArea>
       )}
+      {lastPage > 1 ? (
+        <ListFooter>
+          <Pagination page={page} lastPage={lastPage} onChange={setPage} />
+        </ListFooter>
+      ) : null}
     </div>
   );
 }

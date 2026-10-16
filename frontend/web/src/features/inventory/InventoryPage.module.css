@@ -59,11 +59,6 @@
   outline: none;
 }
 
-.actions {
-  display: flex;
-  gap: 16px;
-}
-
 .load {
   width: min(100%, 240px);
 }

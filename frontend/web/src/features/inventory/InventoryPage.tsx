@@ -3,8 +3,12 @@ import { Link, useLocation, useNavigate } from "react-router";
 import alertStyles from "../../components/alert.module.css";
 import buttonStyles from "../../components/button.module.css";
 import ErrorState, { type ErrorKind } from "../../components/ErrorState";
+import ListFooter from "../../components/ListFooter";
+import Pagination from "../../components/Pagination";
 import ScrollArea from "../../components/ScrollArea";
 import screenStyles from "../../components/screen.module.css";
+import useAutoPageSize from "../../components/useAutoPageSize";
+import usePagedItems from "../../components/usePagedItems";
 import { HttpError, NetworkError } from "../../lib/http";
 import SessionLoading from "../auth/session/SessionLoading";
 import { deleteVehicle, fetchVehicles } from "./api";
@@ -57,6 +61,17 @@ export default function InventoryPage() {
     noticeFrom(location.state),
   );
   const noticeRef = useRef<HTMLParagraphElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  // Rows that fit the free height of the screen: no inner scrollbar on desktop (DESIGN.md).
+  const pageSize = useAutoPageSize(listRef, {
+    itemSelector: ":scope > li",
+    fallback: 10,
+    enabled: loadState === "ready" && vehicles.length > 0,
+  });
+  const { page, lastPage, setPage, pageItems } = usePagedItems(
+    vehicles,
+    pageSize,
+  );
 
   // The message lives in the history entry, which a reload keeps: take it out so it is shown once.
   useEffect(() => {
@@ -180,8 +195,8 @@ export default function InventoryPage() {
           offset={560}
           viewportClassName={styles.listArea}
         >
-          <ul className={styles.list}>
-            {vehicles.map((vehicle) => (
+          <ul ref={listRef} className={styles.list}>
+            {pageItems.map((vehicle) => (
               <VehicleRow
                 key={vehicle.id}
                 vehicle={vehicle}
@@ -197,20 +212,28 @@ export default function InventoryPage() {
           </ul>
         </ScrollArea>
       )}
-      <div className={styles.actions}>
-        <Link
-          to="/concesionaria/inventario/nuevo"
-          className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.load}`}
-        >
-          CARGAR VEHÍCULO
-        </Link>
-        <Link
-          to="/concesionaria/inventario/importar"
-          className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.load}`}
-        >
-          IMPORTAR CSV
-        </Link>
-      </div>
+      <ListFooter
+        actions={
+          <>
+            <Link
+              to="/concesionaria/inventario/nuevo"
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.load}`}
+            >
+              CARGAR VEHÍCULO
+            </Link>
+            <Link
+              to="/concesionaria/inventario/importar"
+              className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.load}`}
+            >
+              IMPORTAR CSV
+            </Link>
+          </>
+        }
+      >
+        {lastPage > 1 ? (
+          <Pagination page={page} lastPage={lastPage} onChange={setPage} />
+        ) : null}
+      </ListFooter>
     </div>
   );
 }

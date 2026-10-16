@@ -1,6 +1,9 @@
 import { Link } from "react-router";
 import buttonStyles from "../../components/button.module.css";
+import ListFooter from "../../components/ListFooter";
+import Pagination from "../../components/Pagination";
 import ScrollArea from "../../components/ScrollArea";
+import usePagedItems from "../../components/usePagedItems";
 import { formatSentDate } from "../subscription/format";
 import adminStyles from "./admin.module.css";
 import styles from "./DealerEditPage.module.css";
@@ -16,6 +19,8 @@ import StateTag from "./StateTag";
 import type { DealerDetail, DealerReceiptRow } from "./types";
 
 const PENDING = "pendiente de revisión";
+// Receipts per page of the history card: a dealer rarely has many, so the size is fixed.
+const RECEIPTS_PER_PAGE = 5;
 
 function SubscriptionCard({ dealer }: { dealer: DealerDetail }) {
   const { suscripcion } = dealer;
@@ -108,6 +113,11 @@ function ReceiptItem({ receipt }: { receipt: DealerReceiptRow }) {
 }
 
 function ReceiptHistory({ receipts }: { receipts: DealerReceiptRow[] }) {
+  const { page, lastPage, setPage, pageItems } = usePagedItems(
+    receipts,
+    RECEIPTS_PER_PAGE,
+  );
+
   return (
     <section className={adminStyles.card} aria-labelledby="dealer-receipts">
       <h2 id="dealer-receipts" className={adminStyles.cardTitle}>
@@ -116,13 +126,20 @@ function ReceiptHistory({ receipts }: { receipts: DealerReceiptRow[] }) {
       {receipts.length === 0 ? (
         <p className={adminStyles.cardBody}>Todavía no envió comprobantes.</p>
       ) : (
-        <ScrollArea label="Comprobantes de la concesionaria" offset={520}>
-          <ul className={styles.list}>
-            {receipts.map((receipt) => (
-              <ReceiptItem key={receipt.id} receipt={receipt} />
-            ))}
-          </ul>
-        </ScrollArea>
+        <>
+          <ScrollArea label="Comprobantes de la concesionaria" offset={520}>
+            <ul className={styles.list}>
+              {pageItems.map((receipt) => (
+                <ReceiptItem key={receipt.id} receipt={receipt} />
+              ))}
+            </ul>
+          </ScrollArea>
+          {lastPage > 1 ? (
+            <ListFooter>
+              <Pagination page={page} lastPage={lastPage} onChange={setPage} />
+            </ListFooter>
+          ) : null}
+        </>
       )}
     </section>
   );
