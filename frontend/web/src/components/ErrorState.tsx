@@ -1,7 +1,7 @@
 import buttonStyles from './button.module.css'
 import styles from './ErrorState.module.css'
 
-export type ErrorKind = 'network' | 'server'
+export type ErrorKind = 'network' | 'server' | 'sources'
 
 const COPY: Record<ErrorKind, { title: string; body: string }> = {
   network: {
@@ -11,6 +11,11 @@ const COPY: Record<ErrorKind, { title: string; body: string }> = {
   server: {
     title: 'Algo salió mal',
     body: 'No pudimos cargar la información. Intentá de nuevo en unos minutos.',
+  },
+  // The API answered, but none of the external portals did (UH-06).
+  sources: {
+    title: 'Portales sin respuesta',
+    body: 'No pudimos obtener publicaciones de los portales. Probá de nuevo en unos minutos.',
   },
 }
 

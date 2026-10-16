@@ -13,6 +13,8 @@ import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } fro
 import { dealerDetail, directory, receipt } from '../features/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
+import { searchListings } from '../features/recommendations/api'
+import { searchResponse } from '../features/recommendations/fixtures'
 import { fetchTransfer } from '../features/transfer/api'
 import { transferResponse } from '../features/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
@@ -58,6 +60,8 @@ vi.mock('../features/admin/api', () => ({
   approveReceipt: vi.fn(),
   rejectReceipt: vi.fn(),
 }))
+
+vi.mock('../features/recommendations/api', () => ({ searchListings: vi.fn() }))
 
 vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
@@ -118,6 +122,8 @@ describe('app routes', () => {
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
     vi.mocked(fetchTransfer).mockReset()
+    vi.mocked(searchListings).mockReset()
+    vi.mocked(searchListings).mockResolvedValue(searchResponse())
     vi.mocked(fetchSubscription).mockReset()
     vi.mocked(fetchSubscription).mockResolvedValue(suscripcion())
     vi.mocked(fetchVehicles).mockReset()
@@ -245,7 +251,7 @@ describe('app routes', () => {
     }
     await user.click(screen.getByRole('button', { name: 'VER RECOMENDACIONES' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Recomendaciones' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mejores opciones para vos' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/recomendaciones')
 
     await act(() => router.navigate('/'))
@@ -265,11 +271,11 @@ describe('app routes', () => {
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
-  it('renders the provisional recommendations page at /recomendaciones inside the shell', async () => {
+  it('renders the recommendations page with the listings at /recomendaciones inside the shell', async () => {
     const router = renderAt('/recomendaciones')
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Recomendaciones' })).toBeInTheDocument()
-    expect(screen.getByText('Guardamos tu diagnóstico. Las recomendaciones van a estar disponibles pronto.')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Mejores opciones para vos' })).toBeInTheDocument()
+    expect(await screen.findByText('Mostrando 3 vehículos')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/recomendaciones')
     expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
     expect(screen.getAllByRole('main')).toHaveLength(1)
@@ -281,7 +287,7 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/login')
-    expect(screen.queryByRole('heading', { name: 'Recomendaciones' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Mejores opciones para vos' })).not.toBeInTheDocument()
   })
 
   it('renders the home placeholder at /', async () => {

@@ -7,14 +7,23 @@
   max-width: 1216px;
   /* The shell centers its content vertically; the page starts at the top. */
   margin-bottom: auto;
-  padding-top: 40px;
+  padding-top: 32px;
 }
 
-/* Page header without an eyebrow that would repeat the title: title 32 bold, text 14 secondary, 8 apart. */
+/* Figma "Header row": the page header on the left, AJUSTAR DIAGNÓSTICO on the right, 24 apart. */
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Page header: eyebrow, title 32 bold and text 14 secondary, 8 apart. */
 .header {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .title {
@@ -24,12 +33,105 @@
 }
 
 .subtitle {
+  margin: 0;
   color: var(--text-secondary);
   font-size: 14px;
+}
+
+.adjust {
+  flex: none;
+  width: 236px;
+}
+
+/* Figma "Filter Bar": the search field takes the row; BUSCAR sits next to it, level with the input (label 15 + gap 6). */
+.search {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.search > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.submit {
+  flex: none;
+  width: 140px;
+  margin-top: 21px;
+}
+
+/* The loader and the states live here and are centered in it; the header and the search stay in place. */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 240px;
+}
+
+/* Figma "Grid": 28 between cards, three per row at 1280. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 48px 0;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emptyHint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 600px) {
   .title {
     font-size: 24px;
+  }
+
+  /* Figma mobile 2162:2422: the button drops under the header, full width. */
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adjust {
+    width: 100%;
+  }
+
+  .search {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .submit {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

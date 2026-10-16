@@ -1,0 +1,57 @@
+import type { Listing, SearchResponse, SourceReport } from './types'
+
+export const MERCADO_LIBRE = { clave: 'mercadolibre', nombre: 'Mercado Libre' }
+
+export function listing(overrides: Partial<Listing> = {}): Listing {
+  return {
+    id: 1,
+    titulo: 'Toyota Corolla XEI 2.0 CVT 2021',
+    marca: 'Toyota',
+    modelo: 'Corolla',
+    version: 'XEI',
+    anio: 2021,
+    kilometraje: 62000,
+    precio: 28900000,
+    moneda: 'ARS',
+    ubicacion: 'CABA',
+    imagen_url: 'https://http2.mlstatic.com/D_NQ_NP_corolla.jpg',
+    url_original: 'https://auto.mercadolibre.com.ar/MLA-0000000001-demo',
+    fuente: MERCADO_LIBRE,
+    ...overrides,
+  }
+}
+
+export function sourceReport(overrides: Partial<SourceReport> = {}): SourceReport {
+  return { ...MERCADO_LIBRE, estado: 'ok', ...overrides }
+}
+
+export const LISTINGS: Listing[] = [
+  listing(),
+  listing({
+    id: 2,
+    titulo: 'Fiat Cronos Drive 1.3 2022',
+    marca: 'Fiat',
+    modelo: 'Cronos',
+    version: 'Drive',
+    anio: 2022,
+    kilometraje: 41500,
+    precio: 19750000,
+    ubicacion: 'Rosario',
+    imagen_url: null,
+  }),
+  listing({
+    id: 3,
+    titulo: 'Peugeot 208 Allure 2021',
+    marca: 'Peugeot',
+    modelo: '208',
+    version: 'Allure',
+    anio: 2021,
+    kilometraje: 55000,
+    precio: 22300000,
+    ubicacion: 'La Plata',
+  }),
+]
+
+export function searchResponse(overrides: Partial<SearchResponse> = {}): SearchResponse {
+  return { publicaciones: LISTINGS, fuentes: [sourceReport()], ...overrides }
+}
