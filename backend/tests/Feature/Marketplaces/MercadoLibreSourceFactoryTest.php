@@ -20,6 +20,16 @@ class MercadoLibreSourceFactoryTest extends TestCase
         $this->assertNotEmpty($source->search(new ListingQuery));
     }
 
+    public function test_blank_driver_falls_back_to_the_recorded_source(): void
+    {
+        // `MELI_DRIVER=` in .env reaches the config as an empty string, not as the default.
+        foreach (['', '  ', null] as $driver) {
+            config(['services.mercadolibre.driver' => $driver]);
+
+            $this->assertInstanceOf(RecordedMercadoLibreSource::class, app(MercadoLibreSourceFactory::class)->make());
+        }
+    }
+
     public function test_api_driver_returns_the_api_source(): void
     {
         config(['services.mercadolibre.driver' => 'api']);

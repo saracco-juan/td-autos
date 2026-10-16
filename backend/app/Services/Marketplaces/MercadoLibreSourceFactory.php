@@ -6,13 +6,14 @@ use InvalidArgumentException;
 
 /**
  * Picks the Mercado Libre implementation from `services.mercadolibre.driver`: `recorded` (demo
- * file) or `api` (live search).
+ * file) or `api` (live search). A blank driver (`MELI_DRIVER=` in .env) means `recorded`.
  */
 class MercadoLibreSourceFactory
 {
     public function make(): ListingSource
     {
         $driver = config('services.mercadolibre.driver');
+        $driver = blank($driver) ? 'recorded' : $driver;
 
         return match ($driver) {
             'recorded' => new RecordedMercadoLibreSource(config('marketplaces.recorded_path.mercadolibre')),
