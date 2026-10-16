@@ -30,7 +30,7 @@
   text-decoration: none;
 }
 
-/* White rounded tile with the car in the brand red. */
+/* White rounded tile with the TD monogram in the brand red (the favicon, inverted). */
 .logoMark {
   display: inline-flex;
   align-items: center;

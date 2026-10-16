@@ -5,17 +5,15 @@ import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/rol
 import { useAuth } from '../features/auth/session/useAuth'
 import styles from './AppShell.module.css'
 
-// Brand mark beside the wordmark: a car silhouette on a white tile. Decorative; the link is named by its text.
+// Brand mark beside the wordmark: the TD monogram of the favicon, in red on a white tile. Decorative; the link is named by its text.
 function LogoMark() {
   return (
     <span className={styles.logoMark} aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" focusable="false">
-        <path
-          d="M5 16h14v-3.2a2 2 0 0 0-.6-1.4L16.5 9.5 15 6.6A2 2 0 0 0 13.2 5.5H10.8A2 2 0 0 0 9 6.6L7.5 9.5l-1.9 1.9A2 2 0 0 0 5 12.8z"
-          fill="currentColor"
-        />
-        <circle cx="8" cy="16.5" r="1.8" fill="currentColor" />
-        <circle cx="16" cy="16.5" r="1.8" fill="currentColor" />
+      <svg viewBox="8 18 48 28" width="20" height="12" focusable="false">
+        <g fill="currentColor" fillRule="evenodd">
+          <path d="M8 18H30V25H22.5V46H15.5V25H8Z" />
+          <path d="M34 18H42A14 14 0 0 1 42 46H34ZM41 25V39H42A7 7 0 0 0 42 25Z" />
+        </g>
       </svg>
     </span>
   )
