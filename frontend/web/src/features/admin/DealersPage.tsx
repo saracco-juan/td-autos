@@ -113,7 +113,8 @@ export default function DealersPage() {
     return <ErrorState kind={state.error} onRetry={retry} />;
 
   return (
-    <div className={screenStyles.page}>
+    // A centered column as wide as the table: title, table and pager share its edges; the table box takes the free height.
+    <div className={`${screenStyles.page} ${screenStyles.fill} ${styles.dealersColumn}`}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>ADMINISTRACIÓN</p>
         <h1 id="admin-dealers-title" className={screenStyles.title}>
@@ -126,11 +127,12 @@ export default function DealersPage() {
           Todavía no hay concesionarias registradas.
         </p>
       ) : (
-        // Table and pager share the width of the columns, not the whole screen: the fields are short.
         <div className={styles.tableBlock}>
         <ScrollArea
           label="Listado de concesionarias"
+          fill
           className={styles.tableWrap}
+          viewportClassName={styles.tableViewport}
         >
           <table
             className={styles.table}

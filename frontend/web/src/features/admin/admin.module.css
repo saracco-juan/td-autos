@@ -78,44 +78,56 @@
   box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
 }
 
-/* Table and pager take the width of the columns (the fields are short), never more than the screen. */
+/* --dealers-table: the sum of the column widths below (a fixed layout needs an explicit width).
+   The column is centered and as wide as the table (plus its 1 px borders), never wider than the screen. */
+.dealersColumn {
+  --dealers-table: 1140px;
+  /* Table + 1 px borders + the reserved 10 px scrollbar lane, so 25 or 50 rows never add a sideways scroll. */
+  width: min(100%, calc(var(--dealers-table) + 12px));
+  margin-inline: auto;
+}
+
+.tableViewport {
+  scrollbar-gutter: stable;
+}
+
+/* Table box and pager; the box takes all the free height (ScrollArea fill), the pager stays under it. */
 .tableBlock {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
-  width: fit-content;
-  max-width: 100%;
+  min-height: 0;
 }
 
 /* Fixed layout with fixed column widths: the columns never depend on the rows of the current page.
    When the screen is narrower than the columns, the table scrolls sideways inside its box (DESIGN.md). */
 .table {
-  /* The sum of the column widths below; a fixed layout needs an explicit width. */
-  width: 1000px;
+  width: var(--dealers-table);
   table-layout: fixed;
   border-collapse: collapse;
   font-size: 13px;
 }
 
 .colName {
-  width: 190px;
+  width: 220px;
 }
 
 .colPlace {
-  width: 170px;
+  width: 200px;
 }
 
 .colContact {
-  width: 230px;
+  width: 260px;
 }
 
 .colState {
-  width: 175px;
+  width: 200px;
 }
 
 .table th,
 .table td {
-  padding: 6px 14px;
+  padding: 6px 20px;
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
@@ -125,8 +137,8 @@
 
 /* Narrow screens drop the least needed columns instead of squeezing all five: contact first, then place. */
 @media (max-width: 1000px) {
-  .table {
-    width: 770px;
+  .dealersColumn {
+    --dealers-table: 880px;
   }
 
   .table col:nth-child(3),
@@ -135,9 +147,9 @@
   }
 }
 
-@media (max-width: 640px) {
-  .table {
-    width: 600px;
+@media (max-width: 900px) {
+  .dealersColumn {
+    --dealers-table: 680px;
   }
 
   .table col:nth-child(2),
@@ -232,5 +244,5 @@
 }
 
 .colActions {
-  width: 235px;
+  width: 260px;
 }
