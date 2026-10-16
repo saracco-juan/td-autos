@@ -190,7 +190,7 @@ export default function SubscriptionPage() {
       <div className={`${barStyles.actions} ${styles.actions}`}>
         {showSend ? (
           <>
-            <label className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.actionWide} ${styles.pick}`}>
+            <label className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${barStyles.actionWide} ${styles.pick}`}>
               SELECCIONAR COMPROBANTE
               <input
                 type="file"
@@ -209,7 +209,7 @@ export default function SubscriptionPage() {
             </label>
             <button
               type="button"
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.actionWide}`}
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${buttonStyles.soft} ${barStyles.actionWide}`}
               disabled={submitting || !summary.transferencia}
               aria-busy={submitting}
               onClick={() => void handleSend()}
@@ -219,7 +219,7 @@ export default function SubscriptionPage() {
           </>
         ) : null}
         {showInventory ? (
-          <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}>
+          <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.secondary} ${buttonStyles.soft} ${barStyles.action}`}>
             VER INVENTARIO
           </Link>
         ) : null}

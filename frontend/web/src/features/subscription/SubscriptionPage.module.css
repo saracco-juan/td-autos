@@ -116,8 +116,9 @@
 }
 
 /* Figma "Actions" 2113:1674, now in the pinned bar: buttons 12 apart, stacked on phones. */
+/* All the actions on one row at the bottom; they stack only on phones (below). */
 .actions {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .pick {
@@ -125,8 +126,8 @@
 }
 
 .pick:focus-within {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
+  border-color: var(--border-input);
+  box-shadow: 0 0 0 3px var(--surface-raised);
 }
 
 .pick:has(:disabled) {
