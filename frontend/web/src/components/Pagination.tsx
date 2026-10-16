@@ -79,7 +79,7 @@ function Arrow({ direction }: { direction: 'previous' | 'next' }) {
   )
 }
 
-// Numbered page control under the results grid (D9), styled after MUI's Pagination. See the "Figma sync" table of UH-06.
+// Numbered page control for lists (D9, DESIGN.md), styled after MUI's Pagination. See the "Figma sync" table of UH-06.
 export default function Pagination({ page, lastPage, onChange, siblingCount }: PaginationProps) {
   const compact = useCompact()
   const items = buildItems(page, lastPage, siblingCount ?? (compact ? 0 : 1))

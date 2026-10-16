@@ -83,7 +83,7 @@ describe('RecommendationsPage', () => {
     await loaded()
 
     expect(searchListings).toHaveBeenCalledTimes(1)
-    expect(searchListings).toHaveBeenCalledWith({ q: undefined, page: 1 })
+    expect(searchListings).toHaveBeenCalledWith({ q: undefined, page: 1, perPage: 12 })
   })
 
   // TC-19
@@ -148,7 +148,7 @@ describe('RecommendationsPage', () => {
     await user.type(searchField(), 'corolla{Enter}')
     await user.click(await screen.findByRole('button', { name: 'REINTENTAR' }))
 
-    expect(searchListings).toHaveBeenLastCalledWith({ q: 'corolla', page: 1 })
+    expect(searchListings).toHaveBeenLastCalledWith({ q: 'corolla', page: 1, perPage: 12 })
     expect(searchListings).toHaveBeenCalledTimes(3)
   })
 
@@ -188,7 +188,7 @@ describe('RecommendationsPage', () => {
 
     await user.type(searchField(), '  Corolla automático  {Enter}')
 
-    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'Corolla automático', page: 1 }))
+    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'Corolla automático', page: 1, perPage: 12 }))
     expect(searchListings).toHaveBeenCalledTimes(2)
   })
 
@@ -199,7 +199,7 @@ describe('RecommendationsPage', () => {
     await user.type(searchField(), 'Fiat')
     await user.click(screen.getByRole('button', { name: 'BUSCAR' }))
 
-    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'Fiat', page: 1 }))
+    await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'Fiat', page: 1, perPage: 12 }))
   })
 
   it('searches without a query when the text is blank', async () => {
@@ -209,7 +209,7 @@ describe('RecommendationsPage', () => {
     await user.type(searchField(), '   {Enter}')
 
     await waitFor(() => expect(searchListings).toHaveBeenCalledTimes(2))
-    expect(searchListings).toHaveBeenLastCalledWith({ q: undefined, page: 1 })
+    expect(searchListings).toHaveBeenLastCalledWith({ q: undefined, page: 1, perPage: 12 })
   })
 
   it('does not search again while a search is loading', async () => {
@@ -317,6 +317,20 @@ describe('RecommendationsPage', () => {
     expect(within(region).getByRole('list', { name: 'Publicaciones' })).toBeInTheDocument()
   })
 
+  it('puts the search box in the header row, beside the title block', async () => {
+    await loaded()
+
+    const row = screen.getByRole('search').parentElement
+    expect(row).toContainElement(screen.getByRole('heading', { level: 1 }))
+    expect(row).toContainElement(screen.getByRole('link', { name: 'AJUSTAR DIAGNÓSTICO' }))
+  })
+
+  it('asks for as many listings per page as fit the screen (12 when the layout is unknown)', async () => {
+    await loaded()
+
+    expect(searchListings).toHaveBeenCalledWith({ q: undefined, page: 1, perPage: 12 })
+  })
+
   describe('pagination', () => {
     const manyPages = (page: number) => searchResponse({ meta: searchMeta({ page, total: 50, last_page: 3 }) })
 
@@ -325,6 +339,16 @@ describe('RecommendationsPage', () => {
 
       expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
+    })
+
+    it('puts the pager after the grid, in the footer row at the bottom-right', async () => {
+      vi.mocked(searchListings).mockResolvedValue(manyPages(1))
+      await loaded()
+
+      const pager = screen.getByRole('navigation', { name: 'Paginación' })
+      const grid = screen.getByRole('region', { name: 'Publicaciones' })
+      expect(grid.compareDocumentPosition(pager) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(pager.parentElement?.previousElementSibling).toBeEmptyDOMElement()
     })
 
     it('marks the current page and disables the previous arrow on the first page', async () => {
@@ -348,13 +372,13 @@ describe('RecommendationsPage', () => {
       await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
 
       expect(await screen.findByRole('button', { name: 'Página 2', current: 'page' })).toBeInTheDocument()
-      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 2 })
+      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 2, perPage: 12 })
 
       vi.mocked(searchListings).mockResolvedValue(manyPages(1))
       await user.click(screen.getByRole('button', { name: 'Página anterior' }))
 
       expect(await screen.findByRole('button', { name: 'Página 1', current: 'page' })).toBeInTheDocument()
-      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1 })
+      expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1, perPage: 12 })
     })
 
     it('clicking a page number asks for that page', async () => {
@@ -366,7 +390,7 @@ describe('RecommendationsPage', () => {
       await user.click(screen.getByRole('button', { name: 'Página 3' }))
 
       expect(await screen.findByRole('button', { name: 'Página 3', current: 'page' })).toBeInTheDocument()
-      expect(searchListings).toHaveBeenLastCalledWith({ q: undefined, page: 3 })
+      expect(searchListings).toHaveBeenLastCalledWith({ q: undefined, page: 3, perPage: 12 })
     })
 
     it('disables the next arrow on the last page', async () => {
@@ -402,7 +426,7 @@ describe('RecommendationsPage', () => {
 
       await user.type(searchField(), 'fiat{Enter}')
 
-      await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1 }))
+      await waitFor(() => expect(searchListings).toHaveBeenLastCalledWith({ q: 'fiat', page: 1, perPage: 12 }))
     })
   })
 })

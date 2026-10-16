@@ -1,26 +1,26 @@
-/* Same page frame as the profile: left-aligned under the nav, 32 from the edges at 1280. */
+/* Full width of the content area (DESIGN.md). */
 .page {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  max-width: 1216px;
   /* The shell centers its content vertically; the page starts at the top. */
   margin-bottom: auto;
   padding-top: 16px;
 }
 
-/* Figma "Header row": the page header on the left, AJUSTAR DIAGNÓSTICO on the right, 24 apart. */
+/* Header row: the title block on the left, the search box taking the free space beside it, AJUSTAR DIAGNÓSTICO on the right (DESIGN.md; Figma has the search under the header). */
 .headerRow {
   display: flex;
-  align-items: center;
-  gap: 24px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 24px;
 }
 
 /* Page header: eyebrow, title bold and text 14 secondary, packed close to leave the height to the results. */
 .header {
   display: flex;
-  flex: 1;
+  flex: 0 1 auto;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
@@ -43,11 +43,13 @@
   width: clamp(180px, 20%, 236px);
 }
 
-/* Figma "Filter Bar": the search field takes the row; BUSCAR sits next to it, level with the input (label 15 + gap 6). */
+/* The search field takes the free space of the header row; BUSCAR sits next to it, level with the input (label 15 + gap 6). */
 .search {
   display: flex;
+  flex: 1 1 min(100%, 360px);
   align-items: flex-start;
   gap: 12px;
+  min-width: 0;
 }
 
 .search > :first-child {
@@ -114,7 +116,7 @@
     padding-top: 8px;
   }
 
-  /* Figma mobile 2162:2422: the button drops under the header, full width. */
+  /* Phones: the search drops under the title and the button under the search, full width. */
   .headerRow {
     flex-direction: column;
     align-items: stretch;
@@ -125,6 +127,7 @@
   }
 
   .search {
+    flex: none;
     flex-direction: column;
     align-items: stretch;
   }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import alertStyles from '../../components/alert.module.css'
+import FlowLayout from '../../components/FlowLayout'
 import { formatDay, retentionReached } from '../admin/format'
 import { DEALER_STATE_ACTIVE } from '../auth/roles'
 import { useAuth } from '../auth/session/useAuth'
@@ -62,7 +63,7 @@ export default function DealerStatusPage() {
   const toneClass = status?.tone === 'error' ? alertStyles.alert : status?.tone === 'warning' ? alertStyles.warning : styles.status
 
   return (
-    <div className={styles.page}>
+    <FlowLayout actions={null}>
       <div className={styles.header}>
         <h1 className={styles.title}>Verificación de suscripción</h1>
         <p className={styles.subtitle}>Estado de tu solicitud de adhesión.</p>
@@ -87,6 +88,6 @@ export default function DealerStatusPage() {
           <p className={styles.status}>{accountStatusText(estadoAlta)}</p>
         )}
       </section>
-    </div>
+    </FlowLayout>
   )
 }

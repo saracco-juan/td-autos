@@ -1,0 +1,22 @@
+/* Actions left, pager right, one row; wraps on phones with the pager under the actions, right-aligned. */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  min-height: 40px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 100%;
+  margin-left: auto;
+}

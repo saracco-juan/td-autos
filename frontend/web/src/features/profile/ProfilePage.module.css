@@ -4,7 +4,6 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
-  max-width: 1216px;
   /* The shell centers its content vertically; the profile starts at the top. */
   margin-bottom: auto;
   padding-top: 40px;

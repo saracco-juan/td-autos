@@ -46,4 +46,14 @@ describe('recommendations api', () => {
     expect(apiFetch).toHaveBeenNthCalledWith(2, '/api/busqueda?page=2')
     expect(apiFetch).toHaveBeenNthCalledWith(3, '/api/busqueda')
   })
+
+  it('searchListings sends per_page when the screen asks for a page size', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(searchResponse())
+
+    await searchListings({ q: 'fiat', page: 2, perPage: 8 })
+    await searchListings({ perPage: 12 })
+
+    expect(apiFetch).toHaveBeenNthCalledWith(1, '/api/busqueda?q=fiat&page=2&per_page=8')
+    expect(apiFetch).toHaveBeenNthCalledWith(2, '/api/busqueda?per_page=12')
+  })
 })

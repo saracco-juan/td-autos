@@ -115,16 +115,13 @@
   outline: none;
 }
 
-/* Figma "Actions" 2113:1674: buttons 16 apart, 260 / 320 / 220 wide. */
+/* Figma "Actions" 2113:1674, now in the pinned bar: buttons 12 apart, stacked on phones. */
 .actions {
-  display: flex;
   flex-wrap: wrap;
-  gap: 16px;
 }
 
 .pick {
   position: relative;
-  width: min(100%, 260px);
 }
 
 .pick:focus-within {
@@ -146,16 +143,19 @@
   overflow: hidden;
 }
 
-.send {
-  width: min(100%, 320px);
-}
-
-.inventory {
-  width: min(100%, 220px);
-}
-
 @media (max-width: 800px) {
   .cards {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 767px) {
+  .actions.actions {
+    flex-direction: column;
+  }
+
+  .actions.actions > * {
+    flex: none;
+    width: 100%;
   }
 }

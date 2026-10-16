@@ -7,7 +7,7 @@ import ChecklistStepPanel from '../../components/checklist/ChecklistStepPanel'
 import ChecklistWarning from '../../components/checklist/ChecklistWarning'
 import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '../../components/checklist/progress'
 import { useChecklistAutosave, withCode } from '../../components/checklist/useChecklistAutosave'
-import screenStyles from '../../components/screen.module.css'
+import FlowLayout from '../../components/FlowLayout'
 import { NetworkError } from '../../lib/http'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import SessionLoading from '../auth/session/SessionLoading'
@@ -155,7 +155,23 @@ export default function TransferPage() {
   const step = steps[stepIndex]
 
   return (
-    <div className={screenStyles.page}>
+    <FlowLayout
+      actions={
+        <ChecklistActionBar
+          labels={ACTION_LABELS}
+          warning={showWarning}
+          finishing={finishing}
+          finishFailed={finishFailed}
+          hasPrevious={stepIndex > 0}
+          hasNext={stepIndex < steps.length - 1}
+          onPrevious={() => goToStep(stepIndex - 1)}
+          onNext={() => goToStep(stepIndex + 1)}
+          onFinish={handleFinishRequest}
+          onFinishAnyway={() => void handleFinish()}
+          onKeepWorking={() => setWarningOpen(false)}
+        />
+      }
+    >
       <TransferHeader completed={progress.completed} total={progress.total} titleRef={titleRef} />
 
       {showWarning ? (
@@ -192,20 +208,6 @@ export default function TransferPage() {
         }
         aside={content.advisor !== null ? <AdvisorCard whatsapp={content.advisor} /> : undefined}
       />
-
-      <ChecklistActionBar
-        labels={ACTION_LABELS}
-        warning={showWarning}
-        finishing={finishing}
-        finishFailed={finishFailed}
-        hasPrevious={stepIndex > 0}
-        hasNext={stepIndex < steps.length - 1}
-        onPrevious={() => goToStep(stepIndex - 1)}
-        onNext={() => goToStep(stepIndex + 1)}
-        onFinish={handleFinishRequest}
-        onFinishAnyway={() => void handleFinish()}
-        onKeepWorking={() => setWarningOpen(false)}
-      />
-    </div>
+    </FlowLayout>
   )
 }

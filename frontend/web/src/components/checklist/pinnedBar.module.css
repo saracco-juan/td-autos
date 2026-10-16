@@ -30,6 +30,11 @@
   width: min(100%, 180px);
 }
 
+/* Long labels (CONFIRMAR IMPORTACIÓN, GUARDAR CONCESIONARIA, ENVIAR COMPROBANTE). */
+.actionWide {
+  width: min(100%, 240px);
+}
+
 @media (max-width: 767px) {
   .bar {
     flex-wrap: wrap;
@@ -40,7 +45,8 @@
     flex: 1;
   }
 
-  .action {
+  .action,
+  .actionWide {
     flex: 1;
     width: auto;
     min-width: 0;
