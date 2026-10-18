@@ -147,7 +147,7 @@ export default function Pagination({
       </div>
       {onPageSizeChange ? (
         <label className={styles.size}>
-          Mostrar
+          <span>Mostrar</span>
           <select
             className={styles.sizeSelect}
             value={pageSize}

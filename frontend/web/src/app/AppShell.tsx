@@ -1,4 +1,4 @@
-import { useId, useState, type MouseEvent } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import alertStyles from '../components/alert.module.css'
 import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/roles'
@@ -59,11 +59,14 @@ const ADMIN_DEALER_PATHS = ['/admin/concesionarias', '/admin/comprobantes/']
 // list and the dashboard for administrators. A signed-in user with any other role gets only the logout.
 export default function AppShell() {
   const navigate = useNavigate()
-  const { pathname } = useLocation()
+  const { pathname, key: locationKey } = useLocation()
   const { user, status, logout } = useAuth()
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutFailed, setLogoutFailed] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  // The phone menu belongs to the navigation it was opened on: following any link (a new location key) closes it.
+  const [menuOpenedAt, setMenuOpenedAt] = useState<string | null>(null)
+  const menuOpen = menuOpenedAt === locationKey
+  const setMenuOpen = (open: boolean) => setMenuOpenedAt(open ? locationKey : null)
   const menuId = useId()
 
   const handleLogout = async () => {
@@ -78,19 +81,19 @@ export default function AppShell() {
     }
   }
 
-  // A followed link closes the phone menu; the logout keeps it open so its busy state stays visible.
-  const handleMenuClick = (event: MouseEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).closest('a')) setMenuOpen(false)
-  }
+  // Escape closes the phone menu wherever the focus is.
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpenedAt(null)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [menuOpen])
 
   return (
     <div className={styles.shell}>
-      <header
-        className={styles.nav}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') setMenuOpen(false)
-        }}
-      >
+      <header className={styles.nav}>
         {/* The TD monogram reads as "TD", so the wordmark only adds "Autos"; the link keeps the full brand name. */}
         <Link to="/" className={styles.logo} aria-label="TD Autos">
           <LogoMark />
@@ -103,7 +106,7 @@ export default function AppShell() {
               className={styles.menuToggle}
               aria-expanded={menuOpen}
               aria-controls={menuId}
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => setMenuOpen(!menuOpen)}
             >
               <MenuIcon open={menuOpen} />
               Menú
@@ -111,7 +114,6 @@ export default function AppShell() {
             <div
               id={menuId}
               className={`${styles.menuPanel} ${menuOpen ? styles.menuPanelOpen : ''}`}
-              onClick={handleMenuClick}
             >
               <nav aria-label="Principal" className={styles.navLinks}>
                 {isDealer(user) ? (

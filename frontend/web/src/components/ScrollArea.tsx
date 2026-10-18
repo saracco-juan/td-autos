@@ -31,7 +31,7 @@ function fitToPage(area: HTMLElement) {
   let slack = -overflow;
   if (overflow <= 0) {
     const page = main.lastElementChild;
-    const paddingBottom = parseFloat(getComputedStyle(main).paddingBottom) || 0;
+    const paddingBottom = Number.parseFloat(getComputedStyle(main).paddingBottom) || 0;
     // The page's own bottom edge, without its margin: an auto margin reports all the free space as margin,
     // which would hide the slack and keep the box from growing back after a resize.
     const pageBottom = page ? page.getBoundingClientRect().bottom : main.getBoundingClientRect().top;
@@ -39,7 +39,7 @@ function fitToPage(area: HTMLElement) {
   }
 
   const target = Math.max(MIN_HEIGHT, Math.floor(area.getBoundingClientRect().height + slack));
-  const current = parseFloat(area.style.getPropertyValue("--scroll-fit"));
+  const current = Number.parseFloat(area.style.getPropertyValue("--scroll-fit"));
   if (Number.isNaN(current) || Math.abs(current - target) > 1) {
     area.style.setProperty("--scroll-fit", `${target}px`);
   }
@@ -92,7 +92,8 @@ export default function ScrollArea({
         ref={ref}
         role="region"
         aria-label={label}
-        tabIndex={0}
+        // NOSONAR: a scrolling region must be focusable so keyboard users can scroll it (axe scrollable-region-focusable).
+        tabIndex={0} // NOSONAR
         data-scroll-region=""
         data-sticky-header={stickyHeader ? "" : undefined}
         className={viewportClassName ? `${styles.area} ${viewportClassName}` : styles.area}
