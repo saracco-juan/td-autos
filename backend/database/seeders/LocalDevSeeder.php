@@ -3,12 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\Concesionaria;
-use App\Models\FotoVehiculo;
+use App\Models\TipoCarroceria;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
+use App\Support\VehiculoFotos;
 use App\Support\VehiculoOptions;
 use Illuminate\Database\Seeder;
+use Illuminate\Http\UploadedFile;
 
 /**
  * Everything a developer needs in a fresh local database: the regular seed data, an admin, a buyer,
@@ -20,7 +22,16 @@ class LocalDevSeeder extends Seeder
 
     public const BUYER_EMAIL = 'comprador@demo.tdautos.test';
 
-    private const VEHICLES_PER_DEALER = 2;
+    private const VEHICLES = [
+        [
+            'marca' => 'Chevrolet', 'modelo' => 'Onix', 'version' => 'LT', 'body' => 'Hatchback',
+            'transmision' => 'manual', 'precio' => 18000000, 'gallery' => 'chevrolet-onix',
+        ],
+        [
+            'marca' => 'Toyota', 'modelo' => 'Corolla', 'version' => 'XEi', 'body' => 'Sedán',
+            'transmision' => 'automatica', 'precio' => 24000000, 'gallery' => 'toyota-corolla',
+        ],
+    ];
 
     public function run(): void
     {
@@ -48,22 +59,39 @@ class LocalDevSeeder extends Seeder
         );
     }
 
-    /**
-     * Photo rows only point at paths: no image files exist, so the pictures show as broken links.
-     */
     private function seedInventory(Concesionaria $dealer): void
     {
-        for ($i = 0; $i < self::VEHICLES_PER_DEALER; $i++) {
-            $vehicle = Vehiculo::factory()->create(['ubicacion' => $dealer->localidad]);
-
-            VehiculoConcesionaria::factory()->create([
-                'vehiculo_id' => $vehicle->id,
-                'concesionaria_id' => $dealer->id,
+        foreach (self::VEHICLES as $index => $sample) {
+            $vehicle = Vehiculo::create([
+                'origen' => VehiculoOptions::ORIGEN_CONCESIONARIA,
+                'marca' => $sample['marca'],
+                'modelo' => $sample['modelo'],
+                'version' => $sample['version'],
+                'anio' => 2019,
+                'kilometraje' => 45000 + $dealer->id * 1000 + $index * 10000,
+                'precio' => $sample['precio'],
+                'moneda' => VehiculoOptions::MONEDA,
+                'transmision' => $sample['transmision'],
+                'combustible' => 'nafta',
+                'tipo_carroceria_id' => TipoCarroceria::where('nombre', $sample['body'])->sole()->id,
+                'ubicacion' => $dealer->localidad,
+                'descripcion' => 'Vehículo de demostración. Imágenes sintéticas; no es una oferta real.',
             ]);
 
+            VehiculoConcesionaria::create([
+                'vehiculo_id' => $vehicle->id,
+                'concesionaria_id' => $dealer->id,
+                'patente_normalizada' => sprintf('D%s%03dAA', chr(65 + $index), $dealer->id),
+                'visible' => true,
+            ]);
+
+            $files = [];
             for ($order = 1; $order <= VehiculoOptions::FOTOS_MINIMO; $order++) {
-                FotoVehiculo::factory()->create(['vehiculo_id' => $vehicle->id, 'orden' => $order]);
+                $path = database_path("seeders/assets/demo-vehicles/{$sample['gallery']}/{$order}.png");
+                $files[] = new UploadedFile($path, "{$order}.png", 'image/png', null, true);
             }
+            // Reuse upload storage so each car owns independent files, even for a shared gallery.
+            VehiculoFotos::store($vehicle, $files);
         }
     }
 }

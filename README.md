@@ -37,12 +37,18 @@ La base de datos es Supabase (PostgreSQL). Antes de migrar, completar en `.env` 
 
 #### Base de datos local
 
-Para probar sin Supabase, `php artisan db:local` arma desde cero `backend/database/manual.sqlite` (migraciones y datos de demo). Nunca toca la conexión del `.env` y no corre en producción; se puede volver a ejecutar para recrearla. Crea un administrador, un comprador, 7 concesionarias en todos los estados con sus comprobantes y 2 vehículos para cada concesionaria activa (las fotos son solo rutas, sin archivos). Para usarla, en `.env`:
+Para probar sin Supabase, `php artisan db:local` arma desde cero `backend/database/manual.sqlite` (migraciones y datos de demo). **Borra el archivo de destino si ya existe**: para conservar una base anterior, usar `php artisan db:local --path=<ruta absoluta de un archivo nuevo>`. Nunca toca la conexión del `.env` y no corre en producción. Crea un administrador, un comprador, 7 concesionarias en todos los estados con sus comprobantes y 2 vehículos deterministas para cada concesionaria activa: Chevrolet Onix LT y Toyota Corolla XEi, con carrocería y valores válidos para edición. Cada vehículo tiene siete imágenes sintéticas locales de su modelo; no representan ofertas reales. El comando guarda imágenes en el disco `public` y comprobantes en `local`, sin usar almacenamiento remoto. Para usar la nueva base, en `.env`:
 
 ```env
 DB_CONNECTION=sqlite
 DB_DATABASE=<ruta absoluta de backend/database/manual.sqlite>
+DB_URL=
+APP_URL=http://localhost:8000
+VEHICLE_PHOTOS_DISK=public
+RECEIPTS_DISK=local
 ```
+
+Ejecutar `php artisan storage:link` para servir las fotos locales. Para el frontend de Vite, usar `FRONTEND_URL=http://localhost:5173`. Las concesionarias activas de demo son `pampa` y `litoral`: entrar con una de ellas, abrir Inventario, editar un vehículo, comprobar sus siete fotos y guardar un precio distinto. Al volver a abrirlo deben conservarse el precio y las fotos. Un vehículo histórico sin carrocería debe abrir con la selección vacía y exigir completarla antes de guardar. HU05 continúa pendiente.
 
 Cuentas de demo (contraseña `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` y las concesionarias `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` y `litoral` con el sufijo `@demo.tdautos.test`.
 

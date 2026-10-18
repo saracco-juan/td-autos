@@ -42,11 +42,17 @@ class BuildLocalDatabase extends Command
             'foreign_key_constraints' => true,
         ]]);
 
-        $previous = config('database.default');
+        $previous = [
+            'database.default' => config('database.default'),
+            'filesystems.vehicle_photos_disk' => config('filesystems.vehicle_photos_disk'),
+            'filesystems.receipts_disk' => config('filesystems.receipts_disk'),
+        ];
 
         try {
             // Models and seeders use the default connection, so point it at the local file meanwhile.
             config(['database.default' => self::CONNECTION]);
+            // Local fixtures must never upload demo assets to a configured remote disk.
+            config(['filesystems.vehicle_photos_disk' => 'public', 'filesystems.receipts_disk' => 'local']);
             DB::purge(self::CONNECTION);
 
             $this->call('migrate:fresh', [
@@ -56,7 +62,7 @@ class BuildLocalDatabase extends Command
                 '--force' => true,
             ]);
         } finally {
-            config(['database.default' => $previous]);
+            config($previous);
             DB::purge(self::CONNECTION);
         }
 
