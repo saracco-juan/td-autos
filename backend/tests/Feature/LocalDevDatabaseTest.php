@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Concesionaria;
+use App\Models\Vehiculo;
+use App\Support\VehiculoOptions;
 use Database\Seeders\DemoDealersSeeder;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,7 +22,8 @@ class LocalDevDatabaseTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake(config('filesystems.receipts_disk'));
+        Storage::fake('local');
+        Storage::fake('public');
         $this->path = sys_get_temp_dir().DIRECTORY_SEPARATOR.'td-local-'.uniqid().'.sqlite';
     }
 
@@ -74,16 +78,84 @@ class LocalDevDatabaseTest extends TestCase
         $this->assertGreaterThan(0, $db->table('vehiculo')->count());
         $this->assertSame(4, $db->table('vehiculo_concesionaria')->count());
         $this->assertSame(28, $db->table('foto_vehiculo')->where('ubicacion_archivo', 'like', 'vehiculos/%')->count());
+        foreach ($db->table('vehiculo')->where('origen', 'concesionaria')->get() as $vehicle) {
+            // RF22/RF25: demo records must be editable and have real local images.
+            $this->assertNotNull($vehicle->tipo_carroceria_id);
+            $this->assertTrue($db->table('tipo_carroceria')->where('id', $vehicle->tipo_carroceria_id)->exists());
+            $this->assertContains($vehicle->transmision, VehiculoOptions::TRANSMISION);
+            $this->assertContains($vehicle->combustible, VehiculoOptions::COMBUSTIBLE);
+        }
+    }
+
+    public function test_rf25_demo_photos_are_real_ordered_and_independently_owned(): void
+    {
+        $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
+        $db = $this->inspect();
+        $paths = [];
+        foreach ($db->table('vehiculo_concesionaria')->get() as $ownership) {
+            $photos = $db->table('foto_vehiculo')->where('vehiculo_id', $ownership->vehiculo_id)->orderBy('orden')->get();
+            $this->assertSame(range(1, 7), $photos->pluck('orden')->all());
+            foreach ($photos as $photo) {
+                $this->assertStringStartsWith("vehiculos/{$ownership->vehiculo_id}/", $photo->ubicacion_archivo);
+                Storage::disk('public')->assertExists($photo->ubicacion_archivo);
+                $this->assertNotFalse(getimagesizefromstring(Storage::disk('public')->get($photo->ubicacion_archivo)));
+                $paths[] = $photo->ubicacion_archivo;
+            }
+        }
+        $this->assertCount(28, array_unique($paths));
+    }
+
+    public function test_demo_assets_stay_local_and_restore_the_configured_disks(): void
+    {
+        Storage::fake('remote_photos');
+        Storage::fake('remote_receipts');
+        config(['filesystems.vehicle_photos_disk' => 'remote_photos', 'filesystems.receipts_disk' => 'remote_receipts']);
+        $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
+        $this->assertCount(28, Storage::disk('public')->allFiles());
+        $this->assertNotEmpty(Storage::disk('local')->allFiles());
+        $this->assertSame([], Storage::disk('remote_photos')->allFiles());
+        $this->assertSame([], Storage::disk('remote_receipts')->allFiles());
+        $this->assertSame('remote_photos', config('filesystems.vehicle_photos_disk'));
+        $this->assertSame('remote_receipts', config('filesystems.receipts_disk'));
+    }
+
+    public function test_rf22_seeded_dealer_vehicles_can_be_read_and_updated_through_the_api(): void
+    {
+        $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
+        $this->inspect();
+        $previous = config('database.default');
+        config(['database.default' => 'local_dev_check']);
+        try {
+            foreach (Concesionaria::where('estado_alta', 'activa')->get() as $dealer) {
+                foreach ($dealer->vehiculos()->with(['propiedad', 'fotos'])->get() as $vehicle) {
+                    $url = '/api/concesionaria/vehiculos/'.$vehicle->id;
+                    $this->actingAs($dealer->usuario)->getJson($url)->assertOk()
+                        ->assertJsonPath('vehiculo.carroceria.id', $vehicle->tipo_carroceria_id)
+                        ->assertJsonCount(7, 'vehiculo.fotos');
+                    $fields = $vehicle->only(['marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'transmision', 'combustible', 'ubicacion', 'descripcion']);
+                    $fields['patente'] = $vehicle->propiedad->patente_normalizada;
+                    $fields['carroceria_id'] = $vehicle->tipo_carroceria_id;
+                    $fields['precio'] += 1000;
+                    $this->postJson($url, $fields)->assertOk()->assertJsonCount(7, 'vehiculo.fotos');
+                    $this->assertSame($fields['precio'], Vehiculo::findOrFail($vehicle->id)->precio + 0);
+                }
+            }
+        } finally {
+            config(['database.default' => $previous]);
+        }
     }
 
     public function test_running_twice_recreates_the_file_cleanly(): void
     {
         $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
         $first = $this->counts();
+        $firstVehicles = $this->inspect()->table('vehiculo')->where('origen', 'concesionaria')->orderBy('id')->get()->toJson();
+        DB::purge('local_dev_check');
 
         $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
 
         $this->assertSame($first, $this->counts());
+        $this->assertSame($firstVehicles, $this->inspect()->table('vehiculo')->where('origen', 'concesionaria')->orderBy('id')->get()->toJson());
     }
 
     public function test_it_refuses_to_run_in_production(): void

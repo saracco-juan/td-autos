@@ -56,6 +56,12 @@ describe('emptyValues and valuesFromVehicle', () => {
     expect(valuesFromVehicle(vehiculo({ version: null })).version).toBe('')
     expect(valuesFromVehicle(vehiculo({ descripcion: 'Único dueño' })).descripcion).toBe('Único dueño')
   })
+
+  it('RF22: leaves a missing historical body type empty and requires it before saving', () => {
+    const values = valuesFromVehicle(vehiculo({ carroceria: null }))
+    expect(values.carroceria_id).toBe('')
+    expect(validateVehicleForm(values, 7, 2026).carroceria_id).toEqual(['Elegí la carrocería.'])
+  })
 })
 
 describe('validateVehicleForm', () => {

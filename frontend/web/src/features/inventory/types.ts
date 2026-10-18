@@ -16,7 +16,7 @@ export type Vehiculo = {
   moneda: 'ARS'
   transmision: Transmision
   combustible: Combustible
-  carroceria: { id: number; nombre: string }
+  carroceria: { id: number; nombre: string } | null
   ubicacion: string
   descripcion: string | null
   fotos: FotoVehiculo[]
