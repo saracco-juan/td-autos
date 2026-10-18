@@ -82,6 +82,24 @@ describe('EditVehiclePage', () => {
     expect(sent.removedPhotoIds).toEqual([7])
   })
 
+  it('RF22: repairs a legacy vehicle with no body type without losing its photos', async () => {
+    vi.mocked(fetchVehicle).mockResolvedValue(vehiculo({ carroceria: null }))
+    vi.mocked(updateVehicle).mockResolvedValue(vehiculo())
+    renderPage()
+    const user = userEvent.setup()
+    expect(await screen.findByLabelText('Carrocería')).toHaveValue('')
+    expect(screen.getAllByRole('img')).toHaveLength(7)
+    await user.click(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
+    expect(screen.getByText('Elegí la carrocería.')).toBeInTheDocument()
+    expect(updateVehicle).not.toHaveBeenCalled()
+    await user.selectOptions(screen.getByLabelText('Carrocería'), '2')
+    await user.click(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
+    expect(await screen.findByText(/^Inventario:/)).toHaveTextContent('Guardaste los cambios.')
+    expect(vi.mocked(updateVehicle).mock.calls[0][1]).toMatchObject({
+      values: { carroceria_id: '2' }, newPhotos: [], removedPhotoIds: [],
+    })
+  })
+
   it('shows the paused card under its own header when the subscription is inactive', async () => {
     vi.mocked(fetchVehicle).mockRejectedValue(new HttpError(403, inactiveBody()))
     renderPage()

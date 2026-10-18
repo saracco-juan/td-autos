@@ -80,7 +80,7 @@ export function valuesFromVehicle(vehicle: Vehiculo): VehicleValues {
     precio: String(vehicle.precio),
     transmision: vehicle.transmision,
     combustible: vehicle.combustible,
-    carroceria_id: String(vehicle.carroceria.id),
+    carroceria_id: vehicle.carroceria ? String(vehicle.carroceria.id) : '',
     ubicacion: vehicle.ubicacion,
     descripcion: vehicle.descripcion ?? '',
   }
