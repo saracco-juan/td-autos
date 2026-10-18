@@ -26,8 +26,20 @@
   gap: 12px;
 }
 
+/* At least 180 px, wider when the label needs it: a label never breaks into two lines. */
 .action {
-  width: 180px;
+  width: auto;
+  min-width: min(100%, 180px);
+  padding-inline: 20px;
+  white-space: nowrap;
+}
+
+/* Long labels (CONFIRMAR IMPORTACIÓN, GUARDAR CONCESIONARIA, ENVIAR COMPROBANTE). */
+.actionWide {
+  width: auto;
+  min-width: min(100%, 240px);
+  padding-inline: 20px;
+  white-space: nowrap;
 }
 
 @media (max-width: 767px) {
@@ -40,7 +52,8 @@
     flex: 1;
   }
 
-  .action {
+  .action,
+  .actionWide {
     flex: 1;
     width: auto;
     min-width: 0;

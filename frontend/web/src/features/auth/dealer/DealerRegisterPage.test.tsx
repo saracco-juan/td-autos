@@ -32,7 +32,7 @@ function renderPage() {
     <MemoryRouter initialEntries={['/registro/concesionaria']}>
       <Routes>
         <Route path="/registro/concesionaria" element={<DealerRegisterPage />} />
-        <Route path="/concesionaria" element={<p>Estado de la concesionaria</p>} />
+        <Route path="/concesionaria/suscripcion" element={<p>Suscripción de la concesionaria</p>} />
         <Route path="/" element={<p>Pantalla principal</p>} />
       </Routes>
     </MemoryRouter>,
@@ -141,14 +141,14 @@ describe('DealerRegisterPage', () => {
   })
 
   describe('submission', () => {
-    it('TC-44: submits a valid form with the API payload, then goes to /concesionaria', async () => {
+    it('TC-44: submits a valid form with the API payload, then goes to /concesionaria/suscripcion', async () => {
       const user = userEvent.setup()
       renderPage()
 
       await fillForm(user)
       await submit(user)
 
-      expect(await screen.findByText('Estado de la concesionaria')).toBeInTheDocument()
+      expect(await screen.findByText('Suscripción de la concesionaria')).toBeInTheDocument()
       expect(registerDealer).toHaveBeenCalledTimes(1)
       expect(registerDealer).toHaveBeenCalledWith({
         nombre_concesionaria: 'Autos del Sur',
@@ -178,7 +178,7 @@ describe('DealerRegisterPage', () => {
       await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
       expect(screen.queryByText('Estado de la concesionaria')).not.toBeInTheDocument()
       resolveRefresh()
-      expect(await screen.findByText('Estado de la concesionaria')).toBeInTheDocument()
+      expect(await screen.findByText('Suscripción de la concesionaria')).toBeInTheDocument()
     })
 
     it('trims the text fields and sends the passwords untouched', async () => {
@@ -188,7 +188,7 @@ describe('DealerRegisterPage', () => {
       await fillForm(user, { Email: '  marta@autosdelsur.com ', Localidad: ' Avellaneda ', Contraseña: ' Abcdef12', 'Confirmar contraseña': ' Abcdef12' })
       await submit(user)
 
-      expect(await screen.findByText('Estado de la concesionaria')).toBeInTheDocument()
+      expect(await screen.findByText('Suscripción de la concesionaria')).toBeInTheDocument()
       expect(registerDealer).toHaveBeenCalledWith(
         expect.objectContaining({
           email: 'marta@autosdelsur.com',
@@ -297,7 +297,7 @@ describe('DealerRegisterPage', () => {
 
       expect(screen.getByRole('button', { name: 'CREANDO CUENTA…' })).toBeDisabled()
       resolve(createdUser)
-      expect(await screen.findByText('Estado de la concesionaria')).toBeInTheDocument()
+      expect(await screen.findByText('Suscripción de la concesionaria')).toBeInTheDocument()
     })
   })
 
@@ -394,7 +394,7 @@ describe('DealerRegisterPage', () => {
       expect(screen.getByRole('button', { name: 'CREAR CUENTA' })).toBeEnabled()
 
       await submit(user)
-      expect(await screen.findByText('Estado de la concesionaria')).toBeInTheDocument()
+      expect(await screen.findByText('Suscripción de la concesionaria')).toBeInTheDocument()
       expect(registerDealer).toHaveBeenCalledTimes(2)
     })
   })

@@ -52,6 +52,8 @@ Ejecutar `php artisan storage:link` para servir las fotos locales. Para el front
 
 Cuentas de demo (contraseña `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` y las concesionarias `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` y `litoral` con el sufijo `@demo.tdautos.test`.
 
+Para probar con volumen, `php artisan db:local --vehiculos=10000` suma a esa base unas 50 concesionarias activas con suscripción vigente (`concesionaria01@volumen.tdautos.test` a `concesionaria50@volumen.tdautos.test`, misma contraseña) y reparte entre ellas la cantidad de vehículos pedida, de forma desigual y siempre con los mismos datos: modelos y carrocerías reales del mercado argentino, precios y kilometrajes acordes al año, patentes únicas y 7 fotos por vehículo. Las fotos son 7 imágenes numeradas que se escriben en el disco `public` (`backend/storage/app/public/vehiculos/volumen`); corré `php artisan storage:link` una vez para que se vean. Sin la opción, la base queda como antes. Es solo para SQLite local: no sirve para Supabase.
+
 ### 2. Frontend web
 
 ```bash

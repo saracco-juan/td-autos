@@ -1,0 +1,56 @@
+/* Figma "Card/Vehicle" (2044:233): white surface, 14 radius, 16 padding, 8 between its parts. */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* Figma "Image" on the raised surface, 16:10 like a listing photo; a real photo fills it. */
+.image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  box-sizing: border-box;
+  border: 1px solid var(--border-default);
+  object-fit: cover;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Where the listing comes from; same size as the Figma match line it replaces. */
+.source {
+  padding: 2px 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}

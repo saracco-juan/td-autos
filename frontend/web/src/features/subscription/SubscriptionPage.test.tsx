@@ -39,6 +39,16 @@ describe('SubscriptionPage', () => {
     vi.useRealTimers()
   })
 
+  describe('pinned actions', () => {
+    it('keeps the receipt buttons in the bar pinned to the bottom of the screen', async () => {
+      await loaded()
+
+      const bar = screen.getByRole('group', { name: 'Acciones' })
+      expect(within(bar).getByText(SELECT)).toBeInTheDocument()
+      expect(within(bar).getByRole('button', { name: SEND })).toBeInTheDocument()
+    })
+  })
+
   describe('loading', () => {
     it('shows a section loader while the summary loads', () => {
       vi.mocked(fetchSubscription).mockReturnValue(new Promise(() => {}))

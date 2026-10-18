@@ -11,6 +11,20 @@
   font-size: 14px;
 }
 
+/* Dashboard (Figma 2101:1493): a centered column up to 1040 px, like the buyer flows. */
+.dashboard {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+/* The area link is as wide as its label, on the left of the card. */
+.areaAction {
+  align-self: flex-start;
+  width: auto;
+  min-width: 180px;
+  padding-inline: 20px;
+}
+
 /* Figma "Card": white surface, radius 14. */
 .card {
   display: flex;
@@ -40,7 +54,7 @@
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 24px;
 }
 
@@ -70,51 +84,56 @@
   font-size: 14px;
 }
 
-/* Figma 38:1037 table: raised header row, white rows split by a line. */
-.tableWrap {
-  overflow-x: auto;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+/* Admin dealers table (components/dataTable.module.css): --table-width is the sum of the column widths below. */
+.dealersColumn {
+  --table-width: 1120px;
 }
 
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+.colName {
+  width: 220px;
 }
 
-.table th,
-.table td {
-  padding: 12px 16px;
-  text-align: left;
-  vertical-align: middle;
-  white-space: nowrap;
+.colPlace {
+  width: 200px;
 }
 
-.table thead th {
-  background: var(--surface-raised);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
+.colContact {
+  width: 260px;
 }
 
-.table tbody tr + tr {
-  border-top: 1px solid var(--border-default);
+.colState {
+  width: 200px;
 }
 
-.dealerName {
-  font-weight: 600;
+/* Narrow screens drop the least needed columns instead of squeezing all five: contact first, then place. */
+@media (max-width: 1200px) {
+  .dealersColumn {
+    --table-width: 860px;
+  }
+
+  .dealersColumn col:nth-child(3),
+  .dealersColumn tr > :nth-child(3) {
+    display: none;
+  }
 }
 
-.muted {
-  color: var(--text-secondary);
+@media (max-width: 940px) {
+  .dealersColumn {
+    --table-width: 660px;
+  }
+
+  .dealersColumn col:nth-child(2),
+  .dealersColumn tr > :nth-child(2) {
+    display: none;
+  }
 }
 
 /* Figma: the state is bold text tinted by its meaning. */
 .state {
+  max-width: 100%;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
 }
 
 .state[data-tone='active'] {
@@ -150,21 +169,11 @@
   color: var(--text-primary);
 }
 
-/* EDITAR next to VER COMPROBANTE (or "Sin comprobante"), 12 apart as in Figma "Acciones". */
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* "Sin comprobante" is a greyed button, in the same case as the buttons. */
+.noReceipt {
+  text-transform: uppercase;
 }
 
-.rowAction {
-  width: 150px;
-  height: 36px;
-}
-
-@media (max-width: 600px) {
-  .stats {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+.colActions {
+  width: 240px;
 }

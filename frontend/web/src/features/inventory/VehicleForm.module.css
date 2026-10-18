@@ -7,7 +7,7 @@
 /* Figma "Body" (2122:1929): the form on the left, the photo panel (388) on the right, 32 apart. */
 .body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 388px;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 32%, 388px);
   gap: 32px;
   align-items: start;
 }
@@ -15,7 +15,7 @@
 /* Figma "Form": three fields per row, 24 apart. */
 .fields {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 24px;
   align-items: start;
 }
@@ -24,39 +24,9 @@
   grid-column: 1 / -1;
 }
 
-/* Figma "Actions" (2122:1977): CANCELAR (150) at the left edge, the save button (220) at the right. */
-.actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.cancel {
-  width: 150px;
-}
-
-.submit {
-  width: 220px;
-}
-
 @media (max-width: 1000px) {
   .body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@media (max-width: 600px) {
-  .fields {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .actions {
-    flex-direction: column-reverse;
-  }
-
-  .cancel,
-  .submit {
-    width: 100%;
-  }
-}

@@ -1,0 +1,104 @@
+/*
+ * Data table shared by the list screens (admin dealers, dealer inventory; DESIGN.md "Lists and tables").
+ * Each screen sets --table-width (the sum of its column widths) on the element that also has .column, sizes its
+ * columns with <col> classes and drops its least needed columns on narrow screens.
+ */
+
+/* Centered column as wide as the table plus its 1 px borders and the reserved 10 px scrollbar lane, so 25 or 50
+   rows never add a sideways scroll; never wider than the screen. Title, table and pager share its edges. */
+.column {
+  width: min(100%, calc(var(--table-width) + 12px));
+  margin-inline: auto;
+}
+
+/* Table box over the free height and the pager pinned under it. */
+.block {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* The box only clips and scrolls: no surface of its own, so its height never shows. The table carries the look. */
+.wrap {
+  background: transparent;
+}
+
+.viewport {
+  scrollbar-gutter: stable;
+}
+
+/* Fixed layout with fixed column widths: the columns never depend on the rows of the current page.
+   When the screen is narrower than the columns, the table scrolls sideways inside its box.
+   Figma 38:1037 look on the table itself: white rows, raised header row, rounded border as tall as the rows. */
+.table {
+  width: var(--table-width);
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-default);
+  font-size: 13px;
+}
+
+.table thead th:first-child {
+  border-top-left-radius: 13px;
+}
+
+.table thead th:last-child {
+  border-top-right-radius: 13px;
+}
+
+.table tbody tr:last-child > :first-child {
+  border-bottom-left-radius: 13px;
+}
+
+.table tbody tr:last-child > :last-child {
+  border-bottom-right-radius: 13px;
+}
+
+.table th,
+.table td {
+  padding: 6px 20px;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.table thead th {
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Separate borders draw no row borders, so the line goes on the cells. */
+.table tbody tr + tr > * {
+  border-top: 1px solid var(--border-default);
+}
+
+/* Long text gets an ellipsis inside its column (the full text goes in `title`). */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The row header (the item's name). */
+.strong {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+
+/* Row actions on one line, 8 apart; the actions column is as wide as them plus the cell padding. */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

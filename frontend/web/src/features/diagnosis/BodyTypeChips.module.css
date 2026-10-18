@@ -10,8 +10,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  width: 220px;
-  max-width: 100%;
+  width: min(100%, 220px);
   height: 40px;
   padding: 0 12px;
   background: var(--bg-base);

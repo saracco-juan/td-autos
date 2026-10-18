@@ -1,7 +1,7 @@
 import type { Vehiculo } from './types'
 
 // Thousands with a dot (Argentine style); done by hand so it does not depend on the ICU data of the runtime.
-function groupThousands(value: number): string {
+export function groupThousands(value: number): string {
   return Math.round(value)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, '.')

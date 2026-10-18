@@ -34,15 +34,6 @@
   font-size: 12px;
 }
 
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .empty {
   margin: 0;
   color: var(--text-secondary);
@@ -54,17 +45,17 @@
   outline: none;
 }
 
-.actions {
-  display: flex;
-  gap: 16px;
-}
-
+/* Sized by the label (a % width inside the shrink-to-fit footer made the two buttons stack). */
 .load {
-  width: 240px;
+  width: auto;
+  min-width: 200px;
+  padding-inline: 20px;
+  white-space: nowrap;
 }
 
 @media (max-width: 600px) {
   .load {
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
   }
 }

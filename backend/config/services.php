@@ -34,6 +34,15 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'mercadolibre' => [
+        'client_id' => env('MELI_CLIENT_ID'),
+        'client_secret' => env('MELI_CLIENT_SECRET'),
+        'base_url' => env('MELI_BASE_URL', 'https://api.mercadolibre.com'),
+        'site' => 'MLA',
+        'category' => 'MLA1744',
+        'driver' => env('MELI_DRIVER', 'recorded'),
+    ],
+
     'transfer_advisor' => [
         'whatsapp' => env('TRANSFER_ADVISOR_WHATSAPP', ''),
     ],

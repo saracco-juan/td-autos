@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import barStyles from '../../components/checklist/pinnedBar.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
+import FlowLayout from '../../components/FlowLayout'
 import screenStyles from '../../components/screen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
@@ -186,8 +188,41 @@ export default function ReceiptReviewPage() {
   const dealerStatus = accountState(dealer.estado_alta, dealer.suscripcion_estado)
   const tipo = receipt.tipo === 'renovacion' ? 'Renovación' : 'Alta'
 
+  const actions = (
+    <div className={barStyles.actions}>
+      <Link
+        to="/admin/concesionarias"
+        className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.actionWide}`}
+      >
+        VOLVER A CONCESIONARIAS
+      </Link>
+      {pending ? (
+        <>
+          <button
+            type="button"
+            className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}
+            disabled={submitting !== null}
+            aria-busy={submitting === 'reject'}
+            onClick={() => void decide(receipt.id, 'reject')}
+          >
+            RECHAZAR COMPROBANTE
+          </button>
+          <button
+            type="button"
+            className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+            disabled={submitting !== null}
+            aria-busy={submitting === 'approve'}
+            onClick={() => void decide(receipt.id, 'approve')}
+          >
+            APROBAR COMPROBANTE
+          </button>
+        </>
+      ) : null}
+    </div>
+  )
+
   return (
-    <div className={screenStyles.page}>
+    <FlowLayout actions={actions}>
       <div className={styles.header}>
         <BackLink />
         <p className={screenStyles.eyebrow}>CONCESIONARIAS</p>
@@ -250,31 +285,10 @@ export default function ReceiptReviewPage() {
                   />
                 )}
               </Field>
-              <button
-                type="button"
-                className={`${buttonStyles.button} ${buttonStyles.success}`}
-                disabled={submitting !== null}
-                aria-busy={submitting === 'approve'}
-                onClick={() => void decide(receipt.id, 'approve')}
-              >
-                APROBAR COMPROBANTE
-              </button>
-              <button
-                type="button"
-                className={`${buttonStyles.button} ${buttonStyles.danger}`}
-                disabled={submitting !== null}
-                aria-busy={submitting === 'reject'}
-                onClick={() => void decide(receipt.id, 'reject')}
-              >
-                RECHAZAR COMPROBANTE
-              </button>
             </>
           ) : null}
-          <Link to="/admin/concesionarias" className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
-            VOLVER A CONCESIONARIAS
-          </Link>
         </div>
       </div>
-    </div>
+    </FlowLayout>
   )
 }

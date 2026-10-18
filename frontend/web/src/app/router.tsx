@@ -45,7 +45,7 @@ export const routes: RouteObject[] = [
             element: <ProtectedRoute />,
             children: [
               {
-                // Buyer screens: a dealer is sent to /concesionaria and an administrator to /admin,
+                // Buyer screens: a dealer is sent to /concesionaria/suscripcion and an administrator to /admin,
                 // so the home never sends either to the diagnosis.
                 element: <RoleRoute allow="buyer" />,
                 children: [

@@ -212,4 +212,64 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
     expect(await screen.findByRole('table')).toBeInTheDocument()
     expect(fetchDealerDirectory).toHaveBeenCalledTimes(2)
   })
+
+  describe('pagination', () => {
+    const many = (count: number) =>
+      directory({
+        concesionarias: Array.from({ length: count }, (_, index) =>
+          dealerRow({ id: index + 1, nombre: `Concesionaria ${String(index + 1).padStart(2, '0')}` }),
+        ),
+      })
+
+    it('shows no pager when every dealer fits in one page', async () => {
+      renderPage()
+      await screen.findByRole('table')
+
+      expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
+    })
+
+    it('shows one page of rows and the pager, and page 2 shows the next rows', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(12))
+      renderPage()
+      const table = await screen.findByRole('table')
+
+      expect(within(table).getAllByRole('rowheader')).toHaveLength(10)
+      expect(screen.getByText('12 concesionarias registradas')).toBeInTheDocument()
+
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Página 2' }))
+
+      expect(within(table).getAllByRole('rowheader').map((cell) => cell.textContent)).toEqual([
+        'Concesionaria 11',
+        'Concesionaria 12',
+      ])
+    })
+
+    it('shows 10 per page by default and "Mostrar" changes it, back to page 1', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(30))
+      const user = userEvent.setup()
+      renderPage()
+      const table = await screen.findByRole('table')
+      const select = screen.getByRole('combobox', { name: 'Mostrar' })
+
+      expect(select).toHaveValue('10')
+      await user.click(screen.getByRole('button', { name: 'Página 3' }))
+
+      await user.selectOptions(select, '25')
+
+      expect(within(table).getAllByRole('rowheader')).toHaveLength(25)
+      expect(within(table).getAllByRole('rowheader')[0]).toHaveTextContent('Concesionaria 01')
+      expect(screen.getByRole('button', { name: 'Página 2' })).toBeInTheDocument()
+    })
+
+    it('keeps "Mostrar" available when a bigger size leaves a single page', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(12))
+      const user = userEvent.setup()
+      renderPage()
+      await screen.findByRole('table')
+
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '25')
+
+      expect(screen.getByRole('combobox', { name: 'Mostrar' })).toHaveValue('25')
+    })
+  })
 })

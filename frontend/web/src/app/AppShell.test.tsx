@@ -68,6 +68,67 @@ describe('AppShell', () => {
     expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2026 TD Autos. Todos los derechos reservados.')
   })
 
+  describe('menu toggle (phones)', () => {
+    it('shows no toggle to a guest', () => {
+      mockAuth('guest')
+      renderShell()
+
+      expect(screen.queryByRole('button', { name: 'Menú' })).not.toBeInTheDocument()
+    })
+
+    it('starts collapsed and points at the panel that holds the links and the logout', () => {
+      mockAuth('authenticated')
+      renderShell()
+
+      const toggle = screen.getByRole('button', { name: 'Menú' })
+      expect(toggle).toHaveAttribute('type', 'button')
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      const panel = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
+      expect(panel).not.toBeNull()
+      expect(within(panel as HTMLElement).getByRole('link', { name: 'Diagnóstico' })).toBeInTheDocument()
+      expect(within(panel as HTMLElement).getByRole('link', { name: 'Perfil' })).toBeInTheDocument()
+      expect(within(panel as HTMLElement).getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
+    })
+
+    it('opens and closes the menu with the toggle', async () => {
+      mockAuth('authenticated')
+      renderShell()
+      const user = userEvent.setup()
+      const toggle = screen.getByRole('button', { name: 'Menú' })
+
+      await user.click(toggle)
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+      await user.click(toggle)
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('closes the menu when a link is followed', async () => {
+      mockAuth('authenticated')
+      renderShell()
+      const user = userEvent.setup()
+      const toggle = screen.getByRole('button', { name: 'Menú' })
+
+      await user.click(toggle)
+      await user.click(screen.getByRole('link', { name: 'Recomendados' }))
+
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.getByText('Otra pantalla')).toBeInTheDocument()
+    })
+
+    it('closes the menu with Escape', async () => {
+      mockAuth('authenticated')
+      renderShell()
+      const user = userEvent.setup()
+      const toggle = screen.getByRole('button', { name: 'Menú' })
+
+      await user.click(toggle)
+      await user.keyboard('{Escape}')
+
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    })
+  })
+
   it('shows no logout button to a guest', () => {
     mockAuth('guest')
     renderShell()
@@ -94,7 +155,8 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/perfil')
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('type', 'button')
     expect(banner.querySelectorAll('a')).toHaveLength(5)
-    expect(banner.querySelectorAll('button')).toHaveLength(1)
+    // The menu toggle (visible on phones only) and the logout.
+      expect(banner.querySelectorAll('button')).toHaveLength(2)
   })
 
   it('orders the nav as in Figma: Diagnóstico, Recomendados, Transferencia, Perfil, Cerrar sesión', () => {
@@ -226,7 +288,8 @@ describe('AppShell', () => {
       expect(within(banner).queryByRole('link', { name: 'Autos del Sur' })).not.toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('type', 'button')
       expect(banner.querySelectorAll('a')).toHaveLength(3)
-      expect(banner.querySelectorAll('button')).toHaveLength(1)
+      // The menu toggle (visible on phones only) and the logout.
+      expect(banner.querySelectorAll('button')).toHaveLength(2)
       for (const name of ['Diagnóstico', 'Recomendados', 'Transferencia', 'Perfil', 'Inventario']) {
         expect(screen.queryByRole('link', { name })).not.toBeInTheDocument()
       }

@@ -1,35 +1,139 @@
-/* Same page frame as the profile: left-aligned under the nav, 32 from the edges at 1280. */
+/* A centered column up to 1200 px: header, search, cards and pager share its edges (DESIGN.md). */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
   width: 100%;
-  max-width: 1216px;
-  /* The shell centers its content vertically; the page starts at the top. */
-  margin-bottom: auto;
-  padding-top: 40px;
+  max-width: 1200px;
+  margin-inline: auto;
+  /* Fills the free height of <main> (the shell centers the rest vertically); the page starts at the top. */
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 0;
+  padding-top: 16px;
 }
 
-/* Page header without an eyebrow that would repeat the title: title 32 bold, text 14 secondary, 8 apart. */
+/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right; the search box goes under them. */
+.headerRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+/* Page header: eyebrow, title bold and text 14 secondary, packed close to leave the height to the results. */
 .header {
   display: flex;
+  flex: 0 1 auto;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
+  min-width: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
 }
 
 .subtitle {
+  margin: 0;
   color: var(--text-secondary);
   font-size: 14px;
+}
+
+.adjust {
+  flex: none;
+  width: clamp(180px, 20%, 236px);
+}
+
+/* Full-width search field under the header; it searches on Enter. */
+.search {
+  min-width: 0;
+}
+
+/* The loader and the states live here and are centered in it; the header and the search stay in place. */
+.results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 240px;
+}
+
+/* Where the cards were while the next page loads: the loader is centered in the space of the grid. */
+.gridLoading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Room for the card shadows, which the scroll box would clip. */
+.gridArea {
+  padding: 2px 4px 10px;
+}
+
+/* 3 x 3 (DESIGN.md): three columns, rows as tall as the cards; what does not fit scrolls inside the list box. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 48px 0;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emptyHint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Tablets: two columns. */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 600px) {
   .title {
     font-size: 24px;
+  }
+
+  .page {
+    padding-top: 8px;
+  }
+
+  /* Phones: the button drops under the title, full width; one card per row. */
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adjust {
+    width: 100%;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
 }

@@ -54,7 +54,7 @@
 /* Not in Figma: the data to make the transfer (HU18 scenario 1). */
 .data {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: 12px 24px;
   margin: 0;
 }
@@ -115,21 +115,19 @@
   outline: none;
 }
 
-/* Figma "Actions" 2113:1674: buttons 16 apart, 260 / 320 / 220 wide. */
+/* Figma "Actions" 2113:1674, now in the pinned bar: buttons 12 apart, stacked on phones. */
+/* All the actions on one row at the bottom; they stack only on phones (below). */
 .actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  flex-wrap: nowrap;
 }
 
 .pick {
   position: relative;
-  width: 260px;
 }
 
 .pick:focus-within {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
+  border-color: var(--border-input);
+  box-shadow: 0 0 0 3px var(--surface-raised);
 }
 
 .pick:has(:disabled) {
@@ -146,24 +144,19 @@
   overflow: hidden;
 }
 
-.send {
-  width: 320px;
-}
-
-.inventory {
-  width: 220px;
-}
-
 @media (max-width: 800px) {
   .cards {
     flex-direction: column;
   }
 }
 
-@media (max-width: 600px) {
-  .pick,
-  .send,
-  .inventory {
+@media (max-width: 767px) {
+  .actions.actions {
+    flex-direction: column;
+  }
+
+  .actions.actions > * {
+    flex: none;
     width: 100%;
   }
 }

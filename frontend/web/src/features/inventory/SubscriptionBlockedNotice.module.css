@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 32px 16px;
+  padding: 32px clamp(16px, 4vw, 32px);
   background: var(--surface-default);
   border: 1px solid var(--border-default);
   border-radius: 14px;
@@ -37,12 +37,6 @@
 }
 
 .link {
-  width: 240px;
+  width: min(100%, 240px);
   margin-top: 4px;
-}
-
-@media (max-width: 600px) {
-  .link {
-    width: 100%;
-  }
 }

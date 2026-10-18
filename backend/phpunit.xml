@@ -30,6 +30,9 @@
         <env name="GOOGLE_CLIENT_SECRET" value="test-secret"/>
         <env name="GOOGLE_REDIRECT_URI" value="http://localhost/auth/google/callback"/>
         <env name="MAIL_MAILER" value="array"/>
+        <env name="MELI_DRIVER" value="recorded" force="true"/>
+        <env name="MELI_CLIENT_ID" value="" force="true"/>
+        <env name="MELI_CLIENT_SECRET" value="" force="true"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

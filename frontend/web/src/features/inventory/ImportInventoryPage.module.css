@@ -28,13 +28,14 @@
 
 .fileRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 16px;
 }
 
 .fileField {
   display: flex;
-  flex: 1;
+  flex: 1 1 200px;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
@@ -63,12 +64,13 @@
 .pick {
   position: relative;
   flex: none;
-  width: 220px;
+  width: min(100%, 220px);
 }
 
 .pick:focus-within {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
+  border-color: var(--border-input);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--surface-raised);
 }
 
 .pick:has(:disabled) {
@@ -101,25 +103,10 @@
   padding-left: 20px;
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.back {
-  width: 220px;
-}
-
 /* Template download: a link styled as a button, sized to its text at the start of the card. */
 .template {
   align-self: flex-start;
-  width: 220px;
-}
-
-.confirm {
-  width: 240px;
+  width: min(100%, 220px);
 }
 
 @media (max-width: 600px) {
@@ -129,15 +116,6 @@
   }
 
   .pick {
-    width: 100%;
-  }
-
-  .actions {
-    flex-direction: column-reverse;
-  }
-
-  .back,
-  .confirm {
     width: 100%;
   }
 }

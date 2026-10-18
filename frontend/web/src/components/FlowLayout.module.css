@@ -1,0 +1,27 @@
+/*
+ * Flow and form screens (DESIGN.md "Page layout"): a column that takes all the free height of <main>. The body
+ * grows, so the action bar (sticky, see checklist/pinnedBar.module.css) rests at the bottom of the content area
+ * when the content is short and sticks to the bottom of the window when it is taller.
+ */
+.flow {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Buyer flows that read better in a column than across a wide screen; the bar keeps to the same column. */
+.narrow {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+  padding-bottom: 24px;
+}

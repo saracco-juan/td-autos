@@ -22,6 +22,7 @@ function renderAt(path: string, user: User) {
         </Route>
         <Route element={<RoleRoute allow="dealer" />}>
           <Route path="/concesionaria" element={<p>Estado de la concesionaria</p>} />
+          <Route path="/concesionaria/suscripcion" element={<p>Suscripción de la concesionaria</p>} />
         </Route>
         <Route element={<RoleRoute allow="admin" />}>
           <Route path="/admin" element={<p>Panel de administración</p>} />
@@ -49,10 +50,11 @@ describe('RoleRoute', () => {
     expect(screen.getByText('Estado de la concesionaria')).toBeInTheDocument()
   })
 
-  it.each(['/', '/diagnostico'])('sends a dealer opening the buyer route %s to /concesionaria', (path) => {
+  it.each(['/', '/diagnostico'])('sends a dealer opening the buyer route %s to the subscription screen', (path) => {
     renderAt(path, dealer)
 
-    expect(screen.getByText('Estado de la concesionaria')).toBeInTheDocument()
+    expect(screen.getByText('Suscripción de la concesionaria')).toBeInTheDocument()
+    expect(screen.queryByText('Estado de la concesionaria')).not.toBeInTheDocument()
     expect(screen.queryByText('Diagnóstico')).not.toBeInTheDocument()
   })
 
@@ -85,10 +87,10 @@ describe('RoleRoute', () => {
     expect(screen.queryByText('Concesionarias')).not.toBeInTheDocument()
   })
 
-  it('UH19: sends a dealer opening an admin route to /concesionaria', () => {
+  it('UH19: sends a dealer opening an admin route to the subscription screen', () => {
     renderAt('/admin', dealer)
 
-    expect(screen.getByText('Estado de la concesionaria')).toBeInTheDocument()
+    expect(screen.getByText('Suscripción de la concesionaria')).toBeInTheDocument()
     expect(screen.queryByText('Panel de administración')).not.toBeInTheDocument()
   })
 

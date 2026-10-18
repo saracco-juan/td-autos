@@ -31,7 +31,7 @@ type Props = {
 const secondary = `${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`
 const primary = `${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`
 
-// Pinned to the bottom of the viewport. The primary button is always the right-most one, so it never moves
+// Content of the pinned bar (FlowLayout draws the bar). The primary button is always the right-most one, so it never moves
 // when previous or next come and go.
 export default function ChecklistActionBar({
   labels,
@@ -47,7 +47,7 @@ export default function ChecklistActionBar({
   onKeepWorking,
 }: Props) {
   return (
-    <div className={barStyles.bar}>
+    <>
       <div className={styles.message}>
         {finishFailed ? (
           <p role="alert" className={`${alertStyles.alert} ${styles.alert}`}>
@@ -95,6 +95,6 @@ export default function ChecklistActionBar({
           </>
         )}
       </div>
-    </div>
+    </>
   )
 }

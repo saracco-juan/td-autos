@@ -103,6 +103,19 @@ describe('DiagnosisPage', () => {
     })
   })
 
+  it('keeps the step buttons in the bar pinned to the bottom of the screen', async () => {
+    const user = userEvent.setup()
+    await renderPage()
+    expect(within(screen.getByRole('group', { name: 'Acciones' })).getByRole('button', { name: 'CONTINUAR' })).toBeInTheDocument()
+
+    await choose(user, FIRST_OPTIONS[0])
+    await next(user)
+
+    const bar = within(screen.getByRole('group', { name: 'Acciones' }))
+    expect(bar.getByRole('button', { name: 'ATRÁS' })).toBeInTheDocument()
+    expect(bar.getByRole('button', { name: 'CONTINUAR' })).toBeInTheDocument()
+  })
+
   describe('loading', () => {
     it('shows a local loader and no question while the diagnosis is being read', () => {
       vi.mocked(fetchDiagnosis).mockReturnValue(new Promise(() => {}))

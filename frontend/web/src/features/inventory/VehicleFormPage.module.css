@@ -16,15 +16,17 @@
   text-decoration: none;
 }
 
-/* Figma "Back arrow": 36 square, strong border, no radius. */
+/* Figma "Back arrow": 36 square in the soft button look (DESIGN.md). */
 .arrow {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border-strong);
-  background: var(--bg-base);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  box-shadow: 0 1px 2px rgba(26, 20, 15, 0.06);
 }
 
 .titles {

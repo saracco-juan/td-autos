@@ -7,7 +7,7 @@ import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCar
 import ChecklistProgressCard from '../../components/checklist/ChecklistProgressCard'
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '../../components/checklist/progress'
-import screenStyles from '../../components/screen.module.css'
+import FlowLayout from '../../components/FlowLayout'
 import { toChecklistSteps } from './checklistSteps'
 import { FLAG_LABEL } from './checklistCopy'
 import InspectionHeader from './InspectionHeader'
@@ -36,7 +36,26 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
   const showPending = pendingItems.length > 0
 
   return (
-    <div className={screenStyles.page}>
+    <FlowLayout
+      narrow
+      actions={
+        <div className={barStyles.actions}>
+          <Link
+            to={`/vehiculos/${vehicle.id}`}
+            className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
+          >
+            VOLVER A LA FICHA
+          </Link>
+          <button
+            type="button"
+            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
+            onClick={onKeepReviewing}
+          >
+            SEGUIR REVISANDO
+          </button>
+        </div>
+      }
+    >
       <InspectionHeader
         vehicleId={vehicle.id}
         title={vehicleTitle(vehicle)}
@@ -69,24 +88,6 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
           />
         ) : null}
       </ChecklistCardGrid>
-
-      <div className={barStyles.bar}>
-        <div className={barStyles.actions}>
-          <Link
-            to={`/vehiculos/${vehicle.id}`}
-            className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
-          >
-            VOLVER A LA FICHA
-          </Link>
-          <button
-            type="button"
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
-            onClick={onKeepReviewing}
-          >
-            SEGUIR REVISANDO
-          </button>
-        </div>
-      </div>
-    </div>
+    </FlowLayout>
   )
 }

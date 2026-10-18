@@ -1,7 +1,7 @@
 /* Figma "Summary" (2074:903): 396 wide card, radius 14, soft shadow. */
 .card {
-  width: 396px;
-  flex-shrink: 0;
+  flex: 0 1 clamp(300px, 34%, 396px);
+  min-width: 0;
   overflow: hidden;
   background: var(--surface-default);
   border: 1px solid var(--border-default);

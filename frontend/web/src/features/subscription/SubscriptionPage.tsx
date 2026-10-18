@@ -2,7 +2,9 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { Link } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import barStyles from '../../components/checklist/pinnedBar.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
+import FlowLayout from '../../components/FlowLayout'
 import screenStyles from '../../components/screen.module.css'
 import { NetworkError } from '../../lib/http'
 import { DEALER_STATE_ACTIVE } from '../auth/roles'
@@ -181,8 +183,51 @@ export default function SubscriptionPage() {
     ? `${receipt.nombre_archivo} · enviado el ${formatSentDate(receipt.enviado_en)}`
     : (file?.name ?? 'Todavía no seleccionaste un comprobante.')
 
+  const showSend = !receipt
+  const showInventory = summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva'
+  const actions =
+    showSend || showInventory ? (
+      <div className={`${barStyles.actions} ${styles.actions}`}>
+        {showSend ? (
+          <>
+            <label className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.actionWide} ${styles.pick}`}>
+              SELECCIONAR COMPROBANTE
+              <input
+                type="file"
+                accept={RECEIPT_ACCEPT}
+                className={styles.fileInput}
+                disabled={submitting}
+                onChange={(event) => {
+                  const picked = event.target.files?.[0]
+                  // The same file can be picked again after a failure.
+                  event.target.value = ''
+                  if (!picked) return
+                  setFile(picked)
+                  setMessage(null)
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.actionWide}`}
+              disabled={submitting || !summary.transferencia}
+              aria-busy={submitting}
+              onClick={() => void handleSend()}
+            >
+              ENVIAR COMPROBANTE
+            </button>
+          </>
+        ) : null}
+        {showInventory ? (
+          <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}>
+            VER INVENTARIO
+          </Link>
+        ) : null}
+      </div>
+    ) : null
+
   return (
-    <div className={screenStyles.page}>
+    <FlowLayout actions={actions}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>SUSCRIPCIÓN</p>
         <h1 className={screenStyles.title}>Suscripción y comprobantes</h1>
@@ -223,43 +268,6 @@ export default function SubscriptionPage() {
           {message.text}
         </p>
       ) : null}
-      <div className={styles.actions}>
-        {receipt ? null : (
-          <>
-            <label className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.pick}`}>
-              SELECCIONAR COMPROBANTE
-              <input
-                type="file"
-                accept={RECEIPT_ACCEPT}
-                className={styles.fileInput}
-                disabled={submitting}
-                onChange={(event) => {
-                  const picked = event.target.files?.[0]
-                  // The same file can be picked again after a failure.
-                  event.target.value = ''
-                  if (!picked) return
-                  setFile(picked)
-                  setMessage(null)
-                }}
-              />
-            </label>
-            <button
-              type="button"
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.send}`}
-              disabled={submitting || !summary.transferencia}
-              aria-busy={submitting}
-              onClick={() => void handleSend()}
-            >
-              ENVIAR COMPROBANTE
-            </button>
-          </>
-        )}
-        {summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva' ? (
-          <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.inventory}`}>
-            VER INVENTARIO
-          </Link>
-        ) : null}
-      </div>
-    </div>
+    </FlowLayout>
   )
 }

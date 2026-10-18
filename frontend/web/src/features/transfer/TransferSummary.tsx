@@ -6,7 +6,7 @@ import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCar
 import ChecklistProgressCard from '../../components/checklist/ChecklistProgressCard'
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '../../components/checklist/progress'
-import screenStyles from '../../components/screen.module.css'
+import FlowLayout from '../../components/FlowLayout'
 import { FLAG_LABEL } from './checklistCopy'
 import { toChecklistSteps } from './checklistSteps'
 import { summaryMessage } from './summaryMessage'
@@ -33,7 +33,20 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
   const showPending = pendingItems.length > 0
 
   return (
-    <div className={screenStyles.page}>
+    <FlowLayout
+      narrow
+      actions={
+        <div className={barStyles.actions}>
+          <button
+            type="button"
+            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
+            onClick={onKeepCompleting}
+          >
+            {showPending ? 'SEGUIR COMPLETANDO' : 'VOLVER AL CHECKLIST'}
+          </button>
+        </div>
+      }
+    >
       <TransferHeader completed={progress.completed} total={progress.total} titleRef={titleRef ?? null} />
 
       <p
@@ -60,18 +73,6 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
           />
         ) : null}
       </ChecklistCardGrid>
-
-      <div className={barStyles.bar}>
-        <div className={barStyles.actions}>
-          <button
-            type="button"
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
-            onClick={onKeepCompleting}
-          >
-            {showPending ? 'SEGUIR COMPLETANDO' : 'VOLVER AL CHECKLIST'}
-          </button>
-        </div>
-      </div>
-    </div>
+    </FlowLayout>
   )
 }

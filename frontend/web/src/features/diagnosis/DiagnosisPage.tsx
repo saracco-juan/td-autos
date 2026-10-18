@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import barStyles from '../../components/checklist/pinnedBar.module.css'
+import FlowLayout from '../../components/FlowLayout'
 import { NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { useAuth } from '../auth/session/useAuth'
@@ -126,7 +128,42 @@ export default function DiagnosisPage() {
   const messageId = unanswered ? MESSAGE_ID : undefined
 
   return (
-    <div className={styles.page}>
+    <FlowLayout
+      narrow
+      actions={
+        <div className={barStyles.actions}>
+          {step > 0 ? (
+            <button
+              type="button"
+              disabled={saving}
+              className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
+              onClick={() => goToStep(step - 1)}
+            >
+              ATRÁS
+            </button>
+          ) : null}
+          {isLast ? (
+            <button
+              type="button"
+              disabled={saving}
+              aria-busy={saving}
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.actionWide}`}
+              onClick={handleFinish}
+            >
+              {saving ? 'GUARDANDO…' : 'VER RECOMENDACIONES'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
+              onClick={handleNext}
+            >
+              CONTINUAR
+            </button>
+          )}
+        </div>
+      }
+    >
       <div className={styles.header}>
         <p className={styles.eyebrow}>DIAGNÓSTICO DE NECESIDADES</p>
         <h1 id={TITLE_ID} ref={titleRef} tabIndex={-1} className={styles.title}>
@@ -173,37 +210,6 @@ export default function DiagnosisPage() {
         <DiagnosisSummary draft={draft} currentStep={step} bodyTypes={bodyTypes} />
       </div>
 
-      <div className={styles.actions}>
-        {step > 0 ? (
-          <button
-            type="button"
-            disabled={saving}
-            className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.back}`}
-            onClick={() => goToStep(step - 1)}
-          >
-            ATRÁS
-          </button>
-        ) : null}
-        {isLast ? (
-          <button
-            type="button"
-            disabled={saving}
-            aria-busy={saving}
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.finish}`}
-            onClick={handleFinish}
-          >
-            {saving ? 'GUARDANDO…' : 'VER RECOMENDACIONES'}
-          </button>
-        ) : (
-          <button
-            type="button"
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.next}`}
-            onClick={handleNext}
-          >
-            CONTINUAR
-          </button>
-        )}
-      </div>
-    </div>
+    </FlowLayout>
   )
 }

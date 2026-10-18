@@ -1,15 +1,3 @@
-/* Same page frame as the profile: left-aligned under the nav, 32 from the edges at 1280. */
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  width: 100%;
-  max-width: 1216px;
-  /* The shell centers its content vertically; the page starts at the top. */
-  margin-bottom: auto;
-  padding-top: 40px;
-}
-
 /* Page header without an eyebrow: title 32 bold, subtitle 14 secondary, 8 apart. */
 .header {
   display: flex;
@@ -19,7 +7,7 @@
 
 .title {
   margin: 0;
-  font-size: 32px;
+  font-size: clamp(24px, 5vw, 32px);
   font-weight: 700;
 }
 
@@ -34,7 +22,6 @@
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  max-width: 760px;
   padding: 20px;
   background: var(--surface-default);
   border: 1px solid var(--border-default);

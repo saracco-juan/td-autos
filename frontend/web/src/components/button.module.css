@@ -1,4 +1,6 @@
-/* Figma "Button" component: height 40, radius 10, bold 11px uppercase label. */
+/* "Button" (Figma v3): height 40, radius 10, 11px uppercase label. Every variant shares the soft look: white surface,
+   thin light border, soft shadow, dark grey label, a subtle hover in the table header tone and a soft focus ring
+   (DESIGN.md "Buttons"). The variant only changes the border and the label. */
 .button {
   display: flex;
   align-items: center;
@@ -7,11 +9,25 @@
   width: 100%;
   height: 40px;
   padding: 0 24px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border-default);
   border-radius: 10px;
-  font: 700 11px/normal var(--font-sans);
+  background: var(--surface-default);
+  box-shadow: 0 1px 2px rgba(26, 20, 15, 0.06);
+  color: var(--text-primary);
+  font: 600 11px/normal var(--font-sans);
   text-decoration: none;
   cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.button:hover:not(:disabled):not([aria-busy='true']) {
+  background: var(--surface-raised);
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: var(--border-input);
+  box-shadow: 0 0 0 3px var(--surface-raised);
 }
 
 .button:disabled {
@@ -37,34 +53,35 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
   .button[aria-busy='true']::before {
     animation-duration: 2.4s;
   }
 }
 
+/* The main action of a screen: a slightly stronger border and a bolder label. */
 .primary {
-  background: var(--action-primary);
-  color: var(--text-on-action);
-  box-shadow: 0 6px 10px rgba(26, 20, 15, 0.14);
+  border-color: var(--border-input);
+  font-weight: 700;
 }
 
 .secondary {
-  background: var(--surface-default);
-  color: var(--text-primary);
+  font-weight: 600;
 }
 
-/* Figma "Button" Cancel variant: destructive action. */
+/* Destructive action (Figma "Button" Cancel variant): red label and a red-tinted border. */
 .danger {
-  border-color: var(--action-danger);
-  background: var(--action-danger);
-  color: var(--text-on-color);
-  box-shadow: 0 6px 10px rgba(26, 20, 15, 0.14);
+  border-color: var(--status-error-border);
+  color: var(--action-danger);
+  font-weight: 700;
 }
 
-/* Figma "Button" Save variant: confirms a form (action/success). */
+/* Confirms a form (Figma "Button" Save variant): green label and a green-tinted border. */
 .success {
-  border-color: var(--action-success);
-  background: var(--action-success);
-  color: var(--text-on-color);
-  box-shadow: 0 6px 10px rgba(26, 20, 15, 0.14);
+  border-color: var(--status-success-border);
+  color: var(--action-success);
+  font-weight: 700;
 }
