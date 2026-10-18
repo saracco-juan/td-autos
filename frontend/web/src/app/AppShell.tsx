@@ -5,7 +5,7 @@ import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/rol
 import { useAuth } from '../features/auth/session/useAuth'
 import styles from './AppShell.module.css'
 
-// Brand mark beside the wordmark: the TD monogram of the favicon, in red on a white tile. Decorative; the link is named by its text.
+// Brand mark before the wordmark: the TD monogram of the favicon, in red on a white tile. Decorative; the link carries the name.
 function LogoMark() {
   return (
     <span className={styles.logoMark} aria-hidden="true">
@@ -91,9 +91,10 @@ export default function AppShell() {
           if (event.key === 'Escape') setMenuOpen(false)
         }}
       >
-        <Link to="/" className={styles.logo}>
+        {/* The TD monogram reads as "TD", so the wordmark only adds "Autos"; the link keeps the full brand name. */}
+        <Link to="/" className={styles.logo} aria-label="TD Autos">
           <LogoMark />
-          TD Autos
+          Autos
         </Link>
         {status === 'authenticated' ? (
           <>

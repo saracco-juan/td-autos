@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
@@ -147,7 +147,7 @@ describe('app routes', () => {
     vi.mocked(fetchCurrentUser).mockReturnValue(new Promise(() => {}))
     renderAt('/')
 
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
     expect(screen.getByRole('status').parentElement).toBe(screen.getByRole('main'))
     expect(screen.getByRole('status')).toHaveTextContent('Cargando')
@@ -161,7 +161,7 @@ describe('app routes', () => {
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('Sin conexión con el servidor')
     expect(alert.parentElement).toBe(screen.getByRole('main'))
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/')
   })
@@ -267,7 +267,7 @@ describe('app routes', () => {
     // The session loader shows first; wait for the page itself to start reading the diagnosis.
     await vi.waitFor(() => expect(fetchDiagnosis).toHaveBeenCalled())
     expect(screen.getByRole('status').parentElement).toBe(screen.getByRole('main'))
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
@@ -277,7 +277,7 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Mejores opciones para vos' })).toBeInTheDocument()
     expect(await screen.findByText('Mostrando 3 vehículos')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/recomendaciones')
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
@@ -302,7 +302,7 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/perfil')
     expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
@@ -322,7 +322,7 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: '¿Cuál es tu presupuesto máximo?' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/diagnostico')
     expect(screen.getByText('PASO 1 DE 7')).toBeInTheDocument()
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
@@ -342,7 +342,7 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/vehiculos/7/inspeccion')
     expect(fetchInspection).toHaveBeenCalledWith(7)
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
@@ -361,7 +361,7 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Checklist de transferencia' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/transferencia')
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
@@ -565,7 +565,7 @@ describe('app routes', () => {
     renderAt('/')
     await screen.findByRole('heading', { name: 'Inicio' })
 
-    expect(screen.getByRole('banner')).toHaveTextContent('TD Autos')
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2026 TD Autos. Todos los derechos reservados.')
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
