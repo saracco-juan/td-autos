@@ -8,6 +8,14 @@
       "sessions": 2,
       "memories": 87,
       "prompts": 7
+    },
+    {
+      "id": "b18251f3",
+      "created_by": "Compumar",
+      "created_at": "2026-10-19T23:16:11.0589943Z",
+      "sessions": 2,
+      "memories": 216,
+      "prompts": 111
     }
   ]
 }
