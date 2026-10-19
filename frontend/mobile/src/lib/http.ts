@@ -49,8 +49,8 @@ export async function apiFetch<T>(path: string, { method = 'GET', body, token }:
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     })
-  } catch (failure) {
-    throw new NetworkError(failure)
+  } catch (error_) {
+    throw new NetworkError(error_)
   }
 
   const data = await parseBody(response)

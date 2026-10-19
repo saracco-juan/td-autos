@@ -10,7 +10,7 @@ type Props = {
   subtle?: boolean
 }
 
-export default function TextLink({ href, children, subtle = false }: Props) {
+export default function TextLink({ href, children, subtle = false }: Readonly<Props>) {
   return (
     <Link href={href} replace accessibilityRole="link" style={subtle ? styles.subtle : styles.link}>
       {children}
@@ -19,7 +19,7 @@ export default function TextLink({ href, children, subtle = false }: Props) {
 }
 
 // The prompt that precedes a link ("¿No tenés cuenta? ") keeps the link on the same line.
-export function LinkPrompt({ prompt, children }: { prompt: string; children: React.ReactNode }) {
+export function LinkPrompt({ prompt, children }: Readonly<{ prompt: string; children: React.ReactNode }>) {
   return (
     <Text style={styles.prompt}>
       {prompt} {children}

@@ -22,7 +22,7 @@ const BORDER: Record<Variant, string> = {
 }
 
 // Soft look for every variant (DESIGN.md "Buttons"): white surface, thin border, soft shadow, dark label.
-export default function Button({ label, busyLabel, busy = false, variant = 'secondary', icon, onPress }: Props) {
+export default function Button({ label, busyLabel, busy = false, variant = 'secondary', icon, onPress }: Readonly<Props>) {
   return (
     <Pressable
       accessibilityRole="button"

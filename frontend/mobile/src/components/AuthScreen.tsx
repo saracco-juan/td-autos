@@ -12,7 +12,7 @@ type Props = {
 }
 
 // Guest screens (Figma 01-03b): red top bar and a white card with the heading, scrolling above the keyboard.
-export default function AuthScreen({ title, subtitle, children }: Props) {
+export default function AuthScreen({ title, subtitle, children }: Readonly<Props>) {
   const insets = useSafeAreaInsets()
   return (
     <View style={styles.screen}>

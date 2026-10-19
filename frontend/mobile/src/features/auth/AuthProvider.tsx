@@ -9,7 +9,7 @@ import type { TokenResponse, User } from './types'
 type Session = { status: AuthStatus; user: User | null }
 
 // Holds the session for the whole app: who is signed in (token kept in the secure store), or that nobody is.
-export default function AuthProvider({ children }: { children: ReactNode }) {
+export default function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [session, setSession] = useState<Session>({ status: 'loading', user: null })
   const tokenRef = useRef<string | null>(null)
 

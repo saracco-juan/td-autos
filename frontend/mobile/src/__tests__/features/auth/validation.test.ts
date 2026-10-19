@@ -16,6 +16,23 @@ describe('validateEmail', () => {
     expect(validateEmail('ana example@x.co')).toEqual(['Ingresá un email válido.'])
   })
 
+  it('rejects a missing local part, a second @ or a dot at the edge of the domain', () => {
+    for (const email of ['@example.com', 'ana@b@example.com', 'ana@.com', 'ana@example.']) {
+      expect(validateEmail(email)).toEqual(['Ingresá un email válido.'])
+    }
+  })
+
+  it('accepts subdomains and a trailing dot after a valid domain', () => {
+    expect(validateEmail('ana@mail.example.com.ar')).toBeUndefined()
+    expect(validateEmail('ana@a.b.')).toBeUndefined()
+  })
+
+  it('answers quickly on long input without a valid domain', () => {
+    const started = Date.now()
+    expect(validateEmail(`a@${'a'.repeat(50_000)}`)).toEqual(['Ingresá un email válido.'])
+    expect(Date.now() - started).toBeLessThan(200)
+  })
+
   it('accepts a plausible address, ignoring surrounding spaces', () => {
     expect(validateEmail(' ana@example.com ')).toBeUndefined()
   })

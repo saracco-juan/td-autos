@@ -71,8 +71,11 @@ class GoogleAuthController extends Controller
             ->redirect();
     }
 
-    public function callback(Request $request, GoogleAccountResolver $resolver, MobileGoogleCode $codes): RedirectResponse
-    {
+    public function callback(
+        Request $request,
+        GoogleAccountResolver $resolver,
+        MobileGoogleCode $codes,
+    ): RedirectResponse {
         $origin = $request->session()->pull(self::SESSION_ORIGIN);
         $origin = in_array($origin, self::ORIGINS, true) ? $origin : self::ORIGIN_REGISTER;
 

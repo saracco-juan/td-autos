@@ -2,13 +2,21 @@ import { PASSWORD_RULES } from './passwordRules'
 import type { FieldErrors } from './types'
 
 // Deliberately permissive: the server remains the authority on email validity.
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// One "@" with text on both sides, no whitespace, and a dot inside the domain.
+// Checked without a regex so the cost stays linear in the input length.
+function looksLikeEmail(email: string): boolean {
+  if (/\s/.test(email)) return false
+  const parts = email.split('@')
+  if (parts.length !== 2) return false
+  const [local, domain] = parts
+  return local !== '' && domain.slice(1, -1).includes('.')
+}
 
 // Returns the error messages for an email field, or undefined when the value is acceptable.
 export function validateEmail(value: string): string[] | undefined {
   const email = value.trim()
   if (email === '') return ['El email es obligatorio.']
-  if (!EMAIL_PATTERN.test(email)) return ['Ingresá un email válido.']
+  if (!looksLikeEmail(email)) return ['Ingresá un email válido.']
   return undefined
 }
 

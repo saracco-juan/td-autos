@@ -18,7 +18,8 @@ class MobileAuthController extends Controller
 {
     public const CODE_NOT_BUYER = 'not_buyer';
 
-    public const MESSAGE_NOT_BUYER = 'La app es solo para compradores. Si tenés una concesionaria, ingresá desde la web.';
+    public const MESSAGE_NOT_BUYER = 'La app es solo para compradores. '
+        .'Si tenés una concesionaria, ingresá desde la web.';
 
     public function register(MobileRegisterRequest $request): JsonResponse
     {
