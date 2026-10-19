@@ -5,25 +5,29 @@ import * as api from '../../../features/auth/api'
 import AuthProvider from '../../../features/auth/AuthProvider'
 import { useAuth } from '../../../features/auth/useAuth'
 import * as http from '../../../lib/http'
+import * as profileApi from '../../../features/profile/api'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 
 jest.mock('../../../features/auth/api')
 jest.mock('../../../lib/tokenStorage')
+jest.mock('../../../features/profile/api')
 
 const apiMock = jest.mocked(api)
 const storage = jest.mocked(tokenStorage)
+const profileApiMock = jest.mocked(profileApi)
 
 const USER = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
 
 function Probe() {
-  const { status, user, login, register, completeGoogle, logout } = useAuth()
-  const run = (action: () => Promise<void>) => () =>
+  const { status, user, login, register, completeGoogle, logout, updateProfile } = useAuth()
+  const run = (action: () => Promise<unknown>) => () =>
     action().catch((error: Error) => console.log(`failed:${error.message}`))
   return (
     <>
       <Text>status:{status}</Text>
       <Text>user:{user?.email ?? 'none'}</Text>
+      <Text>apellido:{user?.apellido ?? 'none'}</Text>
       <Pressable onPress={run(() => login({ email: 'ana@example.com', password: 'x' }))}>
         <Text>login</Text>
       </Pressable>
@@ -39,6 +43,9 @@ function Probe() {
       </Pressable>
       <Pressable onPress={run(logout)}>
         <Text>logout</Text>
+      </Pressable>
+      <Pressable onPress={run(() => updateProfile({ name: 'Ana', apellido: 'Pérez' }))}>
+        <Text>update</Text>
       </Pressable>
     </>
   )
@@ -240,6 +247,37 @@ describe('AuthProvider', () => {
 
       await waitFor(() => expect(logSpy).toHaveBeenCalledWith('refreshed'))
       expect(screen.getByText('diagnosis:false')).toBeOnTheScreen()
+    })
+  })
+
+  describe('updateProfile', () => {
+    async function authenticated() {
+      storage.readToken.mockResolvedValue('tok')
+      apiMock.fetchCurrentUser.mockResolvedValue(USER)
+      await mount()
+      await screen.findByText('status:authenticated')
+    }
+
+    it('saves with the session token and replaces the user with the response', async () => {
+      profileApiMock.updateProfile.mockResolvedValue({ ...USER, apellido: 'Pérez', perfil_completo: true })
+      await authenticated()
+
+      await fireEvent.press(screen.getByText('update'))
+
+      expect(await screen.findByText('apellido:Pérez')).toBeOnTheScreen()
+      expect(profileApiMock.updateProfile).toHaveBeenCalledWith({ name: 'Ana', apellido: 'Pérez' }, 'tok')
+    })
+
+    it('keeps the current user and rethrows when the server rejects the change', async () => {
+      profileApiMock.updateProfile.mockRejectedValue(new HttpError(422, { errors: {} }))
+      await authenticated()
+
+      await act(async () => {
+        await fireEvent.press(screen.getByText('update'))
+      })
+
+      await waitFor(() => expect(logSpy).toHaveBeenCalledWith('failed:HTTP 422'))
+      expect(screen.getByText('apellido:none')).toBeOnTheScreen()
     })
   })
 })

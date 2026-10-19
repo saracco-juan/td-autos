@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { apiFetch, HttpError, type AuthFetch } from '../../lib/http'
 import { clearToken, readToken, saveToken } from '../../lib/tokenStorage'
+import { updateProfile as updateProfileRequest } from '../profile/api'
 import { exchangeGoogleCode, fetchCurrentUser, loginWithPassword, logoutRequest, registerWithPassword } from './api'
 import { AuthContext, type AuthContextValue, type AuthStatus } from './AuthContext'
 import type { TokenResponse, User } from './types'
@@ -65,6 +66,14 @@ export default function AuthProvider({ children }: Readonly<{ children: ReactNod
     }
   }, [])
 
+  const updateProfile = useCallback<AuthContextValue['updateProfile']>(async (values) => {
+    const token = tokenRef.current
+    if (!token) throw new Error('updateProfile needs an authenticated session')
+    const user = await updateProfileRequest(values, token)
+    setSession({ status: 'authenticated', user })
+    return user
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     const restore = async () => {
@@ -89,8 +98,8 @@ export default function AuthProvider({ children }: Readonly<{ children: ReactNod
   }, [])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ ...session, login, register, completeGoogle, logout, authFetch, refreshUser }),
-    [session, login, register, completeGoogle, logout, authFetch, refreshUser],
+    () => ({ ...session, login, register, completeGoogle, logout, authFetch, refreshUser, updateProfile }),
+    [session, login, register, completeGoogle, logout, authFetch, refreshUser, updateProfile],
   )
 
   return <AuthContext value={value}>{children}</AuthContext>

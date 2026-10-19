@@ -161,4 +161,19 @@ class UpdateProfileTest extends TestCase
             ->assertOk()
             ->assertJsonPath('perfil_completo', true);
     }
+
+    // HU03-MOBILE: the app updates the profile with its Sanctum bearer token, no session.
+    public function test_mobile_bearer_token_updates_the_profile(): void
+    {
+        $user = User::factory()->create(['apellido' => null]);
+        $token = $user->createToken('Pixel 8')->plainTextToken;
+
+        $this->withToken($token)->putJson('/api/user', ['name' => 'Juan', 'apellido' => 'Pérez'])
+            ->assertOk()
+            ->assertJsonPath('apellido', 'Pérez')
+            ->assertJsonPath('perfil_completo', true);
+
+        $this->assertGuest('web');
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'apellido' => 'Pérez']);
+    }
 }
