@@ -136,7 +136,14 @@ class LocalDevDatabaseTest extends TestCase
                     $fields['patente'] = $vehicle->propiedad->patente_normalizada;
                     $fields['carroceria_id'] = $vehicle->tipo_carroceria_id;
                     $fields['precio'] += 1000;
-                    $this->postJson($url, $fields)->assertOk()->assertJsonCount(7, 'vehiculo.fotos');
+                    // Explicit update input; legacy demo records are not backfilled.
+                    $fields += [
+                        'moneda' => $vehicle->moneda, 'plazas' => 5, 'motor' => 'Test engine',
+                        'turbo' => false, 'potencia' => 100, 'potencia_unidad' => 'CV',
+                        'consumo_urbano' => 8.5, 'consumo_ruta' => 6.2,
+                    ];
+                    $this->postJson($url, $fields)->assertOk()->assertJsonCount(7, 'vehiculo.fotos')
+                        ->assertJsonPath('vehiculo.plazas', 5)->assertJsonPath('vehiculo.turbo', false);
                     $this->assertSame($fields['precio'], Vehiculo::findOrFail($vehicle->id)->precio + 0);
                 }
             }

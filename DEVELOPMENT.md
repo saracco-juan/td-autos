@@ -66,7 +66,8 @@ urban/road consumption (L/100 km), and declared safety/comfort equipment. Existi
 New columns are nullable without defaults: `null` means unknown, `false` means explicitly absent.
 No existing vehicle is backfilled from its body type, model or brand. `volante_regulable` means
 both height and reach adjustment; `aire_acondicionado` covers AC or climate control. A single
-`android_auto_apple_carplay` flag means at least one platform is present. No API, form, CSV or matching changes yet.
+`android_auto_apple_carplay` flag means at least one platform is present. See the API stage below;
+forms, CSV and matching remain separate stages.
 
 To verify storage and a forward/rollback cycle without touching a configured database:
 
@@ -77,4 +78,76 @@ php artisan test --filter=VehiculoMatchingFactsTest
 
 The tests use SQLite in memory. They check known/unknown values, types and preservation of existing
 rows; rollback removes only the new columns (and their values). PostgreSQL DDL is compiled without
-connecting; PostgreSQL execution is not covered. Publication requirements and data entry follow later.
+connecting; PostgreSQL execution is not covered. No migration was executed against a real database.
+
+## UH-5 core vehicle facts — API stage
+
+Dealer create/update now require `moneda` (ARS/USD), `plazas`, `motor`, `turbo`, `potencia` and
+`potencia_unidad` (CV/HP/kW). Gasoline (`nafta`) and diesel also require `consumo_urbano` and
+`consumo_ruta` in L/100 km; other fuels may omit them. Seats/power are positive integers; turbo
+accepts JSON booleans or multipart 0/1. Consumption is positive with at most two decimals.
+Upper bounds come only from storage: seats 32767, power 2147483647, consumption 9999.99.
+
+Create, update, show and list return these facts; unknown legacy values remain null. Currency is
+stored as declared, without conversion. Existing ownership, plate, photo and transaction rules stay.
+API requests opt into the shared rules; CSV retains its existing contract until its own stage.
+The older web form cannot submit the new required facts yet: do not deploy the intermediate chain.
+Equipment validation, form controls and matching scores are not part of this stage.
+
+### Manual API check
+
+Start the backend and web app as described in README, using a local test database with the stage-one
+migration applied. Sign in on the web as an active dealer. Paste this into that tab's browser console;
+only the API host/port may need changing. It uses the same Sanctum session cookie and CSRF header as
+the web client. It creates a temporary listing with seven tiny test photos and deletes only that
+listing at the end. Do not run this against a production database.
+
+```javascript
+await (async () => {
+  const api = 'http://localhost:8000';
+  await fetch(`${api}/sanctum/csrf-cookie`, { credentials: 'include' });
+  const call = async (path, method = 'GET', body) => {
+    const headers = { Accept: 'application/json' };
+    const token = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+    if (token) headers['X-XSRF-TOKEN'] = decodeURIComponent(token.slice(11));
+    if (body && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
+    const response = await fetch(`${api}${path}`, {
+      method, headers, credentials: 'include',
+      body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+    });
+    const data = response.status === 204 ? null : await response.json();
+    console.log(method, path, response.status, data);
+    return { status: response.status, data };
+  };
+  const session = await call('/api/user'); // 200: signed-in dealer
+  if (session.status !== 200) throw new Error('Sign in as an active dealer first.');
+  const { data: options } = await call('/api/diagnostico');
+  const random = crypto.getRandomValues(new Uint32Array(5));
+  const letter = n => String.fromCharCode(65 + n % 26);
+  const plate = letter(random[0]) + letter(random[1]) + String(random[2] % 1000).padStart(3, '0') + letter(random[3]) + letter(random[4]);
+  const fields = {
+    patente: plate, marca: 'Toyota', modelo: 'Corolla', anio: 2021, kilometraje: 45000,
+    precio: 20000, moneda: 'USD', plazas: 5, motor: '2.0', turbo: 0,
+    potencia: 170, potencia_unidad: 'CV', consumo_urbano: 8.5, consumo_ruta: 6.2,
+    transmision: 'automatica', combustible: 'nafta', ubicacion: 'Córdoba',
+    carroceria_id: options.carrocerias[0].id,
+  };
+  const form = new FormData();
+  Object.entries(fields).forEach(([key, value]) => form.append(key, String(value)));
+  const bytes = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='), c => c.charCodeAt(0));
+  for (let i = 0; i < 7; i++) form.append('fotos[]', new File([bytes], `test${i}.png`, { type: 'image/png' }));
+  const created = await call('/api/concesionaria/vehiculos', 'POST', form); // 201, USD, 5 seats, turbo false
+  if (created.status !== 201) throw new Error('Fixture creation failed; inspect the logged response.');
+  const path = `/api/concesionaria/vehiculos/${created.data.vehiculo.id}`;
+  try {
+    await call(path, 'POST', { ...fields, plazas: 0 }); // 422, errors.plazas, nothing changed
+    await call(path); // 200, still 5 seats and seven photos
+    await call(path, 'POST', { ...fields, moneda: 'ARS', precio: 25000000, plazas: 7, turbo: true }); // 200, updated facts
+    await call('/api/concesionaria/vehiculos'); // 200, listing contains the updated facts
+  } finally {
+    await call(path, 'DELETE'); // 204, only this newly created fixture removed
+  }
+})();
+```
+
+Automated check: `cd backend; php artisan test --filter=MatchingFactsApiTest` (SQLite in memory).

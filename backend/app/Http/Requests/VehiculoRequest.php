@@ -44,7 +44,7 @@ abstract class VehiculoRequest extends FormRequest
      */
     protected function vehiculoRules(): array
     {
-        return VehiculoFields::rules($this->plateUniqueRule());
+        return VehiculoFields::rules($this->plateUniqueRule(), includeMatchingFacts: true);
     }
 
     /**

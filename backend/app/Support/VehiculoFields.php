@@ -60,7 +60,7 @@ final class VehiculoFields
      * @param  mixed  $plateUniqueRule  Rule that decides whether the plate may be used; none when null.
      * @return array<string, array<int, mixed>>
      */
-    public static function rules(mixed $plateUniqueRule = null): array
+    public static function rules(mixed $plateUniqueRule = null, bool $includeMatchingFacts = false): array
     {
         $rules = [
             'patente' => array_values(array_filter(
@@ -78,6 +78,21 @@ final class VehiculoFields
         foreach (self::TEXT_FIELDS as $field => [, $max]) {
             $presence = in_array($field, self::OPTIONAL_FIELDS, true) ? 'nullable' : 'required';
             $rules[$field] = [$presence, 'string', "max:{$max}"];
+        }
+
+        // The API opts in; the CSV contract is upgraded in its own chained stage.
+        if ($includeMatchingFacts) {
+            $rules += [
+                'moneda' => ['required', Rule::in(VehiculoOptions::MONEDAS)],
+                'plazas' => ['required', 'integer', 'between:1,32767'],
+                'motor' => ['required', 'string', 'max:100'],
+                'turbo' => ['required', 'boolean'],
+                'potencia' => ['required', 'integer', 'between:1,2147483647'],
+                'potencia_unidad' => ['required', Rule::in(VehiculoOptions::POTENCIA_UNIDADES)],
+            ];
+            foreach (['consumo_urbano', 'consumo_ruta'] as $field) {
+                $rules[$field] = ['required_if:combustible,nafta,diesel', 'nullable', 'numeric', 'gt:0', 'decimal:0,2', 'max:9999.99'];
+            }
         }
 
         return $rules;
@@ -118,6 +133,8 @@ final class VehiculoFields
             ...array_intersect_key($validated, array_flip([
                 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio',
                 'transmision', 'combustible', 'ubicacion', 'descripcion',
+                'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
+                'consumo_urbano', 'consumo_ruta',
             ])),
             'tipo_carroceria_id' => $validated['carroceria_id'],
         ];
@@ -152,6 +169,21 @@ final class VehiculoFields
             $messages["{$field}.in"] = "Elegí {$noun} de la lista.";
             $messages["{$field}.integer"] = "Elegí {$noun} de la lista.";
             $messages["{$field}.exists"] = "Elegí {$noun} de la lista.";
+        }
+
+        foreach ([
+            'moneda' => ['Elegí ARS o USD.', ['required', 'in']],
+            'plazas' => ['Indicá una cantidad de plazas entera y positiva.', ['required', 'integer', 'between']],
+            'motor' => ['Indicá el motor (hasta 100 caracteres).', ['required', 'string', 'max']],
+            'turbo' => ['Indicá si el motor tiene turbo.', ['required', 'boolean']],
+            'potencia' => ['Indicá una potencia entera y positiva.', ['required', 'integer', 'between']],
+            'potencia_unidad' => ['Elegí CV, HP o kW para la potencia.', ['required', 'in']],
+            'consumo_urbano' => ['Indicá el consumo urbano en L/100 km: mayor que cero y con hasta dos decimales.', ['required_if', 'numeric', 'gt', 'decimal', 'max']],
+            'consumo_ruta' => ['Indicá el consumo en ruta en L/100 km: mayor que cero y con hasta dos decimales.', ['required_if', 'numeric', 'gt', 'decimal', 'max']],
+        ] as $field => [$message, $rules]) {
+            foreach ($rules as $rule) {
+                $messages["{$field}.{$rule}"] = $message;
+            }
         }
 
         return $messages;
