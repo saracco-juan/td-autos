@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { summarizeChecklist } from '../../components/checklist/progress'
+import { summarizeChecklist } from '@shared/checklist/progress'
 import { ALL_CODES, MANDATORY_CODES, STAGES } from './fixtures'
 import { toChecklistSteps } from './checklistSteps'
 import { summaryMessage } from './summaryMessage'

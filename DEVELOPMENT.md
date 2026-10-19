@@ -64,3 +64,5 @@ Pure TypeScript used by both apps, today the diagnosis model (`diagnosis/`: type
 | Engram import / export | `engram sync --import` / `engram sync --project td-autos` | Run from `engram/<name>/` (see `AGENTS.md`). |
 
 With the merge driver registered, uncommitted engram changes can move to another branch: `git stash push -u -- engram/<name>`, `git switch <branch>`, `git stash pop`.
+
+Do not leave engram changes staged, stashed or uncommitted: after every export, commit `engram/<name>/` on the branch you are working on (`chore: sync engram memories`), so the memory travels with that work and a branch switch cannot strand it in a stash.

@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import rowStyles from './checklistRow.module.css'
 import styles from './ChecklistSummaryCards.module.css'
-import type { ChecklistItem } from './types'
+import type { ChecklistItem } from '@shared/checklist/types'
 
 type Props = {
   title: string

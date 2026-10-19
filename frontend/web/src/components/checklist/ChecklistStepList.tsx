@@ -1,7 +1,7 @@
 import { useRef, type KeyboardEvent } from 'react'
 import { stepPanelId, stepTabId } from './ids'
 import styles from './ChecklistStepList.module.css'
-import type { ChecklistStep } from './types'
+import type { ChecklistStep } from '@shared/checklist/types'
 
 export type ListOrientation = 'vertical' | 'horizontal'
 

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import ChecklistStepList from './ChecklistStepList'
-import { STEPS } from './fixtures'
+import { STEPS } from '@shared/checklist/fixtures'
 
 type Props = React.ComponentProps<typeof ChecklistStepList>
 

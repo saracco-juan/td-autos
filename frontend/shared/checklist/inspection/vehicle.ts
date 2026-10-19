@@ -11,3 +11,8 @@ export function vehicleTitle(vehicle: Omit<InspectionVehicle, 'id'>): string {
 
   return title === '' ? VEHICLE_FALLBACK_TITLE : title
 }
+
+// Only a positive integer can be a vehicle id; anything else never reaches the API.
+export function parseVehicleId(raw: string | undefined): number | null {
+  return raw !== undefined && /^[1-9]\d*$/.test(raw) ? Number(raw) : null
+}
