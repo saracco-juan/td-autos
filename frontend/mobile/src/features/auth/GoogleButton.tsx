@@ -46,7 +46,7 @@ export default function GoogleButton({ busy, onPress }: Readonly<Props>) {
         label="CONTINUAR CON GOOGLE"
         busyLabel="ABRIENDO GOOGLE…"
         busy={busy}
-        variant="primary"
+        variant="secondary"
         icon={<GoogleIcon />}
         onPress={onPress}
       />
