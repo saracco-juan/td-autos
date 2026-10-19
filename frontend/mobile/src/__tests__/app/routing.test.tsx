@@ -46,6 +46,23 @@ describe('route guards', () => {
     }
   })
 
+  it('does not 404 when the OS opens the app on the google return route', async () => {
+    const guest = await renderApp('/auth/google?code=abc')
+
+    expect(await screen.findByText('Ingresá a tu cuenta')).toBeOnTheScreen()
+    expect(guest.getPathname()).toBe('/login')
+  })
+
+  it('sends a signed-in user from the google return route to the tabs', async () => {
+    storage.readToken.mockResolvedValue('tok')
+    apiMock.fetchCurrentUser.mockResolvedValue(USER)
+
+    const view = await renderApp('/auth/google')
+
+    expect(await screen.findByText('Próximamente.')).toBeOnTheScreen()
+    expect(view.getPathname()).toBe('/')
+  })
+
   it('TC-83 + TC-84: logging out from Perfil returns to the login and closes the tabs', async () => {
     storage.readToken.mockResolvedValue('tok')
     apiMock.fetchCurrentUser.mockResolvedValue(USER)
