@@ -16,6 +16,8 @@ export const colors = {
   errorBorder: '#f3b5aa',
   successBg: '#e3f4ea',
   successBorder: '#a9d8bc',
+  warningBg: '#fdf1d6',
+  warningBorder: '#efd28f',
 } as const
 
 export const radii = { field: 8, button: 10, card: 14 } as const
