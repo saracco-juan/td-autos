@@ -288,6 +288,22 @@
       "sessions": 1,
       "memories": 5,
       "prompts": 0
+    },
+    {
+      "id": "cce3b114",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T20:44:00.811387Z",
+      "sessions": 1,
+      "memories": 8,
+      "prompts": 0
+    },
+    {
+      "id": "4f130e2c",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T20:44:14.493279Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
