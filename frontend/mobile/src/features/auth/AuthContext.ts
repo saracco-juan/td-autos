@@ -1,5 +1,6 @@
 import { createContext } from 'react'
 
+import type { AuthFetch } from '../../lib/http'
 import type { LoginCredentials, RegisterPayload, User } from './types'
 
 export type AuthStatus = 'loading' | 'authenticated' | 'guest'
@@ -11,6 +12,10 @@ export type AuthContextValue = {
   register: (payload: RegisterPayload) => Promise<void>
   completeGoogle: (code: string) => Promise<void>
   logout: () => Promise<void>
+  // API call with the session token, for feature screens.
+  authFetch: AuthFetch
+  // Reloads GET /api/user into the session (e.g. after saving data that changes its flags). Never rejects.
+  refreshUser: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
