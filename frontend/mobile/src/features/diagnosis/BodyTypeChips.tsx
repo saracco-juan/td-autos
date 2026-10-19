@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { colors } from '../../theme/tokens'
-import type { BodyType } from './types'
+import type { BodyType } from '@shared/diagnosis/types'
 
 type Props = {
   bodyTypes: readonly BodyType[]

@@ -2,7 +2,7 @@ import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
 import * as diagnosisApi from '../../../features/diagnosis/api'
-import type { DiagnosisAnswers, DiagnosisResponse } from '../../../features/diagnosis/types'
+import type { DiagnosisAnswers, DiagnosisResponse } from '@shared/diagnosis/types'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import { renderApp } from '../../../test-utils/renderApp'

@@ -4,7 +4,10 @@
     "strict": true,
     "types": [
       "jest"
-    ]
+    ],
+    "paths": {
+      "@shared/*": ["../shared/*"]
+    }
   },
   "include": [
     "**/*.ts",

@@ -1,5 +1,5 @@
 import { fetchDiagnosis, saveDiagnosis } from '../../../features/diagnosis/api'
-import type { DiagnosisAnswers } from '../../../features/diagnosis/types'
+import type { DiagnosisAnswers } from '@shared/diagnosis/types'
 
 const answers: DiagnosisAnswers = {
   presupuesto: 'hasta_15m',

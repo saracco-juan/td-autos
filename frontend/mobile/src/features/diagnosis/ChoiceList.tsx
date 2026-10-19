@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { colors, radii } from '../../theme/tokens'
-import type { StepOption } from './steps'
+import type { StepOption } from '@shared/diagnosis/steps'
 
 type Props = {
   options: readonly StepOption[]

@@ -18,11 +18,11 @@ import {
   draftFromAnswers,
   isStepAnswered,
   toggleBodyType,
-} from './diagnosisDraft'
+} from '@shared/diagnosis/diagnosisDraft'
 import LoadError, { type LoadErrorKind } from './LoadError'
-import { DIAGNOSIS_STEPS } from './steps'
+import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
 import StepProgress from './StepProgress'
-import type { BodyType, DiagnosisDraft } from './types'
+import type { BodyType, DiagnosisDraft } from '@shared/diagnosis/types'
 
 const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
 const LAST_STEP = DIAGNOSIS_STEPS.length - 1
