@@ -78,6 +78,10 @@ npx expo start
 
 Abrí la app con Expo Go escaneando el QR. El celular y la PC tienen que estar en la misma red Wi-Fi.
 
+La app usa tokens de Sanctum (`/api/mobile/*`), no la cookie de sesión de la web, y solo admite compradores. El link del mail de recuperación abre la pantalla web de restablecimiento.
+
+**Google desde el celular.** Al terminar, el backend vuelve a la app con un código de un solo uso. Solo acepta direcciones de retorno que empiecen con los prefijos de `MOBILE_REDIRECT_PREFIXES` (por defecto `tdautos://`); fuera de producción también acepta `exp://`, que es lo que usa Expo Go. Google no acepta una IP de la red local como URI de redirección, así que para probarlo en el celular hace falta exponer el backend con un túnel HTTPS (por ejemplo `cloudflared tunnel --url http://localhost:8000`). Usá esa URL en `APP_URL` y en `GOOGLE_REDIRECT_URI` (`<url>/auth/google/callback`, registrada en Google Cloud) y en `EXPO_PUBLIC_API_URL`.
+
 ## Comandos útiles
 
 | Parte | Tests | Lint / formato | Build |
