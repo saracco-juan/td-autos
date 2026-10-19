@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use App\Support\Email;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -64,18 +65,54 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // Inactive and Google-only (null password) accounts fail like any other bad credentials.
-        $credentials = [...$this->only('email', 'password'), 'activo' => true];
-
-        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'email' => self::MESSAGE_INVALID_CREDENTIALS,
-            ]);
+        if (! Auth::attempt($this->credentials(), $this->boolean('remember'))) {
+            $this->failAttempt();
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    /**
+     * Check the credentials without starting a session (token clients).
+     *
+     * @throws ValidationException
+     */
+    public function authenticateWithoutSession(): User
+    {
+        $this->ensureIsNotRateLimited();
+
+        $provider = Auth::guard('web')->getProvider();
+        $user = $provider->retrieveByCredentials($this->credentials());
+
+        if ($user === null || ! $provider->validateCredentials($user, $this->credentials())) {
+            $this->failAttempt();
+        }
+
+        RateLimiter::clear($this->throttleKey());
+
+        return $user;
+    }
+
+    /**
+     * Inactive and Google-only (null password) accounts fail like any other bad credentials.
+     *
+     * @return array<string, mixed>
+     */
+    private function credentials(): array
+    {
+        return [...$this->only('email', 'password'), 'activo' => true];
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function failAttempt(): never
+    {
+        RateLimiter::hit($this->throttleKey());
+
+        throw ValidationException::withMessages([
+            'email' => self::MESSAGE_INVALID_CREDENTIALS,
+        ]);
     }
 
     /**
