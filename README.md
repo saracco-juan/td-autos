@@ -13,14 +13,14 @@ El usuario obtiene recomendaciones de vehículos según su perfil; las concesion
 |---------|--------------|-------|
 | [`backend/`](backend) | API REST y modelo de datos | PHP 8.2, Laravel 12, Sanctum, Supabase (PostgreSQL) |
 | [`frontend/web/`](frontend/web) | Aplicación web (SPA) | React 19, TypeScript, Vite |
-| `frontend/mobile/` | App móvil | React Native |
+| [`frontend/mobile/`](frontend/mobile) | App móvil | React Native, Expo, TypeScript |
 
 ## Inicio rápido
 
 ### Requisitos
 
 - PHP 8.2+ y Composer
-- Node.js 20+ y npm
+- Node.js 22.13+ (o 24.3+) y npm: lo exige Expo para la app móvil
 
 ### 1. Backend
 
@@ -62,12 +62,29 @@ npm install
 npm run dev
 ```
 
+### 3. App móvil
+
+```bash
+cd frontend/mobile
+npm install
+cp .env.example .env
+```
+
+El celular no alcanza el `localhost` de la PC: en `.env` poné en `EXPO_PUBLIC_API_URL` la IP de la PC en la red local (por ejemplo `http://192.168.0.10:8000`) y levantá el backend con `php artisan serve --host=0.0.0.0`. Después:
+
+```bash
+npx expo start
+```
+
+Abrí la app con Expo Go escaneando el QR. El celular y la PC tienen que estar en la misma red Wi-Fi.
+
 ## Comandos útiles
 
 | Parte | Tests | Lint / formato | Build |
 |-------|-------|----------------|-------|
 | Backend | `php artisan test` | `./vendor/bin/pint` | — |
 | Frontend web | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` | `npm run build` |
+| App móvil | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` y `npm run typecheck` | `npx expo export --platform android` |
 
 ## Integración continua
 
@@ -77,7 +94,8 @@ El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada
 |-----|--------------|
 | Backend | `./vendor/bin/pint --test` y `php artisan test` con cobertura |
 | Frontend web | `npm run lint`, `npm run test:coverage` y `npm run build` |
-| SonarQube Cloud | Análisis estático y cobertura de ambas partes, configurado en [`sonar-project.properties`](sonar-project.properties) |
+| App móvil | `npm run lint`, `npm run typecheck`, `npm run test:coverage` y `npx expo export --platform android` |
+| SonarQube Cloud | Análisis estático y cobertura de los tres proyectos, configurado en [`sonar-project.properties`](sonar-project.properties) |
 
 El job de SonarQube Cloud necesita el secret `SONAR_TOKEN` en el repositorio de GitHub y no corre en pull requests abiertos desde forks.
 
