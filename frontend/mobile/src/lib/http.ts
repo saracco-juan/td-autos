@@ -20,12 +20,15 @@ export class NetworkError extends Error {
   }
 }
 
-type RequestOptions = {
+export type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: unknown
   // Sanctum API token: sent as a bearer credential.
   token?: string | null
 }
+
+// A call made on behalf of the signed-in user: the session supplies the token.
+export type AuthFetch = <T>(path: string, options?: Omit<RequestOptions, 'token'>) => Promise<T>
 
 async function parseBody(response: Response): Promise<unknown> {
   const text = await response.text()

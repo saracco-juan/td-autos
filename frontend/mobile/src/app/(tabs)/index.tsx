@@ -1,5 +1,5 @@
-import ComingSoon from '../../components/ComingSoon'
+import DiagnosisScreen from '../../features/diagnosis/DiagnosisScreen'
 
 export default function DiagnosticoTab() {
-  return <ComingSoon title="Diagnóstico" />
+  return <DiagnosisScreen />
 }

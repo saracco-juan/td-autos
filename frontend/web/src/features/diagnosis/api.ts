@@ -1,5 +1,5 @@
 import { apiFetch } from '../../lib/http'
-import type { DiagnosisAnswers, DiagnosisResponse } from './types'
+import type { DiagnosisAnswers, DiagnosisResponse } from '@shared/diagnosis/types'
 
 export function fetchDiagnosis(): Promise<DiagnosisResponse> {
   return apiFetch<DiagnosisResponse>('/api/diagnostico')

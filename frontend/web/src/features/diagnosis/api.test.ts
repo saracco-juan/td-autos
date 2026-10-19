@@ -4,7 +4,7 @@ vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
 
 import { apiFetch } from '../../lib/http'
 import { fetchDiagnosis, saveDiagnosis } from './api'
-import type { DiagnosisAnswers } from './types'
+import type { DiagnosisAnswers } from '@shared/diagnosis/types'
 
 const answers: DiagnosisAnswers = {
   presupuesto: 'mas_40m',

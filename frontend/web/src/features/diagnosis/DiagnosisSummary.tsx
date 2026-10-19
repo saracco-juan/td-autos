@@ -1,6 +1,6 @@
-import { DIAGNOSIS_STEPS } from './steps'
-import { SUMMARY_IN_PROGRESS, summaryValue } from './diagnosisDraft'
-import type { BodyType, DiagnosisDraft } from './types'
+import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
+import { SUMMARY_IN_PROGRESS, summaryValue } from '@shared/diagnosis/diagnosisDraft'
+import type { BodyType, DiagnosisDraft } from '@shared/diagnosis/types'
 import styles from './DiagnosisSummary.module.css'
 
 type Props = {

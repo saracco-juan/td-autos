@@ -1,14 +1,17 @@
 import { fireEvent, screen, waitFor } from 'expo-router/testing-library'
 
 import * as api from '../../features/auth/api'
+import * as diagnosisApi from '../../features/diagnosis/api'
 import * as tokenStorage from '../../lib/tokenStorage'
 import { renderApp } from '../../test-utils/renderApp'
 
 jest.mock('../../features/auth/api')
+jest.mock('../../features/diagnosis/api')
 jest.mock('../../lib/tokenStorage')
 
 const apiMock = jest.mocked(api)
 const storage = jest.mocked(tokenStorage)
+const diagnosis = jest.mocked(diagnosisApi)
 
 const USER = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
 
@@ -16,6 +19,7 @@ describe('route guards', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     storage.readToken.mockResolvedValue(null)
+    diagnosis.fetchDiagnosis.mockResolvedValue({ diagnostico: null, carrocerias: [] })
   })
 
   it('sends a guest to the login screen', async () => {
@@ -33,13 +37,13 @@ describe('route guards', () => {
     expect(screen.queryByText('CERRAR SESIÓN')).not.toBeOnTheScreen()
   })
 
-  it('lands a signed-in user on the first tab with the five tabs in the bar', async () => {
+  it('lands a signed-in user on the diagnosis tab with the five tabs in the bar', async () => {
     storage.readToken.mockResolvedValue('tok')
     apiMock.fetchCurrentUser.mockResolvedValue(USER)
 
     const view = await renderApp('/')
 
-    expect(await screen.findByText('Próximamente.')).toBeOnTheScreen()
+    expect(await screen.findByText('DIAGNÓSTICO DE NECESIDADES')).toBeOnTheScreen()
     expect(view.getPathname()).toBe('/')
     for (const label of ['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia', 'Perfil']) {
       expect(screen.getByRole('button', { name: new RegExp(`^${label},`) })).toBeOnTheScreen()
@@ -59,7 +63,7 @@ describe('route guards', () => {
 
     const view = await renderApp('/auth/google')
 
-    expect(await screen.findByText('Próximamente.')).toBeOnTheScreen()
+    expect(await screen.findByText('DIAGNÓSTICO DE NECESIDADES')).toBeOnTheScreen()
     expect(view.getPathname()).toBe('/')
   })
 

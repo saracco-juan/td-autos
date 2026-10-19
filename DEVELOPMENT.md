@@ -45,6 +45,14 @@ For a URL that does not change, use a named Cloudflare tunnel (account and own d
 
 The backend has its own public HTTPS URL, so no tunnel is needed: `GOOGLE_REDIRECT_URI` points to it and serves web and app, `GOOGLE_MOBILE_REDIRECT_URI` stays empty (falls back to it), and Google Cloud holds a single callback URI. The built app returns through `tdautos://` (`MOBILE_REDIRECT_PREFIXES`); `exp://` (Expo Go) is only accepted outside production.
 
+## Code shared by web and mobile (`frontend/shared/`)
+
+Pure TypeScript used by both apps, today the diagnosis model (`diagnosis/`: types, questions, draft rules). It must not import React, React Native or any npm package: neither app installs dependencies for that folder.
+
+- Import it as `@shared/<path>` (for example `@shared/diagnosis/steps`). Web resolves the alias in `tsconfig.app.json` `paths` and `vite.config.ts` `resolve.alias` (plus `server.fs.allow` for the dev server). Mobile resolves it from `tsconfig.json` `paths`, which Expo Metro and `jest-expo` read; `metro.config.js` adds the folder to `watchFolders`. The shared folder has no `node_modules`, so whatever its files import (Babel runtime helpers included) is resolved from the app's own `node_modules`: `metro.config.js` `resolver.nodeModulesPaths` and `jest.config.js` `modulePaths`. Keep shared code free of npm imports.
+- Its unit tests (`*.test.ts` next to the code) run in the web suite (`vitest.config.ts` `include`), which also reports their coverage. Their `vitest` import resolves through a `paths` entry in `tsconfig.app.json`. CI rewrites the `../shared/` lcov paths to `frontend/shared/` for SonarQube Cloud. Mobile only tests its screens.
+- ESLint does not reach this folder (each config stops at its app root); web `tsc -b` type-checks it.
+
 ## Scripts and commands
 
 | What | Command | Notes |

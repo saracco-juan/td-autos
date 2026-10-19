@@ -10,6 +10,7 @@ type Props = {
   // Shown instead of `label` while `busy` (e.g. "INGRESANDO…").
   busyLabel?: string
   busy?: boolean
+  disabled?: boolean
   variant?: Variant
   icon?: ReactNode
   onPress: () => void
@@ -22,15 +23,24 @@ const BORDER: Record<Variant, string> = {
 }
 
 // Soft look for every variant (DESIGN.md "Buttons"): white surface, thin border, soft shadow, dark label.
-export default function Button({ label, busyLabel, busy = false, variant = 'secondary', icon, onPress }: Readonly<Props>) {
+export default function Button({
+  label,
+  busyLabel,
+  busy = false,
+  disabled = false,
+  variant = 'secondary',
+  icon,
+  onPress,
+}: Readonly<Props>) {
+  const inactive = busy || disabled
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ busy, disabled: busy }}
-      disabled={busy}
+      accessibilityState={{ busy, disabled: inactive }}
+      disabled={inactive}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, { borderColor: BORDER[variant] }, pressed && styles.pressed, busy && styles.busy]}
+      style={({ pressed }) => [styles.button, { borderColor: BORDER[variant] }, pressed && styles.pressed, inactive && styles.busy]}
     >
       <View style={styles.content}>
         {busy ? <ActivityIndicator size="small" color={colors.textPrimary} /> : icon}
