@@ -21,19 +21,22 @@ export type TextFieldProps = Pick<
   trailing?: ReactNode
   // Shown between the field and its errors (e.g. the password checklist).
   hint?: ReactNode
+  // Shown for reference only (e.g. the login email): not editable, secondary text on a lighter border.
+  readOnly?: boolean
 }
 
 // Figma "Input": 12 medium label above a 48 high field (radius 8) on the base background.
-export default function TextField({ label, errors, trailing, hint, ...input }: TextFieldProps) {
+export default function TextField({ label, errors, trailing, hint, readOnly = false, ...input }: TextFieldProps) {
   const invalid = errors !== undefined && errors.length > 0
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.field, invalid && styles.invalid]}>
+      <View style={[styles.field, readOnly && styles.readOnlyField, invalid && styles.invalid]}>
         <TextInput
           {...input}
           accessibilityLabel={label}
-          style={styles.input}
+          editable={!readOnly}
+          style={[styles.input, readOnly && styles.readOnlyInput]}
           placeholderTextColor={colors.textSecondary}
         />
         {trailing}
@@ -63,7 +66,9 @@ const styles = StyleSheet.create({
     borderRadius: radii.field,
     backgroundColor: colors.background,
   },
+  readOnlyField: { borderColor: colors.borderDefault },
   invalid: { borderColor: colors.red },
   input: { flex: 1, height: '100%', paddingRight: 12, color: colors.textPrimary, fontSize: 14 },
+  readOnlyInput: { color: colors.textSecondary },
   error: { color: colors.red, fontSize: 12 },
 })
