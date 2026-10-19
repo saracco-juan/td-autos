@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 use Throwable;
 
 class GoogleAuthController extends Controller
@@ -65,7 +66,7 @@ class GoogleAuthController extends Controller
             is_string($from) && in_array($from, self::ORIGINS, true) ? $from : self::ORIGIN_REGISTER,
         );
 
-        return Socialite::driver('google')
+        return $this->google($mobile)
             ->with(['prompt' => 'select_account'])
             ->redirect();
     }
@@ -84,7 +85,7 @@ class GoogleAuthController extends Controller
         }
 
         try {
-            $profile = GoogleProfile::fromSocialite(Socialite::driver('google')->user());
+            $profile = GoogleProfile::fromSocialite($this->google($client === self::CLIENT_MOBILE)->user());
             $user = $resolver->resolve($profile);
         } catch (GoogleEmailConflictException) {
             return $this->failure($origin, self::ERROR_EMAIL_IN_USE, $appReturnTo);
@@ -105,6 +106,27 @@ class GoogleAuthController extends Controller
         $request->session()->regenerate();
 
         return redirect()->away($this->frontendUrl('/'));
+    }
+
+    /**
+     * Google must call back the host that started the flow: its session cookie holds the OAuth state.
+     *
+     * @return AbstractProvider
+     */
+    private function google(bool $mobile)
+    {
+        $google = Socialite::driver('google');
+
+        if ($mobile) {
+            $google->redirectUrl($this->mobileRedirectUri());
+        }
+
+        return $google;
+    }
+
+    private function mobileRedirectUri(): string
+    {
+        return (string) (config('services.google.mobile_redirect') ?: config('services.google.redirect'));
     }
 
     private function failure(string $origin, string $code, ?string $appReturnTo = null): RedirectResponse
