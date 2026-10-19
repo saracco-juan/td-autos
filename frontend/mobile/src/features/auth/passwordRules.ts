@@ -34,7 +34,7 @@ export const PASSWORD_RULES: readonly PasswordRule[] = [
     id: 'number',
     label: 'Un número',
     message: 'La contraseña debe incluir al menos un número.',
-    test: (value) => /[0-9]/.test(value),
+    test: (value) => /\d/.test(value),
   },
 ]
 

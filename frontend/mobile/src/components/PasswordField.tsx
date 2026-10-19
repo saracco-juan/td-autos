@@ -6,7 +6,7 @@ import { colors } from '../theme/tokens'
 import TextField, { type TextFieldProps } from './TextField'
 
 // A text field that hides its value, with the Figma eye toggle to show it.
-export default function PasswordField(props: Omit<TextFieldProps, 'secureTextEntry' | 'trailing'>) {
+export default function PasswordField(props: Readonly<Omit<TextFieldProps, 'secureTextEntry' | 'trailing'>>) {
   const [visible, setVisible] = useState(false)
   return (
     <TextField

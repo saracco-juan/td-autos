@@ -34,7 +34,7 @@ type Props = {
 }
 
 // Figma "Auth/Social · Google": divider "o" plus the CONTINUAR CON GOOGLE button.
-export default function GoogleButton({ busy, onPress }: Props) {
+export default function GoogleButton({ busy, onPress }: Readonly<Props>) {
   return (
     <View style={styles.wrapper}>
       <View style={styles.divider}>

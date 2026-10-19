@@ -5,7 +5,7 @@ import { colors } from '../../theme/tokens'
 import { PASSWORD_RULES } from './passwordRules'
 
 // Always-visible checklist (Figma "Requisitos"): each requirement turns green as soon as it is met.
-export default function PasswordRequirements({ password }: { password: string }) {
+export default function PasswordRequirements({ password }: Readonly<{ password: string }>) {
   return (
     <View accessibilityLabel="Requisitos de la contraseña" style={styles.list}>
       {PASSWORD_RULES.map((rule) => {
