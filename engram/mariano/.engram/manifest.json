@@ -16,6 +16,14 @@
       "sessions": 2,
       "memories": 216,
       "prompts": 111
+    },
+    {
+      "id": "0394e4a8",
+      "created_by": "Compumar",
+      "created_at": "2026-10-19T23:56:46.4985702Z",
+      "sessions": 1,
+      "memories": 21,
+      "prompts": 2
     }
   ]
 }
