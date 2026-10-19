@@ -33,83 +33,91 @@ export type DiagnosisStep = SingleChoiceStep | BodyTypeStep
 export const BODY_TYPE_MIN = 1
 export const BODY_TYPE_MAX = 2
 
+type StepText = Pick<StepBase, 'title' | 'subtitle' | 'summaryLabel'>
+
+// Options are written as [code, label] pairs: the catalog stays compact and each step reads as one block.
+function singleChoice<F extends ScalarField>(
+  field: F,
+  text: StepText,
+  options: readonly (readonly [DiagnosisAnswers[F], string])[],
+): SingleChoiceStep {
+  const step = { kind: 'single' as const, field, ...text, options: options.map(([code, label]) => ({ code, label })) }
+  // TS cannot match a generic F against the per-field union; the shape is the same.
+  return step as SingleChoiceStep
+}
+
 export const DIAGNOSIS_STEPS: readonly DiagnosisStep[] = [
-  {
-    kind: 'single',
-    field: 'presupuesto',
-    title: '¿Cuál es tu presupuesto máximo?',
-    subtitle: 'Incluí solo el valor del vehículo. Los gastos de compra los calculamos después.',
-    summaryLabel: 'Presupuesto',
-    options: [
-      { code: 'hasta_15m', label: 'Hasta $15.000.000' },
-      { code: '15m_25m', label: '$15.000.000 a $25.000.000' },
-      { code: '25m_40m', label: '$25.000.000 a $40.000.000' },
-      { code: 'mas_40m', label: 'Más de $40.000.000' },
+  singleChoice(
+    'presupuesto',
+    {
+      title: '¿Cuál es tu presupuesto máximo?',
+      subtitle: 'Incluí solo el valor del vehículo. Los gastos de compra los calculamos después.',
+      summaryLabel: 'Presupuesto',
+    },
+    [
+      ['hasta_15m', 'Hasta $15.000.000'],
+      ['15m_25m', '$15.000.000 a $25.000.000'],
+      ['25m_40m', '$25.000.000 a $40.000.000'],
+      ['mas_40m', 'Más de $40.000.000'],
     ],
-  },
-  {
-    kind: 'single',
-    field: 'uso_principal',
-    title: '¿Para qué vas a usar el auto principalmente?',
-    subtitle: 'Elegí la opción que mejor describe tu uso habitual.',
-    summaryLabel: 'Uso principal',
-    options: [
-      { code: 'ciudad', label: 'Ciudad y trayectos cortos' },
-      { code: 'ruta', label: 'Viajes por ruta' },
-      { code: 'mixto', label: 'Uso mixto' },
-      { code: 'trabajo', label: 'Trabajo y carga' },
+  ),
+  singleChoice(
+    'uso_principal',
+    {
+      title: '¿Para qué vas a usar el auto principalmente?',
+      subtitle: 'Elegí la opción que mejor describe tu uso habitual.',
+      summaryLabel: 'Uso principal',
+    },
+    [
+      ['ciudad', 'Ciudad y trayectos cortos'],
+      ['ruta', 'Viajes por ruta'],
+      ['mixto', 'Uso mixto'],
+      ['trabajo', 'Trabajo y carga'],
     ],
-  },
-  {
-    kind: 'single',
-    field: 'pasajeros',
-    title: '¿Cuántas personas viajan habitualmente?',
-    subtitle: 'Incluyendo al conductor.',
-    summaryLabel: 'Pasajeros',
-    options: [
-      { code: '1_2', label: '1 o 2' },
-      { code: '3_4', label: '3 o 4' },
-      { code: '5_mas', label: '5 o más' },
+  ),
+  singleChoice(
+    'pasajeros',
+    { title: '¿Cuántas personas viajan habitualmente?', subtitle: 'Incluyendo al conductor.', summaryLabel: 'Pasajeros' },
+    [
+      ['1_2', '1 o 2'],
+      ['3_4', '3 o 4'],
+      ['5_mas', '5 o más'],
     ],
-  },
-  {
-    kind: 'single',
-    field: 'kilometros_mensuales',
-    title: '¿Cuántos kilómetros hacés por mes?',
-    subtitle: 'Una estimación alcanza.',
-    summaryLabel: 'Kilómetros mensuales',
-    options: [
-      { code: 'menos_500', label: 'Menos de 500 km' },
-      { code: '500_1500', label: 'Entre 500 y 1.500 km' },
-      { code: '1500_3000', label: 'Entre 1.500 y 3.000 km' },
-      { code: 'mas_3000', label: 'Más de 3.000 km' },
-      { code: 'no_sabe', label: 'No lo sé' },
+  ),
+  singleChoice(
+    'kilometros_mensuales',
+    {
+      title: '¿Cuántos kilómetros hacés por mes?',
+      subtitle: 'Una estimación alcanza.',
+      summaryLabel: 'Kilómetros mensuales',
+    },
+    [
+      ['menos_500', 'Menos de 500 km'],
+      ['500_1500', 'Entre 500 y 1.500 km'],
+      ['1500_3000', 'Entre 1.500 y 3.000 km'],
+      ['mas_3000', 'Más de 3.000 km'],
+      ['no_sabe', 'No lo sé'],
     ],
-  },
-  {
-    kind: 'single',
-    field: 'transmision',
-    title: '¿Qué transmisión preferís?',
-    summaryLabel: 'Transmisión',
-    options: [
-      { code: 'manual', label: 'Manual' },
-      { code: 'automatica', label: 'Automática' },
-      { code: 'indiferente', label: 'Me da igual' },
+  ),
+  singleChoice('transmision', { title: '¿Qué transmisión preferís?', summaryLabel: 'Transmisión' }, [
+    ['manual', 'Manual'],
+    ['automatica', 'Automática'],
+    ['indiferente', 'Me da igual'],
+  ]),
+  singleChoice(
+    'prioridad',
+    {
+      title: '¿Qué es lo más importante para vos?',
+      subtitle: 'Elegí la prioridad que más pesa en tu decisión.',
+      summaryLabel: 'Prioridad',
+    },
+    [
+      ['consumo', 'Consumo bajo'],
+      ['seguridad', 'Seguridad'],
+      ['mantenimiento', 'Mantenimiento económico'],
+      ['reventa', 'Buena reventa'],
     ],
-  },
-  {
-    kind: 'single',
-    field: 'prioridad',
-    title: '¿Qué es lo más importante para vos?',
-    subtitle: 'Elegí la prioridad que más pesa en tu decisión.',
-    summaryLabel: 'Prioridad',
-    options: [
-      { code: 'consumo', label: 'Consumo bajo' },
-      { code: 'seguridad', label: 'Seguridad' },
-      { code: 'mantenimiento', label: 'Mantenimiento económico' },
-      { code: 'reventa', label: 'Buena reventa' },
-    ],
-  },
+  ),
   {
     kind: 'multi',
     field: 'carrocerias',
