@@ -9,6 +9,7 @@ use App\Http\Controllers\ConcesionariaVehiculoImportController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\Mobile\MobileAuthController;
+use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
@@ -20,6 +21,7 @@ Route::prefix('mobile')->name('mobile.')->group(function () {
     Route::post('/register', [MobileAuthController::class, 'register'])->name('register');
     Route::post('/login', [MobileAuthController::class, 'login'])->name('login');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::post('/google/exchange', [MobileGoogleController::class, 'exchange'])->name('google.exchange');
     Route::post('/logout', [MobileAuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 });
 
