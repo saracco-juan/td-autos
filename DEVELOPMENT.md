@@ -56,3 +56,25 @@ The backend has its own public HTTPS URL, so no tunnel is needed: `GOOGLE_REDIRE
 | Engram import / export | `engram sync --import` / `engram sync --project td-autos` | Run from `engram/<name>/` (see `AGENTS.md`). |
 
 With the merge driver registered, uncommitted engram changes can move to another branch: `git stash push -u -- engram/<name>`, `git switch <branch>`, `git stash pop`.
+
+## HU05 vehicle facts — storage stage
+
+The additive matching-facts migration and `Vehiculo` casts store actual seats, turbo, power unit,
+urban/road consumption (L/100 km), and declared safety/comfort equipment. Existing `moneda`,
+`motor` and `potencia` columns are reused. Consumption uses two-decimal precision.
+
+New columns are nullable without defaults: `null` means unknown, `false` means explicitly absent.
+No existing vehicle is backfilled from its body type, model or brand. `volante_regulable` means
+both height and reach adjustment; `aire_acondicionado` covers AC or climate control. A single
+`android_auto_apple_carplay` flag means at least one platform is present. No API, form, CSV or matching changes yet.
+
+To verify storage and a forward/rollback cycle without touching a configured database:
+
+```bash
+cd backend
+php artisan test --filter=VehiculoMatchingFactsTest
+```
+
+The tests use SQLite in memory. They check known/unknown values, types and preservation of existing
+rows; rollback removes only the new columns (and their values). PostgreSQL DDL is compiled without
+connecting; PostgreSQL execution is not covered. Publication requirements and data entry follow later.
