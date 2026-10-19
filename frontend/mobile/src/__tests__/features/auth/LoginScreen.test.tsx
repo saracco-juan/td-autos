@@ -1,11 +1,13 @@
 import { fireEvent, screen, waitFor } from 'expo-router/testing-library'
 
 import * as api from '../../../features/auth/api'
+import * as diagnosisApi from '../../../features/diagnosis/api'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import { renderApp } from '../../../test-utils/renderApp'
 
 jest.mock('../../../features/auth/api')
+jest.mock('../../../features/diagnosis/api')
 jest.mock('../../../lib/tokenStorage')
 
 const apiMock = jest.mocked(api)
@@ -23,6 +25,7 @@ describe('LoginScreen', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     storage.readToken.mockResolvedValue(null)
+    jest.mocked(diagnosisApi).fetchDiagnosis.mockResolvedValue({ diagnostico: null, carrocerias: [] })
   })
 
   it('shows the Figma copy: title, subtitle, fields, actions and links', async () => {
@@ -46,7 +49,7 @@ describe('LoginScreen', () => {
 
     await fillAndSubmit(' ana@example.com ', 'Abcdefg1')
 
-    expect(await screen.findByText('Próximamente.')).toBeOnTheScreen()
+    expect(await screen.findByText('DIAGNÓSTICO DE NECESIDADES')).toBeOnTheScreen()
     expect(apiMock.loginWithPassword).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'Abcdefg1' })
     expect(storage.saveToken).toHaveBeenCalledWith('tok')
   })

@@ -1,11 +1,13 @@
 import { fireEvent, screen } from 'expo-router/testing-library'
 
 import * as api from '../../../features/auth/api'
+import * as diagnosisApi from '../../../features/diagnosis/api'
 import { HttpError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import { renderApp } from '../../../test-utils/renderApp'
 
 jest.mock('../../../features/auth/api')
+jest.mock('../../../features/diagnosis/api')
 jest.mock('../../../lib/tokenStorage')
 
 const apiMock = jest.mocked(api)
@@ -32,6 +34,7 @@ describe('RegisterScreen', () => {
   beforeEach(async () => {
     jest.resetAllMocks()
     storage.readToken.mockResolvedValue(null)
+    jest.mocked(diagnosisApi).fetchDiagnosis.mockResolvedValue({ diagnostico: null, carrocerias: [] })
     await renderApp('/registro')
     await screen.findByText('Registrá tu cuenta')
   })
@@ -76,7 +79,7 @@ describe('RegisterScreen', () => {
 
     await submit({ ...VALID, name: '  Ana Pérez ', email: ' ana@example.com ' })
 
-    expect(await screen.findByText('Próximamente.')).toBeOnTheScreen()
+    expect(await screen.findByText('DIAGNÓSTICO DE NECESIDADES')).toBeOnTheScreen()
     expect(apiMock.registerWithPassword).toHaveBeenCalledWith({
       name: 'Ana Pérez',
       email: 'ana@example.com',
