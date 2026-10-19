@@ -2,16 +2,28 @@
 
 use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteController;
 use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\BusquedaController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
+use App\Http\Controllers\Mobile\MobileAuthController;
+use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Token API for the mobile app (stateless: bearer tokens, no session or CSRF).
+Route::prefix('mobile')->name('mobile.')->group(function () {
+    Route::post('/register', [MobileAuthController::class, 'register'])->name('register');
+    Route::post('/login', [MobileAuthController::class, 'login'])->name('login');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::post('/google/exchange', [MobileGoogleController::class, 'exchange'])->name('google.exchange');
+    Route::post('/logout', [MobileAuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
+});
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {

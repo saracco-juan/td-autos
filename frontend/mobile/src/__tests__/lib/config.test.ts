@@ -1,4 +1,4 @@
-import { resolveApiUrl } from './config'
+import { resolveApiUrl } from '../../lib/config'
 
 describe('resolveApiUrl', () => {
   it('falls back to the local backend when the variable is not set', () => {

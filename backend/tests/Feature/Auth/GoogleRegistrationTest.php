@@ -182,6 +182,19 @@ class GoogleRegistrationTest extends TestCase
         $this->assertNotNull(session('state'));
     }
 
+    public function test_web_redirect_keeps_the_web_callback_when_a_mobile_one_is_configured(): void
+    {
+        config([
+            'services.google.redirect' => 'http://localhost/auth/google/callback',
+            'services.google.mobile_redirect' => 'https://tunnel.example/auth/google/callback',
+        ]);
+
+        $location = $this->get(route('auth.google.redirect'))->headers->get('Location');
+
+        parse_str((string) parse_url((string) $location, PHP_URL_QUERY), $query);
+        $this->assertSame('http://localhost/auth/google/callback', $query['redirect_uri']);
+    }
+
     public function test_google_email_is_stored_lowercase(): void
     {
         $this->mockProvider()->shouldReceive('user')->once()->andReturn($this->googleUser(email: 'G@X.com'));
