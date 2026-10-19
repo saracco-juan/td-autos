@@ -1,5 +1,3 @@
-import { Text } from 'react-native'
+import LoginScreen from '../../features/auth/LoginScreen'
 
-export default function Login() {
-  return <Text>Ingresá a tu cuenta</Text>
-}
+export default LoginScreen

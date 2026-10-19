@@ -10,7 +10,7 @@ type Props = {
 // Message box: tinted background, dark text. The tint carries the meaning (DESIGN.md "Feedback").
 export default function Alert({ variant, children }: Props) {
   return (
-    <View accessibilityRole="alert" style={[styles.box, variant === 'error' ? styles.error : styles.success]}>
+    <View accessible accessibilityRole="alert" style={[styles.box, variant === 'error' ? styles.error : styles.success]}>
       <Text style={styles.text}>{children}</Text>
     </View>
   )

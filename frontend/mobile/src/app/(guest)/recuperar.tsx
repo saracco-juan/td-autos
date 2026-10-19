@@ -1,5 +1,3 @@
-import { Text } from 'react-native'
+import RecoveryScreen from '../../features/auth/RecoveryScreen'
 
-export default function Recuperar() {
-  return <Text>Recuperá tu contraseña</Text>
-}
+export default RecoveryScreen

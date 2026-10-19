@@ -1,5 +1,3 @@
-import { Text } from 'react-native'
+import RegisterScreen from '../../features/auth/RegisterScreen'
 
-export default function Registro() {
-  return <Text>Registrá tu cuenta</Text>
-}
+export default RegisterScreen
