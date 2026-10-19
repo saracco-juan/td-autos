@@ -20,7 +20,7 @@ El usuario obtiene recomendaciones de vehículos según su perfil; las concesion
 ### Requisitos
 
 - PHP 8.2+ y Composer
-- Node.js 20+ y npm
+- Node.js 22.13+ (o 24.3+) y npm: lo exige Expo para la app móvil
 
 ### 1. Backend
 
