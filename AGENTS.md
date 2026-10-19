@@ -11,7 +11,7 @@ The project documentation lives OUTSIDE this repo. Before specifying, designing,
 | Need | Source | Locator |
 | --- | --- | --- |
 | User stories (UH) and acceptance criteria, backlog status | Trello board `PSF-BACKLOG-GIARDINA-SARACCO` | https://trello.com/b/tiQ2nN2X/psf-backlog-giardina-saracco |
-| Web screens (layout, copy, components) | Figma `Wireframes - TD Autos`, page `TD Autos · Wireframes High v2` only | https://www.figma.com/design/VKiAV7F3snjPJLbMrRPxjQ/Wireframes---TD-Autos?node-id=38-44 |
+| Web and mobile screens (layout, copy, components) | Figma `Wireframes - TD Autos`, page `TD Autos · Wireframes High v3` only | https://www.figma.com/design/VKiAV7F3snjPJLbMrRPxjQ/Wireframes---TD-Autos?node-id=2372-7219 |
 | Web requirements | Google Sheet `Requerimientos WEB - TD Autos` | https://docs.google.com/spreadsheets/d/1_unTYmivAD-yEDpvHelcsHBdb6isv44Tj98pxf2m5_0 |
 | Mobile functional requirements | Google Sheet `Requerimientos funcionales Mobile - TD Autos` | https://docs.google.com/spreadsheets/d/18r_mz4NGhyQ53WvN172vjoNqsARAIB5b6n1aTdEMNQg |
 | Use cases (CU) | Google Sheet `Casos de uso - TD Autos` | https://docs.google.com/spreadsheets/d/1QBfeZ0yG1FMUKzNeCoNXuBDpblcGRJJDz5Jj964_3jw |
@@ -25,7 +25,7 @@ The project documentation lives OUTSIDE this repo. Before specifying, designing,
 Rules:
 
 - Any task tied to a story (UH), requirement (RF), use case (CU) or test case (TC) starts by reading that item in its source. Quote its id in specs and tests, and reference the story in the commit footer as `README.md` describes.
-- Any web screen starts by reading its Figma node. Ignore the legacy Figma page `TD Autos . Wireframes Medium Web` (nodes `2141:*`).
+- Any web screen starts by reading its Figma node. Ignore the legacy Figma pages `TD Autos · Wireframes High v2` and `TD Autos . Wireframes Medium Web` (nodes `2141:*`).
 - Only files inside the Drive folder above are valid. Files elsewhere in Drive with similar names are stale copies.
 - If two sources disagree, stop and report the conflict instead of picking one. Known inconsistencies are tracked in Trello card #78.
 - If a source cannot be reached (connector not authorized, no permission), say exactly which one failed and continue only with work that does not depend on it.
@@ -60,4 +60,4 @@ Agent memory travels between machines through the repo, one folder per developer
 - Whenever a screen ends up different from its Figma frame (something was missing, was wrong, or was changed), write the decision down when it is made: screen, Figma frame, what Figma shows, what was implemented and why.
 - The last step of a story that touched a screen is to apply those decisions to the Figma file, so Figma stays the visual source of truth. Present the list of changes to the developer and wait for approval before editing Figma.
 - A screen decision applies to web and mobile by default, even when the story covers one platform: the list of changes says, for each item, what happens on each platform (apply, pending because the frame does not exist yet, or not applicable with the reason). Only layout that exists on a single platform stays on that platform.
-- Edit only the page `TD Autos · Wireframes High v2`. If Figma cannot be edited, report which changes are pending and add them to the Trello card that tracks Figma follow-ups.
+- Edit only the page `TD Autos · Wireframes High v3`. If Figma cannot be edited, report which changes are pending and add them to the Trello card that tracks Figma follow-ups.
