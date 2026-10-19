@@ -4,9 +4,9 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchInspection, finishInspection, setItemCompleted } from './api'
-import { CRITICAL_CODES, inspectionResponse } from './fixtures'
+import { CRITICAL_CODES, inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import InspectionPage from './InspectionPage'
-import type { InspectionProgress, InspectionResponse } from './types'
+import type { InspectionProgress, InspectionResponse } from '@shared/checklist/inspection/types'
 
 vi.mock('./api', () => ({ fetchInspection: vi.fn(), setItemCompleted: vi.fn(), finishInspection: vi.fn() }))
 

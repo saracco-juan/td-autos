@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import styles from './ChecklistColumns.module.css'
-import { longestStepSize } from './progress'
-import type { ChecklistStep } from './types'
+import { longestStepSize } from '@shared/checklist/progress'
+import type { ChecklistStep } from '@shared/checklist/types'
 
 type Props = {
   steps: ChecklistStep[]

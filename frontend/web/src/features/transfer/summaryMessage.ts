@@ -1,4 +1,4 @@
-import type { ChecklistSummary } from '../../components/checklist/progress'
+import type { ChecklistSummary } from '@shared/checklist/progress'
 
 export type SummaryMessage = { tone: 'success' | 'warning'; text: string }
 

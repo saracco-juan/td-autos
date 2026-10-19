@@ -1,5 +1,5 @@
 import { apiFetch } from '../../lib/http'
-import type { InspectionProgress, InspectionResponse } from './types'
+import type { InspectionProgress, InspectionResponse } from '@shared/checklist/inspection/types'
 
 export function fetchInspection(vehicleId: number): Promise<InspectionResponse> {
   return apiFetch<InspectionResponse>(`/api/vehiculos/${vehicleId}/inspeccion`)

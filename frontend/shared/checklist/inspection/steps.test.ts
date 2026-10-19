@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toChecklistSteps } from './checklistSteps'
+import { toChecklistSteps } from './steps'
 import { STEPS } from './fixtures'
 
 describe('toChecklistSteps', () => {

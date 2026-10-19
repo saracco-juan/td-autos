@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
-import { CRITICAL_CODES, STEPS, VEHICLE } from './fixtures'
+import { CRITICAL_CODES, STEPS, VEHICLE } from '@shared/checklist/inspection/fixtures'
 import InspectionSummary from './InspectionSummary'
 
 const ALL_CODES = STEPS.flatMap((step) => step.items.map((item) => item.codigo))

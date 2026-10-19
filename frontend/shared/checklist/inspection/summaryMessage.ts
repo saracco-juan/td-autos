@@ -1,4 +1,5 @@
-import type { ChecklistSummary } from '../../components/checklist/progress'
+import type { ChecklistSummary } from '../progress'
+import type { ChecklistItem } from '../types'
 
 export type SummaryMessage = { tone: 'success' | 'warning'; text: string }
 
@@ -31,4 +32,13 @@ export function summaryMessage(progress: ChecklistSummary): SummaryMessage {
   }
   const ofThem = critical === 1 ? '1 de ellos crítico' : `${critical} de ellos críticos`
   return { tone: 'warning', text: `${prefix} te quedan ${pending} puntos sin revisar, ${ofThem}.` }
+}
+
+// The items the pending card lists: only the critical ones when any is pending (D6 lists the rest otherwise).
+export function summaryPendingItems(progress: ChecklistSummary): { critical: boolean; items: ChecklistItem[] } {
+  const critical = progress.pendingFlagged > 0
+  return {
+    critical,
+    items: critical ? progress.pendingFlaggedFirst.filter((item) => item.flagged) : progress.pending,
+  }
 }

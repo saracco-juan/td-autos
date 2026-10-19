@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { VEHICLE_FALLBACK_TITLE, vehicleTitle } from './progress'
+import { VEHICLE_FALLBACK_TITLE, parseVehicleId, vehicleTitle } from './vehicle'
 
 describe('vehicleTitle', () => {
   it('joins brand, model, version and year with single spaces', () => {
@@ -26,5 +26,18 @@ describe('vehicleTitle', () => {
 
     expect(vehicleTitle(empty)).toBe('Vehículo')
     expect(VEHICLE_FALLBACK_TITLE).toBe('Vehículo')
+  })
+})
+
+describe('parseVehicleId', () => {
+  it('accepts a positive integer', () => {
+    expect(parseVehicleId('7')).toBe(7)
+    expect(parseVehicleId('120')).toBe(120)
+  })
+
+  it('rejects anything that cannot be a vehicle id', () => {
+    for (const raw of [undefined, '', '0', '07', '-3', '1.5', 'abc', '7a']) {
+      expect(parseVehicleId(raw)).toBeNull()
+    }
   })
 })
