@@ -20,6 +20,16 @@ trait InteractsWithVehiculos
     /** 1x1 transparent PNG; real image bytes so the `image` rule passes without GD. */
     private const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
+    /** UH-5: explicit synthetic declarations, not equipment inferred from a real model. */
+    private const EQUIPMENT_FIELDS = [
+        'control_estabilidad', 'frenos_abs', 'airbags_frontales', 'airbags_laterales',
+        'airbags_cortina', 'isofix', 'frenado_autonomo', 'asistencia_carril',
+        'punto_ciego', 'recordatorio_cinturon', 'asistencia_velocidad', 'monitoreo_conductor',
+        'volante_regulable', 'climatizador_bizona', 'butacas_calefaccionadas',
+        'android_auto_apple_carplay', 'sensores_estacionamiento', 'velocidad_crucero',
+        'camara_retroceso', 'aire_acondicionado',
+    ];
+
     private string $disk;
 
     protected function setUpInteractsWithVehiculos(): void
@@ -67,6 +77,7 @@ trait InteractsWithVehiculos
             'ubicacion' => 'Córdoba',
             'descripcion' => 'Único dueño.',
             'fotos' => $this->photos(7),
+            ...array_fill_keys(self::EQUIPMENT_FIELDS, false),
             ...$overrides,
         ];
     }

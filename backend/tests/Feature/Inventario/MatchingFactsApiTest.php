@@ -52,6 +52,7 @@ class MatchingFactsApiTest extends TestCase
             'moneda' => 'ARS', 'plazas' => 7, 'motor' => '2.0T', 'turbo' => '1',
             'potencia' => 140, 'potencia_unidad' => 'kW',
             'consumo_urbano' => 9.75, 'consumo_ruta' => 6.25,
+            'android_auto_apple_carplay' => true,
         ]);
         unset($edited['fotos']);
         $facts = array_intersect_key($edited, array_flip(self::FIELDS));

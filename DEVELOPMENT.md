@@ -92,7 +92,29 @@ Create, update, show and list return these facts; unknown legacy values remain n
 stored as declared, without conversion. Existing ownership, plate, photo and transaction rules stay.
 API requests opt into the shared rules; CSV retains its existing contract until its own stage.
 The older web form cannot submit the new required facts yet: do not deploy the intermediate chain.
-Equipment validation, form controls and matching scores are not part of this stage.
+Form controls and matching scores remain in later stages.
+
+### UH-5 safety and comfort — equipment API stage
+
+Create/update also require all 20 equipment fields below, even when the answer is no.
+Send JSON `true`/`false` or multipart `1`/`0`; omission, null, empty text and other values return
+HTTP 422 with an explanatory Spanish message in `errors.<field>`. No vehicle, ownership or photo
+changes are saved on rejection. The frontend stage must display the reason in an alert and beside
+the affected controls; this backend stage does not add that UI.
+
+| Group | Required fields |
+| --- | --- |
+| Safety | `control_estabilidad`, `frenos_abs`, `airbags_frontales`, `airbags_laterales`, `airbags_cortina`, `isofix`, `frenado_autonomo`, `asistencia_carril`, `punto_ciego`, `recordatorio_cinturon` |
+| Additional safety | `asistencia_velocidad`, `monitoreo_conductor` |
+| Comfort | `volante_regulable`, `climatizador_bizona`, `butacas_calefaccionadas`, `android_auto_apple_carplay`, `sensores_estacionamiento`, `velocidad_crucero`, `camara_retroceso` |
+| Usage equipment | `aire_acondicionado` |
+
+Connectivity is **one** answer: true if either Android Auto or Apple CarPlay is present.
+Steering adjustment means both height and reach; front airbags cover driver and passenger.
+Lane equipment means alert or assistance; air conditioning includes a climate-control system.
+Responses return boolean values, while existing unknown equipment remains null until explicitly
+declared. No equipment is inferred from a model or body type, and no legacy rows are backfilled.
+CSV rules/template remain unchanged until their own stage.
 
 ### Manual API check
 
@@ -131,6 +153,13 @@ await (async () => {
     potencia: 170, potencia_unidad: 'CV', consumo_urbano: 8.5, consumo_ruta: 6.2,
     transmision: 'automatica', combustible: 'nafta', ubicacion: 'Córdoba',
     carroceria_id: options.carrocerias[0].id,
+    // Synthetic test declarations; these are not a Corolla specification.
+    control_estabilidad: 1, frenos_abs: 1, airbags_frontales: 1, airbags_laterales: 0,
+    airbags_cortina: 0, isofix: 1, frenado_autonomo: 0, asistencia_carril: 0,
+    punto_ciego: 0, recordatorio_cinturon: 1, asistencia_velocidad: 0, monitoreo_conductor: 0,
+    volante_regulable: 1, climatizador_bizona: 0, butacas_calefaccionadas: 0,
+    android_auto_apple_carplay: 1, sensores_estacionamiento: 0, velocidad_crucero: 1,
+    camara_retroceso: 0, aire_acondicionado: 1,
   };
   const form = new FormData();
   Object.entries(fields).forEach(([key, value]) => form.append(key, String(value)));
@@ -140,6 +169,12 @@ await (async () => {
   if (created.status !== 201) throw new Error('Fixture creation failed; inspect the logged response.');
   const path = `/api/concesionaria/vehiculos/${created.data.vehiculo.id}`;
   try {
+    const incomplete = { ...fields };
+    delete incomplete.android_auto_apple_carplay;
+    await call(path, 'POST', incomplete); // 422, errors.android_auto_apple_carplay explains the missing answer
+    await call(path, 'POST', { ...fields, frenos_abs: null }); // 422, errors.frenos_abs; null is not false
+    await call(path); // 200, connectivity and ABS still true; seven photos unchanged
+    await call(path, 'POST', { ...fields, android_auto_apple_carplay: false }); // 200, explicit false persisted
     await call(path, 'POST', { ...fields, plazas: 0 }); // 422, errors.plazas, nothing changed
     await call(path); // 200, still 5 seats and seven photos
     await call(path, 'POST', { ...fields, moneda: 'ARS', precio: 25000000, plazas: 7, turbo: true }); // 200, updated facts
@@ -151,3 +186,4 @@ await (async () => {
 ```
 
 Automated check: `cd backend; php artisan test --filter=MatchingFactsApiTest` (SQLite in memory).
+Equipment check: `php artisan test --filter=EquipmentApiTest` from `backend` (SQLite in memory).

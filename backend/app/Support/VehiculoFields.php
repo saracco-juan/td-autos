@@ -16,6 +16,30 @@ final class VehiculoFields
 
     public const PATENTE_TAKEN_MESSAGE = 'Esa patente ya está cargada en la plataforma.';
 
+    /** Equipment keys and human-readable labels shared by validation and presentation. */
+    public const EQUIPMENT_FIELDS = [
+        'control_estabilidad' => 'control de estabilidad',
+        'frenos_abs' => 'frenos ABS',
+        'airbags_frontales' => 'airbags frontales para conductor y acompañante',
+        'airbags_laterales' => 'airbags laterales',
+        'airbags_cortina' => 'airbags de cortina',
+        'isofix' => 'anclajes ISOFIX',
+        'frenado_autonomo' => 'frenado autónomo de emergencia',
+        'asistencia_carril' => 'alerta o asistencia de carril',
+        'punto_ciego' => 'alerta de punto ciego',
+        'recordatorio_cinturon' => 'recordatorio de cinturón',
+        'asistencia_velocidad' => 'asistencia de velocidad',
+        'monitoreo_conductor' => 'monitoreo del conductor',
+        'volante_regulable' => 'volante regulable en altura y profundidad',
+        'climatizador_bizona' => 'climatizador bizona',
+        'butacas_calefaccionadas' => 'butacas calefaccionadas',
+        'android_auto_apple_carplay' => 'Android Auto o Apple CarPlay',
+        'sensores_estacionamiento' => 'sensores de estacionamiento',
+        'velocidad_crucero' => 'velocidad crucero',
+        'camara_retroceso' => 'cámara de retroceso',
+        'aire_acondicionado' => 'aire acondicionado o climatizador',
+    ];
+
     /**
      * Text columns: noun phrase used in the messages and maximum length.
      *
@@ -93,6 +117,9 @@ final class VehiculoFields
             foreach (['consumo_urbano', 'consumo_ruta'] as $field) {
                 $rules[$field] = ['required_if:combustible,nafta,diesel', 'nullable', 'numeric', 'gt:0', 'decimal:0,2', 'max:9999.99'];
             }
+            foreach (array_keys(self::EQUIPMENT_FIELDS) as $field) {
+                $rules[$field] = ['required', 'boolean'];
+            }
         }
 
         return $rules;
@@ -135,6 +162,7 @@ final class VehiculoFields
                 'transmision', 'combustible', 'ubicacion', 'descripcion',
                 'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
                 'consumo_urbano', 'consumo_ruta',
+                ...array_keys(self::EQUIPMENT_FIELDS),
             ])),
             'tipo_carroceria_id' => $validated['carroceria_id'],
         ];
@@ -184,6 +212,11 @@ final class VehiculoFields
             foreach ($rules as $rule) {
                 $messages["{$field}.{$rule}"] = $message;
             }
+        }
+
+        foreach (self::EQUIPMENT_FIELDS as $field => $label) {
+            $messages["{$field}.required"] = "Indicá si tiene {$label} (sí o no).";
+            $messages["{$field}.boolean"] = "Indicá si tiene {$label} (sí o no).";
         }
 
         return $messages;

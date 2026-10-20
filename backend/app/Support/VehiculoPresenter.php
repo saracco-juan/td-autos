@@ -43,6 +43,7 @@ final class VehiculoPresenter
             'potencia_unidad' => $vehiculo->potencia_unidad,
             'consumo_urbano' => $vehiculo->consumo_urbano === null ? null : $vehiculo->consumo_urbano + 0,
             'consumo_ruta' => $vehiculo->consumo_ruta === null ? null : $vehiculo->consumo_ruta + 0,
+            ...$vehiculo->only(array_keys(VehiculoFields::EQUIPMENT_FIELDS)),
             'carroceria' => $body ? ['id' => $body->id, 'nombre' => $body->nombre] : null,
             'ubicacion' => $vehiculo->ubicacion,
             'descripcion' => $vehiculo->descripcion,

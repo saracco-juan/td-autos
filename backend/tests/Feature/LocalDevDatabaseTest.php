@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Concesionaria;
 use App\Models\Vehiculo;
+use App\Support\VehiculoFields;
 use App\Support\VehiculoOptions;
 use Database\Seeders\DemoDealersSeeder;
 use Illuminate\Database\Connection;
@@ -141,6 +142,7 @@ class LocalDevDatabaseTest extends TestCase
                         'moneda' => $vehicle->moneda, 'plazas' => 5, 'motor' => 'Test engine',
                         'turbo' => false, 'potencia' => 100, 'potencia_unidad' => 'CV',
                         'consumo_urbano' => 8.5, 'consumo_ruta' => 6.2,
+                        ...array_fill_keys(array_keys(VehiculoFields::EQUIPMENT_FIELDS), false),
                     ];
                     $this->postJson($url, $fields)->assertOk()->assertJsonCount(7, 'vehiculo.fotos')
                         ->assertJsonPath('vehiculo.plazas', 5)->assertJsonPath('vehiculo.turbo', false);
