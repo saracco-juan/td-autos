@@ -4,7 +4,8 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchBodyTypes, type VehicleSubmission } from './api'
-import { inactiveBody, vehiculo } from './fixtures'
+import { inactiveBody, MATCHING_FACTS, vehiculo } from './fixtures'
+import { matchingValues } from './matchingFields'
 import VehicleForm from './VehicleForm'
 import { emptyValues, valuesFromVehicle, type VehicleValues } from './vehicleFields'
 
@@ -47,6 +48,9 @@ function fillValid() {
   fill('Combustible', 'nafta')
   fill('Carrocería', '1')
   fill('Ubicación', 'Córdoba')
+  for (const [key, value] of Object.entries(matchingValues(MATCHING_FACTS))) {
+    fireEvent.change(document.getElementById(`vehicle-${key}`)!, { target: { value } })
+  }
 }
 
 const submitButton = () => screen.getByRole('button', { name: /GUARD/ })
@@ -95,6 +99,28 @@ describe('VehicleForm', () => {
   })
 
   describe('layout and fields', () => {
+    it('HU05: requires explicit facts, preserves edits and explains a server rejection', async () => {
+      const submit = await renderForm({
+        values: valuesFromVehicle(vehiculo()),
+        photos: vehiculo().fotos,
+        onSubmit: () => Promise.reject(new HttpError(422, { errors: { plazas: ['Revisá las plazas informadas.'] } })),
+      })
+      fill('Plazas (incluye conductor)', '')
+      await userEvent.setup().click(submitButton())
+      expect(submit).not.toHaveBeenCalled()
+      expect(screen.getByRole('alert')).toHaveTextContent(/plazas/i)
+      expect(within(screen.getByRole('group', { name: 'Acciones' })).getByRole('alert')).toBeVisible()
+      expect(screen.getByLabelText('Plazas (incluye conductor)')).toHaveFocus()
+      fill('Plazas (incluye conductor)', '6')
+      fill('Android Auto o Apple CarPlay', '0')
+      await userEvent.setup().click(submitButton())
+      expect(submit).toHaveBeenCalledTimes(1)
+      expect(await screen.findByRole('alert')).toHaveTextContent('Revisá las plazas informadas.')
+      expect(screen.getByLabelText('Plazas (incluye conductor)')).toHaveAccessibleDescription('Revisá las plazas informadas.')
+      expect(screen.getByLabelText('Android Auto o Apple CarPlay')).toHaveValue('0')
+      expect(screen.getAllByRole('img')).toHaveLength(7)
+    })
+
     it('renders the fields in order with their labels, and the actions of Figma 38:923', async () => {
       await renderForm()
 
@@ -251,7 +277,7 @@ describe('VehicleForm', () => {
       expect(screen.getByLabelText('Modelo')).toHaveAccessibleDescription('Indicá el modelo.')
       expect(screen.getByText('Cada foto tiene que ser una imagen JPG, PNG o WebP.')).toBeInTheDocument()
       expect(submitButton()).toBeEnabled()
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent('Esa patente ya está cargada en la plataforma.')
     })
 
     it('shows a filled error near the actions on a network failure and keeps everything', async () => {

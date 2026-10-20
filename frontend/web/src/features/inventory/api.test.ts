@@ -81,6 +81,7 @@ describe('inventory api', () => {
       const data = buildVehicleFormData({ values, newPhotos: [], removedPhotoIds: [] })
 
       expect(Object.fromEntries(data.entries())).toEqual({
+        ...emptyValues(),
         patente: 'AB123CD',
         marca: 'Toyota',
         modelo: 'Corolla',

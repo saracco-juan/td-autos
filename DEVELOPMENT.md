@@ -187,3 +187,15 @@ await (async () => {
 
 Automated check: `cd backend; php artisan test --filter=MatchingFactsApiTest` (SQLite in memory).
 Equipment check: `php artisan test --filter=EquipmentApiTest` from `backend` (SQLite in memory).
+
+### HU05 stage 4 — manual creation and editing
+
+Use only a disposable local database and an active dealer account. CSV import and the public vehicle detail (HU09) are outside this stage.
+
+1. Open CARGAR VEHÍCULO. Complete basic data, currency, total seats including the driver, engine, turbo, power and unit. Enter urban/road consumption in L/100 km (required for petrol/diesel; optional otherwise), explicitly answer every safety/comfort field, and add seven photos. Android Auto or Apple CarPlay is one yes/no answer, not two.
+2. Leave a required answer empty and save: the request is blocked, focus moves to the first error, and the pinned alert explains why. Selecting No is valid; missing data is never inferred from the model.
+3. Save, reopen EDITAR and check every answer and photo. Change a yes to No and save again: No must survive reloading. For a USD vehicle, the inventory shows `US$` without converting its amount.
+4. With a local API test double returning 422 and `errors.plazas`, save valid data: the same reason appears beside seats and in the alert; values/photos remain available for correction.
+
+Automated check from `frontend/web`: `npx vitest run src/features/inventory`.
+Browser check: 1280×800, 768×1024 and 375×812; no horizontal page overflow, readable sections and visible pinned actions/alert.

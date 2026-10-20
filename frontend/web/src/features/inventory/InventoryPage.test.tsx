@@ -105,6 +105,13 @@ describe('InventoryPage', () => {
     expect(screen.getByRole('row', { name: 'Toyota Corolla 2021' })).toBeInTheDocument()
   })
 
+  it('labels a published dollar price without converting it to pesos', async () => {
+    vi.mocked(fetchVehicles).mockResolvedValue([vehiculo({ moneda: 'USD', precio: 18500 })])
+    await loaded()
+
+    expect(within(rowOf(COROLLA)).getByRole('cell', { name: 'US$ 18.500' })).toBeInTheDocument()
+  })
+
   it('shows the empty state with the load action when there are no vehicles', async () => {
     vi.mocked(fetchVehicles).mockResolvedValue([])
     renderPage()

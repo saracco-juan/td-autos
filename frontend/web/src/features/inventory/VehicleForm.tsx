@@ -7,7 +7,7 @@ import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
 import type { BodyType } from '../diagnosis/types'
 import SessionLoading from '../auth/session/SessionLoading'
-import SelectField from '../auth/shared/SelectField'
+import SelectField, { type SelectOption } from '../auth/shared/SelectField'
 import TextAreaField from '../auth/shared/TextAreaField'
 import TextField from '../auth/shared/TextField'
 import { fetchBodyTypes, type VehicleSubmission } from './api'
@@ -18,6 +18,7 @@ import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
 import type { FotoVehiculo } from './types'
 import { usePhotoDraft } from './usePhotoDraft'
 import VehicleFormPage from './VehicleFormPage'
+import { EQUIPMENT_GROUPS, YES_NO } from './matchingFields'
 import styles from './VehicleForm.module.css'
 import {
   COMBUSTIBLE_OPTIONS,
@@ -96,7 +97,10 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
   const showErrors = (found: VehicleErrors) => {
     setErrors(found)
     const first = firstInvalidField(found)
-    if (first) focusField(first)
+    if (first) {
+      setFormError(`No se guardó el vehículo. ${found[first]?.join(' ')}`)
+      focusField(first)
+    }
     return first !== undefined
   }
 
@@ -152,20 +156,35 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
   )
 
   const actions = (
-    <div className={barStyles.actions}>
-      <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}>
-        CANCELAR
-      </Link>
-      <button
-        type="submit"
-        form={formId}
-        disabled={submitting}
-        aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
-      >
-        {submitting ? 'GUARDANDO…' : submitLabel}
-      </button>
+    <div className={styles.actionArea}>
+      {formError ? <p role="alert" className={alertStyles.alert}>{formError}</p> : null}
+      <div className={barStyles.actions}>
+        <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}>
+          CANCELAR
+        </Link>
+        <button
+          type="submit"
+          form={formId}
+          disabled={submitting}
+          aria-busy={submitting}
+          className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+        >
+          {submitting ? 'GUARDANDO…' : submitLabel}
+        </button>
+      </div>
     </div>
+  )
+
+  const choice = (name: VehicleFieldName, label: string, options: SelectOption[]) => (
+    <SelectField
+      id={fieldId(name)}
+      name={name}
+      label={label}
+      value={values[name]}
+      options={options}
+      errors={errors[name]}
+      onChange={handleChange(name)}
+    />
   )
 
   return (
@@ -173,6 +192,7 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
       <form id={formId} noValidate onSubmit={(event) => void handleSubmit(event)} className={styles.form}>
         <div className={styles.body}>
           <div className={styles.fields}>
+            <h2 className={styles.sectionTitle}>Datos del vehículo</h2>
             {text('patente', 'Patente')}
             {text('marca', 'Marca')}
             {text('modelo', 'Modelo')}
@@ -218,15 +238,30 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
                 onChange={handleChange('descripcion')}
               />
             </div>
+            <h2 className={styles.sectionTitle}>Especificaciones</h2>
+            {choice('moneda', 'Moneda del precio', [{ value: 'ARS', label: 'Pesos (ARS)' }, { value: 'USD', label: 'Dólares (USD)' }])}
+            {text('plazas', 'Plazas (incluye conductor)', 'numeric')}
+            {text('motor', 'Motor (ej. 1.8)')}
+            {choice('turbo', 'Turbo', YES_NO)}
+            {text('potencia', 'Potencia', 'numeric')}
+            {choice('potencia_unidad', 'Unidad de potencia', ['CV', 'HP', 'kW'].map((value) => ({ value, label: value })))}
+            <h2 className={styles.sectionTitle}>Consumo</h2>
+            <p className={styles.fullRow}>Informá L/100 km. Obligatorio para nafta y diésel; opcional para los demás combustibles.</p>
+            {text('consumo_urbano', 'Consumo urbano (L/100 km)', 'decimal')}
+            {text('consumo_ruta', 'Consumo en ruta (L/100 km)', 'decimal')}
+            <p className={styles.fullRow}>En equipamiento, elegí sí o no en cada dato. Android Auto o Apple CarPlay: sí si tiene al menos uno.</p>
+            {Object.entries(EQUIPMENT_GROUPS).map(([group, fields]) => (
+              <section className={styles.fullRow} key={group} aria-label={group}>
+                <h2 className={styles.sectionTitle}>{group}</h2>
+                <div className={styles.fields}>
+                  {fields.map(([key, label]) => <div key={key}>{choice(key, label, YES_NO)}</div>)}
+                </div>
+              </section>
+            ))}
           </div>
           <PhotoPicker draft={draft} errors={errors.fotos} />
         </div>
         {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
-        {formError ? (
-          <p role="alert" className={alertStyles.alert}>
-            {formError}
-          </p>
-        ) : null}
       </form>
     </VehicleFormPage>
   )

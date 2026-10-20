@@ -4,7 +4,8 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../lib/http'
 import { createVehicle, fetchBodyTypes } from './api'
-import { vehiculo } from './fixtures'
+import { MATCHING_FACTS, vehiculo } from './fixtures'
+import { matchingValues } from './matchingFields'
 import NewVehiclePage from './NewVehiclePage'
 
 vi.mock('./api', () => ({ createVehicle: vi.fn(), fetchBodyTypes: vi.fn() }))
@@ -39,6 +40,9 @@ async function fillAndAddPhotos() {
   fill('Combustible', 'nafta')
   fill('Carrocería', '1')
   fill('Ubicación', 'Córdoba')
+  for (const [key, value] of Object.entries(matchingValues(MATCHING_FACTS))) {
+    fireEvent.change(document.getElementById(`vehicle-${key}`)!, { target: { value } })
+  }
   const photos = Array.from({ length: 7 }, (_, index) => new File(['x'], `f${index}.jpg`, { type: 'image/jpeg' }))
   await userEvent.setup().upload(screen.getByLabelText('AGREGAR IMAGEN'), photos)
   return photos

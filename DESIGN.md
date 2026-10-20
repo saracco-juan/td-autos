@@ -53,3 +53,10 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 ## Platforms
 
 - A screen decision applies to web and mobile by default; only layout that exists on one platform (desktop sidebar, bottom tab bar) stays on that platform.
+
+## HU05 manual vehicle facts — pending Figma approval (2026-10-20)
+
+- High v3 create `2373:8756` and edit `2373:8835` show the previous basic fields. Web now groups basic data, specifications, consumption, safety and comfort in the existing responsive grid. All yes/no answers start unselected; Android Auto or Apple CarPlay is one answer. Mobile: apply the same fields when its form is implemented.
+- Validation explains the rejection beside the field and above the pinned actions, keeping the reason visible after focus moves. Service-error states remain code-only under Feedback.
+- Inventory `2373:8733` shows `$` prices. Web keeps that for ARS and uses `US$` for USD without conversion; mobile inventory should use the same distinction. Public vehicle detail remains HU09.
+- No Figma file was modified. Synchronizing these business fields and currency labels requires developer approval.

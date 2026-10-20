@@ -24,6 +24,18 @@
   grid-column: 1 / -1;
 }
 
+.sectionTitle {
+  grid-column: 1 / -1;
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.actionArea {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
 @media (max-width: 1000px) {
   .body {
     grid-template-columns: minmax(0, 1fr);

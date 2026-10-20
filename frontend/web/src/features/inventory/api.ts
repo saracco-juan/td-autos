@@ -28,7 +28,7 @@ export function buildVehicleFormData({ values, newPhotos, removedPhotoIds }: Veh
   for (const [name, value] of Object.entries(values)) {
     const text = value.trim()
     if (name === 'patente') data.append(name, normalizePlate(text))
-    else if (name === 'precio') data.append(name, text.replace(',', '.'))
+    else if (['precio', 'consumo_urbano', 'consumo_ruta'].includes(name)) data.append(name, text.replace(',', '.'))
     else data.append(name, text)
   }
   for (const file of newPhotos) data.append('fotos[]', file)

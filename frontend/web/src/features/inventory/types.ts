@@ -1,3 +1,5 @@
+import type { MatchingFacts } from './matchingFields'
+
 export type Transmision = 'manual' | 'automatica'
 export type Combustible = 'nafta' | 'diesel' | 'gnc' | 'hibrido' | 'electrico'
 
@@ -13,14 +15,14 @@ export type Vehiculo = {
   anio: number
   kilometraje: number
   precio: number
-  moneda: 'ARS'
+  moneda: 'ARS' | 'USD'
   transmision: Transmision
   combustible: Combustible
   carroceria: { id: number; nombre: string } | null
   ubicacion: string
   descripcion: string | null
   fotos: FotoVehiculo[]
-}
+} & Partial<MatchingFacts>
 
 export type VehiculosResponse = { vehiculos: Vehiculo[] }
 export type VehiculoResponse = { vehiculo: Vehiculo }

@@ -1,7 +1,16 @@
 import type { Vehiculo } from './types'
+import { EQUIPMENT_FIELDS } from './matchingFields'
+
+// Synthetic, explicitly declared test facts; never inferred from the example model.
+export const MATCHING_FACTS = {
+  moneda: 'ARS' as const, plazas: 5, motor: '1.8', turbo: false, potencia: 140, potencia_unidad: 'CV' as const,
+  consumo_urbano: 8, consumo_ruta: 6,
+  ...Object.fromEntries(EQUIPMENT_FIELDS.map(([key]) => [key, false])),
+}
 
 export function vehiculo(overrides: Partial<Vehiculo> = {}): Vehiculo {
   return {
+    ...MATCHING_FACTS,
     id: 1,
     patente: 'AB123CD',
     marca: 'Toyota',
