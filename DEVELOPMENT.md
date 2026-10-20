@@ -209,3 +209,30 @@ Use only a disposable local test inventory. Start the API and web as described i
 3. Reimport that plate with different facts: preview must report an update; confirmation must overwrite those facts and photos, not create a duplicate. Blank GNC consumptions clear previous values.
 4. Leave one equipment cell blank or enter `tal vez`: the alert must name its row and field, with no partial import. An old template must request the updated download. `sí`/`si` and `no` are explicit answers; blank is never “no.”
 5. The manual form displays power in CV and converts declared HP/kW on edit. CSV keeps an explicit `potencia_unidad` (CV/HP/kW), so enter the unit that actually belongs to the supplied number.
+
+## HU05 local demo smoke test
+
+The README's `db:local --vehiculos=100` rebuilds **only its target SQLite file**: 4 demo dealer vehicles plus 100 volume vehicles. Run it only when discarding that local demo is intended. It does not migrate Supabase.
+
+To keep the normal `.env` untouched, use an ignored `.env.demo` with the README's SQLite/public/local settings, its own local `APP_KEY`, `APP_ENV=demo`, and `APP_CONFIG_CACHE=bootstrap/cache/demo-config.php` (no cached remote configuration). Generate the local key with `php artisan key:generate --env=demo`. The prepared demo on this workstation already has this file.
+
+Start from `backend/` in PowerShell:
+
+```powershell
+$env:APP_ENV = 'demo'
+php artisan serve --env=demo --host=localhost --port=8000
+```
+
+If uploads produce `PHP Request Startup: file created in the system's temporary directory`, PHP's configured `upload_tmp_dir` is invalid or inaccessible. The notice can corrupt JSON, hiding useful validation errors. Stop **your** server; use a writable temp directory for this process only, without changing global PHP settings:
+
+```powershell
+# From backend/, with APP_ENV=demo still set:
+Set-Location public
+php -d "upload_tmp_dir=$env:TEMP" -S localhost:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php
+```
+
+Start Vite as in README. Sign in as `pampa@demo.tdautos.test` / `TdAutos2026!`. Edit a seeded car: all matching fields must already be filled and seven photos must load. Create another with all fields and seven local PNG files; reopen it and verify the facts/photos. Download the CSV template, fill two synthetic rows (e.g. USD/nafta and ARS/GNC) and seven accessible image URLs each. Preview must not write; confirmation must create both cars. An empty equipment answer must show its row and field and prevent confirmation.
+
+Use `http://localhost:8000/storage/vehiculos/volumen/foto-1.png` through `foto-7.png` as persistent local test URLs after the volume seed. GNC can leave both L/100 km fields empty; explicit `no` must survive import and editing.
+
+Supabase follow-up at HU05 closure: review pending Laravel migrations, then—with separate authorization for the target environment—apply non-destructive migrations and smoke-test login, create/edit, CSV and Storage. Never run `db:local` or `migrate:fresh` against Supabase. Local PostgreSQL DDL compilation is useful but does not prove live connectivity, schema state or Storage permissions.

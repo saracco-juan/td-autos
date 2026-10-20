@@ -48,7 +48,11 @@ VEHICLE_PHOTOS_DISK=public
 RECEIPTS_DISK=local
 ```
 
-Ejecutar `php artisan storage:link` para servir las fotos locales. Para el frontend de Vite, usar `FRONTEND_URL=http://localhost:5173`. Las concesionarias activas de demo son `pampa` y `litoral`: entrar con una de ellas, abrir Inventario, editar un vehículo, comprobar sus siete fotos y guardar un precio distinto. Al volver a abrirlo deben conservarse el precio y las fotos. Un vehículo histórico sin carrocería debe abrir con la selección vacía y exigir completarla antes de guardar. HU05 continúa pendiente.
+Ejecutar `php artisan storage:link` para servir las fotos locales. Para el frontend de Vite, usar `FRONTEND_URL=http://localhost:5173`. Las concesionarias activas de demo son `pampa` y `litoral`: entrar con una de ellas, abrir Inventario, editar un vehículo, comprobar sus siete fotos y guardar un precio distinto. Al volver a abrirlo deben conservarse el precio y las fotos. Un vehículo histórico sin carrocería debe abrir con la selección vacía y exigir completarla antes de guardar.
+
+Los vehículos de demo y de volumen incluyen los nuevos atributos de HU05: plazas, motor, turbo, potencia en CV, consumos y todas las respuestas de seguridad/confort (Android Auto o Apple CarPlay es un único sí/no). Onix y Corolla de demo tienen cinco plazas. Son **perfiles sintéticos de prueba**, no fichas técnicas verificadas: el aviso también aparece en su descripción. Los consumos de nafta/diésel están en L/100 km; GNC queda sin litros informados. No se completan automáticamente vehículos de otras bases ni publicaciones reales.
+
+Una demo moderada se reconstruye con `php artisan db:local --vehiculos=100`: deja los 4 autos de las concesionarias de demo más 100 de volumen. Para importar, descargar la plantilla actual desde Inventario → Importar y usar siete URLs accesibles de fotos por fila; la importación conserva las URLs, mientras la carga manual sube los archivos. También se pueden reutilizar las imágenes PNG de `backend/database/seeders/assets/demo-vehicles/` al crear un vehículo manualmente.
 
 Cuentas de demo (contraseña `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` y las concesionarias `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` y `litoral` con el sufijo `@demo.tdautos.test`.
 
