@@ -24,6 +24,14 @@
       "sessions": 1,
       "memories": 21,
       "prompts": 2
+    },
+    {
+      "id": "ba528cda",
+      "created_by": "Compumar",
+      "created_at": "2026-10-20T00:01:01.1863857Z",
+      "sessions": 1,
+      "memories": 4,
+      "prompts": 1
     }
   ]
 }
