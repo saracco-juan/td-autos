@@ -57,6 +57,24 @@ The backend has its own public HTTPS URL, so no tunnel is needed: `GOOGLE_REDIRE
 
 With the merge driver registered, uncommitted engram changes can move to another branch: `git stash push -u -- engram/<name>`, `git switch <branch>`, `git stash pop`.
 
+## HU05 safety, comfort and usage — stage 8
+
+`App\Services\Matching\VehicleSuitabilityScorer` composes declared equipment with the unchanged `RunningRequirementsScorer`. It is pure and does not activate an endpoint, ranking, screen or eligibility filter. Pass the calendar year explicitly.
+
+| Score | Composition (points, not measured safety ratings) |
+| --- | --- |
+| Safety | ESC25, ABS15, front airbags15, side5, curtain5, ISOFIX5, AEB15, lane5, blind spot5, belt reminder5; speed assistance+2 and driver monitoring+3, capped at100 |
+| General comfort | Steering height/reach20, dual-zone15, heated seats10, Android Auto OR CarPlay15, sensors10, cruise15, rear camera15 |
+| Contextual equipment | AC OR climate40 and connectivity20; city adds sensors20/camera20, road adds cruise40 |
+| Base use | City:60% consumption +40% equipment; road:40% consumption +40% safety +20% equipment; mixed:mean of city/road scores; work:50% maintenance +50% mixed consumption |
+| Adjusted use | `(1-alpha)*base + alpha*mean(contextual consumption, maintenance)`; monthly codes `menos_500`/`no_sabe`:0%, `500_1500`:5%, `1500_3000`:10%, `mas_3000`:15% |
+
+`usageScore($vehicle, $use, $monthly, $currentYear)` returns the adjusted use component without rounding; its outer ranking weight remains for a later stage. Work is unchanged by adjustment. Mixed base use averages city/road **scores**, while its consumption component still averages physical readings before banding. An automatic at its best has97.5 maintenance points, so positive adjustment prevents100 usage; do not silently relax the later overbudget gate.
+
+`safetyScore`, `comfortScore` and city/road-only `equipmentScore` expose the individual groups. Unknown facts produce `null` when the selected formula needs them, not zero. In the climate OR group one known true resolves an unknown other flag; both flags true still count once. Connectivity is one existing yes/no field. Publication validation and later full-inventory eligibility remain separate.
+
+No new UI to inspect. From `backend`, run `php artisan test --filter=VehicleSuitabilityScorerTest`. A vehicle with all equipment, urban6/road12 and maintenance43.125 scores100/76/88/51.5625 for city/road/mixed/work with no distance adjustment; mixed becomes82.534375 for `mas_3000`. The unit test needs no database or credentials.
+
 ## HU05 consumption and maintenance — stage 7
 
 `App\Services\Matching\RunningRequirementsScorer` is a pure backend service. It reads the existing normalized `Vehiculo` facts without modifying them. No endpoint, ranking or screen is connected in this stage.
