@@ -320,6 +320,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "c725313b",
+      "created_by": "Juan",
+      "created_at": "2026-10-20T23:02:18Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
