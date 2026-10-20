@@ -1,11 +1,10 @@
 import { StyleSheet, Text } from 'react-native'
 
-import { FLAG_LABEL } from '@shared/checklist/inspection/copy'
 import { colors } from '../../theme/tokens'
 
-// Red "CRÍTICO" pill of a critical item (Figma 07).
-export default function FlagBadge() {
-  return <Text style={styles.badge}>{FLAG_LABEL}</Text>
+// Red pill of a flagged item ("CRÍTICO", "OBLIGATORIO"); the label comes from the feature.
+export default function FlagBadge({ label }: Readonly<{ label: string }>) {
+  return <Text style={styles.badge}>{label}</Text>
 }
 
 const styles = StyleSheet.create({

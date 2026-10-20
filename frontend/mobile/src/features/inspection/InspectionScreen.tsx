@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native'
 
 import Alert from '../../components/Alert'
+import ActionBar from '../../components/checklist/ActionBar'
+import StepPanel from '../../components/checklist/StepPanel'
+import StepPills from '../../components/checklist/StepPills'
+import { useChecklistAutosave } from '../../components/checklist/useChecklistAutosave'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
 import { HttpError, NetworkError } from '../../lib/http'
@@ -10,17 +14,20 @@ import { useAuth } from '../auth/useAuth'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { withCode } from '@shared/checklist/autosave'
 import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '@shared/checklist/progress'
-import { SUMMARY_LABELS, criticalWarning } from '@shared/checklist/inspection/copy'
+import {
+  ACTION_LABELS,
+  FLAG_LABEL,
+  SAVE_ERROR,
+  SUMMARY_LABELS,
+  criticalWarning,
+  pendingMarkerLabel,
+} from '@shared/checklist/inspection/copy'
 import { toChecklistSteps } from '@shared/checklist/inspection/steps'
 import type { InspectionStep, InspectionVehicle } from '@shared/checklist/inspection/types'
 import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehicle'
-import ActionBar from './ActionBar'
 import { fetchInspection, finishInspection, setItemCompleted } from './api'
 import InspectionHeader, { useBackToSheet } from './InspectionHeader'
 import InspectionSummary from './InspectionSummary'
-import StepPanel from './StepPanel'
-import StepPills from './StepPills'
-import { useChecklistAutosave } from './useChecklistAutosave'
 import VehicleNotFound from './VehicleNotFound'
 
 type LoadState = 'loading' | 'ready' | 'not-found' | { error: LoadErrorKind }
@@ -161,6 +168,7 @@ function Checklist({ vehicleId }: Readonly<{ vehicleId: number }>) {
           steps={progress.steps}
           selected={selected}
           pendingFlagged={showWarning ? pendingFlaggedByStep(steps, completedCodes) : NO_MARKERS}
+          pendingLabel={pendingMarkerLabel}
           onSelect={setSelected}
         />
         {step ? (
@@ -168,11 +176,14 @@ function Checklist({ vehicleId }: Readonly<{ vehicleId: number }>) {
             step={step}
             completedCodes={completedCodes}
             saveFailed={failedSteps.has(step.numero)}
+            flagLabel={FLAG_LABEL}
+            saveError={SAVE_ERROR}
             onToggle={handleToggle}
           />
         ) : null}
       </ScrollView>
       <ActionBar
+        labels={ACTION_LABELS}
         warning={showWarning}
         finishing={finishing}
         finishFailed={finishFailed}
