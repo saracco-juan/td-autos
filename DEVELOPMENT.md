@@ -283,3 +283,18 @@ Start Vite as in README. Sign in as `pampa@demo.tdautos.test` / `TdAutos2026!`. 
 Use `http://localhost:8000/storage/vehiculos/volumen/foto-1.png` through `foto-7.png` as persistent local test URLs after the volume seed. GNC can leave both L/100 km fields empty; explicit `no` must survive import and editing.
 
 Supabase follow-up at HU05 closure: review pending Laravel migrations, then—with separate authorization for the target environment—apply non-destructive migrations and smoke-test login, create/edit, CSV and Storage. Never run `db:local` or `migrate:fresh` against Supabase. Local PostgreSQL DDL compilation is useful but does not prove live connectivity, schema state or Storage permissions.
+# HU05 stage 9: deterministic dealership ranking
+
+`DealershipRanker` composes the existing running and suitability rubrics without querying data.
+Pass current vehicles with `propiedad` loaded, a completed diagnosis with `carrocerias` loaded,
+operative dealer IDs from `SubscriptionLifecycle::operativeDealerIds()`, an explicit year and
+one optional official sell-rate value. The endpoint/query is stage 11; rate retrieval and metadata are stage 10.
+
+- Hidden, external, inactive-dealer, incomplete and unsupported vehicles are excluded. Seats and transmission are hard gates.
+- Base score: usage 35%, body 30%, priority 25%, comfort 10%. Either selected body earns 100; mismatch earns 50 and a warning.
+- Above budget, up to 5% inclusive requires matching body, adjusted usage 100 and priority 100; each 1% excess subtracts two points.
+- Filter on unrounded score >=70, order by score descending, ARS price ascending, then listing ID; return at most ten concrete listings.
+- No quote excludes USD listings but allows ARS, with unknown USD equivalent. `resale_pending` explicitly defers the resale priority.
+- Results retain component scores, published/equivalent prices, proportional penalty and warning codes for later presentation.
+
+Check: `cd backend; php artisan test --filter=DealershipRankerTest`. No UI, HTTP, clock or market-valuation dependency is added.
