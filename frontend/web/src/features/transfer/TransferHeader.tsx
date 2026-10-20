@@ -1,4 +1,5 @@
 import type { Ref } from 'react'
+import { EYEBROW, TITLE, completedCounter } from '@shared/checklist/transfer/copy'
 import screenStyles from '../../components/screen.module.css'
 import styles from './TransferHeader.module.css'
 
@@ -12,12 +13,12 @@ type Props = {
 export default function TransferHeader({ completed, total, titleRef }: Props) {
   return (
     <div className={styles.header}>
-      <p className={screenStyles.eyebrow}>TRÁMITES</p>
+      <p className={screenStyles.eyebrow}>{EYEBROW}</p>
       <h1 ref={titleRef} tabIndex={-1} className={screenStyles.title}>
-        Checklist de transferencia
+        {TITLE}
       </h1>
       <p aria-live="polite" className={styles.counter}>
-        {completed} de {total} pasos completados
+        {completedCounter(completed, total)}
       </p>
     </div>
   )

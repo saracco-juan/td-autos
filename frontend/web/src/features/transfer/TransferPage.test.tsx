@@ -4,9 +4,9 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { fetchTransfer, finishTransfer, setItemCompleted } from './api'
-import { ALL_CODES, MANDATORY_CODES, transferResponse } from './fixtures'
+import { ALL_CODES, MANDATORY_CODES, transferResponse } from '@shared/checklist/transfer/fixtures'
 import TransferPage from './TransferPage'
-import type { TransferProgress, TransferResponse } from './types'
+import type { TransferProgress, TransferResponse } from '@shared/checklist/transfer/types'
 
 vi.mock('./api', () => ({ fetchTransfer: vi.fn(), setItemCompleted: vi.fn(), finishTransfer: vi.fn() }))
 

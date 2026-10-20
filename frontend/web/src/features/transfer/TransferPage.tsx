@@ -21,12 +21,12 @@ import {
   SOURCE_NOTE,
   mandatoryWarning,
   pendingMarkerLabel,
-} from './checklistCopy'
-import { toChecklistSteps } from './checklistSteps'
+} from '@shared/checklist/transfer/copy'
+import { toChecklistSteps } from '@shared/checklist/transfer/steps'
 import styles from './TransferPage.module.css'
 import TransferHeader from './TransferHeader'
 import TransferSummary from './TransferSummary'
-import type { TransferStage } from './types'
+import type { TransferStage } from '@shared/checklist/transfer/types'
 
 type LoadState = 'loading' | 'ready' | { error: ErrorKind }
 type View = 'checklist' | 'summary'
