@@ -93,6 +93,7 @@ class PreviewImportTest extends TestCase
     public function test_headers_may_come_in_any_order_and_case_and_optional_columns_may_be_absent(): void
     {
         $headers = ['FOTOS', ' Carroceria ', 'Patente', 'precio', 'KILOMETRAJE', 'anio', 'combustible', 'transmision', 'marca', 'modelo', 'ubicacion'];
+        $headers = [...$headers, ...array_slice(self::CSV_HEADERS, 13)];
         $content = $this->csvContent([$this->csvRow()], ';', false, $headers);
 
         $this->preview($this->dealer(), $this->csvFile($content))
@@ -259,12 +260,12 @@ class PreviewImportTest extends TestCase
      */
     public static function unreadableFiles(): array
     {
-        $header = 'patente;marca;modelo;anio;kilometraje;precio;transmision;combustible;carroceria;ubicacion;fotos';
+        $header = implode(';', self::CSV_HEADERS);
 
         return [
             'empty' => ['', 'El archivo está vacío.'],
             'header only' => [$header."\r\n", 'El archivo no tiene filas para importar.'],
-            'missing headers' => ["patente;marca\r\nAB123CD;Toyota\r\n", 'Faltan las columnas obligatorias: modelo, anio, kilometraje, precio, transmision, combustible, carroceria, ubicacion, fotos.'],
+            'missing headers' => ["patente;marca\r\nAB123CD;Toyota\r\n", 'Faltan las columnas obligatorias: modelo, anio, kilometraje, precio, transmision, combustible, carroceria, ubicacion, fotos, '.implode(', ', array_slice(self::CSV_HEADERS, 13)).'. Descargá la plantilla actualizada.'],
         ];
     }
 

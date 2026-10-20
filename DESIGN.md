@@ -54,6 +54,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - A screen decision applies to web and mobile by default; only layout that exists on one platform (desktop sidebar, bottom tab bar) stays on that platform.
 
+## HU05 CSV help — pending Figma synchronization (2026-10-20)
+
+- High v3 import `2373:8817` retains its existing download, preview and pinned confirmation flow. Web extends the format-help card with required matching columns, accepted values, L/100 km, explicit yes/no and the updated-template requirement. The example is explicitly synthetic, not a verified model specification.
+- Mobile has no CSV-import frame or implemented flow: not applicable until one is introduced. No new upload format or screen is added. Figma write remains pending; the prior form approval does not authorize this new copy delta.
+
 ## HU05 manual vehicle facts — Figma sync blocked (2026-10-20)
 
 - High v3 create `2373:8756` and edit `2373:8835` show the previous basic fields. Web now groups basic data, specifications, consumption, safety and comfort in the existing responsive grid. All yes/no answers start unselected; Android Auto or Apple CarPlay is one answer. Mobile: apply the same fields when its form is implemented.

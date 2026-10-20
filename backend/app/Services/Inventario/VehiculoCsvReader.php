@@ -2,6 +2,8 @@
 
 namespace App\Services\Inventario;
 
+use App\Support\VehiculoFields;
+
 /**
  * Reads the text of a dealer's inventory CSV into rows keyed by column name. It knows nothing
  * about vehicle rules: it only checks the file can be read (encoding, headers, size).
@@ -14,6 +16,8 @@ class VehiculoCsvReader
     private const REQUIRED = [
         'patente', 'marca', 'modelo', 'anio', 'kilometraje', 'precio',
         'transmision', 'combustible', 'carroceria', 'ubicacion', 'fotos',
+        'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
+        'consumo_urbano', 'consumo_ruta',
     ];
 
     private const OPTIONAL = ['version', 'descripcion'];
@@ -114,19 +118,20 @@ class VehiculoCsvReader
     private function headerColumns(array $cells): array
     {
         $columns = [];
+        $required = [...self::REQUIRED, ...array_keys(VehiculoFields::EQUIPMENT_FIELDS)];
 
         foreach ($cells as $position => $name) {
             $name = mb_strtolower($name);
 
-            if (in_array($name, [...self::REQUIRED, ...self::OPTIONAL], true)) {
+            if (in_array($name, [...$required, ...self::OPTIONAL], true)) {
                 $columns[$position] = $name;
             }
         }
 
-        $missing = array_values(array_diff(self::REQUIRED, $columns));
+        $missing = array_values(array_diff($required, $columns));
 
         if ($missing !== []) {
-            throw new ImportFileException('Faltan las columnas obligatorias: '.implode(', ', $missing).'.');
+            throw new ImportFileException('Faltan las columnas obligatorias: '.implode(', ', $missing).'. Descargá la plantilla actualizada.');
         }
 
         return $columns;

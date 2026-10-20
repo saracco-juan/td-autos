@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 class VehiculoCsvReaderTest extends TestCase
 {
-    private const HEADER = 'patente;marca;modelo;anio;kilometraje;precio;transmision;combustible;carroceria;ubicacion;fotos';
+    private const HEADER = 'patente;marca;modelo;anio;kilometraje;precio;transmision;combustible;carroceria;ubicacion;fotos;moneda;plazas;motor;turbo;potencia;potencia_unidad;consumo_urbano;consumo_ruta;control_estabilidad;frenos_abs;airbags_frontales;airbags_laterales;airbags_cortina;isofix;frenado_autonomo;asistencia_carril;punto_ciego;recordatorio_cinturon;asistencia_velocidad;monitoreo_conductor;volante_regulable;climatizador_bizona;butacas_calefaccionadas;android_auto_apple_carplay;sensores_estacionamiento;velocidad_crucero;camara_retroceso;aire_acondicionado';
 
     private const ROW = 'AB123CD;Toyota;Corolla;2021;45000;25000000;manual;nafta;Sedán;Córdoba;http://a/1.jpg';
 
@@ -40,7 +40,7 @@ class VehiculoCsvReaderTest extends TestCase
 
     public function test_strips_a_utf8_bom_and_trims_and_lowercases_headers(): void
     {
-        $content = "\xEF\xBB\xBF".'  PATENTE ; Marca;MODELO;Anio;kilometraje;precio;transmision;combustible;carroceria;ubicacion;fotos'."\n".self::ROW."\n";
+        $content = "\xEF\xBB\xBF".'  '.strtoupper(self::HEADER).'  '."\n".self::ROW."\n";
 
         $rows = $this->reader()->read($content);
 
@@ -93,7 +93,7 @@ class VehiculoCsvReaderTest extends TestCase
             'only blanks' => ["\r\n  \r\n", 'El archivo está vacío.'],
             'header only' => [self::HEADER."\n", 'El archivo no tiene filas para importar.'],
             'header and blank lines' => [self::HEADER."\n\n\n", 'El archivo no tiene filas para importar.'],
-            'missing headers' => ["patente;marca;fotos\nAB123CD;Toyota;x\n", 'Faltan las columnas obligatorias: modelo, anio, kilometraje, precio, transmision, combustible, carroceria, ubicacion.'],
+            'missing headers' => ["patente;marca;fotos\nAB123CD;Toyota;x\n", 'Faltan las columnas obligatorias: modelo, anio, kilometraje, precio, transmision, combustible, carroceria, ubicacion,'],
             'not utf-8' => [self::HEADER."\n".mb_convert_encoding(self::ROW, 'ISO-8859-1', 'UTF-8')."\n", 'El archivo tiene que estar codificado en UTF-8.'],
         ];
     }

@@ -199,3 +199,13 @@ Use only a disposable local database and an active dealer account. CSV import an
 
 Automated check from `frontend/web`: `npx vitest run src/features/inventory`.
 Browser check: 1280×800, 768×1024 and 375×812; no horizontal page overflow, readable sections and visible pinned actions/alert.
+
+## HU05 CSV matching facts: local smoke test
+
+Use only a disposable local test inventory. Start the API and web as described in README, sign in as a demo dealer, then open Inventario → IMPORTAR CSV.
+
+1. Download the new template. It remains UTF-8 CSV with a BOM and `;` separators; Excel can edit it. Replace the synthetic example, including its photo URLs, with declared test facts.
+2. Preview a complete row: it must report one new vehicle without writing. Confirm, then edit the vehicle: currency, seats, engine, power, consumptions and every equipment answer must match.
+3. Reimport that plate with different facts: preview must report an update; confirmation must overwrite those facts and photos, not create a duplicate. Blank GNC consumptions clear previous values.
+4. Leave one equipment cell blank or enter `tal vez`: the alert must name its row and field, with no partial import. An old template must request the updated download. `sí`/`si` and `no` are explicit answers; blank is never “no.”
+5. The manual form displays power in CV and converts declared HP/kW on edit. CSV keeps an explicit `potencia_unidad` (CV/HP/kW), so enter the unit that actually belongs to the supplied number.

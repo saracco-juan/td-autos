@@ -104,7 +104,7 @@ final class VehiculoFields
             $rules[$field] = [$presence, 'string', "max:{$max}"];
         }
 
-        // The API opts in; the CSV contract is upgraded in its own chained stage.
+        // Manual/API and CSV publication both require complete declared matching facts.
         if ($includeMatchingFacts) {
             $rules += [
                 'moneda' => ['required', Rule::in(VehiculoOptions::MONEDAS)],

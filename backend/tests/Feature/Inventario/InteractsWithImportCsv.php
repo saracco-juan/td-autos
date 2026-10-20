@@ -15,6 +15,8 @@ trait InteractsWithImportCsv
     private const CSV_HEADERS = [
         'patente', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio',
         'transmision', 'combustible', 'carroceria', 'ubicacion', 'descripcion', 'fotos',
+        'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
+        'consumo_urbano', 'consumo_ruta', ...self::EQUIPMENT_FIELDS,
     ];
 
     /**
@@ -50,6 +52,10 @@ trait InteractsWithImportCsv
             'ubicacion' => 'Córdoba',
             'descripcion' => 'Único dueño.',
             'fotos' => $this->photoCell(),
+            'moneda' => 'ARS', 'plazas' => '5', 'motor' => '2.0', 'turbo' => 'no',
+            'potencia' => '170', 'potencia_unidad' => 'CV',
+            'consumo_urbano' => '8.5', 'consumo_ruta' => '6.2',
+            ...array_fill_keys(self::EQUIPMENT_FIELDS, 'no'),
             ...$overrides,
         ];
     }

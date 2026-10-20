@@ -35,7 +35,6 @@ class VehiculoImporter
             $vehiculo = Vehiculo::create([
                 ...$this->attributes($row),
                 'origen' => VehiculoOptions::ORIGEN_CONCESIONARIA,
-                'moneda' => VehiculoOptions::MONEDA,
             ]);
 
             try {

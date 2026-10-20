@@ -25,6 +25,13 @@ const FORMAT_HELP =
   "Columnas: patente, marca, modelo, version (opcional), anio, kilometraje, precio, transmision, combustible, carroceria, ubicacion, descripcion (opcional) y fotos. " +
   "Separá las columnas con ; o ,. En fotos, poné de 7 a 20 URLs http o https separadas por |. Hasta 500 filas y 2 MB.";
 
+const MATCHING_HELP = [
+  "Conservá también todas las columnas nuevas de la plantilla: moneda (ARS o USD), plazas (entero positivo, incluye conductor), motor, turbo, potencia (entero positivo), potencia_unidad (CV, HP o kW), consumo_urbano, consumo_ruta y equipamiento.",
+  "Turbo y cada dato de seguridad y confort requieren sí o no. Vacío no significa no. Android Auto o Apple CarPlay es una sola respuesta: sí si tiene al menos uno.",
+  "Consumos en L/100 km, mayores que cero, con punto decimal y hasta dos decimales. Son obligatorios para nafta y diesel; opcionales para gnc, hibrido y electrico. Transmisión: manual o automatica. Carrocería: el nombre de la lista del alta manual.",
+  "La fila de ejemplo contiene datos ficticios: reemplazalos por los de cada vehículo. Descargá la plantilla actualizada; las versiones incompletas se rechazan sin aplicar cambios.",
+];
+
 // Import vehicles from a CSV (Figma 38:1005, CU-20): picking the file requests the preview; confirming applies the same file.
 export default function ImportInventoryPage() {
   const navigate = useNavigate();
@@ -118,6 +125,9 @@ export default function ImportInventoryPage() {
           actualiza, si no existe se crea.
         </p>
         <p className={styles.cardBody}>{FORMAT_HELP}</p>
+        {MATCHING_HELP.map((help) => (
+          <p key={help} className={styles.cardBody}>{help}</p>
+        ))}
         <a
           href="/plantilla-inventario.csv"
           download="plantilla-inventario.csv"

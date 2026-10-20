@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import template from '../../../public/plantilla-inventario.csv?raw'
+import { MATCHING_FIELDS, EQUIPMENT_FIELDS } from './matchingFields'
 
 const BOM = String.fromCharCode(0xfeff)
 
@@ -26,15 +27,28 @@ describe('plantilla-inventario.csv', () => {
       'ubicacion',
       'descripcion',
       'fotos',
+      ...MATCHING_FIELDS,
     ])
   })
 
   it('has one example row with seven photo URLs', () => {
     expect(rows).toHaveLength(1)
     const cells = rows[0].split(';')
-    expect(cells).toHaveLength(13)
+    expect(cells).toHaveLength(13 + MATCHING_FIELDS.length)
     const photos = cells[12].split('|')
     expect(photos).toHaveLength(7)
     photos.forEach((url) => expect(url).toMatch(/^https:\/\//))
+  })
+
+  it('declares synthetic facts with explicit yes/no and visible consumption units (UH-5)', () => {
+    const example = Object.fromEntries(header.split(';').map((key, i) => [key, rows[0].split(';')[i]]))
+    expect(example.moneda).toBe('ARS')
+    expect(example.plazas).toBe('5')
+    expect(example.potencia_unidad).toBe('CV')
+    expect(Number(example.consumo_urbano)).toBeGreaterThan(0)
+    expect(Number(example.consumo_ruta)).toBeGreaterThan(0)
+    for (const field of ['turbo', ...EQUIPMENT_FIELDS.map(([key]) => key)]) {
+      expect(['sí', 'no']).toContain(example[field])
+    }
   })
 })
