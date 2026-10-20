@@ -120,6 +120,14 @@
       "sessions": 1,
       "memories": 18,
       "prompts": 2
+    },
+    {
+      "id": "64bbdbd2",
+      "created_by": "Compumar",
+      "created_at": "2026-10-20T23:22:59.2491684Z",
+      "sessions": 1,
+      "memories": 37,
+      "prompts": 14
     }
   ]
 }
