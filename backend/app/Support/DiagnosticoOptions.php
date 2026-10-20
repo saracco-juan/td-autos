@@ -22,7 +22,8 @@ final class DiagnosticoOptions
     public const PASAJEROS = [
         '1_2' => 2,
         '3_4' => 4,
-        '5_mas' => 5,
+        '5' => 5,
+        'mas_5' => 6,
     ];
 
     public const USO_PRINCIPAL = ['ciudad', 'ruta', 'mixto', 'trabajo'];
@@ -60,11 +61,12 @@ final class DiagnosticoOptions
     public static function toAnswers(Diagnostico $diagnostico, array $carroceriaIds): array
     {
         $budget = $diagnostico->presupuesto_maximo;
+        $passengers = array_search((int) $diagnostico->pasajeros, self::PASAJEROS, true);
 
         return [
             'presupuesto' => array_search($budget === null ? null : (int) round((float) $budget), self::PRESUPUESTO, true),
             'uso_principal' => $diagnostico->uso_principal,
-            'pasajeros' => array_search((int) $diagnostico->pasajeros, self::PASAJEROS, true),
+            'pasajeros' => $passengers === false ? null : (string) $passengers,
             'kilometros_mensuales' => $diagnostico->kilometros_mensuales,
             'transmision' => $diagnostico->transmision_preferida,
             'prioridad' => $diagnostico->prioridad_comprador,

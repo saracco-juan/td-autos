@@ -13,7 +13,7 @@ class DiagnosticoOptionsTest extends TestCase
         $columns = DiagnosticoOptions::toColumns([
             'presupuesto' => '25m_40m',
             'uso_principal' => 'ruta',
-            'pasajeros' => '5_mas',
+            'pasajeros' => '5',
             'kilometros_mensuales' => 'no_sabe',
             'transmision' => 'automatica',
             'prioridad' => 'seguridad',
@@ -39,10 +39,12 @@ class DiagnosticoOptionsTest extends TestCase
             $this->assertSame($code, $answers['presupuesto']);
         }
 
-        foreach (['1_2', '3_4', '5_mas'] as $code) {
+        foreach (['1_2' => 2, '3_4' => 4, '5' => 5, 'mas_5' => 6] as $code => $seats) {
+            $code = (string) $code;
             $columns = DiagnosticoOptions::toColumns($this->answers(['pasajeros' => $code]));
             $answers = DiagnosticoOptions::toAnswers(new Diagnostico($columns), [1]);
 
+            $this->assertSame($seats, $columns['pasajeros']);
             $this->assertSame($code, $answers['pasajeros']);
         }
     }

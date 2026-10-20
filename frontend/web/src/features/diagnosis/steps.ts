@@ -69,7 +69,8 @@ export const DIAGNOSIS_STEPS: readonly DiagnosisStep[] = [
     options: [
       { code: '1_2', label: '1 o 2' },
       { code: '3_4', label: '3 o 4' },
-      { code: '5_mas', label: '5 o más' },
+      { code: '5', label: '5' },
+      { code: 'mas_5', label: 'Más de 5' },
     ],
   },
   {

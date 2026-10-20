@@ -57,6 +57,16 @@ The backend has its own public HTTPS URL, so no tunnel is needed: `GOOGLE_REDIRE
 
 With the merge driver registered, uncommitted engram changes can move to another branch: `git stash push -u -- engram/<name>`, `git switch <branch>`, `git stash pop`.
 
+## HU05 diagnosis passenger ranges — stage 6
+
+`PUT /api/diagnostico` accepts `1_2`, `3_4`, `5`, `mas_5`: minimum total seats are 2, 4, 5, 6, including the driver. `5_mas` is no longer accepted (422, no writes).
+
+The one-time `2026_10_20_000001_require_legacy_passenger_confirmation` data migration clears only old stored passenger values of 5 and sets `estado=pendiente_pasajeros`; other answers and body links remain intact. `GET /api/diagnostico` returns `pasajeros: null` until re-answered, and the session's `tiene_diagnostico` is false only for that pending state. The web flow opens the passenger question with an explanation and preserves the other answers.
+
+Run the migration before serving the new API/UI, with the application stopped while migrating. It cannot infer the discarded legacy intent; `down()` does not restore or overwrite answers. Before any deployed migration, take a backup and coordinate clients; no remote migration is part of this stage. Do not rerun this data migration against new confirmed five-person answers.
+
+Manual check: sign in as a buyer, open `/diagnostico`, choose each of the four passenger ranges, finish, and reopen: the same option and summary must remain selected. With an old five-or-more test diagnosis, migrate first; re-entry must require a new passenger choice and keep all other answers. Matching filters are implemented in a later stage.
+
 ## HU05 vehicle facts — storage stage
 
 The additive matching-facts migration and `Vehiculo` casts store actual seats, turbo, power unit,

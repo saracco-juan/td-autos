@@ -1,6 +1,6 @@
 export type PresupuestoCode = 'hasta_15m' | '15m_25m' | '25m_40m' | 'mas_40m'
 export type UsoPrincipalCode = 'ciudad' | 'ruta' | 'mixto' | 'trabajo'
-export type PasajerosCode = '1_2' | '3_4' | '5_mas'
+export type PasajerosCode = '1_2' | '3_4' | '5' | 'mas_5'
 export type KilometrosMensualesCode = 'menos_500' | '500_1500' | '1500_3000' | 'mas_3000' | 'no_sabe'
 export type TransmisionCode = 'manual' | 'automatica' | 'indiferente'
 export type PrioridadCode = 'consumo' | 'seguridad' | 'mantenimiento' | 'reventa'
@@ -29,7 +29,10 @@ export type DiagnosisDraft = {
   [F in ScalarField]: DiagnosisAnswers[F] | null
 } & { carrocerias: number[] }
 
+// Legacy five-or-more answers need confirmation; PUT still requires a complete payload.
+export type SavedDiagnosis = Omit<DiagnosisAnswers, 'pasajeros'> & { pasajeros: PasajerosCode | null }
+
 export type DiagnosisResponse = {
-  diagnostico: DiagnosisAnswers | null
+  diagnostico: SavedDiagnosis | null
   carrocerias: BodyType[]
 }

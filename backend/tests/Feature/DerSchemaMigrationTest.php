@@ -63,7 +63,7 @@ class DerSchemaMigrationTest extends TestCase
         $this->artisan('migrate', ['--database' => 'der_test', '--force' => true])->assertSuccessful();
         $this->artisan('migrate:rollback', [
             '--database' => 'der_test',
-            '--step' => 22,
+            '--step' => 23,
             '--force' => true,
         ])->assertSuccessful();
 

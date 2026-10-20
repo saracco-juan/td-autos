@@ -20,7 +20,7 @@ const bodyTypes: BodyType[] = [
 const answers: DiagnosisAnswers = {
   presupuesto: '15m_25m',
   uso_principal: 'mixto',
-  pasajeros: '5_mas',
+  pasajeros: '5',
   kilometros_mensuales: '500_1500',
   transmision: 'automatica',
   prioridad: 'consumo',
