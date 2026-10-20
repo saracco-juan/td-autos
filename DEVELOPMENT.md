@@ -298,3 +298,39 @@ one optional official sell-rate value. The endpoint/query is stage 11; rate retr
 - Results retain component scores, published/equivalent prices, proportional penalty and warning codes for later presentation.
 
 Check: `cd backend; php artisan test --filter=DealershipRankerTest`. No UI, HTTP, clock or market-valuation dependency is added.
+
+## HU05 stage 10: DolarAPI exchange-rate integration
+
+The single integration class is `App\Services\ExchangeRates\DolarApi`:
+`app(DolarApi::class)->current()` returns `quote`, `stale` and `warning`.
+It is separate from the deterministic ranker and adds no endpoint or UI yet.
+
+| Field | Meaning |
+| --- | --- |
+| `quote.sell` | Official USD sell rate in ARS per USD; never the buy rate |
+| `quote.source`, `source_url`, `upstream_source` | DolarAPI attribution and original source, Ámbito Financiero |
+| `quote.updated_at` | Provider's timestamp, normalized to UTC |
+| `quote.fetched_at` | Successful retrieval time, not a replacement for the provider's date |
+| `stale`, `warning` | Explicit fallback state; missing quote uses `exchange_rate_unavailable`, old fallback uses `exchange_rate_stale` |
+
+On first use after each three-hour window, one caller claims the refresh before HTTP I/O.
+Other callers immediately receive the last snapshot, or unavailable if none exists.
+Attempts are throttled even after failures. A successful snapshot has no cache expiry;
+failed, malformed, future-dated or backwards-dated responses never replace it.
+Unchanged provider dates are valid (for example, outside trading hours); a successful
+retrieval confirms availability without inventing a newer provider timestamp.
+
+Use a persistent shared Laravel cache (configured database, file or Redis), not array/null
+outside tests. Cache clearing/eviction removes the stored fallback. No credentials or new
+environment variables are needed. Requests use fixed HTTPS, bounded connect/total timeouts,
+no redirects and no immediate retries. T11 will obtain one snapshot for the entire ranking
+and pass `quote.sell` (or null) to `DealershipRanker`; T12 will display attribution/warnings.
+
+Source and interval explicitly replace the earlier DólarHoy/hourly proposal.
+Data use and local caching require citing [DolarAPI](https://dolarapi.com/docs/uso);
+the [official endpoint documentation](https://dolarapi.com/docs/argentina/operations/get-dolar-oficial)
+identifies Ámbito as its source. The service is informational and does not guarantee availability or accuracy.
+
+Manual check from `backend` (no server/login needed yet):
+`php artisan test --filter=DolarApiTest` — expected 24 passing tests, with HTTP faked and
+array cache. Covers first fetch, three-hour reuse, failures/fallback, recovery, dates and overlapping calls.
