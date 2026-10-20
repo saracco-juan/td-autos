@@ -57,6 +57,7 @@ export const COMBUSTIBLE_OPTIONS: { value: Combustible; label: string }[] = [
 export function emptyValues(): VehicleValues {
   return {
     ...matchingValues(),
+    potencia_unidad: 'CV',
     patente: '',
     marca: '',
     modelo: '',
@@ -73,8 +74,17 @@ export function emptyValues(): VehicleValues {
 }
 
 export function valuesFromVehicle(vehicle: Vehiculo): VehicleValues {
+  // NIST SP 811: mechanical HP = 745.6999 W; metric CV = 735.4988 W.
+  // Keep the API's integer precision, without guessing a missing source unit.
+  const wattsPerUnit = { CV: 735.4988, HP: 745.6999, kW: 1000 }
+  const power = vehicle.potencia != null && vehicle.potencia_unidad
+    && Object.hasOwn(wattsPerUnit, vehicle.potencia_unidad)
+    ? String(Math.round(vehicle.potencia * (wattsPerUnit[vehicle.potencia_unidad] / wattsPerUnit.CV)))
+    : ''
   return {
     ...matchingValues(vehicle),
+    potencia: power,
+    potencia_unidad: 'CV',
     patente: vehicle.patente,
     marca: vehicle.marca,
     modelo: vehicle.modelo,
@@ -180,7 +190,8 @@ export function errorsFromServer(body: unknown): VehicleErrors {
 
   for (const [key, messages] of Object.entries(raw as Record<string, unknown>)) {
     if (!Array.isArray(messages) || messages.length === 0) continue
-    const target: VehicleErrorKey | undefined = /^fotos(?:_eliminar)?(?:\.\d+)?$/.test(key) ? 'fotos' : isErrorKey(key) ? key : undefined
+    const target: VehicleErrorKey | undefined = key === 'potencia_unidad' ? 'potencia'
+      : /^fotos(?:_eliminar)?(?:\.\d+)?$/.test(key) ? 'fotos' : isErrorKey(key) ? key : undefined
     if (!target) continue
     const merged = new Set([...(errors[target] ?? []), ...messages.filter((message): message is string => typeof message === 'string')])
     if (merged.size > 0) errors[target] = [...merged]

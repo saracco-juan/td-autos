@@ -49,6 +49,7 @@ function fillValid() {
   fill('Carrocería', '1')
   fill('Ubicación', 'Córdoba')
   for (const [key, value] of Object.entries(matchingValues(MATCHING_FACTS))) {
+    if (key === 'potencia_unidad') continue
     fireEvent.change(document.getElementById(`vehicle-${key}`)!, { target: { value } })
   }
 }
@@ -99,6 +100,17 @@ describe('VehicleForm', () => {
   })
 
   describe('layout and fields', () => {
+    it('HU05: offers a single Potencia (CV) input and submits CV without a selector', async () => {
+      const submit = await renderForm()
+      expect(screen.getByLabelText('Potencia (CV)')).toHaveValue('')
+      expect(screen.queryByLabelText('Unidad de potencia')).not.toBeInTheDocument()
+      fillValid()
+      await userEvent.setup({ applyAccept: false }).upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
+      await userEvent.setup().click(submitButton())
+      expect(submit).toHaveBeenCalledTimes(1)
+      expect(submit.mock.calls[0][0].values).toMatchObject({ potencia: '140', potencia_unidad: 'CV' })
+    })
+
     it('HU05: requires explicit facts, preserves edits and explains a server rejection', async () => {
       const submit = await renderForm({
         values: valuesFromVehicle(vehiculo()),
@@ -145,7 +157,7 @@ describe('VehicleForm', () => {
     })
 
     it('prefills the values and the saved photos', async () => {
-      const saved = vehiculo({ version: 'XEI', descripcion: 'Único dueño' })
+      const saved = vehiculo({ version: 'XEI', descripcion: 'Único dueño', potencia: 150, potencia_unidad: 'HP' })
       await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
 
       expect(screen.getByLabelText('Patente')).toHaveValue('AB123CD')
@@ -153,6 +165,8 @@ describe('VehicleForm', () => {
       expect(screen.getByLabelText('Transmisión')).toHaveValue('automatica')
       expect(screen.getByLabelText('Carrocería')).toHaveValue('2')
       expect(screen.getByLabelText('Descripción (opcional)')).toHaveValue('Único dueño')
+      expect(screen.getByLabelText('Potencia (CV)')).toHaveValue('152')
+      expect(screen.queryByLabelText('Unidad de potencia')).not.toBeInTheDocument()
       expect(screen.getAllByRole('img')).toHaveLength(7)
       expect(screen.getByText('7 imágenes cargadas.')).toBeInTheDocument()
     })

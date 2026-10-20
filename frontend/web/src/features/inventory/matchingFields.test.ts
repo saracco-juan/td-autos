@@ -18,6 +18,30 @@ const facts = {
 }
 
 describe('HU05 matching facts in the vehicle form', () => {
+  it('starts new power entries in CV without inventing a power value', () => {
+    expect(emptyValues()).toMatchObject({ potencia: '', potencia_unidad: 'CV' })
+  })
+
+  it.each([
+    [150, 'HP', '152'], [100, 'kW', '136'], [150, 'CV', '150'],
+    [null, 'CV', ''], [undefined, 'CV', ''], [150, null, ''],
+    // Simulate malformed API responses outside the declared unit union.
+    [150, 'watts' as 'CV', ''], [150, 'toString' as 'CV', ''],
+  ] as const)('loads %s %s as integer CV without relabelling unknown units', (potencia, potencia_unidad, expected) => {
+    const saved = vehiculo({ potencia, potencia_unidad })
+    const values = valuesFromVehicle(saved)
+    expect(values).toMatchObject({ potencia: expected, potencia_unidad: 'CV' })
+    expect(saved).toMatchObject({ potencia, potencia_unidad })
+    const data = buildVehicleFormData({ values, newPhotos: [], removedPhotoIds: [] })
+    expect(data.get('potencia')).toBe(expected)
+    expect(data.get('potencia_unidad')).toBe('CV')
+  })
+
+  it('maps a unit rejection to the visible power input', () => {
+    expect(errorsFromServer({ errors: { potencia_unidad: ['Revisá la potencia.'] } }))
+      .toEqual({ potencia: ['Revisá la potencia.'] })
+  })
+
   it('preserves every declared fact on edit and serializes yes/no as 1/0', () => {
     const values = valuesFromVehicle(vehiculo(facts))
     const data = buildVehicleFormData({ values, newPhotos: [], removedPhotoIds: [] })

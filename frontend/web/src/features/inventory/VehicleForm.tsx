@@ -243,8 +243,7 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
             {text('plazas', 'Plazas (incluye conductor)', 'numeric')}
             {text('motor', 'Motor (ej. 1.8)')}
             {choice('turbo', 'Turbo', YES_NO)}
-            {text('potencia', 'Potencia', 'numeric')}
-            {choice('potencia_unidad', 'Unidad de potencia', ['CV', 'HP', 'kW'].map((value) => ({ value, label: value })))}
+            {text('potencia', 'Potencia (CV)', 'numeric')}
             <h2 className={styles.sectionTitle}>Consumo</h2>
             <p className={styles.fullRow}>Informá L/100 km. Obligatorio para nafta y diésel; opcional para los demás combustibles.</p>
             {text('consumo_urbano', 'Consumo urbano (L/100 km)', 'decimal')}

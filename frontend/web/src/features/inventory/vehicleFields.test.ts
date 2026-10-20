@@ -36,9 +36,10 @@ describe('normalizePlate', () => {
 })
 
 describe('emptyValues and valuesFromVehicle', () => {
-  it('starts with every field empty', () => {
+  it('starts with empty facts and the fixed CV power unit', () => {
     expect(emptyValues()).toEqual({
       ...matchingValues(),
+      potencia_unidad: 'CV',
       patente: '',
       marca: '',
       modelo: '',

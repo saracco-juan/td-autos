@@ -41,6 +41,7 @@ async function fillAndAddPhotos() {
   fill('Carrocería', '1')
   fill('Ubicación', 'Córdoba')
   for (const [key, value] of Object.entries(matchingValues(MATCHING_FACTS))) {
+    if (key === 'potencia_unidad') continue
     fireEvent.change(document.getElementById(`vehicle-${key}`)!, { target: { value } })
   }
   const photos = Array.from({ length: 7 }, (_, index) => new File(['x'], `f${index}.jpg`, { type: 'image/jpeg' }))

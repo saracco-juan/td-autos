@@ -20,6 +20,11 @@
   align-items: start;
 }
 
+/* Reserve two label lines so wrapped labels do not lower adjacent controls. */
+.fields label {
+  min-block-size: 2lh;
+}
+
 .fullRow {
   grid-column: 1 / -1;
 }
