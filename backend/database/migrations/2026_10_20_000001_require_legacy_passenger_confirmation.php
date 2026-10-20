@@ -16,6 +16,9 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Data correction is irreversible: rollback must not invent or overwrite answers.
+        // Retain migration history: rerunning up() cannot distinguish confirmed 5 from legacy 5.
+        if (DB::table('diagnostico')->exists()) {
+            throw new RuntimeException('Cannot roll back passenger confirmation while diagnoses exist. Restore a coordinated backup instead.');
+        }
     }
 };

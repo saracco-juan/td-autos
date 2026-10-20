@@ -332,9 +332,36 @@ class DiagnosticoTest extends TestCase
             $this->getJson('/api/user')->assertJsonPath('tiene_diagnostico', true);
             $this->assertDatabaseHas('diagnostico', ['usuario_id' => $user->id, 'pasajeros' => $seats, 'estado' => 'completo']);
         }
+    }
 
-        $confirmedRows = DB::table('diagnostico')->get()->toJson();
-        $this->artisan('migrate:rollback', ['--step' => 1, '--force' => true])->assertExitCode(0);
-        $this->assertSame($confirmedRows, DB::table('diagnostico')->get()->toJson());
+    public function test_passenger_rollback_refuses_saved_diagnoses_and_rerun_preserves_confirmation(): void
+    {
+        $user = User::factory()->create();
+        $confirmed = $this->answers(['pasajeros' => '5']);
+        $this->actingAs($user)->putJson('/api/diagnostico', $confirmed)->assertOk();
+        $response = $this->getJson('/api/diagnostico')->assertOk()->json();
+        $before = DB::table('diagnostico')->get()->toJson();
+        $links = DB::table('diagnostico_carroceria')->get()->toJson();
+        $history = DB::table('migrations')->get()->toJson();
+
+        try {
+            $this->artisan('migrate:rollback', ['--step' => 1, '--force' => true])->run();
+            $this->fail('Rollback must refuse saved diagnoses and retain its migration history.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame(
+                'Cannot roll back passenger confirmation while diagnoses exist. Restore a coordinated backup instead.',
+                $exception->getMessage(),
+            );
+        }
+
+        $this->assertSame($history, DB::table('migrations')->get()->toJson());
+        $this->assertSame($before, DB::table('diagnostico')->get()->toJson());
+        $this->assertSame($links, DB::table('diagnostico_carroceria')->get()->toJson());
+        $this->artisan('migrate', ['--force' => true])->assertExitCode(0);
+        $this->assertSame($history, DB::table('migrations')->get()->toJson());
+        $this->assertSame($before, DB::table('diagnostico')->get()->toJson());
+        $this->assertSame($links, DB::table('diagnostico_carroceria')->get()->toJson());
+        $this->getJson('/api/diagnostico')->assertOk()->assertExactJson($response);
+        $this->getJson('/api/user')->assertOk()->assertJsonPath('tiene_diagnostico', true);
     }
 }
