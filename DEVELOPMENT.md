@@ -57,6 +57,25 @@ The backend has its own public HTTPS URL, so no tunnel is needed: `GOOGLE_REDIRE
 
 With the merge driver registered, uncommitted engram changes can move to another branch: `git stash push -u -- engram/<name>`, `git switch <branch>`, `git stash pop`.
 
+## HU05 consumption and maintenance — stage 7
+
+`App\Services\Matching\RunningRequirementsScorer` is a pure backend service. It reads the existing normalized `Vehiculo` facts without modifying them. No endpoint, ranking or screen is connected in this stage.
+
+- `consumptionScore($vehicle, $use)`: city uses urban L/100 km; road uses road L/100 km; mixed/work average both readings **before** scoring. GNC receives 100 by the agreed cost-of-use rule, without litre readings.
+- `maintenanceScore($vehicle, $currentYear)`: 37.5% age + 37.5% odometer + 15% engine + 10% transmission. Power does not participate.
+
+| Component | Bands or adjustment | Points |
+| --- | --- | --- |
+| Consumption, L/100 km | <=6 / <=8 / <=10 / <=12 / >12 | 100 / 80 / 60 / 40 / 20 |
+| Age, years | <=3 / <=7 / <=12 / <=20 / >20 | 100 / 75 / 50 / 25 / 0 |
+| Odometer, km | <=40000 / <=80000 / <=140000 / <=200000 / >200000 | 100 / 75 / 50 / 25 / 0 |
+| Engine | Start at 100; diesel -25 or GNC -10; turbo subtracts another 25 | Additive deductions |
+| Transmission | Manual / automatic | 100 / 75 |
+
+Supply the calendar year explicitly; allowed next-year models use the youngest age band. Fractional points are retained. Missing required facts or unsupported fuels yield `null`, not zero; hybrid/electric remain publishable but unscored. Publication validation still owns field formats/ranges. Scores do not predict failures or maintenance prices, and zero in a component does not exclude a car.
+
+No visible UI change. From `backend`, run `php artisan test --filter=RunningRequirementsScorerTest` (no database or credentials required by this unit test). Examples: urban 6 / road 12 gives mixed 60, not 70; a 10-year-old diesel turbo with 150000 km and automatic transmission gives 43.125 maintenance points. Endpoint/ranking integration belongs to later stages.
+
 ## HU05 diagnosis passenger ranges — stage 6
 
 `PUT /api/diagnostico` accepts `1_2`, `3_4`, `5`, `mas_5`: minimum total seats are 2, 4, 5, 6, including the driver. `5_mas` is no longer accepted (422, no writes).
