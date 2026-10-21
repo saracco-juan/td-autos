@@ -420,3 +420,37 @@ The screen now calls `GET /api/recomendaciones`, not catalog search.
 Run the isolated frontend checks with
 `npm run test -- src/features/recommendations/MatchingRecommendationsPage.test.tsx src/features/recommendations/matching.test.ts`
 from `frontend/web`. These tests fake API data and never change the local inventory.
+
+## HU05 stage 13b: ACARA PDF reader
+
+`App\Services\Resale\AcaraPriceReader::read($pdfBytes)` normalizes the official
+[ACARA guide](https://www.acara.org.ar/guia-oficial-de-precios) using positioned
+cells, not flattened text. Install the locked `smalot/pdfparser` with Composer.
+The dependency is LGPL-3.0 and upstream describes it as limited-maintenance.
+
+- Output includes `source_date`, SHA-256, `snapshot_id` and source rows with make,
+  model, wrapped version, stable source `version_id`, currency and one-based page.
+- `values` maps model years to decimal strings or null for printed dashes.
+  `zero_km_price` is separate: it is **not** the newest model-year value.
+- Headers may change within a page; continuations inherit table context. Printed
+  dates must agree across the document, but need not appear on every page.
+- Invalid dates, unknown currencies, malformed prices or shifted/missing cells
+  throw `UnexpectedValueException`; no partial result is returned or persisted.
+- Source labels are not inventory identifiers. There is no fuzzy model matching,
+  inferred equipment, download, database write, scheduler or ranking change yet.
+  Values describe one guide snapshot, not historical realized resale prices.
+
+Run `php artisan test --filter=AcaraPriceReaderTest` from `backend` for synthetic
+PDF tests without network or database access. For a locally downloaded guide:
+
+```php
+require 'vendor/autoload.php'; // Run from backend with php -d memory_limit=512M.
+$snapshot = (new App\Services\Resale\AcaraPriceReader)->read(file_get_contents($pdfPath));
+echo $snapshot['source_date'].' '.count($snapshot['rows']);
+```
+
+The supplied 19/10/2026 PDF produced 7,390 rows across 384 pages (~328 MiB peak,
+~7 seconds on local PHP 8.2). Input is limited to 25 MiB, 500 pages and 2 MiB per
+decoded stream; these are **not** a total memory/time sandbox. Before scheduled
+ingestion, run in a bounded background worker and validate deployment resources;
+do not expose arbitrary PDF uploads or execute this in recommendation requests.
