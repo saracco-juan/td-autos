@@ -14,6 +14,7 @@ import { fetchDealer, updateDealer } from './api'
 import BackLink from './BackLink'
 import styles from './DealerEditPage.module.css'
 import DealerOverview from './DealerOverview'
+import DealerRemoval from './DealerRemoval'
 import MissingState from './MissingState'
 import type { DealerDetail, DealerFormField, DealerFormValues } from './types'
 import { validateDealerForm, type DealerFormErrors } from './validateDealerForm'
@@ -165,6 +166,7 @@ function DealerForm({ dealer, onSaved, onMissing, header, children }: FormProps)
 }
 
 // Dealer page (Figma 38:1099, UH27, RF32): edits the dealer's data and shows its subscription and receipts.
+// The delete section closes the page (UH28).
 function DealerEditContent({ id }: { id: number }) {
   const [loadState, setLoadState] = useState<LoadState>('loading')
 
@@ -223,6 +225,7 @@ function DealerEditContent({ id }: { id: number }) {
       }
     >
       <DealerOverview dealer={dealer} />
+      <DealerRemoval dealer={dealer} />
     </DealerForm>
   )
 }

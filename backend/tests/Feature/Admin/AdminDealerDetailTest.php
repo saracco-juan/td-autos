@@ -129,6 +129,7 @@ class AdminDealerDetailTest extends TestCase
         ]);
         $response->assertJsonPath('comprobantes.1.tipo', 'alta');
         $response->assertJsonPath('comprobantes.1.fecha_revision', $first->fecha_revision->toIso8601String());
+        $response->assertJsonPath('puede_eliminarse', false);
         $response->assertJsonMissingPath('password');
     }
 
@@ -139,7 +140,8 @@ class AdminDealerDetailTest extends TestCase
         $this->actingAs($this->admin())->getJson($this->url($dealer))
             ->assertOk()
             ->assertJsonPath('suscripcion', null)
-            ->assertJsonPath('comprobantes', []);
+            ->assertJsonPath('comprobantes', [])
+            ->assertJsonPath('puede_eliminarse', true);
     }
 
     public function test_unknown_dealer_answers_404_with_a_spanish_message_on_both_endpoints(): void
