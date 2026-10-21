@@ -26,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         // Deployed behind two proxies (Vercel rewrite -> Render), whose addresses are not fixed.
+        // '*' trusts only the immediate caller, so $request->ip() is a proxy address: never key
+        // rate limits on the IP alone (login combines it with the email).
         $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR
             | Request::HEADER_X_FORWARDED_HOST
             | Request::HEADER_X_FORWARDED_PORT

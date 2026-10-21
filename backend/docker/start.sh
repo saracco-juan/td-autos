@@ -1,6 +1,8 @@
 #!/bin/sh
 # Container entrypoint: cache configuration from the runtime environment (no secret is baked
 # into the image), apply pending migrations, then hand the process over to Apache.
+# A failed migration stops the container on purpose: Render keeps the previous deploy serving
+# instead of running new code against an old schema. DB_URL must be the session pooler (5432).
 set -e
 
 export PORT="${PORT:-8080}"
