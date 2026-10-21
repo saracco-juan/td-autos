@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "VITE_API_URL=/backend npm run build",
+  "rewrites": [
+    {
+      "source": "/backend/:path*",
+      "has": [{ "type": "host", "value": "td-autos.vercel.app" }],
+      "destination": "https://td-autos-api.onrender.com/:path*"
+    },
+    {
+      "source": "/backend/:path*",
+      "destination": "https://td-autos-api-dev.onrender.com/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/backend/:path*",
+      "headers": [{ "key": "x-vercel-enable-rewrite-caching", "value": "0" }]
+    }
+  ]
+}

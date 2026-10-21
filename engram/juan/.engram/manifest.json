@@ -344,6 +344,22 @@
       "sessions": 1,
       "memories": 5,
       "prompts": 0
+    },
+    {
+      "id": "c8b38ba0",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-21T17:31:00.817303Z",
+      "sessions": 1,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "690d3268",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-21T22:38:34.526277Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
     }
   ]
 }
