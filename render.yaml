@@ -46,6 +46,8 @@ services:
         value: supabase
       - key: RECEIPTS_DISK
         value: supabase_private
+      - key: MAIL_MAILER
+        value: gmail
       - key: MAIL_FROM_NAME
         value: TD Autos
       # Per-environment values and secrets (entered in the dashboard).
@@ -81,16 +83,12 @@ services:
         sync: false
       - key: CRON_SECRET
         sync: false
-      # Render free blocks outbound SMTP on 25/465/587: see DEVELOPMENT.md before choosing these.
-      - key: MAIL_MAILER
+      # Mail goes through the Gmail API (Render free blocks outbound SMTP): DEVELOPMENT.md, "Mail".
+      - key: GMAIL_CLIENT_ID
         sync: false
-      - key: MAIL_HOST
+      - key: GMAIL_CLIENT_SECRET
         sync: false
-      - key: MAIL_PORT
-        sync: false
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
+      - key: GMAIL_REFRESH_TOKEN
         sync: false
       - key: MAIL_FROM_ADDRESS
         sync: false
@@ -133,6 +131,8 @@ services:
         value: supabase
       - key: RECEIPTS_DISK
         value: supabase_private
+      - key: MAIL_MAILER
+        value: gmail
       - key: MAIL_FROM_NAME
         value: TD Autos
       # Per-environment values and secrets (entered in the dashboard).
@@ -168,16 +168,12 @@ services:
         sync: false
       - key: CRON_SECRET
         sync: false
-      # Render free blocks outbound SMTP on 25/465/587: see DEVELOPMENT.md before choosing these.
-      - key: MAIL_MAILER
+      # Mail goes through the Gmail API (Render free blocks outbound SMTP): DEVELOPMENT.md, "Mail".
+      - key: GMAIL_CLIENT_ID
         sync: false
-      - key: MAIL_HOST
+      - key: GMAIL_CLIENT_SECRET
         sync: false
-      - key: MAIL_PORT
-        sync: false
-      - key: MAIL_USERNAME
-        sync: false
-      - key: MAIL_PASSWORD
+      - key: GMAIL_REFRESH_TOKEN
         sync: false
       - key: MAIL_FROM_ADDRESS
         sync: false

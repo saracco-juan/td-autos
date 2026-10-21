@@ -82,7 +82,7 @@ The names above are the planned ones; the real ones appear once the accounts exi
 2. **Render**: New → Blueprint, pick this repo; Render reads `render.yaml` and creates both services. Fill the values marked `sync: false` per service (table below). Render asks for them only at this point: later, edit them in the service's Environment tab. Generate each `APP_KEY` locally with `php artisan key:generate --show` (a different one per environment; Render's `generateValue` is not a valid Laravel key). The first deploy runs the migrations (`backend/docker/start.sh`).
 3. **Vercel**: Add New → Project, import this repo, Root Directory `frontend/web` (framework Vite; build command and rewrites come from `vercel.json`). Keep "Include files outside the root directory in the Build Step" enabled: the web imports `frontend/shared`. Project name `td-autos` gives the planned production host. Production branch: `main` (Settings → Environments). No environment variables are needed: the build bakes `VITE_API_URL=/backend`.
 4. **Google Cloud Console** → Google Auth Platform → Clients → the Web client: add `https://td-autos.vercel.app/backend/auth/google/callback` and `https://td-autos-git-develop-<scope>.vercel.app/backend/auth/google/callback` to the authorized redirect URIs, and both hosts (without path) to the authorized JavaScript origins. Keep the localhost entries.
-5. **Mail**: see [Mail](#mail) below before creating accounts.
+5. **Mail**: Gmail API from a dedicated account, see [Mail](#mail) below.
 6. **GitHub** → Settings → Secrets and variables → Actions: variables `PROD_API_URL` / `DEV_API_URL` (the Render URLs, `https://td-autos-api.onrender.com`), secrets `CRON_SECRET_PROD` / `CRON_SECRET_DEV` (the `CRON_SECRET` of each Render service, `openssl rand -hex 32`). Run the "Cron" workflow once by hand (Actions → Cron → Run workflow) to check both environments answer `200`.
 7. **First administrator**: Render free has no Shell and no one-off jobs, so run the command locally against the environment's database. The session pooler is IPv4, so it works from home:
    ```bash
@@ -104,7 +104,7 @@ Same keys in both services; "value" is the same for both unless it says otherwis
 | `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION` | `database`, `database`, `sync` | no |
 | `SESSION_SECURE_COOKIE` | `true` | no |
 | `VEHICLE_PHOTOS_DISK`, `RECEIPTS_DISK` | `supabase`, `supabase_private` | no |
-| `MAIL_FROM_NAME` | `TD Autos` | no |
+| `MAIL_MAILER`, `MAIL_FROM_NAME` | `gmail`, `TD Autos` (in `render.yaml`) | no |
 | `APP_KEY` | `base64:…` from `php artisan key:generate --show`, one per environment | yes |
 | `APP_URL` | `https://<vercel host>/backend` | no |
 | `FRONTEND_URL` | `https://<vercel host>` | no |
@@ -116,7 +116,8 @@ Same keys in both services; "value" is the same for both unless it says otherwis
 | `SUPABASE_STORAGE_BUCKET`, `SUPABASE_STORAGE_PRIVATE_BUCKET` | public photos bucket, private receipts bucket | no |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Web client of Google Cloud (can be shared by both environments) | secret: yes |
 | `CRON_SECRET` | `openssl rand -hex 32`, one per environment; empty disables the cron endpoint | yes |
-| `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` | see [Mail](#mail) | password: yes |
+| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` | mail OAuth client and refresh token, see [Mail](#mail) (can be shared by both environments) | yes |
+| `MAIL_FROM_ADDRESS` | the dedicated Gmail address, see [Mail](#mail) | no |
 | `ADMIN_NOTIFICATION_EMAILS` | comma-separated admins notified of new payment receipts (optional) | no |
 | `TRANSFER_HOLDER`, `TRANSFER_CUIT`, `TRANSFER_BANK`, `TRANSFER_CBU`, `TRANSFER_ALIAS`, `SUBSCRIPTION_MONTHLY_AMOUNT`, `TRANSFER_ADVISOR_WHATSAPP` | bank transfer data shown to dealers; add them in the Environment tab when known (not in `render.yaml`) | no |
 
@@ -126,7 +127,20 @@ Mobile builds point at the same proxy: `EXPO_PUBLIC_API_URL=https://<vercel host
 
 ### Mail
 
-The decision (task T4) is Gmail SMTP from a dedicated account: `MAIL_MAILER=smtp`, `MAIL_HOST=smtp.gmail.com`, `MAIL_PORT=587`, `MAIL_USERNAME` / `MAIL_FROM_ADDRESS` the account, `MAIL_PASSWORD` an app password (Google account → Security → 2-Step Verification on → App passwords). **Render free blocks outbound SMTP on ports 25, 465 and 587**, so this does not work from Render free as is. Until it is settled, set `MAIL_MAILER=log` (mails end up in the logs; password reset and notifications do not reach anyone). Options: an SMTP provider that listens on port 2525 (not documented as blocked; test it first), an HTTP mail API (needs its Laravel transport package), or a paid Render instance.
+Render free blocks outbound SMTP (ports 25, 465 and 587), so deployed environments send mail through the **Gmail API over HTTPS** from a dedicated Gmail account: `MAIL_MAILER=gmail` (`backend/app/Mail/Transport/GmailApiTransport.php`). It exchanges a long-lived refresh token for an access token (cached until shortly before it expires) and posts each message to `users.messages.send`. Local and CI keep the default `log` mailer; nothing changes there.
+
+One-time setup (the same account and credentials can serve both environments):
+
+1. Create the dedicated Gmail account (for example `tdautos.noreply@gmail.com`). It is the sender: `MAIL_FROM_ADDRESS` must be this address, Gmail rewrites any other `From`.
+2. Google Cloud Console, in the existing project → APIs & Services → Library → **Gmail API** → Enable.
+3. Google Auth Platform → Audience: user type **External**, publishing status **In production** (Publish app). In "Testing", refresh tokens for non-basic scopes such as `gmail.send` expire after 7 days and mail stops. Google may show an "unverified app" warning on sign-in; only the dedicated account signs in, so continue past it.
+4. Google Auth Platform → Data access: add the scope `https://www.googleapis.com/auth/gmail.send`.
+5. Google Auth Platform → Clients → Create client: type **Web application**, name `TD Autos mail` (a separate client, not the Socialite one), authorized redirect URI `https://developers.google.com/oauthplayground`. Copy the client ID and secret.
+6. Open [OAuth 2.0 Playground](https://developers.google.com/oauthplayground): gear icon → "Use your own OAuth credentials", paste the client ID and secret (access type offline). In step 1 enter the scope `https://www.googleapis.com/auth/gmail.send`, Authorize APIs, **sign in as the dedicated account** and allow. Step 2 → "Exchange authorization code for tokens", copy the **refresh token**.
+7. In each Render service (Environment tab): `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` and `MAIL_FROM_ADDRESS` (the dedicated address). `MAIL_MAILER=gmail` and `MAIL_FROM_NAME=TD Autos` come from `render.yaml`.
+8. Check: request a password reset on the deployed web and confirm the mail arrives. A failure shows in Render's Logs tab as `Gmail API rejected the message (HTTP <status>)` or `Could not get a Gmail API access token (HTTP <status>)`; a `400` on the token usually means the refresh token was revoked or expired (repeat step 6).
+
+Limits: a consumer Gmail account sends up to 500 messages a day and 500 recipients per message; above that Gmail blocks sending for up to 24 hours. The refresh token stops working if the account password changes (tokens with Gmail scopes are revoked), if it goes unused for six months, or if access is removed from the account; repeat step 6 and update `GMAIL_REFRESH_TOKEN`.
 
 ### Free-plan limits
 
