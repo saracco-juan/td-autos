@@ -525,3 +525,35 @@ Expect all tests to pass, including ordinary/special grouping, nested model name
 unmatched identities, numeric models and whole-month rejection. There is no new
 screen or API yet. Automatic download, historical snapshots, the six-month window,
 quintiles and recommendation integration remain subsequent slices.
+
+## DNRPA six-month activity calculation (HU05, stage 13c2a)
+
+`App\Services\Resale\DnrpaActivityCalculator` calculates activity from the existing
+monthly reader's aggregate snapshots. It does not fetch, persist, or mutate data.
+Pass an explicit `DateTimeImmutable` cutoff; there is no hidden clock access.
+
+- `monthsEndingAt('2026-09', $cutoff)` returns April through September when the
+  cutoff is in October or later. An invalid/current/future end month returns null.
+- `calculate($history, $cutoff)` selects the latest available closed month and its
+  five predecessors, ignoring older history and current/future observations.
+  Gaps, duplicate closed months, inconsistent counts or different ACARA catalog
+  snapshots return null; no shorter window or missing months padded with zeros.
+- Sum make/model/special counts across those six months, preserving variants and
+  identified/unmatched totals. Unidentified models get no row and no zero score.
+- Rank observed groups by transfers. Points are 100/80/60/40/20 by quintile;
+  ties use the number of groups strictly above them divided by `N - 1`.
+  Integer arithmetic chooses the band without floating-point boundary rounding.
+  A single group scores 100; ties and populations below five can leave bands empty.
+  These relative points are not sale probabilities or evidence of high volume.
+
+Offline manual check (synthetic snapshots, no network/server/login/DB needed):
+
+```powershell
+cd backend
+php artisan test --filter=DnrpaActivityCalculatorTest
+```
+
+Expect passing tests for six-month totals, gaps, year rollover, ties, small
+populations and the existing reader's output. No screen or API changed.
+Official archive acquisition is the next cut (13c2b); persistence/history,
+14-day scheduled checks and recommendation integration remain separate work.
