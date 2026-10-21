@@ -1,0 +1,23 @@
+# Never ship local secrets or machine state into the image.
+.env
+.env.*
+!.env.example
+auth.json
+
+# Rebuilt inside the image.
+vendor
+node_modules
+bootstrap/cache/*.php
+storage
+
+# Not needed at runtime.
+tests
+phpunit.xml
+.phpunit.cache
+.phpunit.result.cache
+coverage.xml
+database/*.sqlite
+*.log
+.git
+.idea
+.vscode
