@@ -97,6 +97,8 @@ La app usa tokens de Sanctum (`/api/mobile/*`), no la cookie de sesión de la we
 | Frontend web | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` | `npm run build` |
 | App móvil | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` y `npm run typecheck` | `npx expo export --platform android` |
 
+Antes de abrir un PR, desde la raíz: `node scripts/check-duplication.mjs` mide la duplicación del código nuevo contra `origin/develop`, como el quality gate de SonarQube Cloud (falla por encima del 3%).
+
 ## Integración continua
 
 El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada push y pull request hacia `develop` y `main`:
@@ -106,6 +108,7 @@ El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada
 | Backend | `./vendor/bin/pint --test` y `php artisan test` con cobertura |
 | Frontend web | `npm run lint`, `npm run test:coverage` y `npm run build` |
 | App móvil | `npm run lint`, `npm run typecheck`, `npm run test:coverage` y `npx expo export --platform android` |
+| Duplicación (solo PR) | `node scripts/check-duplication.mjs` contra la rama base: falla antes de Sonar si el código nuevo supera el 3% duplicado |
 | SonarQube Cloud | Análisis estático y cobertura de los tres proyectos, configurado en [`sonar-project.properties`](sonar-project.properties) |
 
 El job de SonarQube Cloud necesita el secret `SONAR_TOKEN` en el repositorio de GitHub y no corre en pull requests abiertos desde forks.
