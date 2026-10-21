@@ -99,6 +99,21 @@ return [
             'report' => false,
         ],
 
+        // Private Supabase bucket for payment receipts (RECEIPTS_DISK=supabase_private when
+        // deployed). Same credentials as "supabase"; files are only streamed by the API.
+        'supabase_private' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_STORAGE_KEY'),
+            'secret' => env('SUPABASE_STORAGE_SECRET'),
+            'region' => env('SUPABASE_STORAGE_REGION'),
+            'bucket' => env('SUPABASE_STORAGE_PRIVATE_BUCKET'),
+            'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*
