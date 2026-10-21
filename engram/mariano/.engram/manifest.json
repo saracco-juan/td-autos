@@ -144,6 +144,22 @@
       "sessions": 1,
       "memories": 20,
       "prompts": 4
+    },
+    {
+      "id": "69b1fa3c",
+      "created_by": "Compumar",
+      "created_at": "2026-10-21T00:49:21.065865Z",
+      "sessions": 1,
+      "memories": 19,
+      "prompts": 7
+    },
+    {
+      "id": "51b4f9a4",
+      "created_by": "Compumar",
+      "created_at": "2026-10-21T11:53:34.9838466Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
     }
   ]
 }
