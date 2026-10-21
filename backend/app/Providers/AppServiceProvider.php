@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Mail\Transport\GmailApiTransport;
 use App\Services\Marketplaces\MarketplaceSearch;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Http\Client\Factory as HttpFactory;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -25,6 +28,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->usePublicAppUrl();
+
+        Mail::extend('gmail', fn (array $config) => new GmailApiTransport(
+            $this->app->make(HttpFactory::class),
+            $this->app->make('cache.store'),
+            (string) ($config['client_id'] ?? ''),
+            (string) ($config['client_secret'] ?? ''),
+            (string) ($config['refresh_token'] ?? ''),
+        ));
 
         ResetPassword::createUrlUsing(function (object $notifiable, string $token) {
             $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
