@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class DealerDetail
 {
+    public function __construct(private readonly DealerRemoval $removal) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -36,6 +38,8 @@ final class DealerDetail
             'estado_alta' => $dealer->estado_alta,
             'suscripcion' => $subscription ? SuscripcionPresenter::validity($subscription) : null,
             'comprobantes' => $this->receipts($subscription),
+            // Read by the edit screen to disable ELIMINAR while the subscription is current (RF35).
+            'puede_eliminarse' => $this->removal->allows($dealer),
         ];
     }
 
