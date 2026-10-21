@@ -493,3 +493,35 @@ Expect `ACARA: ready (N rows).`, exit 0, and the same cached row count on the
 second call without another download. An unavailable/stale warning exits 1 and
 retains prior data. The schedule lists the daily ACARA check and existing hourly
 subscriptions task. Offline regression tests: `php artisan test --filter=AcaraPriceSourceTest`.
+
+## DNRPA monthly activity reader (HU05, first stage 13c slice)
+
+`App\Services\Resale\DnrpaActivityReader::read($stream, $month, $catalog)` consumes
+a caller-owned, comma-delimited UTF-8 CSV stream and the existing ACARA reader's
+snapshot. It returns monthly transfer counts by normalized make/model, catalog
+snapshot identity and identified/unmatched coverage. The caller closes the stream.
+
+- Match the exact normalized make, remove an exact repeated make prefix, then
+  select the longest complete ACARA model prefix (Corolla Cross before Corolla).
+  Ordinary versions share a bucket. No fuzzy matches or manual alias catalog.
+- Split literal whole-token `GTI` or `diesel` only when also present in that
+  family's ACARA model/version text. No inference from `N`, `TDI`, `HDI`, power,
+  transmission or engine size. Unmarked groups do not mean verified petrol cars.
+- Invalid headers, dates, row widths or an empty month reject the entire result.
+  Missing vehicle identities count as unmatched, not as a failed month. Only
+  aggregate vehicle fields escape; no holder data or raw rows.
+- Counts describe registered transfers, not sale probability. They include all
+  source vehicle types; catalog presence alone adds no activity. No claim of
+  exact version/engine identity or measured coverage for these revised rules.
+
+Offline smoke test (synthetic input; no server, login, downloads or DB needed):
+
+```powershell
+cd backend
+php artisan test --filter=DnrpaActivityReaderTest
+```
+
+Expect all tests to pass, including ordinary/special grouping, nested model names,
+unmatched identities, numeric models and whole-month rejection. There is no new
+screen or API yet. Automatic download, historical snapshots, the six-month window,
+quintiles and recommendation integration remain subsequent slices.
