@@ -17,9 +17,9 @@ services:
     region: virginia
     branch: main
     rootDir: backend
-    # Both paths are relative to the repository root, not to rootDir.
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    # Both paths are relative to rootDir.
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /up
     autoDeployTrigger: commit
     envVars:
@@ -102,8 +102,8 @@ services:
     region: virginia
     branch: develop
     rootDir: backend
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /up
     autoDeployTrigger: commit
     # Same keys as td-autos-api; values differ per environment (DEVELOPMENT.md).
