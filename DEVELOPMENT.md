@@ -378,3 +378,24 @@ console.log('Recommendations:', result.status, await result.json()); // 200, rea
 
 For isolated scenarios (401, pending states, filtering, recalculation, quote failure/staleness):
 `cd backend; php artisan test --filter=RecommendationsTest`. All HTTP is faked and DB state is disposable.
+## HU05 recommendation screen
+
+With the README backend/Vite servers running, sign in as a **buyer**, open
+`http://localhost:5173/diagnostico`, complete the questionnaire and choose
+**VER RECOMENDACIONES**. Use consumption, safety or maintenance; resale is deferred.
+The screen now calls `GET /api/recomendaciones`, not catalog search.
+
+- Expect up to ten real dealership listings, ordered by backend compatibility.
+  Nine fit on page one; the tenth is on page two, without another API request.
+- Check published and equivalent ARS/USD prices and the quote source/date.
+  Open **Ver atributos y motivos** for grouped facts and component scores.
+- Above-budget/body mismatches show warnings. If no car qualifies, adjust the
+  diagnosis; the screen does not fill the list with unrelated cars.
+- An incomplete diagnosis or deferred resale priority explains why there is no
+  ranking. Request failures offer **REINTENTAR**; unavailable/stale quotes are explicit.
+- Revisit after changing the diagnosis to fetch fresh recommendations. No search,
+  catalog tab, comparison or detailed HU09 sheet is introduced in this stage.
+
+Run the isolated frontend checks with
+`npm run test -- src/features/recommendations/MatchingRecommendationsPage.test.tsx src/features/recommendations/matching.test.ts`
+from `frontend/web`. These tests fake API data and never change the local inventory.

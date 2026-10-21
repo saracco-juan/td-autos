@@ -53,3 +53,10 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 ## Platforms
 
 - A screen decision applies to web and mobile by default; only layout that exists on one platform (desktop sidebar, bottom tab bar) stays on that platform.
+
+## HU05 matching-only recommendations (2026-10-20)
+
+- User-approved override: recommendations replace catalog search; no search field, filter sidebar or catalog tab. Backend order is retained, nine cards per page, up to ten results total.
+- Cards show published/equivalent prices, compatibility, dealer, budget/body warnings and expandable grouped facts/motives. The shared quote shows source, sell rate, provider date and stale/unavailable notices. Detailed HU09 sheets and HU08 comparison remain deferred.
+- Figma sync pending approval: High v3 desktop `2373:7328`, mobile `2373:9914` still show search and placeholder match lines. Apply the matching-only/content changes to both; tablet follows web responsive rules. No Figma edits have been made.
+- This supersedes the recommendation search-field rules above. Existing catalog components/tests remain unmounted legacy RF05 code, not another user-facing view.

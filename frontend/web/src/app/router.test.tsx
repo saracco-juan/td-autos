@@ -13,8 +13,7 @@ import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } fro
 import { dealerDetail, directory, receipt } from '../features/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
-import { searchListings } from '../features/recommendations/api'
-import { searchResponse } from '../features/recommendations/fixtures'
+import { fetchRecommendations } from '../features/recommendations/matching'
 import { fetchTransfer } from '../features/transfer/api'
 import { transferResponse } from '../features/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
@@ -61,7 +60,7 @@ vi.mock('../features/admin/api', () => ({
   rejectReceipt: vi.fn(),
 }))
 
-vi.mock('../features/recommendations/api', () => ({ searchListings: vi.fn() }))
+vi.mock('../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn() }))
 
 vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
@@ -122,8 +121,8 @@ describe('app routes', () => {
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
     vi.mocked(fetchTransfer).mockReset()
-    vi.mocked(searchListings).mockReset()
-    vi.mocked(searchListings).mockResolvedValue(searchResponse())
+    vi.mocked(fetchRecommendations).mockReset()
+    vi.mocked(fetchRecommendations).mockResolvedValue({ status: 'ready', results: [], exchange_rate: null })
     vi.mocked(fetchSubscription).mockReset()
     vi.mocked(fetchSubscription).mockResolvedValue(suscripcion())
     vi.mocked(fetchVehicles).mockReset()
@@ -275,7 +274,9 @@ describe('app routes', () => {
     const router = renderAt('/recomendaciones')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Mejores opciones para vos' })).toBeInTheDocument()
-    expect(await screen.findByText('Mostrando 3 vehículos')).toBeInTheDocument()
+    expect(await screen.findByText('Mostrando 0 vehículos')).toBeInTheDocument()
+    expect(fetchRecommendations).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/recomendaciones')
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
