@@ -454,3 +454,42 @@ The supplied 19/10/2026 PDF produced 7,390 rows across 384 pages (~328 MiB peak,
 decoded stream; these are **not** a total memory/time sandbox. Before scheduled
 ingestion, run in a bounded background worker and validate deployment resources;
 do not expose arbitrary PDF uploads or execute this in recommendation requests.
+
+## HU05 stage 13b2: automatic ACARA acquisition
+
+`AcaraPriceSource` downloads the fixed [ACARA PDF endpoint](https://api.acara.org.ar/api/v1/prices/download-vehicule-processed-pdf?file=acara_precios.pdf),
+passes its bytes to the reader, then atomically replaces one complete last-valid
+snapshot in the configured persistent Laravel cache. No inventory or ranking is
+changed. Duplicate version labels remain separate rows; consumers must not assume
+their `version_id` is unique or choose conflicting prices arbitrarily.
+
+`current()` reads local data only, with `snapshot`, `stale` and `warning` fields.
+`refresh()` claims at most one attempt every 14 days across callers, including
+failures. HTTP errors, redirects, invalid/future/backdated PDFs and extraction
+errors leave the previous snapshot unchanged. Missing data yields
+`acara_unavailable`; a retrieval older than 14 days yields `acara_stale`.
+Snapshots carry ACARA's source date, byte hash, URL and distinct `fetched_at` time.
+
+Use the existing database/file/Redis cache, never array/null outside tests.
+Cache clearing/eviction loses both fallback and throttle; this is not a historical
+valuation archive. No new schema, credentials, `.env` edits or dependencies are needed.
+HTTPS verification stays enabled; Windows conditionally uses native CA trust.
+Downloads use a temporary-file sink, 25 MiB transfer/actual-size guards, 20/60-second
+connect/total timeouts, no redirects, automatic decompression or immediate retries.
+
+The Laravel scheduler checks daily in a separate PHP process capped at 512 MiB
+and 120 seconds of PHP execution, without overlap. Its 14-day claim prevents daily
+downloads. The host must already run Laravel's scheduler; this change installs no
+OS task. Parsing is never triggered by a recommendation request or arbitrary upload.
+
+Manual PowerShell check (writes source cache only, not inventory):
+```powershell
+cd D:\DaVinci\TESIS\td-autos\backend
+php -d memory_limit=512M -d max_execution_time=120 artisan acara:refresh
+php -d memory_limit=512M -d max_execution_time=120 artisan acara:refresh
+php artisan schedule:list
+```
+Expect `ACARA: ready (N rows).`, exit 0, and the same cached row count on the
+second call without another download. An unavailable/stale warning exits 1 and
+retains prior data. The schedule lists the daily ACARA check and existing hourly
+subscriptions task. Offline regression tests: `php artisan test --filter=AcaraPriceSourceTest`.
