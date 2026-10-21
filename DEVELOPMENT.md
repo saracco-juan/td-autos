@@ -43,7 +43,7 @@ For a URL that does not change, use a named Cloudflare tunnel (account and own d
 
 ### Production
 
-The backend has its own public HTTPS URL, so no tunnel is needed: `GOOGLE_REDIRECT_URI` points to it and serves web and app, `GOOGLE_MOBILE_REDIRECT_URI` stays empty (falls back to it), and Google Cloud holds a single callback URI. The built app returns through `tdautos://` (`MOBILE_REDIRECT_PREFIXES`); `exp://` (Expo Go) is only accepted outside production.
+The backend has a public HTTPS URL (`https://<vercel host>/backend`, see [Deploy](#deploy)), so no tunnel is needed: `GOOGLE_REDIRECT_URI` points to it and serves web and app, `GOOGLE_MOBILE_REDIRECT_URI` stays empty (falls back to it), and Google Cloud holds a single callback URI. The built app returns through `tdautos://` (`MOBILE_REDIRECT_PREFIXES`); `exp://` (Expo Go) is only accepted outside production.
 
 ## Code shared by web and mobile (`frontend/shared/`)
 
@@ -52,6 +52,88 @@ Pure TypeScript used by both apps, today the diagnosis model (`diagnosis/`: type
 - Import it as `@shared/<path>` (for example `@shared/diagnosis/steps`). Web resolves the alias in `tsconfig.app.json` `paths` and `vite.config.ts` `resolve.alias` (plus `server.fs.allow` for the dev server). Mobile resolves it from `tsconfig.json` `paths`, which Expo Metro and `jest-expo` read; `metro.config.js` adds the folder to `watchFolders`. The shared folder has no `node_modules`, so whatever its files import (Babel runtime helpers included) is resolved from the app's own `node_modules`: `metro.config.js` `resolver.nodeModulesPaths` and `jest.config.js` `modulePaths`. Keep shared code free of npm imports.
 - Its unit tests (`*.test.ts` next to the code) run in the web suite (`vitest.config.ts` `include`), which also reports their coverage. Their `vitest` import resolves through a `paths` entry in `tsconfig.app.json`. CI rewrites the `../shared/` lcov paths to `frontend/shared/` for SonarQube Cloud. Mobile only tests its screens.
 - ESLint does not reach this folder (each config stops at its app root); web `tsc -b` type-checks it.
+
+## Deploy
+
+Everything runs on free plans: the SPA on Vercel, the API as a Docker web service on Render, database and files on Supabase. The browser only talks to the Vercel host: `frontend/web/vercel.json` proxies `/backend/*` to Render, so the session cookie, CSRF and Google sign-in stay on one origin (no CORS, no custom domain). The `/backend` prefix keeps API routes such as `POST /login` apart from SPA pages with the same path.
+
+| Environment | Branch | Web (Vercel) | API (Render) | Database and files |
+| --- | --- | --- | --- | --- |
+| local | any | `http://localhost:5173` | `http://localhost:8000` | SQLite (`db:local`) or your own Supabase |
+| development | `develop` | `https://td-autos-git-develop-<scope>.vercel.app` | `td-autos-api-dev` | Supabase project `td-autos-dev` |
+| production | `main` | `https://td-autos.vercel.app` | `td-autos-api` | Supabase project `td-autos` |
+
+A push to `develop` or `main` redeploys both sides of that environment. Other Vercel previews (feature branches, PRs) are proxied to the development API, never to production.
+
+### Hostnames: where to adjust them
+
+The names above are the planned ones; the real ones appear once the accounts exist. If they differ:
+
+- **Vercel production host** (`td-autos.vercel.app`): the `has.host` value of the first rewrite in `frontend/web/vercel.json`. If it does not match, production traffic silently goes to the development API.
+- **Render service URLs** (`td-autos-api.onrender.com`, `td-autos-api-dev.onrender.com`): the rewrite destinations in `frontend/web/vercel.json` and the GitHub variables of the cron.
+- **Vercel host of each environment**: the `APP_URL`, `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS` and `GOOGLE_REDIRECT_URI` values of each Render service, and the Google redirect URIs.
+
+### One-time setup
+
+1. **Supabase** (two projects, `td-autos` and `td-autos-dev`, same region; `us-east-1` sits next to Render's `virginia`):
+   - Database: Connect → Session pooler, copy the URI (`postgresql://postgres.<ref>:<password>@aws-<n>-<region>.pooler.supabase.com:5432/postgres`) as `DB_URL`. Do not use the direct connection: it is IPv6-only and Render has no IPv6. Do not use the transaction pooler (port 6543): it does not support prepared statements.
+   - Storage: create a **public** bucket for vehicle photos (`SUPABASE_STORAGE_BUCKET`, for example `vehiculos`) and a **private** bucket for payment receipts (`SUPABASE_STORAGE_PRIVATE_BUCKET`, for example `comprobantes`).
+   - Storage → S3 connection: copy the endpoint (`SUPABASE_STORAGE_ENDPOINT`) and region (`SUPABASE_STORAGE_REGION`), and create an access key (`SUPABASE_STORAGE_KEY` / `SUPABASE_STORAGE_SECRET`, shown once). `SUPABASE_STORAGE_URL` is `https://<ref>.supabase.co/storage/v1/object/public/<photos bucket>`.
+2. **Render**: New → Blueprint, pick this repo; Render reads `render.yaml` and creates both services. Fill the values marked `sync: false` per service (table below). Render asks for them only at this point: later, edit them in the service's Environment tab. Generate each `APP_KEY` locally with `php artisan key:generate --show` (a different one per environment; Render's `generateValue` is not a valid Laravel key). The first deploy runs the migrations (`backend/docker/start.sh`).
+3. **Vercel**: Add New → Project, import this repo, Root Directory `frontend/web` (framework Vite; build command and rewrites come from `vercel.json`). Keep "Include files outside the root directory in the Build Step" enabled: the web imports `frontend/shared`. Project name `td-autos` gives the planned production host. Production branch: `main` (Settings → Environments). No environment variables are needed: the build bakes `VITE_API_URL=/backend`.
+4. **Google Cloud Console** → Google Auth Platform → Clients → the Web client: add `https://td-autos.vercel.app/backend/auth/google/callback` and `https://td-autos-git-develop-<scope>.vercel.app/backend/auth/google/callback` to the authorized redirect URIs, and both hosts (without path) to the authorized JavaScript origins. Keep the localhost entries.
+5. **Mail**: see [Mail](#mail) below before creating accounts.
+6. **GitHub** → Settings → Secrets and variables → Actions: variables `PROD_API_URL` / `DEV_API_URL` (the Render URLs, `https://td-autos-api.onrender.com`), secrets `CRON_SECRET_PROD` / `CRON_SECRET_DEV` (the `CRON_SECRET` of each Render service, `openssl rand -hex 32`). Run the "Cron" workflow once by hand (Actions → Cron → Run workflow) to check both environments answer `200`.
+7. **First administrator**: Render free has no Shell and no one-off jobs, so run the command locally against the environment's database. The session pooler is IPv4, so it works from home:
+   ```bash
+   cd backend
+   php artisan config:clear
+   DB_CONNECTION=pgsql DB_URL='<session pooler URI of that environment>' php artisan admin:create
+   ```
+   Real environment variables win over `backend/.env`, so the local file is not touched. Make sure the first deploy already ran the migrations.
+
+### Environment variables (Render)
+
+Same keys in both services; "value" is the same for both unless it says otherwise. Secrets are never committed.
+
+| Key | Value | Secret |
+| --- | --- | --- |
+| `APP_NAME`, `APP_ENV`, `APP_DEBUG` | `TD Autos`, `production`, `false` (in `render.yaml`) | no |
+| `LOG_CHANNEL` | `stderr` (logs in Render's Logs tab) | no |
+| `DB_CONNECTION` | `pgsql` | no |
+| `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION` | `database`, `database`, `sync` | no |
+| `SESSION_SECURE_COOKIE` | `true` | no |
+| `VEHICLE_PHOTOS_DISK`, `RECEIPTS_DISK` | `supabase`, `supabase_private` | no |
+| `MAIL_FROM_NAME` | `TD Autos` | no |
+| `APP_KEY` | `base64:…` from `php artisan key:generate --show`, one per environment | yes |
+| `APP_URL` | `https://<vercel host>/backend` | no |
+| `FRONTEND_URL` | `https://<vercel host>` | no |
+| `SANCTUM_STATEFUL_DOMAINS` | `<vercel host>` (no scheme) | no |
+| `GOOGLE_REDIRECT_URI` | `https://<vercel host>/backend/auth/google/callback` | no |
+| `DB_URL` | Supabase session pooler URI of the environment | yes |
+| `SUPABASE_STORAGE_KEY`, `SUPABASE_STORAGE_SECRET` | S3 access key of the environment's project | yes |
+| `SUPABASE_STORAGE_REGION`, `SUPABASE_STORAGE_ENDPOINT`, `SUPABASE_STORAGE_URL` | from the project's S3 connection settings | no |
+| `SUPABASE_STORAGE_BUCKET`, `SUPABASE_STORAGE_PRIVATE_BUCKET` | public photos bucket, private receipts bucket | no |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Web client of Google Cloud (can be shared by both environments) | secret: yes |
+| `CRON_SECRET` | `openssl rand -hex 32`, one per environment; empty disables the cron endpoint | yes |
+| `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` | see [Mail](#mail) | password: yes |
+| `ADMIN_NOTIFICATION_EMAILS` | comma-separated admins notified of new payment receipts (optional) | no |
+| `TRANSFER_HOLDER`, `TRANSFER_CUIT`, `TRANSFER_BANK`, `TRANSFER_CBU`, `TRANSFER_ALIAS`, `SUBSCRIPTION_MONTHLY_AMOUNT`, `TRANSFER_ADVISOR_WHATSAPP` | bank transfer data shown to dealers; add them in the Environment tab when known (not in `render.yaml`) | no |
+
+`<vercel host>` is `td-autos.vercel.app` for `td-autos-api` and `td-autos-git-develop-<scope>.vercel.app` for `td-autos-api-dev`. `SESSION_DOMAIN` stays unset (host-only cookie). Anything else keeps the defaults of `backend/config/`.
+
+Mobile builds point at the same proxy: `EXPO_PUBLIC_API_URL=https://<vercel host>/backend`, so Google sign-in keeps its session on one host.
+
+### Mail
+
+The decision (task T4) is Gmail SMTP from a dedicated account: `MAIL_MAILER=smtp`, `MAIL_HOST=smtp.gmail.com`, `MAIL_PORT=587`, `MAIL_USERNAME` / `MAIL_FROM_ADDRESS` the account, `MAIL_PASSWORD` an app password (Google account → Security → 2-Step Verification on → App passwords). **Render free blocks outbound SMTP on ports 25, 465 and 587**, so this does not work from Render free as is. Until it is settled, set `MAIL_MAILER=log` (mails end up in the logs; password reset and notifications do not reach anyone). Options: an SMTP provider that listens on port 2525 (not documented as blocked; test it first), an HTTP mail API (needs its Laravel transport package), or a paid Render instance.
+
+### Free-plan limits
+
+- **Render**: a service sleeps after 15 minutes without traffic; the next request waits about a minute while it starts (Vercel waits up to 120 s for the first byte, so it is slow but does not fail). The 750 free instance hours per month are shared by both services; the hourly cron wakes each one every hour (about 15 minutes of uptime per wake-up). The disk is ephemeral: files live in Supabase Storage.
+- **Vercel**: the request body limit of the `/backend` proxy is not documented; check a 5 MB photo and receipt upload on the first deploy.
+- **Supabase**: free projects pause after a week without activity; restore them from the dashboard. The hourly cron queries the database, which should count as activity; check the dashboard after the first week.
+- **GitHub Actions**: scheduled workflows only run from the default branch (`develop`, so the cron starts once this workflow is merged there) and are disabled after 60 days without repository activity; re-enable them in the Actions tab.
 
 ## Scripts and commands
 
