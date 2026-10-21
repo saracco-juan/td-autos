@@ -1,11 +1,21 @@
 import { StyleSheet, View } from 'react-native'
 
-import Alert from '../../components/Alert'
-import Button from '../../components/Button'
-import { ACTION_LABELS } from '@shared/checklist/inspection/copy'
+import Alert from '../Alert'
+import Button from '../Button'
+
+// The words of the bar; each checklist feature passes its own.
+export type ActionLabels = {
+  next: string
+  finish: string
+  finishAnyway: string
+  keepWorking: string
+  // Alert shown above the buttons when finishing failed.
+  finishError: string
+}
 
 type Props = {
-  // The critical-pending warning is open: the bar offers FINALIZAR IGUAL / SEGUIR REVISANDO (07b).
+  labels: ActionLabels
+  // The flagged-pending warning is open: the bar offers finishAnyway / keepWorking.
   warning: boolean
   finishing: boolean
   finishFailed: boolean
@@ -18,9 +28,10 @@ type Props = {
 
 const FINISHING = 'FINALIZANDO…'
 
-// The bar pinned above the tab bar (Figma 07): PASO SIGUIENTE (left, not on the last step) and FINALIZAR (right),
-// with the finish error above the buttons (07j). Mobile has no PASO ANTERIOR: the pills move back.
+// The bar pinned above the tab bar: next (left, not on the last step) and finish (right), with the finish error
+// above the buttons. Mobile has no previous button: the pills move back.
 export default function ActionBar({
+  labels,
   warning,
   finishing,
   finishFailed,
@@ -32,13 +43,13 @@ export default function ActionBar({
 }: Readonly<Props>) {
   return (
     <View style={styles.bar}>
-      {finishFailed ? <Alert variant="error">{ACTION_LABELS.finishError}</Alert> : null}
+      {finishFailed ? <Alert variant="error">{labels.finishError}</Alert> : null}
       <View style={styles.actions}>
         {warning ? (
           <>
             <View style={styles.action}>
               <Button
-                label={ACTION_LABELS.finishAnyway}
+                label={labels.finishAnyway}
                 busyLabel={FINISHING}
                 busy={finishing}
                 onPress={onFinishAnyway}
@@ -46,7 +57,7 @@ export default function ActionBar({
             </View>
             <View style={styles.action}>
               <Button
-                label={ACTION_LABELS.keepWorking}
+                label={labels.keepWorking}
                 variant="primary"
                 disabled={finishing}
                 onPress={onKeepWorking}
@@ -57,12 +68,12 @@ export default function ActionBar({
           <>
             {hasNext ? (
               <View style={styles.action}>
-                <Button label={ACTION_LABELS.next} disabled={finishing} onPress={onNext} />
+                <Button label={labels.next} disabled={finishing} onPress={onNext} />
               </View>
             ) : null}
             <View style={styles.action}>
               <Button
-                label={ACTION_LABELS.finish}
+                label={labels.finish}
                 busyLabel={FINISHING}
                 busy={finishing}
                 variant="primary"

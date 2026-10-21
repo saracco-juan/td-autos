@@ -1,4 +1,5 @@
-import type { ChecklistSummary } from '@shared/checklist/progress'
+import type { ChecklistSummary } from '../progress'
+import type { ChecklistItem } from '../types'
 
 export type SummaryMessage = { tone: 'success' | 'warning'; text: string }
 
@@ -19,4 +20,10 @@ export function summaryMessage(progress: ChecklistSummary): SummaryMessage {
 
   const ofThem = mandatory === 1 ? '1 de ellos obligatorio' : `${mandatory} de ellos obligatorios`
   return { tone: 'warning', text: `${prefix} ${left}, ${ofThem}.` }
+}
+
+// The items the pending card lists: only the mandatory ones when any is pending, since they matter most.
+export function summaryPendingItems(progress: ChecklistSummary): { mandatory: boolean; items: ChecklistItem[] } {
+  const mandatory = progress.pendingFlagged > 0
+  return { mandatory, items: mandatory ? progress.pending.filter((item) => item.flagged) : progress.pending }
 }

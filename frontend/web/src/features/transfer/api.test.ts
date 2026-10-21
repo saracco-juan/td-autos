@@ -4,8 +4,8 @@ vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
 
 import { apiFetch } from '../../lib/http'
 import { fetchTransfer, finishTransfer, setItemCompleted } from './api'
-import { transferResponse } from './fixtures'
-import type { TransferProgress } from './types'
+import { transferResponse } from '@shared/checklist/transfer/fixtures'
+import type { TransferProgress } from '@shared/checklist/transfer/types'
 
 const progress: TransferProgress = { estado: 'incompleta', items_completados: ['documentacion_dni'] }
 

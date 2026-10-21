@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native'
 import { STEPS } from '@shared/checklist/fixtures'
 import type { ChecklistStep } from '@shared/checklist/types'
-import { useChecklistAutosave } from '../../../features/inspection/useChecklistAutosave'
+import { useChecklistAutosave } from '../../../components/checklist/useChecklistAutosave'
 
 // The drain/revert/settle rules live in the shared engine and are covered by the web suite;
 // these tests check the React wiring of the mobile hook.

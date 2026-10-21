@@ -1,20 +1,21 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import type { StepProgress } from '@shared/checklist/progress'
-import { pendingMarkerLabel } from '@shared/checklist/inspection/copy'
 import { colors, radii } from '../../theme/tokens'
 
 type Props = {
   steps: StepProgress[]
   selected: number
-  // Critical items pending per step; only filled while the warning is open.
+  // Flagged items pending per step; only filled while the warning is open.
   pendingFlagged: ReadonlyMap<number, number>
+  // Accessible text of the marker, from the pending count.
+  pendingLabel: (count: number) => string
   onSelect: (numero: number) => void
 }
 
-// Horizontal strip of step pills (Figma 07): "n. Título" and "x de y", with a red dot on the steps that still
-// have critical items pending while the warning is open (07b).
-export default function StepPills({ steps, selected, pendingFlagged, onSelect }: Readonly<Props>) {
+// Horizontal strip of step pills: "n. Título" and "x de y", with a red dot on the steps that still have flagged
+// items pending while the warning is open.
+export default function StepPills({ steps, selected, pendingFlagged, pendingLabel, onSelect }: Readonly<Props>) {
   return (
     <ScrollView
       horizontal
@@ -25,7 +26,7 @@ export default function StepPills({ steps, selected, pendingFlagged, onSelect }:
       {steps.map((step) => {
         const active = step.numero === selected
         const pending = pendingFlagged.get(step.numero) ?? 0
-        const marker = pending > 0 ? `, ${pendingMarkerLabel(pending)}` : ''
+        const marker = pending > 0 ? `, ${pendingLabel(pending)}` : ''
         return (
           <Pressable
             key={step.numero}

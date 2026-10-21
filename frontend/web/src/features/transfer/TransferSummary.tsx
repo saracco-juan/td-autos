@@ -7,12 +7,12 @@ import ChecklistProgressCard from '../../components/checklist/ChecklistProgressC
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '@shared/checklist/progress'
 import FlowLayout from '../../components/FlowLayout'
-import { FLAG_LABEL } from './checklistCopy'
-import { toChecklistSteps } from './checklistSteps'
-import { summaryMessage } from './summaryMessage'
+import { FLAG_LABEL, SUMMARY_LABELS } from '@shared/checklist/transfer/copy'
+import { toChecklistSteps } from '@shared/checklist/transfer/steps'
+import { summaryMessage, summaryPendingItems } from '@shared/checklist/transfer/summaryMessage'
 import styles from './TransferSummary.module.css'
 import TransferHeader from './TransferHeader'
-import type { TransferStage } from './types'
+import type { TransferStage } from '@shared/checklist/transfer/types'
 
 type Props = {
   stages: TransferStage[]
@@ -27,9 +27,7 @@ type Props = {
 export default function TransferSummary({ stages, completedCodes, onKeepCompleting, titleRef }: Props) {
   const progress = summarizeChecklist(toChecklistSteps(stages), completedCodes)
   const message = summaryMessage(progress)
-  // Mandatory items matter most: when any is pending only those are listed.
-  const hasMandatory = progress.pendingFlagged > 0
-  const pendingItems = hasMandatory ? progress.pending.filter((item) => item.flagged) : progress.pending
+  const { mandatory: hasMandatory, items: pendingItems } = summaryPendingItems(progress)
   const showPending = pendingItems.length > 0
 
   return (
@@ -42,7 +40,7 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
             className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
             onClick={onKeepCompleting}
           >
-            {showPending ? 'SEGUIR COMPLETANDO' : 'VOLVER AL CHECKLIST'}
+            {showPending ? SUMMARY_LABELS.keepCompleting : SUMMARY_LABELS.backToChecklist}
           </button>
         </div>
       }
@@ -58,7 +56,7 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
 
       <ChecklistCardGrid single={!showPending}>
         <ChecklistProgressCard
-          title="Avance por etapa"
+          title={SUMMARY_LABELS.progressTitle}
           steps={progress.steps}
           completed={progress.completed}
           total={progress.total}
@@ -66,8 +64,8 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
 
         {showPending ? (
           <ChecklistPendingCard
-            title={hasMandatory ? 'Pasos obligatorios pendientes' : 'Pasos pendientes'}
-            subtitle={hasMandatory ? 'El registro los exige para hacer la transferencia.' : undefined}
+            title={hasMandatory ? SUMMARY_LABELS.pendingMandatoryTitle : SUMMARY_LABELS.pendingTitle}
+            subtitle={hasMandatory ? SUMMARY_LABELS.pendingMandatoryHint : undefined}
             flagLabel={FLAG_LABEL}
             items={pendingItems}
           />

@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
+import type { ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import Alert from '../../components/Alert'
 import type { ChecklistStep } from '@shared/checklist/types'
-import { FLAG_LABEL, SAVE_ERROR } from '@shared/checklist/inspection/copy'
+import Alert from '../Alert'
 import { colors, radii, shadows } from '../../theme/tokens'
 import FlagBadge from './FlagBadge'
 
@@ -11,11 +11,23 @@ type Props = {
   step: ChecklistStep
   completedCodes: ReadonlySet<string>
   saveFailed: boolean
+  flagLabel: string
+  saveError: string
   onToggle: (code: string, value: boolean) => void
+  // Extra content under the items, inside the card (e.g. a sources note).
+  children?: ReactNode
 }
 
-// The card of the selected step (Figma 07): title, hint, one checkbox row per item and the save error (07i).
-export default function StepPanel({ step, completedCodes, saveFailed, onToggle }: Readonly<Props>) {
+// The card of the selected step: title, hint, one checkbox row per item and the save error.
+export default function StepPanel({
+  step,
+  completedCodes,
+  saveFailed,
+  flagLabel,
+  saveError,
+  onToggle,
+  children,
+}: Readonly<Props>) {
   return (
     <View style={styles.card}>
       <Text accessibilityRole="header" style={styles.title}>
@@ -30,7 +42,7 @@ export default function StepPanel({ step, completedCodes, saveFailed, onToggle }
               key={item.codigo}
               accessibilityRole="checkbox"
               accessibilityState={{ checked }}
-              accessibilityLabel={item.flagged ? `${item.texto}, ${FLAG_LABEL.toLowerCase()}` : item.texto}
+              accessibilityLabel={item.flagged ? `${item.texto}, ${flagLabel.toLowerCase()}` : item.texto}
               onPress={() => onToggle(item.codigo, !checked)}
               style={styles.row}
             >
@@ -38,12 +50,13 @@ export default function StepPanel({ step, completedCodes, saveFailed, onToggle }
                 {checked ? <Ionicons name="checkmark" size={16} color={colors.onColor} /> : null}
               </View>
               <Text style={[styles.text, checked && styles.textChecked]}>{item.texto}</Text>
-              {item.flagged ? <FlagBadge /> : null}
+              {item.flagged ? <FlagBadge label={flagLabel} /> : null}
             </Pressable>
           )
         })}
       </View>
-      {saveFailed ? <Alert variant="error">{SAVE_ERROR}</Alert> : null}
+      {children}
+      {saveFailed ? <Alert variant="error">{saveError}</Alert> : null}
     </View>
   )
 }

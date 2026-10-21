@@ -354,4 +354,21 @@ class TransferenciaTest extends TestCase
             ->assertJsonPath('items_completados', ['documentacion_dni']);
         $this->assertSame(2, ChecklistTransferencia::count());
     }
+
+    // HU13-MOBILE: the app authenticates with a Sanctum bearer token, not the session cookie.
+    public function test_the_mobile_app_reads_the_checklist_with_a_bearer_token(): void
+    {
+        $user = User::factory()->create();
+        config(['services.transfer_advisor.whatsapp' => '5491155550000']);
+        $token = $user->createToken('Pixel 8')->plainTextToken;
+
+        $this->withToken($token)->getJson('/api/transferencia')
+            ->assertOk()
+            ->assertExactJson([
+                'etapas' => TransferenciaChecklist::stages(),
+                'estado' => null,
+                'items_completados' => [],
+                'asesor_whatsapp' => '5491155550000',
+            ]);
+    }
 }

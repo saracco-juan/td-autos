@@ -1,5 +1,5 @@
-import ComingSoon from '../../components/ComingSoon'
+import TransferScreen from '../../features/transfer/TransferScreen'
 
 export default function TransferenciaTab() {
-  return <ComingSoon title="Transferencia" />
+  return <TransferScreen />
 }

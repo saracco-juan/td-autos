@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import buttonStyles from '../../components/button.module.css'
-import { advisorUrl } from './advisor'
+import { ADVISOR_COPY } from '@shared/checklist/transfer/copy'
+import { advisorUrl } from '@shared/checklist/transfer/advisor'
 import styles from './AdvisorCard.module.css'
 
 type Props = {
@@ -16,20 +17,18 @@ export default function AdvisorCard({ whatsapp }: Props) {
 
   return (
     <section aria-labelledby={titleId} className={styles.card}>
-      <p className={styles.eyebrow}>ASESORAMIENTO</p>
+      <p className={styles.eyebrow}>{ADVISOR_COPY.eyebrow}</p>
       <h2 id={titleId} className={styles.title}>
-        ¿Preferís que te acompañen?
+        {ADVISOR_COPY.title}
       </h2>
-      <p className={styles.text}>
-        Un asesor de trámites te guía paso a paso por WhatsApp, sin costo por la consulta inicial.
-      </p>
+      <p className={styles.text}>{ADVISOR_COPY.text}</p>
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
         className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.link}`}
       >
-        HABLAR CON UN ASESOR
+        {ADVISOR_COPY.action}
       </a>
     </section>
   )

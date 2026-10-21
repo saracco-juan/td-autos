@@ -1,4 +1,4 @@
-import type { ChecklistStep } from '@shared/checklist/types'
+import type { ChecklistStep } from '../types'
 import type { TransferStage } from './types'
 
 // The API marks the items the registry demands as `obligatorio`; the checklist kit calls that flag `flagged`.

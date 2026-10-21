@@ -16,7 +16,7 @@ import { suscripcion } from '../features/subscription/fixtures'
 import { searchListings } from '../features/recommendations/api'
 import { searchResponse } from '../features/recommendations/fixtures'
 import { fetchTransfer } from '../features/transfer/api'
-import { transferResponse } from '../features/transfer/fixtures'
+import { transferResponse } from '@shared/checklist/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
 import { routes } from './router'
 
