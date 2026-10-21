@@ -334,3 +334,47 @@ identifies Ámbito as its source. The service is informational and does not guar
 Manual check from `backend` (no server/login needed yet):
 `php artisan test --filter=DolarApiTest` — expected 24 passing tests, with HTTP faked and
 array cache. Covers first fetch, three-hour reuse, failures/fallback, recovery, dates and overlapping calls.
+
+## HU05 stage 11: recommendation API
+
+`GET /api/recomendaciones` uses the same Sanctum session/bearer authentication as
+`/api/diagnostico`. It accepts no user identity: the authenticated user's saved diagnosis is authoritative.
+The thin controller delegates to `App\Services\Matching\DiagnosisRecommendations`.
+
+- `401`: unauthenticated; no provider request.
+- `200`, `status: diagnosis_incomplete`: missing/incomplete diagnosis; empty `results`, null `exchange_rate`.
+- `200`, `status: resale_pending`: deferred priority; empty `results`, null `exchange_rate`.
+- `200`, `status: ready`: zero to ten concrete results; no filler when none qualifies.
+
+Each ready result retains the ranker's unrounded `score`, `components`, published/converted
+prices, budget penalty and warning codes, plus whitelisted `vehicle` facts and public `dealer`
+identity. It never serializes ownership plates or private dealer contacts. Responses are private/no-store.
+`exchange_rate` carries the one DolarAPI snapshot used by every result, including provider/retrieval
+dates and stale/unavailable warnings. Without any valid quote, ARS remains eligible and USD is excluded.
+Inventory is read afresh using the existing operative-dealer lifecycle (including grace); no
+subscription sync, saved ranking or diagnosis/inventory mutation occurs during the GET.
+Existing diagnosis/catalog endpoints and the ranking formulas are unchanged; UI is stage 12.
+
+Manual check: start backend/Vite as in README, sign in as a test buyer (Google or password),
+then paste below into the web app's browser console. **This replaces that test buyer's diagnosis.**
+Cookies and CSRF match the real web client; adjust only host/port if needed.
+
+```javascript
+const api = 'http://localhost:8000';
+await fetch(`${api}/sanctum/csrf-cookie`, { credentials: 'include' });
+const xsrf = decodeURIComponent(document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN=')).slice(11));
+const saved = await fetch(`${api}/api/diagnostico`, {
+  method: 'PUT', credentials: 'include',
+  headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-XSRF-TOKEN': xsrf },
+  body: JSON.stringify({ presupuesto: 'mas_40m', uso_principal: 'ciudad', pasajeros: '1_2',
+    kilometros_mensuales: 'menos_500', transmision: 'indiferente', prioridad: 'consumo', carrocerias: [1] })
+});
+console.log('Diagnosis:', saved.status, await saved.json()); // 200, saved answers.
+const result = await fetch(`${api}/api/recomendaciones`, {
+  credentials: 'include', headers: { Accept: 'application/json' }
+});
+console.log('Recommendations:', result.status, await result.json()); // 200, ready + results + exchange_rate.
+```
+
+For isolated scenarios (401, pending states, filtering, recalculation, quote failure/staleness):
+`cd backend; php artisan test --filter=RecommendationsTest`. All HTTP is faked and DB state is disposable.

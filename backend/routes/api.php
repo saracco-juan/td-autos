@@ -11,6 +11,7 @@ use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\Mobile\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecomendacionesController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
 use Illuminate\Http\Request;
@@ -36,6 +37,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/diagnostico', [DiagnosticoController::class, 'show']);
     Route::put('/diagnostico', [DiagnosticoController::class, 'save']);
+
+    Route::get('/recomendaciones', [RecomendacionesController::class, 'index']);
 
     Route::get('/vehiculos/{vehiculo}/inspeccion', [InspeccionController::class, 'show']);
     Route::put('/vehiculos/{vehiculo}/inspeccion/items/{codigo}', [InspeccionController::class, 'toggle']);
