@@ -48,6 +48,8 @@ Agent memory travels between machines through the repo, one folder per developer
 - Session start (after pulling): from your folder, `engram sync --import`.
 - Session end: from your folder, `engram sync --project td-autos`, then the developer commits `engram/<name>/` with the rest of the work.
 - Before handing over commit commands, run that export and include `engram/<name>/` in the commands whenever it changed, so the memory travels with the work it describes.
+- The last engram export of a branch belongs to its pull request. Before the final push of a branch (and before reporting that it is ready to merge), export and commit `engram/<name>/` on that branch. If memories are saved after the pull request is open, commit and push them to the same pull request before it is merged. Never leave engram commits on a branch after its pull request is merged.
+- Never leave engram changes staged, stashed or uncommitted: commit them on the branch you are working on (`chore: sync engram memories`), so a branch switch cannot strand them.
 - To see the other developer's context, run `engram sync --import` from their folder, then search Engram with project `td-autos`. This copies their memories into your local database; it never writes to their folder.
 - `manifest.json` is required by `engram sync --import` and grows on every branch that exports, so merges conflict on it. Register the union merge driver once per clone, from the repo root: `git config merge.engram-manifest.driver "node scripts/engram-merge-manifest.mjs %O %A %B"`. If a conflict still appears (driver not registered), resolve it by keeping every chunk entry from both sides.
 

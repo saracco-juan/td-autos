@@ -1,13 +1,13 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
-import { fetchDealer, updateDealer } from './api'
+import { deleteDealer, fetchDealer, updateDealer } from './api'
 import DealerEditPage from './DealerEditPage'
 import { dealerDetail, dealerSubscription } from './fixtures'
 
-vi.mock('./api', () => ({ fetchDealer: vi.fn(), updateDealer: vi.fn() }))
+vi.mock('./api', () => ({ fetchDealer: vi.fn(), updateDealer: vi.fn(), deleteDealer: vi.fn() }))
 
 const SAVE = 'GUARDAR CONCESIONARIA'
 const SUCCESS = 'Guardaste los cambios de la concesionaria.'
@@ -15,12 +15,23 @@ const SAVE_ERROR = 'No pudimos guardar los cambios. Intentá nuevamente.'
 
 type UserEventInstance = ReturnType<typeof userEvent.setup>
 
+// The dealer list, showing the navigation state it was reached with (the success notice of a delete).
+function ListProbe() {
+  const { state } = useLocation()
+  return (
+    <>
+      <p>Lista de concesionarias</p>
+      <p>Estado: {JSON.stringify(state)}</p>
+    </>
+  )
+}
+
 function renderPage(id = '5') {
   render(
     <MemoryRouter initialEntries={[`/admin/concesionarias/${id}`]}>
       <Routes>
         <Route path="/admin/concesionarias/:id" element={<DealerEditPage />} />
-        <Route path="/admin/concesionarias" element={<p>Lista de concesionarias</p>} />
+        <Route path="/admin/concesionarias" element={<ListProbe />} />
       </Routes>
     </MemoryRouter>,
   )
@@ -45,6 +56,7 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
   beforeEach(() => {
     vi.mocked(fetchDealer).mockReset().mockResolvedValue(dealerDetail())
     vi.mocked(updateDealer).mockReset().mockResolvedValue(dealerDetail())
+    vi.mocked(deleteDealer).mockReset().mockResolvedValue(undefined)
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 9, 15, 12))
   })
@@ -118,12 +130,14 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
       expect(screen.getByLabelText('Provincia')).toHaveValue('CABA')
     })
 
-    it('has CANCELAR and GUARDAR CONCESIONARIA, and no deletion (HU28)', async () => {
+    it('has CANCELAR and GUARDAR CONCESIONARIA, and ELIMINAR only in its own section (UH28)', async () => {
       await loaded()
 
       expect(screen.getByRole('button', { name: 'CANCELAR' })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: SAVE })).toBeInTheDocument()
-      expect(screen.queryByText(/eliminar/i)).not.toBeInTheDocument()
+      const [remove] = screen.getAllByRole('button', { name: 'ELIMINAR' })
+      expect(screen.getAllByRole('button', { name: 'ELIMINAR' })).toHaveLength(1)
+      expect(section('Eliminar concesionaria').getByRole('button', { name: 'ELIMINAR' })).toBe(remove)
     })
 
     it('CANCELAR goes back to the dealer list without saving', async () => {
@@ -389,6 +403,120 @@ describe('DealerEditPage (UH27, Figma 38:1099, TC-69)', () => {
 
       expect(section('Comprobantes').getByText('Todavía no envió comprobantes.')).toBeInTheDocument()
       expect(section('Comprobantes').queryByRole('list')).not.toBeInTheDocument()
+    })
+  })
+  describe('deleting (UH28, TC-71, TC-72)', () => {
+    const CONFIRM_TEXT =
+      '¿Eliminar esta concesionaria? Se borran sus vehículos, leads, suscripción y comprobantes, y su cuenta. No se puede deshacer.'
+    const BLOCKED_REASON = 'No podés eliminarla mientras tenga la suscripción vigente.'
+    const DELETE_ERROR = 'No pudimos eliminar la concesionaria. Probá de nuevo.'
+    const removal = () => section('Eliminar concesionaria')
+
+    async function removable() {
+      vi.mocked(fetchDealer).mockResolvedValue(dealerDetail({ puede_eliminarse: true }))
+      await loaded()
+    }
+
+    const askDelete = (user: UserEventInstance) => user.click(removal().getByRole('button', { name: 'ELIMINAR' }))
+
+    it('disables ELIMINAR and says why while the subscription is current (TC-71)', async () => {
+      vi.mocked(fetchDealer).mockResolvedValue(dealerDetail({ puede_eliminarse: false }))
+      await loaded()
+
+      const button = removal().getByRole('button', { name: 'ELIMINAR' })
+      expect(button).toBeDisabled()
+      expect(button).toHaveAccessibleDescription(BLOCKED_REASON)
+    })
+
+    it('asks for confirmation before deleting and focuses it', async () => {
+      const user = userEvent.setup()
+      await removable()
+
+      await askDelete(user)
+
+      expect(removal().getByText(CONFIRM_TEXT)).toBeInTheDocument()
+      expect(removal().getByRole('button', { name: 'ELIMINAR' })).toHaveFocus()
+      expect(removal().getByRole('button', { name: 'CANCELAR' })).toBeInTheDocument()
+      expect(deleteDealer).not.toHaveBeenCalled()
+    })
+
+    it('CANCELAR closes the confirmation and gives the focus back to ELIMINAR', async () => {
+      const user = userEvent.setup()
+      await removable()
+      await askDelete(user)
+
+      await user.click(removal().getByRole('button', { name: 'CANCELAR' }))
+
+      expect(removal().queryByText(CONFIRM_TEXT)).not.toBeInTheDocument()
+      expect(removal().getByRole('button', { name: 'ELIMINAR' })).toHaveFocus()
+      expect(deleteDealer).not.toHaveBeenCalled()
+    })
+
+    it('deletes the dealer and goes back to the list with the notice (TC-72)', async () => {
+      const user = userEvent.setup()
+      await removable()
+      await askDelete(user)
+
+      await user.click(removal().getByRole('button', { name: 'ELIMINAR' }))
+
+      expect(deleteDealer).toHaveBeenCalledWith(5)
+      expect(await screen.findByText('Lista de concesionarias')).toBeInTheDocument()
+      expect(screen.getByText(/^Estado:/)).toHaveTextContent('{"notice":"Eliminaste la concesionaria."}')
+    })
+
+    it('shows the busy state while the delete runs', async () => {
+      const user = userEvent.setup()
+      vi.mocked(deleteDealer).mockReturnValue(new Promise(() => {}))
+      await removable()
+      await askDelete(user)
+
+      await user.click(removal().getByRole('button', { name: 'ELIMINAR' }))
+
+      const busy = removal().getByRole('button', { name: 'ELIMINANDO…' })
+      expect(busy).toBeDisabled()
+      expect(busy).toHaveAttribute('aria-busy', 'true')
+      expect(removal().getByRole('button', { name: 'CANCELAR' })).toBeDisabled()
+    })
+
+    it('shows the message of a 409 inside the confirmation (the subscription became current)', async () => {
+      const user = userEvent.setup()
+      const message = 'No podés eliminar una concesionaria con la suscripción vigente.'
+      vi.mocked(deleteDealer).mockRejectedValue(new HttpError(409, { message }))
+      await removable()
+      await askDelete(user)
+
+      await user.click(removal().getByRole('button', { name: 'ELIMINAR' }))
+
+      expect(await removal().findByRole('alert')).toHaveTextContent(message)
+      expect(removal().getByText(CONFIRM_TEXT)).toBeInTheDocument()
+      expect(screen.queryByText('Lista de concesionarias')).not.toBeInTheDocument()
+    })
+
+    it.each([
+      ['a network failure', new NetworkError(new TypeError('Failed to fetch'))],
+      ['a server error', new HttpError(500, undefined)],
+    ])('shows the error and keeps the confirmation after %s', async (_, failure) => {
+      const user = userEvent.setup()
+      vi.mocked(deleteDealer).mockRejectedValue(failure)
+      await removable()
+      await askDelete(user)
+
+      await user.click(removal().getByRole('button', { name: 'ELIMINAR' }))
+
+      expect(await removal().findByRole('alert')).toHaveTextContent(DELETE_ERROR)
+      expect(removal().getByRole('button', { name: 'ELIMINAR' })).toHaveFocus()
+    })
+
+    it('treats a 404 as already deleted and goes back to the list with the notice', async () => {
+      const user = userEvent.setup()
+      vi.mocked(deleteDealer).mockRejectedValue(new HttpError(404, { message: 'No encontramos la concesionaria.' }))
+      await removable()
+      await askDelete(user)
+
+      await user.click(removal().getByRole('button', { name: 'ELIMINAR' }))
+
+      expect(await screen.findByText('Lista de concesionarias')).toBeInTheDocument()
+      expect(screen.getByText(/^Estado:/)).toHaveTextContent('Eliminaste la concesionaria.')
     })
   })
 })

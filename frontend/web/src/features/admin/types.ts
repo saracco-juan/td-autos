@@ -85,6 +85,8 @@ export type DealerDetail = DealerFormValues & {
   estado_alta: string | null
   suscripcion: DealerSubscription | null
   comprobantes: DealerReceiptRow[]
+  // False while the subscription is current (activa or gracia): DELETE answers 409 then (UH28).
+  puede_eliminarse: boolean
 }
 
 // GET /api/admin/comprobantes/{id}, and the answer of aprobar / rechazar.
