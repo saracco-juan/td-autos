@@ -283,6 +283,27 @@ Start Vite as in README. Sign in as `pampa@demo.tdautos.test` / `TdAutos2026!`. 
 Use `http://localhost:8000/storage/vehiculos/volumen/foto-1.png` through `foto-7.png` as persistent local test URLs after the volume seed. GNC can leave both L/100 km fields empty; explicit `no` must survive import and editing.
 
 Supabase follow-up at HU05 closure: review pending Laravel migrations, then—with separate authorization for the target environment—apply non-destructive migrations and smoke-test login, create/edit, CSV and Storage. Never run `db:local` or `migrate:fresh` against Supabase. Local PostgreSQL DDL compilation is useful but does not prove live connectivity, schema state or Storage permissions.
+## HU05 stage 13a: reusable value-retention calculation
+
+`App\Services\Resale\ValueRetentionCalculator` compares two normalized ACARA values without HTTP,
+database access or a clock. This is the first resale slice, not a completed importer or ranking integration.
+
+- Points contain `snapshot_id`, canonical `version_id` (make/model/version/generation), `currency`
+  (`ARS` or `USD`), integer `model_year` and positive numeric `price`. The source adapter must resolve
+  exact identity and ambiguous rows before calling it; display names alone are not a canonical key.
+- `compare($reference, $older)` requires matching snapshot/version/currency and an older model year.
+  It returns provenance, compared values, year gap, unrounded retained percentage and its complement.
+- `threeYearScore($reference, $older)` accepts exactly three years and caps the matching score at 100.
+  Raw appreciation remains visible in `compare`; absent/invalid/incomparable evidence returns `null`.
+- Annual HU15 detail can compare adjacent years; cumulative detail compares endpoints. Missing annual
+  values stay unavailable, but do not invalidate a known three-year pair. Never divide total loss by three.
+- These are age-based references at the snapshot date, not historical observations or guaranteed sale prices.
+
+From `backend/`, run `php artisan test --filter=ValueRetentionCalculatorTest`: the suite covers the
+Onix reference pair (2024: ARS 19,800,000; 2021: ARS 16,976,000), approximately 85.7374% retained,
+identity boundaries, unavailable data and annual/cumulative reuse. There is no new endpoint or screen.
+Source acquisition, normalized storage, DNRPA activity and ranking/UI integration remain later slices.
+
 # HU05 stage 9: deterministic dealership ranking
 
 `DealershipRanker` composes the existing running and suitability rubrics without querying data.
