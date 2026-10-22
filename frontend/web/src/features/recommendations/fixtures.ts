@@ -1,6 +1,6 @@
 import type { Listing, SearchMeta, SearchResponse, SourceReport } from './types'
 
-export const MERCADO_LIBRE = { clave: 'mercadolibre', nombre: 'Mercado Libre' }
+export const EXTERNAL_PORTAL = { clave: 'portal-externo', nombre: 'Portal externo' }
 export const DEALER = { clave: 'concesionaria', nombre: 'Autos del Sur' }
 
 export function listing(overrides: Partial<Listing> = {}): Listing {
@@ -15,15 +15,15 @@ export function listing(overrides: Partial<Listing> = {}): Listing {
     precio: 28900000,
     moneda: 'ARS',
     ubicacion: 'CABA',
-    imagen_url: 'https://http2.mlstatic.com/D_NQ_NP_corolla.jpg',
-    url_original: 'https://auto.mercadolibre.com.ar/MLA-0000000001-demo',
-    fuente: MERCADO_LIBRE,
+    imagen_url: 'https://example.test/listings/1',
+    url_original: 'https://example.test/listings/1',
+    fuente: EXTERNAL_PORTAL,
     ...overrides,
   }
 }
 
 export function sourceReport(overrides: Partial<SourceReport> = {}): SourceReport {
-  return { ...MERCADO_LIBRE, estado: 'ok', ...overrides }
+  return { ...EXTERNAL_PORTAL, estado: 'ok', ...overrides }
 }
 
 export const LISTINGS: Listing[] = [

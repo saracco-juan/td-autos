@@ -4,14 +4,14 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { searchListings } from './api'
-import { DEALER, LISTINGS, MERCADO_LIBRE, listing, searchMeta, searchResponse, sourceReport } from './fixtures'
+import { DEALER, LISTINGS, EXTERNAL_PORTAL, listing, searchMeta, searchResponse, sourceReport } from './fixtures'
 import RecommendationsPage from './RecommendationsPage'
 
 vi.mock('./api', () => ({ searchListings: vi.fn() }))
 
-const MERCADO_LIBRE_DOWN = sourceReport({ estado: 'sin_respuesta' })
+const EXTERNAL_PORTAL_DOWN = sourceReport({ estado: 'sin_respuesta' })
 const OTHER_PORTAL = { clave: 'otroportal', nombre: 'Otro Portal' }
-const ALL_DOWN = [MERCADO_LIBRE_DOWN, sourceReport({ ...OTHER_PORTAL, estado: 'sin_respuesta' })]
+const ALL_DOWN = [EXTERNAL_PORTAL_DOWN, sourceReport({ ...OTHER_PORTAL, estado: 'sin_respuesta' })]
 
 function renderPage() {
   render(
@@ -74,7 +74,7 @@ describe('RecommendationsPage', () => {
     expect(cards).toHaveLength(LISTINGS.length)
     const first = screen.getByRole('listitem', { name: 'Toyota Corolla XEI 2021' })
     expect(within(first).getByText('$ 28.900.000 · 62.000 km · CABA')).toBeInTheDocument()
-    expect(within(first).getByText('Mercado Libre')).toBeInTheDocument()
+    expect(within(first).getByText('Portal externo')).toBeInTheDocument()
     expect(screen.getByText('Sin imagen')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
@@ -89,13 +89,13 @@ describe('RecommendationsPage', () => {
   // TC-19
   it('names the failed source in a notice and still shows the cards of the others', async () => {
     vi.mocked(searchListings).mockResolvedValue(
-      searchResponse({ fuentes: [MERCADO_LIBRE_DOWN, sourceReport(OTHER_PORTAL)] }),
+      searchResponse({ fuentes: [EXTERNAL_PORTAL_DOWN, sourceReport(OTHER_PORTAL)] }),
     )
     await loaded()
 
     expect(
       screen.getByText(
-        'No pudimos obtener las publicaciones de Mercado Libre. Te mostramos las del resto de los portales.',
+        'No pudimos obtener las publicaciones de Portal externo. Te mostramos las del resto de los portales.',
       ),
     ).toBeInTheDocument()
     expect(within(screen.getByRole('list', { name: 'Publicaciones' })).getAllByRole('listitem')).toHaveLength(LISTINGS.length)
@@ -110,7 +110,7 @@ describe('RecommendationsPage', () => {
 
     expect(
       screen.getByText(
-        'No pudimos obtener las publicaciones de Mercado Libre y Otro Portal. Te mostramos las del resto de los portales.',
+        'No pudimos obtener las publicaciones de Portal externo y Otro Portal. Te mostramos las del resto de los portales.',
       ),
     ).toBeInTheDocument()
   })
@@ -133,7 +133,7 @@ describe('RecommendationsPage', () => {
   })
 
   it('shows the error state, not the notice, when the only source fails', async () => {
-    vi.mocked(searchListings).mockResolvedValue(searchResponse({ publicaciones: [], fuentes: [MERCADO_LIBRE_DOWN] }))
+    vi.mocked(searchListings).mockResolvedValue(searchResponse({ publicaciones: [], fuentes: [EXTERNAL_PORTAL_DOWN] }))
     renderPage()
 
     expect(await screen.findByRole('button', { name: 'REINTENTAR' })).toBeInTheDocument()
@@ -143,7 +143,7 @@ describe('RecommendationsPage', () => {
   it('retries with the text of the last search', async () => {
     const user = userEvent.setup()
     await loaded()
-    vi.mocked(searchListings).mockResolvedValueOnce(searchResponse({ publicaciones: [], fuentes: [MERCADO_LIBRE_DOWN] }))
+    vi.mocked(searchListings).mockResolvedValueOnce(searchResponse({ publicaciones: [], fuentes: [EXTERNAL_PORTAL_DOWN] }))
 
     await user.type(searchField(), 'corolla{Enter}')
     await user.click(await screen.findByRole('button', { name: 'REINTENTAR' }))
@@ -174,12 +174,12 @@ describe('RecommendationsPage', () => {
 
   it('keeps the notice above an empty list when a source failed and the others had nothing', async () => {
     vi.mocked(searchListings).mockResolvedValue(
-      searchResponse({ publicaciones: [], fuentes: [MERCADO_LIBRE_DOWN, sourceReport(OTHER_PORTAL)] }),
+      searchResponse({ publicaciones: [], fuentes: [EXTERNAL_PORTAL_DOWN, sourceReport(OTHER_PORTAL)] }),
     )
     renderPage()
 
     expect(await screen.findByText('No encontramos publicaciones para tu búsqueda.')).toBeInTheDocument()
-    expect(screen.getByText(/No pudimos obtener las publicaciones de Mercado Libre/)).toBeInTheDocument()
+    expect(screen.getByText(/No pudimos obtener las publicaciones de Portal externo/)).toBeInTheDocument()
   })
 
   it('submits the trimmed text on Enter', async () => {
@@ -265,12 +265,12 @@ describe('RecommendationsPage', () => {
 
   it('tags each card with the name of its own source', async () => {
     vi.mocked(searchListings).mockResolvedValue(
-      searchResponse({ publicaciones: [listing({ fuente: OTHER_PORTAL }), listing({ id: 2, fuente: MERCADO_LIBRE })] }),
+      searchResponse({ publicaciones: [listing({ fuente: OTHER_PORTAL }), listing({ id: 2, fuente: EXTERNAL_PORTAL })] }),
     )
     await loaded()
 
     expect(screen.getByText('Otro Portal')).toBeInTheDocument()
-    expect(screen.getByText('Mercado Libre')).toBeInTheDocument()
+    expect(screen.getByText('Portal externo')).toBeInTheDocument()
   })
 
   it('counts the vehicles of the whole search (meta.total), not the ones on the page', async () => {
@@ -283,25 +283,25 @@ describe('RecommendationsPage', () => {
   it('tags a dealer vehicle with the dealer name', async () => {
     vi.mocked(searchListings).mockResolvedValue(
       searchResponse({
-        publicaciones: [listing({ id: 9, fuente: DEALER, url_original: null }), listing({ id: 2, fuente: MERCADO_LIBRE })],
+        publicaciones: [listing({ id: 9, fuente: DEALER, url_original: null }), listing({ id: 2, fuente: EXTERNAL_PORTAL })],
       }),
     )
     await loaded()
 
     expect(screen.getByText('Autos del Sur')).toBeInTheDocument()
-    expect(screen.getByText('Mercado Libre')).toBeInTheDocument()
+    expect(screen.getByText('Portal externo')).toBeInTheDocument()
   })
 
   it('keeps the list and names the failed portal when dealer vehicles exist and every portal failed', async () => {
     vi.mocked(searchListings).mockResolvedValue(
       searchResponse({
         publicaciones: [listing({ id: 9, fuente: DEALER, url_original: null })],
-        fuentes: [MERCADO_LIBRE_DOWN],
+        fuentes: [EXTERNAL_PORTAL_DOWN],
       }),
     )
     await loaded()
 
-    expect(screen.getByText(/No pudimos obtener las publicaciones de Mercado Libre/)).toBeInTheDocument()
+    expect(screen.getByText(/No pudimos obtener las publicaciones de Portal externo/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
     expect(screen.getByText('Mostrando 1 vehículo')).toBeInTheDocument()
   })

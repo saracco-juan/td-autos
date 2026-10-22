@@ -62,7 +62,7 @@ Para probar con volumen, `php artisan db:local --vehiculos=10000` suma a esa bas
 
 HU05 suma las transferencias DNRPA de seis meses cerrados por grupo identificado de marca/modelo. El puntaje continuo es `100 * log(1 + transferencias) / log(1 + máximo del período)`: el mayor volumen recibe 100 y los demás valores crecen con rendimientos decrecientes, sin bandas por percentiles. Los empates conservan el mismo puntaje.
 
-La lectura actual recalcula el puntaje desde los conteos guardados; no modifica el historial ni descarga nuevamente las fuentes. Con 37.988 y 1.666 transferencias, los puntajes son 100 y aproximadamente 70,4. Es un índice relativo de actividad, no una probabilidad de venta. La prioridad de reventa mantiene 50% de actividad DNRPA y 50% de retención ACARA.
+La búsqueda actual muestra vehículos elegibles de concesionarias; la integración de Mercado Libre fue retirada. Los registros históricos de publicaciones externas se conservan, pero ya no se consultan ni se actualizan. La lectura de reventa recalcula el puntaje desde los conteos guardados; no modifica el historial ni descarga nuevamente las fuentes. Con 37.988 y 1.666 transferencias, los puntajes son 100 y aproximadamente 70,4. Es un índice relativo de actividad, no una probabilidad de venta. La prioridad de reventa mantiene 50% de actividad DNRPA y 50% de retención ACARA.
 
 ### 2. Frontend web
 
