@@ -31,80 +31,8 @@ Otros lugares para consultar:
 | [`frontend/web/`](frontend/web) | Aplicación web (SPA) | React 19, TypeScript, Vite |
 | [`frontend/mobile/`](frontend/mobile) | App móvil | React Native, Expo, TypeScript |
 | [`frontend/shared/`](frontend/shared) | Lógica pura compartida por web y mobile (modelo del diagnóstico) | TypeScript, sin dependencias |
-| [`docs/`](docs) | Documentación técnica: [diseño](docs/design.md), [primeros pasos](docs/getting-started.md), [desarrollo](docs/development.md) e [infraestructura y deploy](docs/infrastructure.md) | Markdown |
+| [`docs/`](docs) | Documentación técnica: [diseño](docs/design.md), [primeros pasos](docs/getting-started.md), [cómo contribuir](docs/contributing.md), [desarrollo](docs/development.md) e [infraestructura y deploy](docs/infrastructure.md) | Markdown |
 
 ## Para desarrollar
 
-Cómo instalar y levantar cada parte, y los comandos de tests, lint y build: [`docs/getting-started.md`](docs/getting-started.md).
-
-## Integración continua
-
-El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) corre en cada push y pull request hacia `develop` y `main`:
-
-| Job | Qué verifica |
-|-----|--------------|
-| Backend | `./vendor/bin/pint --test` y `php artisan test` con cobertura |
-| Frontend web | `npm run lint`, `npm run test:coverage` y `npm run build` |
-| App móvil | `npm run lint`, `npm run typecheck`, `npm run test:coverage` y `npx expo export --platform android` |
-| Duplicación (solo PR) | `node scripts/check-duplication.mjs` contra la rama base: falla antes de Sonar si el código nuevo supera el 3% duplicado |
-| SonarQube Cloud | Análisis estático y cobertura de los tres proyectos, configurado en [`sonar-project.properties`](sonar-project.properties) |
-
-El job de SonarQube Cloud necesita el secret `SONAR_TOKEN` en el repositorio de GitHub y no corre en pull requests abiertos desde forks.
-
-## Convenciones
-
-### Ramas
-
-- Una rama por historia de usuario (UH), creada desde `develop`: `feature/uh-<número>-<descripcion-corta>`.
-  - Ejemplo: `feature/uh-12-registro-usuario`.
-- Correcciones urgentes sobre `main`: `hotfix/<descripcion-corta>`.
-- Cada rama se integra a `develop` mediante un pull request.
-
-### Commits
-
-Se usa [Conventional Commits](https://www.conventionalcommits.org/):
-
-```text
-<tipo>(<alcance>): <descripción>
-
-[cuerpo opcional]
-
-[footer opcional]
-```
-
-| Tipo | Cuándo usarlo |
-|------|---------------|
-| `feat` | Nueva funcionalidad |
-| `fix` | Corrección de un error |
-| `docs` | Solo documentación |
-| `style` | Formato o estilos, sin cambiar lógica |
-| `refactor` | Cambio de código que no agrega funcionalidad ni corrige errores |
-| `test` | Agregar o corregir tests |
-| `chore` | Mantenimiento: dependencias, configuración, tooling |
-| `build` | Sistema de build o dependencias externas |
-| `ci` | Integración continua |
-| `perf` | Mejora de rendimiento |
-| `revert` | Revierte un commit anterior |
-
-| Alcance | Parte del proyecto |
-|---------|--------------------|
-| `api` | Backend |
-| `db` | Migraciones y modelo de datos |
-| `web` | Frontend web |
-| `mobile` | App móvil |
-
-Reglas:
-
-- Descripción en imperativo, minúscula inicial, sin punto final y de hasta 72 caracteres.
-- Un commit = un cambio coherente, con sus tests.
-- Referenciar la UH en el footer: `Refs: UH-12`.
-- Cambios incompatibles: `!` después del tipo (`feat(api)!: ...`) y footer `BREAKING CHANGE: <detalle>`.
-
-Ejemplos:
-
-```text
-feat(web): add registration form
-fix(api): reject duplicated email on register
-test(api): cover password reset flow
-docs: add project README
-```
+Cómo instalar y levantar cada parte, y los comandos de tests, lint y build: [`docs/getting-started.md`](docs/getting-started.md). Ramas, commits e integración continua: [`docs/contributing.md`](docs/contributing.md).

@@ -2,7 +2,7 @@
 
 Shared instructions for any AI coding agent working in this repository (Claude Code, Codex, others). Keep this file tool-neutral: personal or tool-specific preferences belong in each developer's local, untracked files.
 
-`README.md` is the single source for the repository layout and branch and commit conventions; `docs/getting-started.md` for setup and test/lint/build commands. Read it instead of assuming; do not restate its rules here.
+`README.md` is the single source for the repository layout, `docs/getting-started.md` for setup and test/lint/build commands, and `docs/contributing.md` for branch and commit conventions and CI. Read it instead of assuming; do not restate its rules here.
 
 ## Sources of truth
 
@@ -24,7 +24,7 @@ The project documentation lives OUTSIDE this repo. Before specifying, designing,
 
 Rules:
 
-- Any task tied to a story (UH), requirement (RF), use case (CU) or test case (TC) starts by reading that item in its source. Quote its id in specs and tests, and reference the story in the commit footer as `README.md` describes.
+- Any task tied to a story (UH), requirement (RF), use case (CU) or test case (TC) starts by reading that item in its source. Quote its id in specs and tests, and reference the story in the commit footer as `docs/contributing.md` describes.
 - Any web screen starts by reading its Figma node. Ignore the legacy Figma pages `TD Autos · Wireframes High v2` and `TD Autos . Wireframes Medium Web` (nodes `2141:*`).
 - Only files inside the Drive folder above are valid. Files elsewhere in Drive with similar names are stale copies.
 - If two sources disagree, stop and report the conflict instead of picking one. Known inconsistencies are tracked in Trello card #78.
