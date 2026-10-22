@@ -2,6 +2,24 @@
 
 Technical setup that `README.md` does not cover: local environments, tunnels, scripts and maintenance commands. `README.md` stays the source for installing and running each part; add new technical notes here.
 
+## HU05 resale ranking (stage13d)
+
+Recommendations read local ACARA and DNRPA snapshots once per resale diagnosis; requests never refresh either source. Exact normalized make/model/version must identify one ACARA curve. Missing or ambiguous evidence remains unavailable. Verified resale is 50% activity and 50% exact three-year retention, inside the existing 25% priority weight. Raw retention and source dates remain available in `resale`; no prediction of future sale proceeds is made.
+
+For unavailable resale only, normalize usage/body/comfort over their 75% weight, require >=70 before deducting 10 points, and show partial compatibility (possibly 60–69.99). No overbudget exception is permitted. Other priorities retain their previous payload and calculation. API `components.priority` can be null for partial resale, never an invented zero. Stale last-valid evidence is used with a warning.
+
+### Isolated smoke test (no application database or network)
+
+From `backend`, run:
+
+```powershell
+php artisan test --compact tests/Unit/Services/Resale/ResaleScorerTest.php tests/Unit/Services/Matching/DealershipRankerTest.php tests/Feature/Matching/RecommendationsTest.php
+```
+
+Expected: all tests pass using in-memory SQLite and HTTP fakes. The API test checks 97.5 compatibility from 100 activity / 80 retention, missing evidence 90, dated stale fallback and unchanged public inventory. Unit cases include pre-deduction 70 -> displayed 60, strict budget denial and untouched other priorities.
+
+For the UI, start backend/web as in README, sign in as a buyer, choose resale in the saved diagnosis, and open recommendations. Compatible listings without evidence show the ten-point uncertainty notice and "Prioridad: no disponible" in reasons; dated evidence shows DNRPA window and ACARA date. Local DNRPA tables must already exist (stage13c3 migration); this implementation does not migrate the developer database or install schedulers. Figma resale copy synchronization requires separate approval.
+
 ## Google sign-in from a phone (development only)
 
 The phone cannot reach the PC's `localhost`, and Google does not accept a LAN IP as a redirect URI. In development the backend is exposed through a Cloudflare quick tunnel so the phone can finish the OAuth flow, while the web keeps using `localhost`.

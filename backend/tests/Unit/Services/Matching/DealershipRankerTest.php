@@ -89,7 +89,6 @@ class DealershipRankerTest extends TestCase
         $result = $this->rank([$this->vehicle()], ['estado' => 'requiere_confirmacion']);
         $this->assertSame('diagnosis_incomplete', $result['status']);
         $this->assertSame([], $result['results']);
-        $this->assertSame('resale_pending', $this->rank([$this->vehicle()], ['prioridad_comprador' => 'reventa'])['status']);
     }
 
     #[DataProvider('budgetCases')]
@@ -188,5 +187,39 @@ class DealershipRankerTest extends TestCase
         $this->assertSame(97.5, $this->rank([$this->vehicle(1, ['transmision' => 'automatica'])], [
             'prioridad_comprador' => 'mantenimiento', 'transmision_preferida' => 'indiferente',
         ])['results'][0]['components']['priority']);
+    }
+
+    public function test_hu05_resale_uses_verified_priority_and_preserves_other_priorities(): void
+    {
+        $cars = [$this->vehicle()];
+        $ranker = app(DealershipRanker::class);
+        $evidence = [1 => ['score' => 80.0, 'activity_score' => 100, 'retention_score' => 60.0]];
+        $row = $ranker->rank($cars, $this->diagnosis(['prioridad_comprador' => 'reventa']), [7], 2026, 1000, $evidence)['results'][0];
+        $this->assertSame(95.0, $row['score']);
+        $this->assertSame(80.0, $row['components']['priority']);
+        $this->assertSame($evidence[1], $row['resale']);
+        $this->assertSame($this->rank($cars), $ranker->rank($cars, $this->diagnosis(), [7], 2026, 1000, $evidence));
+        $this->assertSame([], $ranker->rank([$this->vehicle(1, ['precio' => 20100000])],
+            $this->diagnosis(['prioridad_comprador' => 'reventa']), [7], 2026, 1000, $evidence)['results']);
+    }
+
+    public function test_hu05_missing_resale_admission_precedes_ten_point_deduction_and_forbids_overbudget(): void
+    {
+        $diagnosis = ['prioridad_comprador' => 'reventa'];
+        $row = $this->rank([$this->vehicle()], $diagnosis)['results'][0];
+        $this->assertSame(90.0, $row['score']);
+        $this->assertNull($row['components']['priority']);
+        $this->assertSame(['resale_unavailable'], $row['warnings']);
+        $this->assertSame([], $this->rank([$this->vehicle(1, ['precio' => 20000001])], $diagnosis)['results']);
+        // Usage64, body100, comfort0 => known score69.866..., below admission.
+        $comfort = array_fill_keys(['volante_regulable', 'climatizador_bizona', 'butacas_calefaccionadas',
+            'android_auto_apple_carplay', 'sensores_estacionamiento', 'velocidad_crucero', 'camara_retroceso'], false);
+        $car = $this->vehicle(1, $comfort + ['consumo_urbano' => 8, 'aire_acondicionado' => true]);
+        $this->assertSame([], $this->rank([$car], $diagnosis)['results']);
+        $car->volante_regulable = true; // Known72.533..., displayed62.533..., still admitted.
+        $this->assertEqualsWithDelta(62.5333333333, $this->rank([$car], $diagnosis)['results'][0]['score'], 0.000001);
+        $boundary = $this->vehicle(2, array_replace($comfort, ['tipo_carroceria_id' => 2,
+            'sensores_estacionamiento' => true, 'camara_retroceso' => true]));
+        $this->assertSame(60.0, $this->rank([$boundary], $diagnosis + ['uso_principal' => 'trabajo'])['results'][0]['score']);
     }
 }

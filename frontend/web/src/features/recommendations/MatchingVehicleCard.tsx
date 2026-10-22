@@ -36,9 +36,14 @@ export default function MatchingVehicleCard({ result }: { result: Recommendation
       {result.warnings.includes('body_mismatch') ? (
         <p className={alertStyles.warning}>No coincide con la carrocería elegida.</p>
       ) : null}
+      {result.warnings.includes('resale_unavailable') ? (
+        <p className={alertStyles.warning}>Sin estimación de reventa: compatibilidad parcial sobre los factores conocidos, con descuento de 10 puntos por falta de datos, no por mala reventa.</p>
+      ) : null}
+      {result.warnings.includes('resale_stale') ? <p className={alertStyles.warning}>Reventa calculada con la última evidencia disponible; actualización pendiente.</p> : null}
       <details className={styles.meta}>
         <summary>Ver atributos y motivos</summary>
-        <p>Uso: {displayScore(components.usage)} · Carrocería: {displayScore(components.body)} · Prioridad: {displayScore(components.priority)} · Confort: {displayScore(components.comfort)} (sobre 100).</p>
+        <p>Uso: {displayScore(components.usage)} · Carrocería: {displayScore(components.body)} · Prioridad: {components.priority === null ? 'no disponible' : displayScore(components.priority)} · Confort: {displayScore(components.comfort)} (sobre 100).</p>
+        {result.resale ? <p>Reventa: actividad DNRPA {result.resale.window_start ?? 'no disponible'} a {result.resale.window_end ?? 'no disponible'} ({result.resale.activity_score === null ? 'sin puntaje' : displayScore(result.resale.activity_score)}); retención ACARA al {result.resale.source_date ?? 'no disponible'} ({result.resale.retention_score === null ? 'sin puntaje' : displayScore(result.resale.retention_score)}). Cada factor pesa 50% de la prioridad. Son referencias por antigüedad de la misma versión, no precios futuros garantizados.</p> : null}
         <p>Descuento por presupuesto: {displayScore(result.budget_penalty)} puntos. La compatibilidad expresa nuestras reglas, no una probabilidad de satisfacción.</p>
         <p>Motor y capacidad: {vehicle.plazas} plazas · {vehicle.carroceria} · {vehicle.transmision === 'automatica' ? 'Automática' : 'Manual'} · {vehicle.combustible} · {vehicle.motor}{vehicle.turbo ? ' turbo' : ''} · {vehicle.potencia} {vehicle.potencia_unidad}</p>
         <p>Consumo: {vehicle.combustible === 'gnc' ? 'GNC: valoración de costo de uso, sin consumo físico comparable.' : `Urbano ${vehicle.consumo_urbano} / ruta ${vehicle.consumo_ruta} L/100 km`}</p>

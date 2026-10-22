@@ -80,13 +80,57 @@ class RecommendationsTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_pending_diagnosis_and_resale_do_not_fetch_exchange_rates(): void
+    public function test_pending_diagnosis_does_not_fetch_exchange_rates(): void
     {
         $user = $this->buyer(['prioridad' => 'reventa']);
-        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('status', 'resale_pending');
         Diagnostico::where('usuario_id', $user->id)->update(['estado' => 'requiere_confirmacion', 'pasajeros' => null]);
         $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('status', 'diagnosis_incomplete');
         Http::assertNothingSent();
+    }
+
+    public function test_hu05_local_resale_sources_combine_without_refresh_or_writes(): void
+    {
+        $this->buyer(['prioridad' => 'reventa']);
+        $car = $this->car(['marca' => 'Test', 'modelo' => 'Example', 'version' => 'Base']);
+        $catalog = ['snapshot_id' => 'acara:test', 'source_date' => '2026-10-19', 'fetched_at' => now()->toISOString(),
+            'rows' => [['make' => 'Test', 'model' => 'Example', 'version' => 'Base', 'version_id' => 'base',
+                'currency' => 'ARS', 'values' => [2025 => '100', 2022 => '80']]]];
+        Cache::forever('resale.acara.last-valid.v1', $catalog);
+        $activity = ['window_start' => '2026-04', 'window_end' => '2026-09', 'catalog_snapshot_id' => 'acara:test',
+            'models' => [['make' => 'test', 'model' => 'example', 'special' => [], 'score' => 100]]];
+        DB::table('dnrpa_refresh_state')->insert(['id' => 1, 'checked_at' => now()]);
+        DB::table('dnrpa_activity_history')->insert(['month' => '2026-09', 'payload' => json_encode(['activity' => $activity])]);
+        $before = $this->snapshot();
+        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results.0.listing_id', $car->id)
+            ->assertJsonPath('results.0.score', 97.5)->assertJsonPath('results.0.components.priority', 90)
+            ->assertJsonPath('results.0.resale.activity_score', 100)->assertJsonPath('results.0.resale.retention_score', 80)
+            ->assertJsonPath('results.0.resale.source_date', '2026-10-19')->assertJsonPath('results.0.resale.window_end', '2026-09');
+        foreach (['missing version', 'missing year', 'ambiguous identity', 'missing activity', 'missing catalog'] as $case) {
+            DB::table('dnrpa_activity_history')->updateOrInsert(['month' => '2026-09'], ['payload' => json_encode(['activity' => $activity])]);
+            $changed = $catalog;
+            if ($case === 'missing version') {
+                $car->update(['version' => null]);
+            }
+            if ($case === 'missing year') {
+                unset($changed['rows'][0]['values'][2022]);
+            }
+            if ($case === 'ambiguous identity') {
+                $changed['rows'][] = $changed['rows'][0];
+            }
+            if ($case === 'missing activity') {
+                DB::table('dnrpa_activity_history')->delete();
+            }
+            Cache::forever('resale.acara.last-valid.v1', $case === 'missing catalog' ? null : $changed);
+            $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results.0.score', 90)
+                ->assertJsonPath('results.0.components.priority', null)->assertJsonPath('results.0.warnings.0', 'resale_unavailable');
+            $car->update(['version' => 'Base']);
+        }
+        Cache::forever('resale.acara.last-valid.v1', $catalog);
+        DB::table('dnrpa_refresh_state')->update(['checked_at' => now()->subDays(14)]);
+        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results.0.score', 97.5)
+            ->assertJsonPath('results.0.warnings.0', 'resale_stale')->assertJsonPath('results.0.resale.stale', true);
+        $this->assertSame($before, $this->snapshot());
+        Http::assertSentCount(1); // Only the existing shared quote; no ACARA/DNRPA HTTP.
     }
 
     public function test_real_listing_payload_uses_one_quote_and_exposes_only_public_facts(): void

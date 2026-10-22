@@ -6,6 +6,9 @@ use App\Models\Diagnostico;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
 use App\Services\ExchangeRates\DolarApi;
+use App\Services\Resale\AcaraPriceSource;
+use App\Services\Resale\DnrpaActivityStore;
+use App\Services\Resale\ResaleScorer;
 use App\Services\Subscription\SubscriptionLifecycle;
 use App\Support\VehiculoFields;
 use App\Support\VehiculoFotos;
@@ -27,7 +30,7 @@ final class DiagnosisRecommendations
             return ['status' => 'diagnosis_incomplete', 'results' => [], 'exchange_rate' => null];
         }
         $at = now();
-        // Let the ranker own readiness/resale rules too; skip external work for these states.
+        // Let the ranker own readiness; incomplete diagnoses never trigger external work.
         $preflight = $this->ranker->rank([], $diagnosis, [], $at->year, null);
         if ($preflight['status'] !== 'ready') {
             return $preflight + ['exchange_rate' => null];
@@ -39,7 +42,9 @@ final class DiagnosisRecommendations
             ->with(['propiedad.concesionaria:id,nombre,provincia', 'tipoCarroceria', 'portada'])
             ->get()->keyBy('id');
         $exchange = $this->exchange->current();
-        $ranking = $this->ranker->rank($vehicles, $diagnosis, $dealerIds, $at->year, $exchange['quote']['sell'] ?? null);
+        $resale = $diagnosis->prioridad_comprador === 'reventa'
+            ? app(ResaleScorer::class)->scores($vehicles, app(AcaraPriceSource::class)->current(), app(DnrpaActivityStore::class)->current()) : [];
+        $ranking = $this->ranker->rank($vehicles, $diagnosis, $dealerIds, $at->year, $exchange['quote']['sell'] ?? null, $resale);
         foreach ($ranking['results'] as &$result) {
             $vehicle = $vehicles->get($result['listing_id']);
             $result['vehicle'] = $this->publicFacts($vehicle);

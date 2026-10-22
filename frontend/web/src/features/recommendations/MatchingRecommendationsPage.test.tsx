@@ -87,6 +87,28 @@ it.each([false, true])('explains unavailable/stale quotes (stale=%s)', async (st
   expect(screen.getByText(/Publicado:/)).toBeInTheDocument()
 })
 
+it('HU05 explains missing resale without inventing a zero or hiding partial scores below70', async () => {
+  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(), score: 62.5,
+    components: { usage: 64, body: 100, priority: null, comfort: 20 }, warnings: ['resale_unavailable'],
+  }] })
+  renderPage()
+  expect(await screen.findByText('62,5% de compatibilidad')).toBeInTheDocument()
+  expect(screen.getByText(/Sin estimación de reventa.*10 puntos/)).toBeVisible()
+  await userEvent.click(screen.getByText('Ver atributos y motivos'))
+  expect(screen.getByText(/Prioridad: no disponible/)).toBeVisible()
+})
+
+it('HU05 shows dated resale sources and retained stale evidence', async () => {
+  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(), warnings: ['resale_stale'],
+    resale: { activity_score: 100, retention_score: 80, source_date: '2026-10-19', window_start: '2026-04', window_end: '2026-09', stale: true },
+  }] })
+  renderPage()
+  expect(await screen.findByText(/Reventa calculada con la última evidencia/)).toBeVisible()
+  await userEvent.click(screen.getByText('Ver atributos y motivos'))
+  expect(screen.getByText(/actividad DNRPA 2026-04 a 2026-09.*retención ACARA al 2026-10-19/)).toBeVisible()
+  expect(screen.getByText(/no precios futuros garantizados/)).toBeVisible()
+})
+
 it.each([new NetworkError(new Error()), new HttpError(500, null)])('retries failures without showing stale results', async (error) => {
   vi.mocked(apiFetch).mockRejectedValueOnce(error).mockResolvedValueOnce(ready())
   renderPage()

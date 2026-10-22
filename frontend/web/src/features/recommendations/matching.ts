@@ -6,14 +6,15 @@ import type { Vehiculo } from '../inventory/types'
 export type Recommendation = {
   listing_id: number
   score: number
-  components: Record<'usage' | 'body' | 'priority' | 'comfort', number>
+  components: Record<'usage' | 'body' | 'comfort', number> & { priority: number | null }
+  resale?: { activity_score: number | null; retention_score: number | null; source_date: string | null; window_start: string | null; window_end: string | null; stale: boolean } | null
   published_price: number
   published_currency: 'ARS' | 'USD'
   price_ars: number
   price_usd: number | null
   budget_excess_percent: number
   budget_penalty: number
-  warnings: ('body_mismatch' | 'budget_exceeded')[]
+  warnings: ('body_mismatch' | 'budget_exceeded' | 'resale_unavailable' | 'resale_stale')[]
   vehicle: Pick<Vehiculo, 'marca' | 'modelo' | 'version' | 'anio' | 'kilometraje' | 'ubicacion' | 'transmision' | 'combustible'> &
     Partial<MatchingFacts> & { carroceria: string | null; image_url: string | null }
   dealer: { id: number; nombre: string; provincia: string | null }
