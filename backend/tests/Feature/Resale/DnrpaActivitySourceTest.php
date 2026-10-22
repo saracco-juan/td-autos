@@ -107,6 +107,16 @@ class DnrpaActivitySourceTest extends TestCase
         return array_map(fn ($case) => [$case], ['envelope', 'no-month', 'missing-year', 'duplicate-year', 'http', 'foreign-host', 'path', 'missing-month', 'duplicate-member', 'too-many-members', 'corrupt-crc', 'invalid-csv', 'oversized-member', 'bad-zip', '503', 'redirect', 'connection', 'oversized-metadata', 'progress', 'archive-progress', 'oversized-archive']);
     }
 
+    public function test_known_month_checks_only_metadata_and_rejects_a_backwards_month(): void
+    {
+        $this->fake($this->metadata(), $this->archive());
+        $source = new DnrpaActivitySource;
+        $this->assertNull($source->fetch($this->catalog(), new DateTimeImmutable('2026-10-21'), '2026-09'));
+        Http::assertSentCount(1);
+        $this->expectException(\RuntimeException::class);
+        $source->fetch($this->catalog(), new DateTimeImmutable('2026-10-21'), '2026-10');
+    }
+
     private function catalog(): array
     {
         return ['snapshot_id' => 'catalog-1', 'rows' => [['make' => 'Toyota', 'model' => 'Corolla', 'version' => 'XLI']]];

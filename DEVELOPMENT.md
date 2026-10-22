@@ -589,3 +589,35 @@ php artisan test --filter=DnrpaActivitySourceTest
 Expected: all source tests pass, covering six-month acquisition, year rollover,
 provenance, private-field exclusion, bounded HTTPS, invalid sources/archives and
 temporary-stream cleanup. HTTP is faked with generated ZIPs; no inventory changes.
+
+## DNRPA history and fortnightly checks (HU05 stage 13c3)
+
+`DnrpaActivityStore::current()` and `history()` read only the local database.
+Two new tables hold the attempt/check timestamps and append-only monthly window
+versions, including the six aggregates, archive provenance and retrieval date.
+Clearing cache does not delete DNRPA history. No holder details or raw CSVs are stored.
+
+`dnrpa:refresh` atomically claims one attempt every 14 days before I/O, including
+failed attempts. A published new month triggers acquisition and transactional
+publication. An unchanged month checks metadata only, preserving the original
+retrieval date and history; it does not recalculate for a changed ACARA catalog.
+Older source months or failures retain the last valid version. A separate successful
+check date controls `dnrpa_stale`; no saved version yields `dnrpa_unavailable`.
+Readers see the snapshot and check date in one query. A superseded attempt cannot publish.
+
+The daily 01:00 scheduler runs in a separate 512 MiB / 600-second PHP process with
+a 15-minute overlap guard. The durable database claim also covers manual callers.
+No host cron is installed here. Before operational use, apply the additive migration
+and initialize ACARA with `php artisan acara:refresh`; a missing local catalog fails
+safely. Tests use isolated SQLite; existing inventory and remote Supabase are untouched.
+Recommendation integration remains the next stage.
+
+### Offline check (no server or login)
+
+```powershell
+cd D:\DaVinci\TESIS\td-autos\backend
+php artisan test --filter=DnrpaActivityStoreTest
+```
+
+Expected: history survives cache flush; 14-day boundaries, unchanged/new months,
+overlapping/superseded calls, rollback, stale fallback and bounded schedule pass.

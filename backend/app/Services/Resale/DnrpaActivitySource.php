@@ -15,7 +15,7 @@ final class DnrpaActivitySource
 
     private const API = 'https://datos.jus.gob.ar/api/3/action/package_show?id=transferencias-de-autos';
 
-    public function fetch(array $catalog, DateTimeImmutable $asOf): array
+    public function fetch(array $catalog, DateTimeImmutable $asOf, ?string $knownMonth = null): ?array
     {
         if (! class_exists(ZipArchive::class)) {
             throw new RuntimeException('DNRPA acquisition requires the PHP ZIP extension.');
@@ -59,6 +59,12 @@ final class DnrpaActivitySource
         $months = $latest === null ? null : $calculator->monthsEndingAt($latest, $asOf);
         if ($months === null) {
             throw new RuntimeException('No closed DNRPA month available.');
+        }
+        if ($knownMonth !== null && $latest < $knownMonth) {
+            throw new RuntimeException('DNRPA source month moved backwards.');
+        }
+        if ($latest === $knownMonth) {
+            return null;
         }
         $snapshots = $archives = [];
         foreach (array_unique(array_map(fn ($month) => substr($month, 0, 4), $months)) as $year) {
