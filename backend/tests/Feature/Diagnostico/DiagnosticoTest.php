@@ -344,8 +344,13 @@ class DiagnosticoTest extends TestCase
         $links = DB::table('diagnostico_carroceria')->get()->toJson();
         $history = DB::table('migrations')->get()->toJson();
 
+        $migration = '2026_10_20_000001_require_legacy_passenger_confirmation';
         try {
-            $this->artisan('migrate:rollback', ['--step' => 1, '--force' => true])->run();
+            $this->artisan('migrate:rollback', [
+                '--step' => DB::table('migrations')->where('migration', '>=', $migration)->count(),
+                '--path' => ['database/migrations/'.$migration.'.php'],
+                '--force' => true,
+            ])->run();
             $this->fail('Rollback must refuse saved diagnoses and retain its migration history.');
         } catch (\RuntimeException $exception) {
             $this->assertSame(
