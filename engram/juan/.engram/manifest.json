@@ -368,6 +368,14 @@
       "sessions": 1,
       "memories": 2,
       "prompts": 0
+    },
+    {
+      "id": "8c573856",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-22T20:00:42.694198Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
     }
   ]
 }
