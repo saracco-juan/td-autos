@@ -1,6 +1,6 @@
 # TD Autos — development notes
 
-Technical setup that `README.md` does not cover: local environments, tunnels, scripts and maintenance commands. `README.md` stays the source for installing and running each part; deployed environments are in [`infrastructure.md`](infrastructure.md). Add new technical notes here.
+Technical setup beyond the basics: local environments, tunnels, scripts and maintenance commands. [`getting-started.md`](getting-started.md) stays the source for installing and running each part; deployed environments are in [`infrastructure.md`](infrastructure.md). Add new technical notes here.
 
 ## Google sign-in from a phone (development only)
 

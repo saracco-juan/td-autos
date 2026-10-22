@@ -1,6 +1,6 @@
 # TD Autos — infrastructure
 
-Deployed environments: hosting, per-environment values, one-time setup of each service and known pitfalls. Local setup is in [`README.md`](../README.md) and [`development.md`](development.md). Never write real secrets here: the repository is public.
+Deployed environments: hosting, per-environment values, one-time setup of each service and known pitfalls. Local setup is in [`getting-started.md`](getting-started.md) and [`development.md`](development.md). Never write real secrets here: the repository is public.
 
 ## Overview
 
