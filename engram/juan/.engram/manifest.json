@@ -1,0 +1,365 @@
+{
+  "version": 1,
+  "chunks": [
+    {
+      "id": "183bffc4",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T00:28:40Z",
+      "sessions": 1,
+      "memories": 85,
+      "prompts": 0
+    },
+    {
+      "id": "ec9a7b06",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T00:29:29Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "807d7058",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T01:23:43Z",
+      "sessions": 0,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "e6b76c79",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T01:27:40Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "047f96f2",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T01:27:52Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "3ba5121d",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T01:36:47Z",
+      "sessions": 0,
+      "memories": 8,
+      "prompts": 0
+    },
+    {
+      "id": "dd2792bc",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T02:18:51Z",
+      "sessions": 0,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "3aa4b739",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T02:32:29Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
+    },
+    {
+      "id": "e4364949",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T03:31:07Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "135045a0",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T17:24:30Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "5a63d1fb",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T17:54:59Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "9ce69529",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T18:08:06Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "bc6ef325",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T18:41:03Z",
+      "sessions": 0,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "8e338021",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T19:03:36Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "bbbe45f3",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T19:17:47Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "b1fd3756",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T19:32:31Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "bad408bb",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T19:36:29Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "7b19da5c",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T20:14:02Z",
+      "sessions": 0,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "9c3ff82d",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T21:12:54Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "f5a7401f",
+      "created_by": "Juan",
+      "created_at": "2026-10-15T21:31:19Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "5fa55a51",
+      "created_by": "Juan",
+      "created_at": "2026-10-16T14:50:19Z",
+      "sessions": 0,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "3bfc86c6",
+      "created_by": "Juan",
+      "created_at": "2026-10-16T18:42:46Z",
+      "sessions": 0,
+      "memories": 6,
+      "prompts": 0
+    },
+    {
+      "id": "3e424623",
+      "created_by": "Juan",
+      "created_at": "2026-10-16T21:08:30Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
+    },
+    {
+      "id": "ff0b9be9",
+      "created_by": "Juan",
+      "created_at": "2026-10-16T21:37:46Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
+    },
+    {
+      "id": "1d0e5ed6",
+      "created_by": "Juan",
+      "created_at": "2026-10-16T23:55:04Z",
+      "sessions": 0,
+      "memories": 6,
+      "prompts": 0
+    },
+    {
+      "id": "4e96b667",
+      "created_by": "Juan",
+      "created_at": "2026-10-18T23:05:36Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "083627c0",
+      "created_by": "Juan",
+      "created_at": "2026-10-19T00:54:54Z",
+      "sessions": 0,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "bb77a7eb",
+      "created_by": "Juan",
+      "created_at": "2026-10-19T01:25:48Z",
+      "sessions": 0,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "6933e132",
+      "created_by": "Juan",
+      "created_at": "2026-10-19T02:11:29Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "9baa9a7b",
+      "created_by": "Juan",
+      "created_at": "2026-10-19T02:26:13Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "0178038a",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T14:17:58.84401Z",
+      "sessions": 1,
+      "memories": 15,
+      "prompts": 0
+    },
+    {
+      "id": "389175aa",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T14:18:04.980036Z",
+      "sessions": 0,
+      "memories": 0,
+      "prompts": 0
+    },
+    {
+      "id": "9423a7d7",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T14:32:22.667553Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "95e1236c",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T14:54:27.136183Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "e04766b3",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T16:52:36.466086Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "030d19b2",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T17:18:07.737569Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
+    },
+    {
+      "id": "cce3b114",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T20:44:00.811387Z",
+      "sessions": 1,
+      "memories": 8,
+      "prompts": 0
+    },
+    {
+      "id": "4f130e2c",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T20:44:14.493279Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "07d8b29a",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T21:13:55.064462Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "03107a8f",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-19T21:28:16.933775Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "c725313b",
+      "created_by": "Juan",
+      "created_at": "2026-10-20T23:02:18Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "f5cba6d9",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-21T15:05:56.388475Z",
+      "sessions": 1,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "2338312a",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-21T16:59:14.625362Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
+    },
+    {
+      "id": "c8b38ba0",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-21T17:31:00.817303Z",
+      "sessions": 1,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "690d3268",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-21T22:38:34.526277Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    }
+  ]
+}

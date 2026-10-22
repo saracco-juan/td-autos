@@ -1,0 +1,78 @@
+/* Page header without an eyebrow: title 32 bold, subtitle 14 secondary, 8 apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(24px, 5vw, 32px);
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma 38:860 "Estado de la cuenta" card: same surface as the checklist summary cards. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 20px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.status {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* Local loader of the card text: the page frame stays visible. */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--palette-red);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 24px;
+  }
+}

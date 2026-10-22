@@ -1,0 +1,5 @@
+/* Figma "Card/Recovery": helper text is 12px secondary, then the secondary action. */
+.helper {
+  color: var(--text-secondary);
+  font-size: 12px;
+}

@@ -1,0 +1,291 @@
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { HttpError, NetworkError } from '../../lib/http'
+import { fetchDealerDirectory } from './api'
+import DealersPage from './DealersPage'
+import { dealerRow, directory } from './fixtures'
+
+vi.mock('./api', () => ({ fetchDealerDirectory: vi.fn() }))
+
+function renderPage(state: unknown = null) {
+  render(
+    <MemoryRouter initialEntries={[{ pathname: '/admin/concesionarias', state }]}>
+      <Routes>
+        <Route path="/admin/concesionarias" element={<DealersPage />} />
+        <Route path="/admin/comprobantes/:id" element={<p>Revisión del comprobante</p>} />
+        <Route path="/admin/concesionarias/:id" element={<p>Edición de la concesionaria</p>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+}
+
+const row = (name: string) => screen.getByRole('row', { name: new RegExp(name) })
+
+describe('DealersPage (UH19, Figma 38:1037)', () => {
+  beforeEach(() => {
+    vi.mocked(fetchDealerDirectory).mockReset()
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(directory())
+  })
+
+  it('shows a loader while the list loads', () => {
+    vi.mocked(fetchDealerDirectory).mockReturnValue(new Promise(() => {}))
+    renderPage()
+
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando')
+  })
+
+  it('shows the header with the number of registered dealers', async () => {
+    renderPage()
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })).toBeInTheDocument()
+    expect(screen.getByText('ADMINISTRACIÓN')).toBeInTheDocument()
+    expect(screen.getByText('3 concesionarias registradas')).toBeInTheDocument()
+  })
+
+  it('uses the singular for a single dealer', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(directory({ concesionarias: [dealerRow()] }))
+    renderPage()
+
+    expect(await screen.findByText('1 concesionaria registrada')).toBeInTheDocument()
+  })
+
+  it('shows the Figma columns and one row per dealer in the order the API sends them', async () => {
+    renderPage()
+
+    const table = await screen.findByRole('table', { name: 'Concesionarias' })
+    const headers = within(table).getAllByRole('columnheader').map((cell) => cell.textContent)
+    expect(headers).toEqual(['Concesionaria', 'Localidad', 'Contacto', 'Estado', 'Acciones'])
+    const names = within(table)
+      .getAllByRole('rowheader')
+      .map((cell) => cell.textContent)
+    expect(names).toEqual(['Concesionaria Sur', 'Automotores Centro', 'Autos Norte'])
+  })
+
+  it('shows the locality, the contact email and the state label of each dealer', async () => {
+    renderPage()
+    await screen.findByRole('table')
+
+    const sur = within(row('Concesionaria Sur'))
+    expect(sur.getByText('CABA')).toBeInTheDocument()
+    expect(sur.getByText('sur@example.com')).toBeInTheDocument()
+    expect(sur.getByText('Pendiente de aprobación')).toHaveAttribute('data-tone', 'pending')
+
+    const centro = within(row('Automotores Centro'))
+    expect(centro.getByText('Rosario, Santa Fe')).toBeInTheDocument()
+    expect(centro.getByText('Activa')).toHaveAttribute('data-tone', 'active')
+  })
+
+  it('shows Inactiva muted with a red tag when the subscription is inactive', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [dealerRow({ estado_alta: 'activa', suscripcion_estado: 'inactiva', comprobante_pendiente_id: null, ultimo_comprobante_estado: null })],
+      }),
+    )
+    renderPage()
+
+    expect(await screen.findByText('Inactiva')).toHaveAttribute('data-tone', 'inactive')
+    expect(screen.getByText('Suscripción vencida')).toHaveAttribute('data-tone', 'rejected')
+    expect(screen.queryByText('Activa')).not.toBeInTheDocument()
+  })
+
+  it('shows Activa with a warning tag during the grace period', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [dealerRow({ estado_alta: 'activa', suscripcion_estado: 'gracia', comprobante_pendiente_id: null, ultimo_comprobante_estado: null })],
+      }),
+    )
+    renderPage()
+
+    expect(await screen.findByText('Activa')).toHaveAttribute('data-tone', 'active')
+    expect(screen.getByText('En período de gracia')).toHaveAttribute('data-tone', 'warning')
+  })
+
+  it('shows no tag for a dealer with a valid or without a subscription', async () => {
+    renderPage()
+    await screen.findByRole('table')
+
+    expect(screen.queryByText('Suscripción vencida')).not.toBeInTheDocument()
+    expect(screen.queryByText('En período de gracia')).not.toBeInTheDocument()
+  })
+
+  it('VER COMPROBANTE opens the pending receipt, or the latest one when none is pending', async () => {
+    renderPage()
+    await screen.findByRole('table')
+
+    expect(within(row('Concesionaria Sur')).getByRole('link', { name: 'Ver comprobante de Concesionaria Sur' })).toHaveAttribute(
+      'href',
+      '/admin/comprobantes/31',
+    )
+    expect(
+      within(row('Automotores Centro')).getByRole('link', { name: 'Ver comprobante de Automotores Centro' }),
+    ).toHaveAttribute('href', '/admin/comprobantes/27')
+
+    await userEvent.setup().click(within(row('Concesionaria Sur')).getByRole('link', { name: /Ver comprobante/ }))
+    expect(screen.getByText('Revisión del comprobante')).toBeInTheDocument()
+  })
+
+  it('shows "Sin comprobante" instead of VER COMPROBANTE for a dealer that never sent one', async () => {
+    renderPage()
+    await screen.findByRole('table')
+
+    const norte = within(row('Autos Norte'))
+    expect(norte.queryByRole('link', { name: /Ver comprobante/ })).not.toBeInTheDocument()
+    expect(norte.getByText('Sin comprobante')).toBeInTheDocument()
+  })
+
+  it('UH27: EDITAR opens the dealer page, on every row, with or without a receipt', async () => {
+    renderPage()
+    await screen.findByRole('table')
+
+    expect(within(row('Concesionaria Sur')).getByRole('link', { name: 'Editar Concesionaria Sur' })).toHaveAttribute(
+      'href',
+      '/admin/concesionarias/5',
+    )
+    expect(within(row('Automotores Centro')).getByRole('link', { name: 'Editar Automotores Centro' })).toHaveAttribute(
+      'href',
+      '/admin/concesionarias/6',
+    )
+    expect(within(row('Autos Norte')).getByRole('link', { name: 'Editar Autos Norte' })).toHaveAttribute(
+      'href',
+      '/admin/concesionarias/7',
+    )
+
+    await userEvent.setup().click(within(row('Autos Norte')).getByRole('link', { name: 'Editar Autos Norte' }))
+    expect(screen.getByText('Edición de la concesionaria')).toBeInTheDocument()
+  })
+
+  it('flags a dealer whose latest receipt was rejected, next to its unchanged state', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [
+          dealerRow({ comprobante_pendiente_id: null, ultimo_comprobante_id: 30, ultimo_comprobante_estado: 'rechazado' }),
+        ],
+      }),
+    )
+    renderPage()
+    await screen.findByRole('table')
+
+    const sur = within(row('Concesionaria Sur'))
+    expect(sur.getByText('Pendiente de aprobación')).toHaveAttribute('data-tone', 'pending')
+    expect(sur.getByText('Comprobante rechazado')).toHaveAttribute('data-tone', 'rejected')
+    expect(sur.getByRole('link', { name: 'Ver comprobante de Concesionaria Sur' })).toHaveAttribute('href', '/admin/comprobantes/30')
+  })
+
+  it('does not flag a rejection while a newer receipt is pending, nor approved or missing receipts', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({
+        concesionarias: [
+          dealerRow({ comprobante_pendiente_id: 32, ultimo_comprobante_id: 32, ultimo_comprobante_estado: 'pendiente de revisión' }),
+          ...directory().concesionarias.slice(1),
+        ],
+      }),
+    )
+    renderPage()
+    await screen.findByRole('table')
+
+    expect(screen.queryByText('Comprobante rechazado')).not.toBeInTheDocument()
+  })
+
+  it('shows an empty message and no table when there are no dealers', async () => {
+    vi.mocked(fetchDealerDirectory).mockResolvedValue(
+      directory({ conteos: { activas: 0, pendientes: 0, inactivas: 0 }, concesionarias: [] }),
+    )
+    renderPage()
+
+    expect(await screen.findByText('Todavía no hay concesionarias registradas.')).toBeInTheDocument()
+    expect(screen.getByText('0 concesionarias registradas')).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['a network failure', new NetworkError(new TypeError('Failed to fetch')), 'Sin conexión con el servidor'],
+    ['a server failure', new HttpError(500, undefined), 'Algo salió mal'],
+  ])('shows the error state after %s, and REINTENTAR loads the list', async (_label, failure, title) => {
+    vi.mocked(fetchDealerDirectory).mockRejectedValueOnce(failure)
+    renderPage()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(title)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'REINTENTAR' }))
+
+    expect(await screen.findByRole('table')).toBeInTheDocument()
+    expect(fetchDealerDirectory).toHaveBeenCalledTimes(2)
+  })
+
+  describe('pagination', () => {
+    const many = (count: number) =>
+      directory({
+        concesionarias: Array.from({ length: count }, (_, index) =>
+          dealerRow({ id: index + 1, nombre: `Concesionaria ${String(index + 1).padStart(2, '0')}` }),
+        ),
+      })
+
+    it('shows no pager when every dealer fits in one page', async () => {
+      renderPage()
+      await screen.findByRole('table')
+
+      expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
+    })
+
+    it('shows one page of rows and the pager, and page 2 shows the next rows', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(12))
+      renderPage()
+      const table = await screen.findByRole('table')
+
+      expect(within(table).getAllByRole('rowheader')).toHaveLength(10)
+      expect(screen.getByText('12 concesionarias registradas')).toBeInTheDocument()
+
+      await userEvent.setup().click(screen.getByRole('button', { name: 'Página 2' }))
+
+      expect(within(table).getAllByRole('rowheader').map((cell) => cell.textContent)).toEqual([
+        'Concesionaria 11',
+        'Concesionaria 12',
+      ])
+    })
+
+    it('shows 10 per page by default and "Mostrar" changes it, back to page 1', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(30))
+      const user = userEvent.setup()
+      renderPage()
+      const table = await screen.findByRole('table')
+      const select = screen.getByRole('combobox', { name: 'Mostrar' })
+
+      expect(select).toHaveValue('10')
+      await user.click(screen.getByRole('button', { name: 'Página 3' }))
+
+      await user.selectOptions(select, '25')
+
+      expect(within(table).getAllByRole('rowheader')).toHaveLength(25)
+      expect(within(table).getAllByRole('rowheader')[0]).toHaveTextContent('Concesionaria 01')
+      expect(screen.getByRole('button', { name: 'Página 2' })).toBeInTheDocument()
+    })
+
+    it('keeps "Mostrar" available when a bigger size leaves a single page', async () => {
+      vi.mocked(fetchDealerDirectory).mockResolvedValue(many(12))
+      const user = userEvent.setup()
+      renderPage()
+      await screen.findByRole('table')
+
+      await user.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '25')
+
+      expect(screen.getByRole('combobox', { name: 'Mostrar' })).toHaveValue('25')
+    })
+  })
+  describe('notice', () => {
+    it('shows and focuses the notice received from a delete (UH28)', async () => {
+      renderPage({ notice: 'Eliminaste la concesionaria.' })
+
+      const notice = await screen.findByText('Eliminaste la concesionaria.')
+      expect(notice).toHaveAttribute('role', 'status')
+      expect(notice).toHaveFocus()
+    })
+
+    it('ignores a navigation state without a notice', async () => {
+      renderPage({ other: true })
+
+      await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })
+      expect(screen.queryByText('Eliminaste la concesionaria.')).not.toBeInTheDocument()
+    })
+  })
+})

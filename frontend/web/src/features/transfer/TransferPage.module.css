@@ -1,0 +1,7 @@
+/* Source note under the items (Figma 38:694): small secondary text. */
+.source {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}

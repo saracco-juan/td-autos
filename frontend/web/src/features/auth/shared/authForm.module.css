@@ -1,0 +1,109 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Figma 38:779: fields in two columns, one column on narrow screens. */
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+/* A block that spans both columns of the grid (e.g. the password requirements). */
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 600px) {
+  .fieldGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Figma "Input" field: 48 high, radius 8, strong border on the base background. */
+.input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font: 400 14px/normal var(--font-sans);
+}
+
+/* A textarea keeps the input look but grows with its rows instead of the fixed 48. */
+.textarea {
+  height: auto;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--text-primary);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--accent-default);
+}
+
+.errors {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--accent-default);
+  font-size: 12px;
+}
+
+.passwordWrapper {
+  position: relative;
+}
+
+.passwordInput {
+  padding-right: 44px;
+}
+
+.visibilityToggle {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.visibilityToggle:hover {
+  color: var(--text-primary);
+}

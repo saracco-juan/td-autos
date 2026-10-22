@@ -1,0 +1,27 @@
+/* Starts at the top like the dealer pages, as wide as their card. */
+.denied {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: auto;
+  padding-top: 40px;
+}
+
+.denied > p {
+  width: 100%;
+  max-width: 760px;
+}
+
+.back {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.back:hover {
+  color: var(--accent-default);
+}

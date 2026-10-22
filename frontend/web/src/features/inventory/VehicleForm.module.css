@@ -1,0 +1,32 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Figma "Body" (2122:1929): the form on the left, the photo panel (388) on the right, 32 apart. */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 32%, 388px);
+  gap: 32px;
+  align-items: start;
+}
+
+/* Figma "Form": three fields per row, 24 apart. */
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1000px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+

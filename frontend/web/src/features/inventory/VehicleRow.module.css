@@ -1,0 +1,73 @@
+/*
+ * Inventory table columns (components/dataTable.module.css): --table-width on .inventoryColumn is the sum of these widths.
+ * The hideable columns are classes, not positions, so the confirmation cell that spans them is never hidden.
+ */
+.inventoryColumn {
+  --table-width: 1120px;
+}
+
+.colName {
+  width: 260px;
+}
+
+.colPlate {
+  width: 100px;
+}
+
+.colPhotos {
+  width: 110px;
+}
+
+.colKm {
+  width: 120px;
+}
+
+.colPrice {
+  width: 130px;
+}
+
+.colPlace {
+  width: 210px;
+}
+
+.colActions {
+  width: 190px;
+}
+
+/* The confirmation wraps its text and stacks the question, the failure if any, and its two buttons. */
+.confirmCell {
+  white-space: normal;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: 6px;
+}
+
+.confirm p {
+  margin: 0;
+}
+
+/* Narrow screens drop the least needed columns instead of squeezing all of them: place first, then plate and photos. */
+@media (max-width: 1200px) {
+  .inventoryColumn {
+    --table-width: 910px;
+  }
+
+  .colPlace {
+    display: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .inventoryColumn {
+    --table-width: 700px;
+  }
+
+  .colPlate,
+  .colPhotos {
+    display: none;
+  }
+}

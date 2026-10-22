@@ -1,0 +1,36 @@
+/* Figma 38:694 "Card/CTA · Asesor de trámites": white card in the left column, under the stage list. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--action-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.link {
+  margin-top: 4px;
+}

@@ -1,0 +1,163 @@
+/* Figma 38:1129: back link, eyebrow, title and subtitle. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.message {
+  margin: 0;
+  outline: none;
+}
+
+/* Three columns: data cards, the receipt, the decision. */
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 12px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dealerState {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.cardText,
+.muted {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* Outcome of a decided receipt: the alert box (red) or the notice box (green), with a bold title. */
+.outcome {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-width: 2px;
+}
+
+.outcomeTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.outcome[data-tone='rejected'] .outcomeTitle {
+  color: var(--action-danger);
+}
+
+.outcome[data-tone='approved'] .outcomeTitle {
+  color: var(--status-success);
+}
+
+.outcomeText {
+  margin: 0;
+  font-size: 13px;
+}
+
+.reasonLabel {
+  font-weight: 600;
+}
+
+/* Receipt state card: tinted and bold once decided. */
+.receiptState {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.receiptState[data-tone='rejected'] {
+  color: var(--action-danger);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.receiptState[data-tone='approved'] {
+  color: var(--status-success);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.reason {
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Figma centre card: outlined, tall. */
+.preview {
+  gap: 12px;
+  min-height: 380px;
+  padding: 16px;
+  border-color: var(--border-strong);
+}
+
+.previewEyebrow {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.previewTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.previewImage {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.previewFrame {
+  width: 100%;
+  height: clamp(280px, 60vh, 420px);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.link {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}

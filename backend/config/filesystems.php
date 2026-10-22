@@ -17,6 +17,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Vehicle Photos Disk
+    |--------------------------------------------------------------------------
+    |
+    | Disk where the photos of dealer vehicles are stored. Local ("public") in
+    | development and tests, "supabase" in production.
+    |
+    */
+
+    'vehicle_photos_disk' => env('VEHICLE_PHOTOS_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Receipts Disk
+    |--------------------------------------------------------------------------
+    |
+    | Private disk where the payment receipts uploaded by dealers are stored.
+    | Never a public disk: receipts are only served through authenticated routes.
+    |
+    */
+
+    'receipts_disk' => env('RECEIPTS_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -57,6 +81,36 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
+            'report' => false,
+        ],
+
+        // Supabase Storage through its S3-compatible endpoint (path-style URLs).
+        'supabase' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_STORAGE_KEY'),
+            'secret' => env('SUPABASE_STORAGE_SECRET'),
+            'region' => env('SUPABASE_STORAGE_REGION'),
+            'bucket' => env('SUPABASE_STORAGE_BUCKET'),
+            'url' => env('SUPABASE_STORAGE_URL'),
+            'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'visibility' => 'public',
+            'throw' => true,
+            'report' => false,
+        ],
+
+        // Private Supabase bucket for payment receipts (RECEIPTS_DISK=supabase_private when
+        // deployed). Same credentials as "supabase"; files are only streamed by the API.
+        'supabase_private' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_STORAGE_KEY'),
+            'secret' => env('SUPABASE_STORAGE_SECRET'),
+            'region' => env('SUPABASE_STORAGE_REGION'),
+            'bucket' => env('SUPABASE_STORAGE_PRIVATE_BUCKET'),
+            'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'visibility' => 'private',
+            'throw' => true,
             'report' => false,
         ],
 

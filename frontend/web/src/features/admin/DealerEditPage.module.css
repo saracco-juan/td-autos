@@ -1,0 +1,124 @@
+/* Figma 38:1099: the header sits 16 apart, the form rows 24 apart, the actions in the pinned bar. */
+.message {
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Two columns of inputs, one column under 800 px. */
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 20px 32px;
+  align-items: start;
+}
+
+/* Subscription and receipts, side by side on desktop. */
+.info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.facts dt {
+  color: var(--text-secondary);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* The state label with its tag next to it. */
+.facts .accountState {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.receipt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 13px;
+}
+
+.receipt + .receipt {
+  border-top: 1px solid var(--border-default);
+}
+
+.receiptInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.receiptTitle {
+  font-weight: 600;
+}
+
+.receiptState {
+  font-weight: 600;
+}
+
+.receiptState[data-tone='approved'] {
+  color: var(--status-success);
+}
+
+.receiptState[data-tone='rejected'] {
+  color: var(--action-danger);
+}
+
+.reason {
+  overflow-wrap: anywhere;
+}
+
+.reasonLabel {
+  font-weight: 600;
+}
+
+.receiptLink {
+  flex-shrink: 0;
+  width: 110px;
+  height: 36px;
+}
+
+/* Delete section (UH28): ELIMINAR on its own, then ELIMINAR and CANCELAR side by side in the confirmation. */
+.removalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.removalAction {
+  align-self: flex-start;
+  width: auto;
+  min-width: min(100%, 180px);
+  padding-inline: 20px;
+  white-space: nowrap;
+}

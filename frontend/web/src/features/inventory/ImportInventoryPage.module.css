@@ -1,0 +1,121 @@
+/* Cards of the import screen (Figma 38:1005): same surface as the inventory cards. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cardBody {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.loadingCard {
+  min-height: 96px;
+}
+
+.fileRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.fileField {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fileLabel {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fileName {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pick {
+  position: relative;
+  flex: none;
+  width: min(100%, 220px);
+}
+
+.pick:focus-within {
+  border-color: var(--border-input);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--surface-raised);
+}
+
+.pick:has(:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* The input stays in the page (focusable, announced) but the styled label is what the dealer sees. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.failure {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  outline: none;
+}
+
+.failureMessage,
+.failureRows {
+  margin: 0;
+}
+
+.failureRows {
+  padding-left: 20px;
+}
+
+/* Template download: a link styled as a button, sized to its text at the start of the card. */
+.template {
+  align-self: flex-start;
+  width: min(100%, 220px);
+}
+
+@media (max-width: 600px) {
+  .fileRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pick {
+    width: 100%;
+  }
+}

@@ -1,0 +1,29 @@
+/* Item row shared by the step panel (with a checkbox) and the read-only summary lists: bordered, rounded, text that wraps. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--row-h, 44px);
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  font-size: 14px;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The badge never shrinks, so a long text wraps without breaking it. */
+.badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-default);
+  color: var(--text-on-color);
+  font-size: 10px;
+  font-weight: 700;
+}

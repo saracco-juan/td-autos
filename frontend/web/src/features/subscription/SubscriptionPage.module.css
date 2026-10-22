@@ -1,0 +1,162 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma "Cards" 2113:1661: three cards side by side, 24 apart; they stack on narrow screens. */
+.cards {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.cards > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Figma "Card" 2010:35: same surface as the other dealer cards. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cardBody {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* The account state is the one body text Figma paints with the accent color. */
+.status {
+  color: var(--accent-default);
+}
+
+/* Not in Figma: the data to make the transfer (HU18 scenario 1). */
+.data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.dataRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.term {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.value {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.kind {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Not in Figma: the rejected receipt notice, an alert box with a red title. */
+.rejected {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-width: 2px;
+}
+
+.rejectedTitle {
+  margin: 0;
+  color: var(--action-danger);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rejectedText {
+  margin: 0;
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rejectedLabel {
+  font-weight: 600;
+}
+
+.message {
+  margin: 0;
+  outline: none;
+}
+
+/* Figma "Actions" 2113:1674, now in the pinned bar: buttons 12 apart, stacked on phones. */
+/* All the actions on one row at the bottom; they stack only on phones (below). */
+.actions {
+  flex-wrap: nowrap;
+}
+
+.pick {
+  position: relative;
+}
+
+.pick:focus-within {
+  border-color: var(--border-input);
+  box-shadow: 0 0 0 3px var(--surface-raised);
+}
+
+.pick:has(:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* The input stays in the page (focusable, announced) but the styled label is what the dealer sees. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 800px) {
+  .cards {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 767px) {
+  .actions.actions {
+    flex-direction: column;
+  }
+
+  .actions.actions > * {
+    flex: none;
+    width: 100%;
+  }
+}

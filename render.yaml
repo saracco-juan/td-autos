@@ -1,0 +1,181 @@
+# Render Blueprint: the Laravel API as two free Docker web services.
+#   td-autos-api      <- branch main     (production)
+#   td-autos-api-dev  <- branch develop  (development)
+# The browser never calls these hosts directly: the SPA on Vercel proxies /backend/* to them
+# (frontend/web/vercel.json). Setup, secrets and per-environment values: DEVELOPMENT.md, "Deploy".
+#
+# `sync: false` values are asked for once, when the Blueprint is first created; later Blueprint
+# syncs ignore them, so change them afterwards in each service's Environment tab.
+# Host-dependent values (APP_URL, FRONTEND_URL, SANCTUM_STATEFUL_DOMAINS, GOOGLE_REDIRECT_URI)
+# are `sync: false` because the real Vercel hostnames are only known once the Vercel project exists.
+
+services:
+  - type: web
+    name: td-autos-api
+    runtime: docker
+    plan: free
+    region: virginia
+    branch: main
+    rootDir: backend
+    # Both paths are relative to rootDir.
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+    envVars:
+      # Fixed values, same in both environments.
+      - key: APP_NAME
+        value: TD Autos
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: VEHICLE_PHOTOS_DISK
+        value: supabase
+      - key: RECEIPTS_DISK
+        value: supabase_private
+      - key: MAIL_MAILER
+        value: gmail
+      - key: MAIL_FROM_NAME
+        value: TD Autos
+      # Per-environment values and secrets (entered in the dashboard).
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: SANCTUM_STATEFUL_DOMAINS
+        sync: false
+      - key: DB_URL
+        sync: false
+      - key: SUPABASE_STORAGE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_SECRET
+        sync: false
+      - key: SUPABASE_STORAGE_REGION
+        sync: false
+      - key: SUPABASE_STORAGE_ENDPOINT
+        sync: false
+      - key: SUPABASE_STORAGE_URL
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false
+      - key: SUPABASE_STORAGE_PRIVATE_BUCKET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      # Mail goes through the Gmail API (Render free blocks outbound SMTP): DEVELOPMENT.md, "Mail".
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+      - key: ADMIN_NOTIFICATION_EMAILS
+        sync: false
+
+  - type: web
+    name: td-autos-api-dev
+    runtime: docker
+    plan: free
+    region: virginia
+    branch: develop
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+    # Same keys as td-autos-api; values differ per environment (DEVELOPMENT.md).
+    envVars:
+      # Fixed values, same in both environments.
+      - key: APP_NAME
+        value: TD Autos
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: VEHICLE_PHOTOS_DISK
+        value: supabase
+      - key: RECEIPTS_DISK
+        value: supabase_private
+      - key: MAIL_MAILER
+        value: gmail
+      - key: MAIL_FROM_NAME
+        value: TD Autos
+      # Per-environment values and secrets (entered in the dashboard).
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: SANCTUM_STATEFUL_DOMAINS
+        sync: false
+      - key: DB_URL
+        sync: false
+      - key: SUPABASE_STORAGE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_SECRET
+        sync: false
+      - key: SUPABASE_STORAGE_REGION
+        sync: false
+      - key: SUPABASE_STORAGE_ENDPOINT
+        sync: false
+      - key: SUPABASE_STORAGE_URL
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false
+      - key: SUPABASE_STORAGE_PRIVATE_BUCKET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      # Mail goes through the Gmail API (Render free blocks outbound SMTP): DEVELOPMENT.md, "Mail".
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+      - key: ADMIN_NOTIFICATION_EMAILS
+        sync: false

@@ -1,0 +1,49 @@
+/* Figma "Header group" (2074:882): eyebrow, title and subtitle 8 apart, the progress group 20 below. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header > :last-child {
+  margin-top: 12px;
+}
+
+.eyebrow {
+  composes: eyebrow from '../../components/screen.module.css';
+}
+
+.title {
+  composes: title from '../../components/screen.module.css';
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma "Body" (2074:893): options fill the row, the summary card keeps 396 on the right, 32 apart. */
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.options {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.message {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

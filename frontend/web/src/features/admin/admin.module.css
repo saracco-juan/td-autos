@@ -1,0 +1,183 @@
+/* Admin screens (Figma 2101:1493, 38:1037): eyebrow, title and subtitle 8 apart. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Dashboard (Figma 2101:1493): a centered column up to 1040 px, like the buyer flows. */
+.dashboard {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+/* The area link is as wide as its label, on the left of the card. */
+.areaAction {
+  align-self: flex-start;
+  width: auto;
+  min-width: 180px;
+  padding-inline: 20px;
+}
+
+/* Figma "Card": white surface, radius 14. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+.card > p {
+  margin: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cardBody {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 24px;
+}
+
+.statLabel {
+  font-size: 12px;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.statMuted {
+  color: var(--text-secondary);
+}
+
+.sectionLabel {
+  margin: 0 0 -16px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.notice {
+  margin: 0;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Admin dealers table (components/dataTable.module.css): --table-width is the sum of the column widths below. */
+.dealersColumn {
+  --table-width: 1120px;
+}
+
+.colName {
+  width: 220px;
+}
+
+.colPlace {
+  width: 200px;
+}
+
+.colContact {
+  width: 260px;
+}
+
+.colState {
+  width: 200px;
+}
+
+/* Narrow screens drop the least needed columns instead of squeezing all five: contact first, then place. */
+@media (max-width: 1200px) {
+  .dealersColumn {
+    --table-width: 860px;
+  }
+
+  .dealersColumn col:nth-child(3),
+  .dealersColumn tr > :nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 940px) {
+  .dealersColumn {
+    --table-width: 660px;
+  }
+
+  .dealersColumn col:nth-child(2),
+  .dealersColumn tr > :nth-child(2) {
+    display: none;
+  }
+}
+
+/* Figma: the state is bold text tinted by its meaning. */
+.state {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.state[data-tone='active'] {
+  color: var(--status-success);
+}
+
+.state[data-tone='inactive'] {
+  color: var(--text-secondary);
+}
+
+/* The state label stays as is; a rejected receipt or an expired subscription is flagged under it. */
+.stateCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.stateTag {
+  padding: 2px 8px;
+  border: 1px solid var(--status-error-border);
+  border-radius: 999px;
+  background: var(--status-error-bg);
+  color: var(--action-danger);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stateTag[data-tone='warning'] {
+  border-color: var(--status-warning-border);
+  background: var(--status-warning-bg);
+  color: var(--text-primary);
+}
+
+/* "Sin comprobante" is a greyed button, in the same case as the buttons. */
+.noReceipt {
+  text-transform: uppercase;
+}
+
+.colActions {
+  width: 240px;
+}

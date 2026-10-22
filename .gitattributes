@@ -1,0 +1,3 @@
+# Engram manifests only grow, so merges take the union of chunks (driver: scripts/engram-merge-manifest.mjs).
+# Each clone registers the driver once; see AGENTS.md "Shared agent memory (Engram)".
+engram/*/.engram/manifest.json merge=engram-manifest eol=lf

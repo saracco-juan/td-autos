@@ -1,0 +1,239 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+/* Nav/Top (Guest, Buyer, Dealer, Admin): red bar pinned to the top with a soft shadow; logo mark and wordmark on the
+   left, role links as pills beside it, the account group on the right. */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 0 clamp(16px, 3vw, 40px);
+  background: var(--palette-red);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 6px 16px rgba(120, 16, 0, 0.22);
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-on-color);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+/* White rounded tile with the TD monogram in the brand red (the favicon, inverted). */
+.logoMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--surface-default);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  color: var(--palette-red);
+}
+
+.logo:focus-visible,
+.navAction:focus-visible,
+.logout:focus-visible,
+.menuToggle:focus-visible {
+  outline: 2px solid var(--text-on-color);
+  outline-offset: 2px;
+}
+
+/* Wide screens: the panel only groups the links and the logout; its children lay out in the bar. */
+.menuPanel {
+  display: contents;
+}
+
+.menuToggle {
+  display: none;
+}
+
+/* Role links, beside the logo. */
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 28px;
+}
+
+/* Right group: "Perfil" (buyer) or "Administración" (admin), the dealer's name, and "Cerrar sesión". */
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* A link is a pill: soft white text, a translucent white fill on hover. */
+.navAction {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.86);
+  font: 500 13px/1 var(--font-sans);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.navAction:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--text-on-color);
+}
+
+/* The link of the page the user is on (NavLink sets aria-current): a brighter pill. */
+.navAction[aria-current='page'] {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--text-on-color);
+  font-weight: 700;
+}
+
+/* Dealer nav: the dealer's name as a chip, not interactive. */
+.navChip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 220px;
+  overflow: hidden;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--text-on-color);
+  font: 600 12px/1 var(--font-sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* "Cerrar sesión": an outlined pill with an icon, set apart from the links. */
+.logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-on-color);
+  font: 600 12px/1 var(--font-sans);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.logout:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.logout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navAction,
+  .logout {
+    transition: none;
+  }
+}
+
+.alert {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 16px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  padding: 20px clamp(16px, 3vw, 40px);
+}
+
+/* Figma "Footer" */
+.footer {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 clamp(16px, 3vw, 40px);
+  background: var(--palette-red);
+  color: var(--text-on-color);
+  font-size: 11px;
+}
+
+/* Phones and small tablets: the bar keeps logo + MENÚ in one row; links and logout drop down from it as full-width pills. */
+@media (max-width: 800px) {
+  .menuToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 7px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 999px;
+    background: none;
+    color: var(--text-on-color);
+    font: 700 12px/1 var(--font-sans);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .menuPanel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 8px clamp(16px, 3vw, 40px) 16px;
+    background: var(--palette-red);
+    box-shadow: 0 10px 16px rgba(120, 16, 0, 0.25);
+  }
+
+  .menuPanelOpen {
+    display: flex;
+  }
+
+  .navLinks,
+  .navActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    margin-left: 0;
+  }
+
+  .navActions {
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .navAction,
+  .navChip,
+  .logout {
+    justify-content: flex-start;
+    max-width: none;
+    padding: 12px 14px;
+    font-size: 14px;
+    text-align: left;
+  }
+}
