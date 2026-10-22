@@ -557,3 +557,35 @@ Expect passing tests for six-month totals, gaps, year rollover, ties, small
 populations and the existing reader's output. No screen or API changed.
 Official archive acquisition is the next cut (13c2b); persistence/history,
 14-day scheduled checks and recommendation integration remain separate work.
+## DNRPA automatic acquisition (HU05 stage 13c2b)
+
+`App\Services\Resale\DnrpaActivitySource::fetch($catalog, $asOf)` discovers the latest
+published closed month from the [official CKAN metadata](https://datos.jus.gob.ar/api/3/action/package_show?id=transferencias-de-autos).
+It downloads the annual ZIPs needed for that six-month window (two across a year
+boundary), then reuses the monthly reader and activity calculator. It returns
+`snapshots`, `activity`, `archives` (URL and SHA-256), and `source_url`; never raw
+CSV rows or holder details. The same caller-supplied ACARA catalog identifies every month.
+
+This is an acquisition service, not yet a scheduled job or a recommendation API.
+Persistence/history, fortnightly refresh and last-good fallback follow in 13c3;
+ranking integration follows separately. Calling `fetch` performs network I/O;
+constructing the service does not. A failure throws and returns no partial window.
+
+Downloads require verified HTTPS on the official dataset path, reject redirects,
+and use 20-second connection / 90-second request timeouts. Streamed and actual
+limits are 2 MiB metadata and 80 MiB per ZIP. ZIP support (`ext-zip`, PHP 8.2+) is
+required; its absence fails explicitly. No extension is installed automatically.
+Only exact, unique month members are read (at most 24 archive entries, 64 MiB per
+selected member), with byte count and CRC checked before parsing. Compressed
+temporary downloads are closed on success/failure; CSV members are never extracted.
+
+### Offline check (no server, login, database or live downloads)
+
+```powershell
+cd D:\DaVinci\TESIS\td-autos\backend
+php artisan test --filter=DnrpaActivitySourceTest
+```
+
+Expected: all source tests pass, covering six-month acquisition, year rollover,
+provenance, private-field exclusion, bounded HTTPS, invalid sources/archives and
+temporary-stream cleanup. HTTP is faked with generated ZIPs; no inventory changes.
