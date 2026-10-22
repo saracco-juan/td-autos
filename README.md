@@ -31,67 +31,11 @@ Otros lugares para consultar:
 | [`frontend/web/`](frontend/web) | Aplicación web (SPA) | React 19, TypeScript, Vite |
 | [`frontend/mobile/`](frontend/mobile) | App móvil | React Native, Expo, TypeScript |
 | [`frontend/shared/`](frontend/shared) | Lógica pura compartida por web y mobile (modelo del diagnóstico) | TypeScript, sin dependencias |
-| [`docs/`](docs) | Documentación técnica: [diseño](docs/design.md), [desarrollo](docs/development.md) e [infraestructura y deploy](docs/infrastructure.md) | Markdown |
+| [`docs/`](docs) | Documentación técnica: [diseño](docs/design.md), [primeros pasos](docs/getting-started.md), [desarrollo](docs/development.md) e [infraestructura y deploy](docs/infrastructure.md) | Markdown |
 
-## Inicio rápido
+## Para desarrollar
 
-### Requisitos
-
-- PHP 8.2+ y Composer
-- Node.js 22.13+ (o 24.3+) y npm: lo exige Expo para la app móvil
-
-### 1. Backend
-
-```bash
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate
-php artisan serve
-```
-
-La base de datos es Supabase (PostgreSQL). Antes de migrar, completar en `.env` `DB_CONNECTION=pgsql` y `DB_URL` con la cadena de conexión del proyecto de Supabase.
-
-Para probar sin Supabase, `php artisan db:local` arma una base SQLite con datos de demo (detalle en [`docs/development.md`](docs/development.md#local-demo-database)).
-
-### 2. Frontend web
-
-```bash
-cd frontend/web
-npm install
-npm run dev
-```
-
-### 3. App móvil
-
-```bash
-cd frontend/mobile
-npm install
-cp .env.example .env
-```
-
-El celular no alcanza el `localhost` de la PC: en `.env` poné en `EXPO_PUBLIC_API_URL` la IP de la PC en la red local (por ejemplo `http://192.168.0.10:8000`) y levantá el backend con `php artisan serve --host=0.0.0.0`. Después:
-
-```bash
-npx expo start
-```
-
-Abrí la app con Expo Go escaneando el QR. El celular y la PC tienen que estar en la misma red Wi-Fi.
-
-La app usa tokens de Sanctum (`/api/mobile/*`), no la cookie de sesión de la web, y solo admite compradores. El link del mail de recuperación abre la pantalla web de restablecimiento.
-
-Para probar el ingreso con Google desde el celular hace falta un túnel HTTPS: ver [`docs/development.md`](docs/development.md#google-sign-in-from-a-phone-development-only).
-
-## Comandos útiles
-
-| Parte | Tests | Lint / formato | Build |
-|-------|-------|----------------|-------|
-| Backend | `php artisan test` | `./vendor/bin/pint` | — |
-| Frontend web | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` | `npm run build` |
-| App móvil | `npm run test` (con cobertura: `npm run test:coverage`) | `npm run lint` y `npm run typecheck` | `npx expo export --platform android` |
-
-Antes de abrir un PR, desde la raíz: `node scripts/check-duplication.mjs` mide la duplicación del código nuevo contra `origin/develop`, como el quality gate de SonarQube Cloud (falla por encima del 3%).
+Cómo instalar y levantar cada parte, y los comandos de tests, lint y build: [`docs/getting-started.md`](docs/getting-started.md).
 
 ## Integración continua
 

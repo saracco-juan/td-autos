@@ -2,7 +2,7 @@
 
 Shared instructions for any AI coding agent working in this repository (Claude Code, Codex, others). Keep this file tool-neutral: personal or tool-specific preferences belong in each developer's local, untracked files.
 
-`README.md` is the single source for the repository layout, setup, test/lint/build commands, and branch and commit conventions. Read it instead of assuming; do not restate its rules here.
+`README.md` is the single source for the repository layout and branch and commit conventions; `docs/getting-started.md` for setup and test/lint/build commands. Read it instead of assuming; do not restate its rules here.
 
 ## Sources of truth
 
@@ -34,9 +34,9 @@ Rules:
 ## Working rules
 
 - Code, identifiers, comments and tests are written in English. User-facing copy is Spanish (Argentine voseo, sentence case, buttons in uppercase).
-- Project documentation lives in `docs/`; only `README.md`, `AGENTS.md` and `CLAUDE.md` stay at the root.
+- Project documentation lives in `docs/`; only `README.md`, `AGENTS.md` and `CLAUDE.md` stay at the root. `README.md` is the plain-language landing page; technical content goes to `docs/`.
 - Before building or changing any screen, read `docs/design.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
-- Technical setup that is not in `README.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `docs/development.md`. Add new technical notes there.
+- Technical setup that is not in `docs/getting-started.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `docs/development.md`. Add new technical notes there.
 - Deployed environments (hosting, per-environment variables, one-time service setup, deploy troubleshooting) live in `docs/infrastructure.md`. The repository is public: write placeholders there, never real secrets, hosts' credentials or personal data.
 - Logic that web and mobile both need (rules, models, pure helpers) goes to `frontend/shared` from the first commit; never copy it between the apps. Before handing over a branch, run `node scripts/check-duplication.mjs` from the repo root and fix what it reports: SonarQube Cloud fails the PR above 3% duplicated new code.
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
@@ -57,7 +57,7 @@ Agent memory travels between machines through the repo, one folder per developer
 
 ## Closing a task
 
-- Every time a task is finished, the closing message includes how to test it manually: what to start (see `README.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
+- Every time a task is finished, the closing message includes how to test it manually: what to start (see `docs/getting-started.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
 - When the task is backend-only and has no screen yet, the manual test comes with ready-to-paste code: a self-contained snippet (browser console or terminal) that authenticates the same way the real client does, one call per case, and the expected status and body of each call. The developer should not have to write or adapt code beyond the host and port.
 
 ## Screen decisions go back to Figma
