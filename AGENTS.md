@@ -34,8 +34,10 @@ Rules:
 ## Working rules
 
 - Code, identifiers, comments and tests are written in English. User-facing copy is Spanish (Argentine voseo, sentence case, buttons in uppercase).
-- Before building or changing any screen, read `DESIGN.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
-- Technical setup that is not in `README.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `DEVELOPMENT.md`. Add new technical notes there.
+- Project documentation lives in `docs/`; only `README.md`, `AGENTS.md` and `CLAUDE.md` stay at the root.
+- Before building or changing any screen, read `docs/design.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
+- Technical setup that is not in `README.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `docs/development.md`. Add new technical notes there.
+- Deployed environments (hosting, per-environment variables, one-time service setup, deploy troubleshooting) live in `docs/infrastructure.md`. The repository is public: write placeholders there, never real secrets, hosts' credentials or personal data.
 - Logic that web and mobile both need (rules, models, pure helpers) goes to `frontend/shared` from the first commit; never copy it between the apps. Before handing over a branch, run `node scripts/check-duplication.mjs` from the repo root and fix what it reports: SonarQube Cloud fails the PR above 3% duplicated new code.
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
 - Do not discard uncommitted work (`git reset --hard`, `git clean`, `git checkout -- <path>`, `git stash drop`) without explicit confirmation from the developer.

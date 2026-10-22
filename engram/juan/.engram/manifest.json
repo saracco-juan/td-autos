@@ -360,6 +360,14 @@
       "sessions": 1,
       "memories": 2,
       "prompts": 0
+    },
+    {
+      "id": "918d0270",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-22T18:45:08.626654Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
     }
   ]
 }

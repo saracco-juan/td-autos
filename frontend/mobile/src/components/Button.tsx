@@ -22,7 +22,7 @@ const BORDER: Record<Variant, string> = {
   danger: colors.errorBorder,
 }
 
-// Soft look for every variant (DESIGN.md "Buttons"): white surface, thin border, soft shadow, dark label.
+// Soft look for every variant (docs/design.md "Buttons"): white surface, thin border, soft shadow, dark label.
 export default function Button({
   label,
   busyLabel,

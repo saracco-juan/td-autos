@@ -3,9 +3,25 @@
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=saracco-juan_td-autos&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=saracco-juan_td-autos)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=saracco-juan_td-autos&metric=coverage)](https://sonarcloud.io/summary/new_code?id=saracco-juan_td-autos)
 
-Portal web de recomendación de autos usados y gestión de concesionarias. Proyecto de tesis.
+TD Autos ayuda a quien quiere comprar un auto usado a decidir mejor, y a las concesionarias a gestionar su stock. Proyecto de tesis de Juan Saracco y Mariano Giardina.
 
-El usuario obtiene recomendaciones de vehículos según su perfil; las concesionarias publican y gestionan su stock (inspecciones, transferencias, publicaciones externas y leads).
+- **Compradores**: responden un diagnóstico corto y reciben recomendaciones de vehículos según su perfil, con checklists para la inspección y la transferencia.
+- **Concesionarias**: publican y administran su inventario, con suscripción mensual.
+- **Administradores**: dan de alta y supervisan a las concesionarias y sus pagos.
+
+## Dónde verlo
+
+| Ambiente | Web | Se actualiza con |
+|----------|-----|------------------|
+| Producción | https://td-autos.vercel.app | cada merge a `main` |
+| Desarrollo | https://td-autos-git-develop-juans-projects-e2baddd8.vercel.app | cada merge a `develop` |
+
+La API de cada ambiente responde en `<web>/backend` (por ejemplo, `https://td-autos.vercel.app/backend/up` devuelve `200` si está viva). En el plan gratuito la API se duerme sin tráfico: la primera carga después de un rato puede tardar cerca de un minuto. Cómo está armado y configurado cada ambiente: [`docs/infrastructure.md`](docs/infrastructure.md).
+
+Otros lugares para consultar:
+
+- Calidad de código y cobertura: [SonarQube Cloud](https://sonarcloud.io/summary/new_code?id=saracco-juan_td-autos).
+- Estado de los builds: [GitHub Actions](https://github.com/saracco-juan/td-autos/actions).
 
 ## Estructura del repositorio
 
@@ -15,6 +31,7 @@ El usuario obtiene recomendaciones de vehículos según su perfil; las concesion
 | [`frontend/web/`](frontend/web) | Aplicación web (SPA) | React 19, TypeScript, Vite |
 | [`frontend/mobile/`](frontend/mobile) | App móvil | React Native, Expo, TypeScript |
 | [`frontend/shared/`](frontend/shared) | Lógica pura compartida por web y mobile (modelo del diagnóstico) | TypeScript, sin dependencias |
+| [`docs/`](docs) | Documentación técnica: [diseño](docs/design.md), [desarrollo](docs/development.md) e [infraestructura y deploy](docs/infrastructure.md) | Markdown |
 
 ## Inicio rápido
 
@@ -36,24 +53,7 @@ php artisan serve
 
 La base de datos es Supabase (PostgreSQL). Antes de migrar, completar en `.env` `DB_CONNECTION=pgsql` y `DB_URL` con la cadena de conexión del proyecto de Supabase.
 
-#### Base de datos local
-
-Para probar sin Supabase, `php artisan db:local` arma desde cero `backend/database/manual.sqlite` (migraciones y datos de demo). **Borra el archivo de destino si ya existe**: para conservar una base anterior, usar `php artisan db:local --path=<ruta absoluta de un archivo nuevo>`. Nunca toca la conexión del `.env` y no corre en producción. Crea un administrador, un comprador, 7 concesionarias en todos los estados con sus comprobantes y 2 vehículos deterministas para cada concesionaria activa: Chevrolet Onix LT y Toyota Corolla XEi, con carrocería y valores válidos para edición. Cada vehículo tiene siete imágenes sintéticas locales de su modelo; no representan ofertas reales. El comando guarda imágenes en el disco `public` y comprobantes en `local`, sin usar almacenamiento remoto. Para usar la nueva base, en `.env`:
-
-```env
-DB_CONNECTION=sqlite
-DB_DATABASE=<ruta absoluta de backend/database/manual.sqlite>
-DB_URL=
-APP_URL=http://localhost:8000
-VEHICLE_PHOTOS_DISK=public
-RECEIPTS_DISK=local
-```
-
-Ejecutar `php artisan storage:link` para servir las fotos locales. Para el frontend de Vite, usar `FRONTEND_URL=http://localhost:5173`. Las concesionarias activas de demo son `pampa` y `litoral`: entrar con una de ellas, abrir Inventario, editar un vehículo, comprobar sus siete fotos y guardar un precio distinto. Al volver a abrirlo deben conservarse el precio y las fotos. Un vehículo histórico sin carrocería debe abrir con la selección vacía y exigir completarla antes de guardar. HU05 continúa pendiente.
-
-Cuentas de demo (contraseña `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` y las concesionarias `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` y `litoral` con el sufijo `@demo.tdautos.test`.
-
-Para probar con volumen, `php artisan db:local --vehiculos=10000` suma a esa base unas 50 concesionarias activas con suscripción vigente (`concesionaria01@volumen.tdautos.test` a `concesionaria50@volumen.tdautos.test`, misma contraseña) y reparte entre ellas la cantidad de vehículos pedida, de forma desigual y siempre con los mismos datos: modelos y carrocerías reales del mercado argentino, precios y kilometrajes acordes al año, patentes únicas y 7 fotos por vehículo. Las fotos son 7 imágenes numeradas que se escriben en el disco `public` (`backend/storage/app/public/vehiculos/volumen`); corré `php artisan storage:link` una vez para que se vean. Sin la opción, la base queda como antes. Es solo para SQLite local: no sirve para Supabase.
+Para probar sin Supabase, `php artisan db:local` arma una base SQLite con datos de demo (detalle en [`docs/development.md`](docs/development.md#local-demo-database)).
 
 ### 2. Frontend web
 
@@ -81,13 +81,7 @@ Abrí la app con Expo Go escaneando el QR. El celular y la PC tienen que estar e
 
 La app usa tokens de Sanctum (`/api/mobile/*`), no la cookie de sesión de la web, y solo admite compradores. El link del mail de recuperación abre la pantalla web de restablecimiento.
 
-**Google desde el celular.** Al terminar, el backend vuelve a la app con un código de un solo uso. Solo acepta direcciones de retorno que empiecen con los prefijos de `MOBILE_REDIRECT_PREFIXES` (por defecto `tdautos://`); fuera de producción también acepta `exp://`, que es lo que usa Expo Go. Google no acepta una IP de la red local como URI de redirección, así que para probarlo en el celular hace falta exponer el backend con un túnel HTTPS (por ejemplo `cloudflared tunnel --url http://localhost:8000`). Con el túnel podés probar la web en la PC y la app en el celular al mismo tiempo:
-
-- `APP_URL` y `GOOGLE_REDIRECT_URI` siguen en `localhost`: los usa la web.
-- La app usa `GOOGLE_MOBILE_REDIRECT_URI=<url del túnel>/auth/google/callback` (si no la definís, cae en `GOOGLE_REDIRECT_URI`). Registrá las dos URIs de callback en Google Cloud.
-- Dejá `SESSION_DOMAIN` vacío, así la cookie de sesión también funciona en el host del túnel.
-- En `EXPO_PUBLIC_API_URL` poné la URL del túnel.
-- La URL del túnel rápido cambia cada vez que lo levantás: actualizá `GOOGLE_MOBILE_REDIRECT_URI` y volvé a registrarla en Google Cloud.
+Para probar el ingreso con Google desde el celular hace falta un túnel HTTPS: ver [`docs/development.md`](docs/development.md#google-sign-in-from-a-phone-development-only).
 
 ## Comandos útiles
 

@@ -1,4 +1,4 @@
-/* A centered column up to 1200 px: header, search, cards and pager share its edges (DESIGN.md). */
+/* A centered column up to 1200 px: header, search, cards and pager share its edges (docs/design.md). */
 .page {
   display: flex;
   flex-direction: column;
@@ -74,7 +74,7 @@
   padding: 2px 4px 10px;
 }
 
-/* 3 x 3 (DESIGN.md): three columns, rows as tall as the cards; what does not fit scrolls inside the list box. */
+/* 3 x 3 (docs/design.md): three columns, rows as tall as the cards; what does not fit scrolls inside the list box. */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

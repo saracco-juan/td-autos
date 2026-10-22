@@ -8,7 +8,7 @@ type PaginationProps = {
   onChange: (page: number) => void
   /** Pages shown on each side of the current one. Defaults to 1, or 0 on small screens. */
   siblingCount?: number
-  /** Items per page; with `onPageSizeChange` the control shows a "Mostrar" selector (DESIGN.md). */
+  /** Items per page; with `onPageSizeChange` the control shows a "Mostrar" selector (docs/design.md). */
   pageSize?: number
   pageSizeOptions?: number[]
   onPageSizeChange?: (size: number) => void
@@ -86,7 +86,7 @@ function Arrow({ direction }: { direction: 'previous' | 'next' }) {
   )
 }
 
-// Numbered page control for lists (D9, DESIGN.md), styled after MUI's Pagination. See the "Figma sync" table of UH-06.
+// Numbered page control for lists (D9, docs/design.md), styled after MUI's Pagination. See the "Figma sync" table of UH-06.
 export default function Pagination({
   page,
   lastPage,
@@ -101,7 +101,7 @@ export default function Pagination({
 
   return (
     <nav aria-label="Paginación" className={styles.pagination}>
-      {/* Pages as one segmented group; the "Mostrar" selector goes after it, at the right edge (DESIGN.md). */}
+      {/* Pages as one segmented group; the "Mostrar" selector goes after it, at the right edge (docs/design.md). */}
       <div className={`${groupStyles.group} ${styles.group}`}>
         <button
           type="button"
