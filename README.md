@@ -15,6 +15,7 @@ El usuario obtiene recomendaciones de vehículos según su perfil; las concesion
 | [`frontend/web/`](frontend/web) | Aplicación web (SPA) | React 19, TypeScript, Vite |
 | [`frontend/mobile/`](frontend/mobile) | App móvil | React Native, Expo, TypeScript |
 | [`frontend/shared/`](frontend/shared) | Lógica pura compartida por web y mobile (modelo del diagnóstico) | TypeScript, sin dependencias |
+| [`docs/`](docs) | Documentación técnica: [diseño](docs/design.md), [desarrollo](docs/development.md) e [infraestructura y deploy](docs/infrastructure.md) | Markdown |
 
 ## Inicio rápido
 

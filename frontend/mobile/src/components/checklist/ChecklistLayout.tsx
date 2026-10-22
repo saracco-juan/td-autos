@@ -91,7 +91,7 @@ export const layoutStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   scroll: { flex: 1 },
   content: { padding: 16, gap: 20 },
-  // Pinned under the scrolling content, above the tab bar (DESIGN.md "Page layout").
+  // Pinned under the scrolling content, above the tab bar (docs/design.md "Page layout").
   actions: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
   action: { flex: 1 },
 })

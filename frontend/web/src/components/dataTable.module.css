@@ -1,5 +1,5 @@
 /*
- * Data table shared by the list screens (admin dealers, dealer inventory; DESIGN.md "Lists and tables").
+ * Data table shared by the list screens (admin dealers, dealer inventory; docs/design.md "Lists and tables").
  * Each screen sets --table-width (the sum of its column widths) on the element that also has .column, sizes its
  * columns with <col> classes and drops its least needed columns on narrow screens.
  */

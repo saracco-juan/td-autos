@@ -1,4 +1,4 @@
-/* Page shared by the questionnaire-like and list screens: the full width of the content area (DESIGN.md), 32 between blocks, starting at the top. */
+/* Page shared by the questionnaire-like and list screens: the full width of the content area (docs/design.md), 32 between blocks, starting at the top. */
 .page {
   display: flex;
   flex-direction: column;

@@ -41,7 +41,7 @@ function PageHeader({ subtitle }: { subtitle: string }) {
 
 const REMOVED_NOTICE = "Eliminaste el vehículo.";
 
-// "Mostrar" options (DESIGN.md): the page size is the dealer's choice, never the screen's.
+// "Mostrar" options (docs/design.md): the page size is the dealer's choice, never the screen's.
 const PAGE_SIZES = [10, 25, 50];
 
 // The message the form leaves in the navigation state (saved or edited); anything else is ignored.

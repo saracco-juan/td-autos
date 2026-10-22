@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
   ]
 
   return (
-    // A centered column: the dashboard does not need the full width (DESIGN.md).
+    // A centered column: the dashboard does not need the full width (docs/design.md).
     <div className={`${screenStyles.page} ${styles.dashboard}`}>
       <div className={styles.header}>
         <p className={screenStyles.eyebrow}>ADMINISTRACIÓN</p>

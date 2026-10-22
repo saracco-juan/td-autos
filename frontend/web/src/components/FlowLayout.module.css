@@ -1,5 +1,5 @@
 /*
- * Flow and form screens (DESIGN.md "Page layout"): a column that takes all the free height of <main>. The body
+ * Flow and form screens (docs/design.md "Page layout"): a column that takes all the free height of <main>. The body
  * grows, so the action bar (sticky, see checklist/pinnedBar.module.css) rests at the bottom of the content area
  * when the content is short and sticks to the bottom of the window when it is taller.
  */
