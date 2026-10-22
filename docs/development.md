@@ -2,6 +2,47 @@
 
 Technical setup beyond the basics: local environments, tunnels, scripts and maintenance commands. [`getting-started.md`](getting-started.md) stays the source for installing and running each part; deployed environments are in [`infrastructure.md`](infrastructure.md). Add new technical notes here.
 
+## Repair the ten HU05 resale demo listings
+
+`ResaleDemoRepairSeeder` is an **opt-in local SQLite repair**, not a migration or an inventory import.
+It corrects the ten synthetic listings inspected on 2026-10-22. It never creates or deletes cars,
+changes their year/price/owner/photos, or modifies the CSV/form contract. Missing fixtures are skipped;
+ambiguous, non-demo or unexpected matches abort and roll back the entire repair. Rerunning is a no-op.
+General volume seeds remain synthetic; this repair is not an authoritative vehicle specification service.
+
+Before running it, back up the configured local SQLite database using SQLite's backup API (not a
+live file copy). From the repository root, with Python available, choose a **new** backup filename:
+
+```python
+import pathlib, sqlite3
+source = pathlib.Path("backend/database/manual.sqlite").resolve()
+backup = source.with_name("manual.before-resale-repair.sqlite")
+with backup.open("xb"):
+    pass  # Refuse to overwrite an existing backup.
+with sqlite3.connect(source.as_uri() + "?mode=ro", uri=True) as src:
+    with sqlite3.connect(backup) as dst:
+        src.backup(dst)
+        assert dst.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+```
+
+Then, from `backend`, using the local SQLite configuration:
+
+```bash
+php artisan db:seed --class=ResaleDemoRepairSeeder
+php vendor/bin/phpunit tests/Feature/ResaleDemoRepairTest.php
+```
+
+Identity references are the ACARA 2026-10-19 catalog: Cactus Feel Pack AT (p.53), Pulse Drive CVT
+(p.69), Civic EXS 1.8 AT / EX-L 2.0 CVT and HR-V EX-L 1.8 CVT (pp.99–100), Versa Advance AT
+(p.144), 408 Allure Pack THP Tiptronic (p.153), Corolla XEI 1.8 CVT (p.187), Virtus Highline
+Tiptronic (p.221). Descriptions, consumption, equipment and images still explicitly represent demo
+data, not real offers. No year or missing price is changed to manufacture a three-year estimate.
+
+For a manual check, start the API and web as in `getting-started.md`, open the demo buyer's
+recommendations and expand vehicle attributes. Titles and engine/power/turbo must agree with the
+selected demo variants. Existing photos and prices must remain unchanged. This repair alone does
+not add tolerant catalog matching; resale can still be unavailable until the separate resolver fix.
+
 ## Google sign-in from a phone (development only)
 
 The phone cannot reach the PC's `localhost`, and Google does not accept a LAN IP as a redirect URI. In development the backend is exposed through a Cloudflare quick tunnel so the phone can finish the OAuth flow, while the web keeps using `localhost`.
