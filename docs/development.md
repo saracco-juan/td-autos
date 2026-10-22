@@ -45,6 +45,25 @@ For a URL that does not change, use a named Cloudflare tunnel (account and own d
 
 The backend has a public HTTPS URL (`https://<vercel host>/backend`, see [`infrastructure.md`](infrastructure.md)), so no tunnel is needed: `GOOGLE_REDIRECT_URI` points to it and serves web and app, `GOOGLE_MOBILE_REDIRECT_URI` stays empty (falls back to it), and Google Cloud holds a single callback URI. The built app returns through `tdautos://` (`MOBILE_REDIRECT_PREFIXES`); `exp://` (Expo Go) is only accepted outside production.
 
+## Local demo database
+
+To try the app without Supabase, `php artisan db:local` builds `backend/database/manual.sqlite` from scratch (migrations and demo data). **It deletes the target file if it exists**: to keep an older database, use `php artisan db:local --path=<absolute path of a new file>`. It never touches the `.env` connection and does not run in production. It creates an administrator, a buyer, 7 dealers in every state with their receipts, and 2 deterministic vehicles per active dealer (Chevrolet Onix LT and Toyota Corolla XEi) with valid body type and values for editing. Each vehicle has seven local synthetic images of its model; they are not real offers. Images go to the `public` disk and receipts to `local`, with no remote storage. To use the new database, in `backend/.env`:
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=<absolute path of backend/database/manual.sqlite>
+DB_URL=
+APP_URL=http://localhost:8000
+VEHICLE_PHOTOS_DISK=public
+RECEIPTS_DISK=local
+```
+
+Run `php artisan storage:link` to serve the local photos, and use `FRONTEND_URL=http://localhost:5173` for the Vite frontend. The active demo dealers are `pampa` and `litoral`: sign in as one of them, open Inventario, edit a vehicle, check its seven photos and save a different price. Reopening it must keep the price and the photos. A historical vehicle without a body type opens with an empty selection and requires one before saving.
+
+Demo accounts (password `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` and the dealers `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` and `litoral` with the `@demo.tdautos.test` suffix.
+
+For volume testing, `php artisan db:local --vehiculos=10000` adds about 50 active dealers with a current subscription (`concesionaria01@volumen.tdautos.test` to `concesionaria50@volumen.tdautos.test`, same password) and spreads the requested number of vehicles among them, unevenly and always with the same data: real Argentine-market models and body types, prices and mileage that match the year, unique plates and 7 photos per vehicle. The photos are 7 numbered images written to the `public` disk (`backend/storage/app/public/vehiculos/volumen`); run `php artisan storage:link` once so they show. Without the option the database stays as before. SQLite only: it does not work on Supabase.
+
 ## Code shared by web and mobile (`frontend/shared/`)
 
 Pure TypeScript used by both apps, today the diagnosis model (`diagnosis/`: types, questions, draft rules). It must not import React, React Native or any npm package: neither app installs dependencies for that folder.
