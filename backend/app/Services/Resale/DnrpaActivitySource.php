@@ -159,11 +159,18 @@ final class DnrpaActivitySource
             if ($response->status() !== 200 || fstat($sink)['size'] > $limit) {
                 throw new RuntimeException('DNRPA download rejected.');
             }
+            // Guzzle owns the supplied sink; retain it after the response leaves this scope.
+            $body = $response->toPsrResponse()->getBody();
+            if ($body->getMetadata('uri') === stream_get_meta_data($sink)['uri']) {
+                $body->detach();
+            }
             rewind($sink);
 
             return $sink;
         } catch (Throwable $error) {
-            fclose($sink);
+            if (is_resource($sink)) {
+                fclose($sink);
+            }
             throw $error;
         }
     }

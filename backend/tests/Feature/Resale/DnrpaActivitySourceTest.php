@@ -4,6 +4,9 @@ namespace Tests\Feature\Resale;
 
 use App\Services\Resale\DnrpaActivitySource;
 use DateTimeImmutable;
+use GuzzleHttp\Promise\Create;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Utils;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -16,6 +19,30 @@ class DnrpaActivitySourceTest extends TestCase
     private const ROOT = 'https://datos.jus.gob.ar/dataset/f6932e82-a039-4462-968d-7dcda77d1a3e/resource/1bde10bd-0067-4f1d-8e8e-e73ca2dec57f/download/';
 
     private array $options = [];
+
+    public function test_downloaded_archive_survives_the_http_response_stream_lifetime(): void
+    {
+        $zip = $this->archive();
+        Http::globalOptions(['handler' => function ($request, $options) use ($zip) {
+            $this->options[] = $options;
+            $body = (string) $request->getUri() === self::API ? json_encode($this->metadata()) : $zip;
+            fwrite($options['sink'], $body);
+            rewind($options['sink']);
+
+            return Create::promiseFor(new Response(
+                200, [], Utils::streamFor($options['sink'])
+            ));
+        }]);
+
+        $result = (new DnrpaActivitySource)->fetch($this->catalog(), new DateTimeImmutable('2026-10-21'));
+
+        $this->assertSame(6, $result['activity']['transfers']);
+        $this->assertSame(hash('sha256', $zip), $result['archives'][2026]['sha256']);
+        $this->assertCount(2, $this->options);
+        foreach ($this->options as $options) {
+            $this->assertFalse(is_resource($options['sink']));
+        }
+    }
 
     public function test_hu05_acquires_six_months_once_per_year_with_only_aggregate_provenance(): void
     {
