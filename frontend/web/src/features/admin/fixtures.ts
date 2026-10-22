@@ -105,6 +105,8 @@ export function dealerDetail(overrides: Partial<DealerDetail> = {}): DealerDetai
         fecha_revision: '2026-08-15T13:00:00+00:00',
       },
     ],
+    // The subscription above is current, so the dealer cannot be deleted.
+    puede_eliminarse: false,
     ...overrides,
   }
 }

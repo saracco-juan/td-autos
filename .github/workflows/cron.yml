@@ -1,0 +1,54 @@
+name: Cron
+
+# Render free has no cron: this workflow triggers the hourly subscription lifecycle
+# (`suscripciones:procesar`) through the API's protected endpoint, once per environment.
+# Configure in GitHub (Settings -> Secrets and variables -> Actions):
+#   variables PROD_API_URL / DEV_API_URL  Render service URLs, e.g. https://td-autos-api.onrender.com
+#   secrets   CRON_SECRET_PROD / CRON_SECRET_DEV  the CRON_SECRET of each Render service
+# An environment with a missing variable or secret is skipped. Scheduled runs only happen on the
+# default branch, and GitHub disables them after 60 days without repository activity.
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: cron-${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  subscriptions:
+    name: Subscriptions (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: production
+            url_var: PROD_API_URL
+            secret: CRON_SECRET_PROD
+          - environment: development
+            url_var: DEV_API_URL
+            secret: CRON_SECRET_DEV
+    steps:
+      - name: Trigger the subscription lifecycle
+        env:
+          API_URL: ${{ vars[matrix.url_var] }}
+          CRON_SECRET: ${{ secrets[matrix.secret] }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::${{ matrix.url_var }} or ${{ matrix.secret }} is not configured; skipping ${{ matrix.environment }}."
+            exit 0
+          fi
+          # A sleeping Render free service takes about a minute to start: long timeout plus retries.
+          curl --silent --show-error --fail-with-body \
+            --max-time 120 --retry 2 --retry-delay 20 --retry-all-errors \
+            -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Accept: application/json" \
+            "${API_URL%/}/internal/cron/subscriptions"
+          echo

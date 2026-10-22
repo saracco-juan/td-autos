@@ -3,7 +3,7 @@ import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import ChecklistColumns from './ChecklistColumns'
 import ChecklistWarning from './ChecklistWarning'
-import { STEPS } from './fixtures'
+import { STEPS } from '@shared/checklist/fixtures'
 
 describe('ChecklistColumns', () => {
   it('renders the list, the panel and the optional aside', () => {

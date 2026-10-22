@@ -9,9 +9,9 @@ import { dealerRow, directory } from './fixtures'
 
 vi.mock('./api', () => ({ fetchDealerDirectory: vi.fn() }))
 
-function renderPage() {
+function renderPage(state: unknown = null) {
   render(
-    <MemoryRouter initialEntries={['/admin/concesionarias']}>
+    <MemoryRouter initialEntries={[{ pathname: '/admin/concesionarias', state }]}>
       <Routes>
         <Route path="/admin/concesionarias" element={<DealersPage />} />
         <Route path="/admin/comprobantes/:id" element={<p>Revisión del comprobante</p>} />
@@ -270,6 +270,22 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
       await user.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '25')
 
       expect(screen.getByRole('combobox', { name: 'Mostrar' })).toHaveValue('25')
+    })
+  })
+  describe('notice', () => {
+    it('shows and focuses the notice received from a delete (UH28)', async () => {
+      renderPage({ notice: 'Eliminaste la concesionaria.' })
+
+      const notice = await screen.findByText('Eliminaste la concesionaria.')
+      expect(notice).toHaveAttribute('role', 'status')
+      expect(notice).toHaveFocus()
+    })
+
+    it('ignores a navigation state without a notice', async () => {
+      renderPage({ other: true })
+
+      await screen.findByRole('heading', { level: 1, name: 'Concesionarias' })
+      expect(screen.queryByText('Eliminaste la concesionaria.')).not.toBeInTheDocument()
     })
   })
 })

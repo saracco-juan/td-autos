@@ -78,6 +78,10 @@
   font-weight: 600;
 }
 
+.notice {
+  margin: 0;
+}
+
 .empty {
   margin: 0;
   color: var(--text-secondary);

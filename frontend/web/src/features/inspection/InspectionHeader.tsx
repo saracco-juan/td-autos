@@ -1,5 +1,6 @@
 import type { Ref } from 'react'
 import { Link } from 'react-router'
+import { BACK_TO_SHEET, EYEBROW, reviewedCounter } from '@shared/checklist/inspection/copy'
 import screenStyles from '../../components/screen.module.css'
 import styles from './InspectionHeader.module.css'
 
@@ -22,15 +23,15 @@ export default function InspectionHeader({ vehicleId, title, completed, total, t
             <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
-        Volver a la ficha
+        {BACK_TO_SHEET}
       </Link>
       <div className={styles.titles}>
-        <p className={screenStyles.eyebrow}>CHECKLIST DE INSPECCIÓN</p>
+        <p className={screenStyles.eyebrow}>{EYEBROW}</p>
         <h1 ref={titleRef} tabIndex={-1} className={screenStyles.title}>
           {title}
         </h1>
         <p aria-live="polite" className={styles.counter}>
-          {completed} de {total} puntos revisados
+          {reviewedCounter(completed, total)}
         </p>
       </div>
     </div>

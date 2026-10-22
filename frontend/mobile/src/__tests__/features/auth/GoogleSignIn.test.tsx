@@ -4,12 +4,14 @@ import * as WebBrowser from 'expo-web-browser'
 import type { WebBrowserAuthSessionResult } from 'expo-web-browser'
 
 import * as api from '../../../features/auth/api'
+import * as diagnosisApi from '../../../features/diagnosis/api'
 import { API_URL } from '../../../lib/config'
 import { HttpError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import { renderApp } from '../../../test-utils/renderApp'
 
 jest.mock('../../../features/auth/api')
+jest.mock('../../../features/diagnosis/api')
 jest.mock('../../../lib/tokenStorage')
 jest.mock('expo-web-browser', () => ({ openAuthSessionAsync: jest.fn() }))
 jest.mock('expo-linking', () => ({ ...jest.requireActual('expo-linking'), createURL: jest.fn() }))
@@ -32,6 +34,7 @@ describe('Continuar con Google', () => {
     jest.resetAllMocks()
     jest.mocked(Linking.createURL).mockReturnValue(RETURN_URL)
     storage.readToken.mockResolvedValue(null)
+    jest.mocked(diagnosisApi).fetchDiagnosis.mockResolvedValue({ diagnostico: null, carrocerias: [] })
   })
 
   it('opens the system browser on the backend redirect, telling it where to return', async () => {
@@ -59,7 +62,7 @@ describe('Continuar con Google', () => {
 
     await openGoogle('/login', 'Ingresá a tu cuenta')
 
-    expect(await screen.findByText('Próximamente.')).toBeOnTheScreen()
+    expect(await screen.findByText('DIAGNÓSTICO DE NECESIDADES')).toBeOnTheScreen()
     expect(apiMock.exchangeGoogleCode).toHaveBeenCalledWith('one-time')
     expect(storage.saveToken).toHaveBeenCalledWith('tok')
   })
@@ -70,7 +73,7 @@ describe('Continuar con Google', () => {
 
     await openGoogle('/registro', 'Registrá tu cuenta')
 
-    expect(await screen.findByText('Próximamente.')).toBeOnTheScreen()
+    expect(await screen.findByText('DIAGNÓSTICO DE NECESIDADES')).toBeOnTheScreen()
   })
 
   it('TC-73: shows the cancelled message when the user closes the browser', async () => {

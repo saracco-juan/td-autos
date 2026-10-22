@@ -19,11 +19,11 @@ import {
   draftFromAnswers,
   isStepAnswered,
   toggleBodyType,
-} from './diagnosisDraft'
+} from '@shared/diagnosis/diagnosisDraft'
 import styles from './DiagnosisPage.module.css'
-import { DIAGNOSIS_STEPS } from './steps'
+import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
 import StepProgress from './StepProgress'
-import type { BodyType, DiagnosisDraft } from './types'
+import type { BodyType, DiagnosisDraft } from '@shared/diagnosis/types'
 
 const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
 const TITLE_ID = 'diagnosis-step-title'

@@ -1,13 +1,15 @@
 /*
- * Data table shared by the list screens (admin dealers, dealer inventory; DESIGN.md "Lists and tables").
+ * Data table shared by the list screens (admin dealers, dealer inventory; docs/design.md "Lists and tables").
  * Each screen sets --table-width (the sum of its column widths) on the element that also has .column, sizes its
  * columns with <col> classes and drops its least needed columns on narrow screens.
  */
 
 /* Centered column as wide as the table plus its 1 px borders and the reserved 10 px scrollbar lane, so 25 or 50
-   rows never add a sideways scroll; never wider than the screen. Title, table and pager share its edges. */
+   rows never add a sideways scroll; never wider than the screen. Title, table and pager share its edges.
+   The cap is a max-width: the screen page (screen.module.css) sets width: 100% on the same element and would win. */
 .column {
-  width: min(100%, calc(var(--table-width) + 12px));
+  width: 100%;
+  max-width: calc(var(--table-width) + 12px);
   margin-inline: auto;
 }
 

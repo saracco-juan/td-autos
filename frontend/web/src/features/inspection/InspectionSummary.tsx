@@ -6,15 +6,15 @@ import ChecklistCardGrid from '../../components/checklist/ChecklistCardGrid'
 import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCard'
 import ChecklistProgressCard from '../../components/checklist/ChecklistProgressCard'
 import barStyles from '../../components/checklist/pinnedBar.module.css'
-import { summarizeChecklist } from '../../components/checklist/progress'
+import { summarizeChecklist } from '@shared/checklist/progress'
 import FlowLayout from '../../components/FlowLayout'
-import { toChecklistSteps } from './checklistSteps'
-import { FLAG_LABEL } from './checklistCopy'
+import { toChecklistSteps } from '@shared/checklist/inspection/steps'
+import { FLAG_LABEL, SUMMARY_LABELS } from '@shared/checklist/inspection/copy'
 import InspectionHeader from './InspectionHeader'
 import styles from './InspectionSummary.module.css'
-import { vehicleTitle } from './progress'
-import { summaryMessage } from './summaryMessage'
-import type { InspectionStep, InspectionVehicle } from './types'
+import { vehicleTitle } from '@shared/checklist/inspection/vehicle'
+import { summaryMessage, summaryPendingItems } from '@shared/checklist/inspection/summaryMessage'
+import type { InspectionStep, InspectionVehicle } from '@shared/checklist/inspection/types'
 
 type Props = {
   vehicle: InspectionVehicle
@@ -31,8 +31,7 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
   const progress = summarizeChecklist(toChecklistSteps(steps), completedCodes)
   const message = summaryMessage(progress)
   // Critical items first matter most: when any is pending only those are listed (D6 lists the rest otherwise).
-  const hasCritical = progress.pendingFlagged > 0
-  const pendingItems = hasCritical ? progress.pendingFlaggedFirst.filter((item) => item.flagged) : progress.pending
+  const { critical: hasCritical, items: pendingItems } = summaryPendingItems(progress)
   const showPending = pendingItems.length > 0
 
   return (
@@ -44,14 +43,14 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
             to={`/vehiculos/${vehicle.id}`}
             className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
           >
-            VOLVER A LA FICHA
+            {SUMMARY_LABELS.backToSheet}
           </Link>
           <button
             type="button"
             className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
             onClick={onKeepReviewing}
           >
-            SEGUIR REVISANDO
+            {SUMMARY_LABELS.keepReviewing}
           </button>
         </div>
       }
@@ -73,7 +72,7 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
 
       <ChecklistCardGrid single={!showPending}>
         <ChecklistProgressCard
-          title="Avance por paso"
+          title={SUMMARY_LABELS.progressTitle}
           steps={progress.steps}
           completed={progress.completed}
           total={progress.total}
@@ -81,8 +80,8 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
 
         {showPending ? (
           <ChecklistPendingCard
-            title={hasCritical ? 'Puntos críticos pendientes' : 'Puntos pendientes'}
-            subtitle={hasCritical ? 'Son los que más pesan a la hora de decidir.' : undefined}
+            title={hasCritical ? SUMMARY_LABELS.pendingCriticalTitle : SUMMARY_LABELS.pendingTitle}
+            subtitle={hasCritical ? SUMMARY_LABELS.pendingCriticalHint : undefined}
             flagLabel={FLAG_LABEL}
             items={pendingItems}
           />

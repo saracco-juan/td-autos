@@ -9,7 +9,7 @@ type Props = {
   children: string
 }
 
-// Message box: tinted background, dark text. The tint carries the meaning (DESIGN.md "Feedback");
+// Message box: tinted background, dark text. The tint carries the meaning (docs/design.md "Feedback");
 // warning is for something pending on the user's side (e.g. an incomplete profile), not an error.
 export default function Alert({ variant, children }: Readonly<Props>) {
   return (

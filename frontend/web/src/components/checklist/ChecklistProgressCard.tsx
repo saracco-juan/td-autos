@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import styles from './ChecklistSummaryCards.module.css'
-import type { StepProgress } from './progress'
+import type { StepProgress } from '@shared/checklist/progress'
 
 type Props = {
   title: string

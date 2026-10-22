@@ -5,8 +5,9 @@ import ChecklistColumns from '../../components/checklist/ChecklistColumns'
 import ChecklistStepList from '../../components/checklist/ChecklistStepList'
 import ChecklistStepPanel from '../../components/checklist/ChecklistStepPanel'
 import ChecklistWarning from '../../components/checklist/ChecklistWarning'
-import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '../../components/checklist/progress'
-import { useChecklistAutosave, withCode } from '../../components/checklist/useChecklistAutosave'
+import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '@shared/checklist/progress'
+import { withCode } from '@shared/checklist/autosave'
+import { useChecklistAutosave } from '../../components/checklist/useChecklistAutosave'
 import FlowLayout from '../../components/FlowLayout'
 import { NetworkError } from '../../lib/http'
 import { useMediaQuery } from '../../lib/useMediaQuery'
@@ -20,12 +21,12 @@ import {
   SOURCE_NOTE,
   mandatoryWarning,
   pendingMarkerLabel,
-} from './checklistCopy'
-import { toChecklistSteps } from './checklistSteps'
+} from '@shared/checklist/transfer/copy'
+import { toChecklistSteps } from '@shared/checklist/transfer/steps'
 import styles from './TransferPage.module.css'
 import TransferHeader from './TransferHeader'
 import TransferSummary from './TransferSummary'
-import type { TransferStage } from './types'
+import type { TransferStage } from '@shared/checklist/transfer/types'
 
 type LoadState = 'loading' | 'ready' | { error: ErrorKind }
 type View = 'checklist' | 'summary'

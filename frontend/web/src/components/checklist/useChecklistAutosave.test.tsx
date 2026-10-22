@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { STEPS } from './fixtures'
-import { useChecklistAutosave, withCode } from './useChecklistAutosave'
+import { STEPS } from '@shared/checklist/fixtures'
+import { withCode } from '@shared/checklist/autosave'
+import { useChecklistAutosave } from './useChecklistAutosave'
 
 // A promise the test settles by hand, to hold a request in flight.
 function deferred<T = void>() {

@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
+import alertStyles from "../../components/alert.module.css";
 import groupStyles from "../../components/buttonGroup.module.css";
 import tableStyles from "../../components/dataTable.module.css";
 import ErrorState from "../../components/ErrorState";
@@ -20,8 +21,14 @@ import StateTag from "./StateTag";
 import type { AdminDealerRow } from "./types";
 import { useDealerDirectory } from "./useDealerDirectory";
 
-// "Mostrar" options; the page size is the user's choice, never the screen's, so zooming does not change it (DESIGN.md).
+// "Mostrar" options; the page size is the user's choice, never the screen's, so zooming does not change it (docs/design.md).
 const PAGE_SIZES = [10, 25, 50];
+
+// The message a previous screen leaves in the navigation state (a deleted dealer); anything else is ignored.
+function noticeFrom(state: unknown): string | null {
+  const notice = (state as { notice?: unknown } | null)?.notice;
+  return typeof notice === "string" ? notice : null;
+}
 
 function registeredCount(count: number): string {
   return count === 1
@@ -107,6 +114,10 @@ function DealerRow({ dealer }: { dealer: AdminDealerRow }) {
 // EDITAR opens the dealer page (UH27).
 export default function DealersPage() {
   const { state, retry } = useDealerDirectory();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [notice] = useState(() => noticeFrom(location.state));
+  const noticeRef = useRef<HTMLParagraphElement>(null);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
   const dealers =
     state === "loading" || "error" in state ? [] : state.data.concesionarias;
@@ -118,6 +129,18 @@ export default function DealersPage() {
     setPageSize(size);
     setPage(1);
   };
+
+  // The message lives in the history entry, which a reload keeps: take it out so it is shown once.
+  useEffect(() => {
+    if (noticeFrom(location.state) !== null)
+      navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
+
+  // The message takes the focus once the list is on screen, so the result of the delete is announced.
+  const ready = state !== "loading" && !("error" in state);
+  useEffect(() => {
+    if (notice && ready) noticeRef.current?.focus();
+  }, [notice, ready]);
 
   if (state === "loading") return <SessionLoading />;
   if ("error" in state)
@@ -134,6 +157,16 @@ export default function DealersPage() {
         </h1>
         <p className={styles.subtitle}>{registeredCount(dealers.length)}</p>
       </div>
+      {notice ? (
+        <p
+          ref={noticeRef}
+          tabIndex={-1}
+          role="status"
+          className={`${alertStyles.notice} ${styles.notice}`}
+        >
+          {notice}
+        </p>
+      ) : null}
       {dealers.length === 0 ? (
         <p className={styles.empty}>
           Todavía no hay concesionarias registradas.

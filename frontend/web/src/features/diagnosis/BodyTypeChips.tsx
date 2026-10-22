@@ -1,4 +1,4 @@
-import type { BodyType } from './types'
+import type { BodyType } from '@shared/diagnosis/types'
 import styles from './BodyTypeChips.module.css'
 
 type Props = {

@@ -2,7 +2,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native'
 
 import { colors } from '../theme/tokens'
 
-// Loading is shown on the component that waits, centered inside it (DESIGN.md "Feedback").
+// Loading is shown on the component that waits, centered inside it (docs/design.md "Feedback").
 export default function Loader() {
   return (
     <View style={styles.center} accessibilityRole="progressbar" accessibilityLabel="Cargando">

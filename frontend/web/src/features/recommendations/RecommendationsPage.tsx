@@ -21,7 +21,7 @@ type View =
   | { status: 'ready'; query?: string; page: number; perPage: number; response: SearchResponse }
   | { status: 'error'; query?: string; page: number; perPage: number; kind: ErrorKind }
 
-// A fixed 3 x 3 page, with no "Mostrar" selector (DESIGN.md).
+// A fixed 3 x 3 page, with no "Mostrar" selector (docs/design.md).
 const PER_PAGE = 9
 
 const TOO_LONG = 'Usá hasta 100 caracteres.'

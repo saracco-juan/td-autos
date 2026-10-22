@@ -49,6 +49,15 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        // Gmail API over HTTPS (App\Mail\Transport\GmailApiTransport), for hosts that block
+        // outbound SMTP. OAuth client and refresh token setup: docs/infrastructure.md, "Mail".
+        'gmail' => [
+            'transport' => 'gmail',
+            'client_id' => env('GMAIL_CLIENT_ID'),
+            'client_secret' => env('GMAIL_CLIENT_SECRET'),
+            'refresh_token' => env('GMAIL_REFRESH_TOKEN'),
+        ],
+
         'ses' => [
             'transport' => 'ses',
         ],

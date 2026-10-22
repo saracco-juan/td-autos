@@ -6,35 +6,31 @@ import ChecklistColumns from '../../components/checklist/ChecklistColumns'
 import ChecklistStepList from '../../components/checklist/ChecklistStepList'
 import ChecklistStepPanel from '../../components/checklist/ChecklistStepPanel'
 import ChecklistWarning from '../../components/checklist/ChecklistWarning'
-import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '../../components/checklist/progress'
-import { useChecklistAutosave, withCode } from '../../components/checklist/useChecklistAutosave'
+import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '@shared/checklist/progress'
+import { withCode } from '@shared/checklist/autosave'
+import { useChecklistAutosave } from '../../components/checklist/useChecklistAutosave'
 import FlowLayout from '../../components/FlowLayout'
 import { HttpError, NetworkError } from '../../lib/http'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import SessionLoading from '../auth/session/SessionLoading'
 import { fetchInspection, finishInspection, setItemCompleted } from './api'
-import { ACTION_LABELS, FLAG_LABEL, SAVE_ERROR, pendingMarkerLabel } from './checklistCopy'
-import { toChecklistSteps } from './checklistSteps'
+import {
+  ACTION_LABELS,
+  FLAG_LABEL,
+  SAVE_ERROR,
+  criticalWarning,
+  pendingMarkerLabel,
+} from '@shared/checklist/inspection/copy'
+import { toChecklistSteps } from '@shared/checklist/inspection/steps'
 import InspectionHeader from './InspectionHeader'
 import InspectionSummary from './InspectionSummary'
-import { vehicleTitle } from './progress'
-import type { InspectionStep, InspectionVehicle } from './types'
+import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehicle'
+import type { InspectionStep, InspectionVehicle } from '@shared/checklist/inspection/types'
 import VehicleNotFound from './VehicleNotFound'
 
 type LoadState = 'loading' | 'ready' | 'not-found' | { error: ErrorKind }
 type View = 'checklist' | 'summary'
 type Content = { vehicle: InspectionVehicle; steps: InspectionStep[] }
-
-// Only a positive integer can be a vehicle id; anything else never reaches the API.
-function parseVehicleId(raw: string | undefined): number | null {
-  return raw !== undefined && /^[1-9]\d*$/.test(raw) ? Number(raw) : null
-}
-
-function criticalWarning(count: number): string {
-  return count === 1
-    ? 'Te queda 1 punto crítico sin revisar. Es el que más pesa a la hora de decidir: revisalo antes de terminar.'
-    : `Te quedan ${count} puntos críticos sin revisar. Son los que más pesan a la hora de decidir: revisalos antes de terminar.`
-}
 
 export default function InspectionPage() {
   const vehicleId = parseVehicleId(useParams().id)

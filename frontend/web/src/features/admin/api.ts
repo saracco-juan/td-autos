@@ -31,3 +31,9 @@ export function fetchDealer(id: number): Promise<DealerDetail> {
 export function updateDealer(id: number, values: DealerFormValues): Promise<DealerDetail> {
   return apiFetch<DealerDetail>(`/api/admin/concesionarias/${id}`, { method: 'PUT', body: values })
 }
+
+// Deletes the dealer with its account, vehicles, leads, subscription and receipts (UH28). The API answers 204 with no
+// body; 409 with a `message` while the subscription is current; 404 when the dealer is already gone.
+export function deleteDealer(id: number): Promise<void> {
+  return apiFetch<void>(`/api/admin/concesionarias/${id}`, { method: 'DELETE' })
+}

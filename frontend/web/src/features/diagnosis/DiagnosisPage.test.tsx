@@ -6,8 +6,8 @@ import { HttpError, NetworkError } from '../../lib/http'
 import { useAuth } from '../auth/session/useAuth'
 import { fetchDiagnosis, saveDiagnosis } from './api'
 import DiagnosisPage from './DiagnosisPage'
-import { UNANSWERED_STEP_MESSAGE } from './diagnosisDraft'
-import type { BodyType, DiagnosisAnswers, DiagnosisResponse } from './types'
+import { UNANSWERED_STEP_MESSAGE } from '@shared/diagnosis/diagnosisDraft'
+import type { BodyType, DiagnosisAnswers, DiagnosisResponse } from '@shared/diagnosis/types'
 
 vi.mock('./api', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
 vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))

@@ -5,6 +5,7 @@ import * as api from '../../../features/auth/api'
 import AuthProvider from '../../../features/auth/AuthProvider'
 import { useAuth } from '../../../features/auth/useAuth'
 import * as profileApi from '../../../features/profile/api'
+import * as http from '../../../lib/http'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 
@@ -50,12 +51,30 @@ function Probe() {
   )
 }
 
-async function mount() {
-  await render(
-    <AuthProvider>
-      <Probe />
-    </AuthProvider>,
+// Exercises the helpers that feature screens use: an authenticated call and a user reload.
+function FeatureProbe() {
+  const { user, authFetch, refreshUser } = useAuth()
+  return (
+    <>
+      <Text>diagnosis:{String(user?.tiene_diagnostico ?? 'none')}</Text>
+      <Pressable
+        onPress={() =>
+          void authFetch<{ ok: boolean }>('/api/x', { method: 'PUT', body: { a: 1 } }).then((data) =>
+            console.log(`fetched:${String(data.ok)}`),
+          )
+        }
+      >
+        <Text>fetch</Text>
+      </Pressable>
+      <Pressable onPress={() => void refreshUser().then(() => console.log('refreshed'))}>
+        <Text>refresh</Text>
+      </Pressable>
+    </>
   )
+}
+
+async function mount(probe = <Probe />) {
+  await render(<AuthProvider>{probe}</AuthProvider>)
 }
 
 describe('AuthProvider', () => {
@@ -218,6 +237,46 @@ describe('AuthProvider', () => {
 
       await waitFor(() => expect(logSpy).toHaveBeenCalledWith('failed:HTTP 422'))
       expect(screen.getByText('apellido:none')).toBeOnTheScreen()
+    })
+  })
+
+  describe('feature helpers', () => {
+    async function authenticated() {
+      storage.readToken.mockResolvedValue('tok')
+      apiMock.fetchCurrentUser.mockResolvedValue({ ...USER, tiene_diagnostico: false })
+      await mount(<FeatureProbe />)
+      await screen.findByText('diagnosis:false')
+    }
+
+    it('authFetch sends the request with the session token', async () => {
+      const apiFetch = jest.spyOn(http, 'apiFetch').mockResolvedValue({ ok: true })
+      await authenticated()
+
+      await fireEvent.press(screen.getByText('fetch'))
+
+      await waitFor(() => expect(logSpy).toHaveBeenCalledWith('fetched:true'))
+      expect(apiFetch).toHaveBeenCalledWith('/api/x', { method: 'PUT', body: { a: 1 }, token: 'tok' })
+      apiFetch.mockRestore()
+    })
+
+    it('refreshUser reloads the current user into the session', async () => {
+      await authenticated()
+      apiMock.fetchCurrentUser.mockResolvedValue({ ...USER, tiene_diagnostico: true })
+
+      await fireEvent.press(screen.getByText('refresh'))
+
+      expect(await screen.findByText('diagnosis:true')).toBeOnTheScreen()
+      expect(apiMock.fetchCurrentUser).toHaveBeenLastCalledWith('tok')
+    })
+
+    it('refreshUser keeps the current user and resolves when the reload fails', async () => {
+      await authenticated()
+      apiMock.fetchCurrentUser.mockRejectedValue(new NetworkError(new Error('down')))
+
+      await fireEvent.press(screen.getByText('refresh'))
+
+      await waitFor(() => expect(logSpy).toHaveBeenCalledWith('refreshed'))
+      expect(screen.getByText('diagnosis:false')).toBeOnTheScreen()
     })
   })
 })

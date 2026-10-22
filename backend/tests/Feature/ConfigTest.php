@@ -107,6 +107,17 @@ class ConfigTest extends TestCase
         $this->assertTrue($disk['throw']);
     }
 
+    public function test_supabase_private_disk_is_a_private_path_style_s3_disk_on_its_own_bucket(): void
+    {
+        $disk = config('filesystems.disks.supabase_private');
+
+        $this->assertSame('s3', $disk['driver']);
+        $this->assertTrue($disk['use_path_style_endpoint']);
+        $this->assertSame('private', $disk['visibility']);
+        $this->assertTrue($disk['throw']);
+        $this->assertArrayNotHasKey('url', $disk);
+    }
+
     public function test_defaults_target_the_vite_dev_server_when_env_is_unset(): void
     {
         $repository = Env::getRepository();

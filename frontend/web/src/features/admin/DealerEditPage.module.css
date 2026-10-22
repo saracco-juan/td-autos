@@ -107,3 +107,18 @@
   width: 110px;
   height: 36px;
 }
+
+/* Delete section (UH28): ELIMINAR on its own, then ELIMINAR and CANCELAR side by side in the confirmation. */
+.removalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.removalAction {
+  align-self: flex-start;
+  width: auto;
+  min-width: min(100%, 180px);
+  padding-inline: 20px;
+  white-space: nowrap;
+}

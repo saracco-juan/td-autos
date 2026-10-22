@@ -2,7 +2,7 @@
 
 Shared instructions for any AI coding agent working in this repository (Claude Code, Codex, others). Keep this file tool-neutral: personal or tool-specific preferences belong in each developer's local, untracked files.
 
-`README.md` is the single source for the repository layout, setup, test/lint/build commands, and branch and commit conventions. Read it instead of assuming; do not restate its rules here.
+`README.md` is the single source for the repository layout, `docs/getting-started.md` for setup and test/lint/build commands, and `docs/contributing.md` for branch and commit conventions and CI. Read it instead of assuming; do not restate its rules here.
 
 ## Sources of truth
 
@@ -24,7 +24,7 @@ The project documentation lives OUTSIDE this repo. Before specifying, designing,
 
 Rules:
 
-- Any task tied to a story (UH), requirement (RF), use case (CU) or test case (TC) starts by reading that item in its source. Quote its id in specs and tests, and reference the story in the commit footer as `README.md` describes.
+- Any task tied to a story (UH), requirement (RF), use case (CU) or test case (TC) starts by reading that item in its source. Quote its id in specs and tests, and reference the story in the commit footer as `docs/contributing.md` describes.
 - Any web screen starts by reading its Figma node. Ignore the legacy Figma pages `TD Autos · Wireframes High v2` and `TD Autos . Wireframes Medium Web` (nodes `2141:*`).
 - Only files inside the Drive folder above are valid. Files elsewhere in Drive with similar names are stale copies.
 - If two sources disagree, stop and report the conflict instead of picking one. Known inconsistencies are tracked in Trello card #78.
@@ -34,8 +34,11 @@ Rules:
 ## Working rules
 
 - Code, identifiers, comments and tests are written in English. User-facing copy is Spanish (Argentine voseo, sentence case, buttons in uppercase).
-- Before building or changing any screen, read `DESIGN.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
-- Technical setup that is not in `README.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `DEVELOPMENT.md`. Add new technical notes there.
+- Project documentation lives in `docs/`; only `README.md`, `AGENTS.md` and `CLAUDE.md` stay at the root. `README.md` is the plain-language landing page; technical content goes to `docs/`.
+- Before building or changing any screen, read `docs/design.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
+- Technical setup that is not in `docs/getting-started.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `docs/development.md`. Add new technical notes there.
+- Deployed environments (hosting, per-environment variables, one-time service setup, deploy troubleshooting) live in `docs/infrastructure.md`. The repository is public: write placeholders there, never real secrets, hosts' credentials or personal data.
+- Logic that web and mobile both need (rules, models, pure helpers) goes to `frontend/shared` from the first commit; never copy it between the apps. Before handing over a branch, run `node scripts/check-duplication.mjs` from the repo root and fix what it reports: SonarQube Cloud fails the PR above 3% duplicated new code.
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
 - Do not discard uncommitted work (`git reset --hard`, `git clean`, `git checkout -- <path>`, `git stash drop`) without explicit confirmation from the developer.
 
@@ -47,12 +50,14 @@ Agent memory travels between machines through the repo, one folder per developer
 - Session start (after pulling): from your folder, `engram sync --import`.
 - Session end: from your folder, `engram sync --project td-autos`, then the developer commits `engram/<name>/` with the rest of the work.
 - Before handing over commit commands, run that export and include `engram/<name>/` in the commands whenever it changed, so the memory travels with the work it describes.
+- The last engram export of a branch belongs to its pull request. Before the final push of a branch (and before reporting that it is ready to merge), export and commit `engram/<name>/` on that branch. If memories are saved after the pull request is open, commit and push them to the same pull request before it is merged. Never leave engram commits on a branch after its pull request is merged.
+- Never leave engram changes staged, stashed or uncommitted: commit them on the branch you are working on (`chore: sync engram memories`), so a branch switch cannot strand them.
 - To see the other developer's context, run `engram sync --import` from their folder, then search Engram with project `td-autos`. This copies their memories into your local database; it never writes to their folder.
 - `manifest.json` is required by `engram sync --import` and grows on every branch that exports, so merges conflict on it. Register the union merge driver once per clone, from the repo root: `git config merge.engram-manifest.driver "node scripts/engram-merge-manifest.mjs %O %A %B"`. If a conflict still appears (driver not registered), resolve it by keeping every chunk entry from both sides.
 
 ## Closing a task
 
-- Every time a task is finished, the closing message includes how to test it manually: what to start (see `README.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
+- Every time a task is finished, the closing message includes how to test it manually: what to start (see `docs/getting-started.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
 - When the task is backend-only and has no screen yet, the manual test comes with ready-to-paste code: a self-contained snippet (browser console or terminal) that authenticates the same way the real client does, one call per case, and the expected status and body of each call. The developer should not have to write or adapt code beyond the host and port.
 
 ## Screen decisions go back to Figma

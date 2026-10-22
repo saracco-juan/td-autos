@@ -4,7 +4,7 @@ vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
 
 import { apiFetch } from '../../lib/http'
 import { fetchInspection, finishInspection, setItemCompleted } from './api'
-import type { InspectionProgress, InspectionResponse } from './types'
+import type { InspectionProgress, InspectionResponse } from '@shared/checklist/inspection/types'
 
 const inspection: InspectionResponse = {
   vehiculo: { id: 7, marca: 'Toyota', modelo: 'Corolla', version: 'XEI', anio: 2021 },

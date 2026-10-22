@@ -71,6 +71,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->whereNumber('id')->name('concesionarias.show');
         Route::put('/concesionarias/{id}', [AdminConcesionariaController::class, 'update'])
             ->whereNumber('id')->name('concesionarias.update');
+        Route::delete('/concesionarias/{id}', [AdminConcesionariaController::class, 'destroy'])
+            ->whereNumber('id')->name('concesionarias.destroy');
         Route::get('/comprobantes/{comprobante}', [AdminComprobanteController::class, 'show'])
             ->whereNumber('comprobante')->name('comprobantes.show');
         Route::get('/comprobantes/{comprobante}/archivo', [AdminComprobanteController::class, 'file'])

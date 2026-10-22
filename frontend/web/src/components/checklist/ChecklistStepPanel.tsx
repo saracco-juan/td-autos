@@ -2,7 +2,7 @@ import type { ReactNode, Ref } from 'react'
 import alertStyles from '../alert.module.css'
 import { stepPanelId, stepTabId } from './ids'
 import styles from './ChecklistStepPanel.module.css'
-import type { ChecklistStep } from './types'
+import type { ChecklistStep } from '@shared/checklist/types'
 
 type Props = {
   // Prefix of the tab and panel ids; must match the one given to the step list.

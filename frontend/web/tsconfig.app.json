@@ -20,7 +20,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Shared with the mobile app (frontend/shared) */
+    "paths": {
+      "@shared/*": ["../shared/*"],
+      // Shared tests run on this project's Vitest; their `vitest` import resolves here.
+      "vitest": ["./node_modules/vitest"]
+    }
   },
-  "include": ["src"]
+  "include": ["src", "../shared"]
 }
