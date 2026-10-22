@@ -97,7 +97,7 @@ class RecommendationsTest extends TestCase
                 'currency' => 'ARS', 'values' => [2025 => '100', 2022 => '80']]]];
         Cache::forever('resale.acara.last-valid.v1', $catalog);
         $activity = ['window_start' => '2026-04', 'window_end' => '2026-09', 'catalog_snapshot_id' => 'acara:test',
-            'models' => [['make' => 'test', 'model' => 'example', 'special' => [], 'score' => 100]]];
+            'models' => [['make' => 'test', 'model' => 'example', 'special' => [], 'transfers' => 6, 'score' => 100]]];
         DB::table('dnrpa_refresh_state')->insert(['id' => 1, 'checked_at' => now()]);
         DB::table('dnrpa_activity_history')->insert(['month' => '2026-09', 'payload' => json_encode(['activity' => $activity])]);
         $before = $this->snapshot();
@@ -146,7 +146,7 @@ class RecommendationsTest extends TestCase
         DB::table('dnrpa_refresh_state')->insert(['id' => 1, 'checked_at' => now()]);
         DB::table('dnrpa_activity_history')->insert(['month' => '2026-09', 'payload' => json_encode(['activity' => [
             'window_start' => '2026-04', 'window_end' => '2026-09', 'catalog_snapshot_id' => 'acara:test',
-            'models' => [['make' => 'test', 'model' => 'example', 'special' => [], 'score' => 100]],
+            'models' => [['make' => 'test', 'model' => 'example', 'special' => [], 'transfers' => 6, 'score' => 100]],
         ]])]);
         $before = $this->snapshot();
 

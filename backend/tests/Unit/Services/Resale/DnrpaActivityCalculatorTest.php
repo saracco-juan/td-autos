@@ -33,7 +33,20 @@ class DnrpaActivityCalculatorTest extends TestCase
         return (new DnrpaActivityCalculator)->calculate($history, new DateTimeImmutable('2026-10-21'));
     }
 
-    public function test_hu05_sums_six_months_and_assigns_the_five_relative_activity_bands(): void
+    public function test_real_transfer_totals_receive_distinct_continuous_logarithmic_scores(): void
+    {
+        $history = $this->history([1, 1]);
+        $history[0] = $this->month('2026-04', [37983, 1661]);
+        $before = $history;
+        $models = $this->calculate($history)['models'];
+
+        $this->assertSame([37988, 1666], array_column($models, 'transfers'));
+        $this->assertEqualsWithDelta(100, $models[0]['score'], 0.000001);
+        $this->assertEqualsWithDelta(70.3531944351, $models[1]['score'], 0.000001);
+        $this->assertSame($before, $history);
+    }
+
+    public function test_hu05_sums_six_months_and_assigns_continuous_logarithmic_activity(): void
     {
         $result = $this->calculate($this->history());
 
@@ -43,7 +56,8 @@ class DnrpaActivityCalculatorTest extends TestCase
         $this->assertSame(['2026-04', '2026-05', '2026-06', '2026-07', '2026-08', '2026-09'], $result['months']);
         $this->assertSame([102, 90, 12], [$result['transfers'], $result['identified'], $result['unmatched']]);
         $this->assertSame([30, 24, 18, 12, 6], array_column($result['models'], 'transfers'));
-        $this->assertSame([100, 80, 60, 40, 20], array_column($result['models'], 'score'));
+        $this->assertEqualsWithDelta([100, 93.735813012, 85.744028846, 74.693037706, 56.666202673],
+            array_column($result['models'], 'score'), 0.000001);
     }
 
     public function test_selects_the_latest_available_closed_window_and_preserves_inputs(): void
@@ -74,14 +88,14 @@ class DnrpaActivityCalculatorTest extends TestCase
     #[DataProvider('populations')]
     public function test_ties_and_small_populations_do_not_split_equal_activity(array $counts, array $scores): void
     {
-        $this->assertSame($scores, array_column($this->calculate($this->history($counts))['models'], 'score'));
+        $this->assertEqualsWithDelta($scores, array_column($this->calculate($this->history($counts))['models'], 'score'), 0.000001);
     }
 
     public static function populations(): array
     {
-        return [[[1], [100]], [[2, 1], [100, 20]], [[3, 2, 1], [100, 60, 20]],
-            [[4, 3, 2, 1], [100, 80, 40, 20]], [[2, 2, 1], [100, 100, 20]],
-            [[1, 1, 1], [100, 100, 100]], [[6, 5, 4, 3, 2, 1], [100, 80, 60, 40, 20, 20]]];
+        return [[[1], [100]], [[2, 1], [100, 75.865441296]], [[3, 2, 1], [100, 87.111649303, 66.087637164]],
+            [[4, 3, 2, 1], [100, 91.474140022, 79.684632058, 60.453097756]], [[2, 2, 1], [100, 100, 75.865441296]],
+            [[1, 1, 1], [100, 100, 100]], [[6, 5, 4, 3, 2, 1], [100, 95.100118240, 89.142869008, 81.542672816, 71.033167176, 53.889625744]]];
     }
 
     public function test_special_variants_remain_separate_and_unknowns_receive_no_model_score(): void

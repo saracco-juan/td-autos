@@ -62,6 +62,26 @@ class DnrpaActivityStoreTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_current_recalculates_legacy_bands_without_rewriting_stored_evidence(): void
+    {
+        $snapshot = ['activity' => ['models' => [
+            ['make' => 'toyota', 'model' => 'hilux', 'special' => [], 'transfers' => 37988, 'score' => 100],
+            ['make' => 'nissan', 'model' => 'versa', 'special' => [], 'transfers' => 1666, 'score' => 100],
+        ]]];
+        $payload = json_encode($snapshot);
+        DB::table('dnrpa_activity_history')->insert(['month' => '2026-09', 'payload' => $payload]);
+        DB::table('dnrpa_refresh_state')->insert(['id' => 1, 'checked_at' => now()]);
+        $before = DB::table('dnrpa_refresh_state')->first();
+        $store = new DnrpaActivityStore;
+        $models = $store->current()['snapshot']['activity']['models'];
+
+        $this->assertEqualsWithDelta(70.3531944351, $models[1]['score'], 0.000001);
+        $this->assertSame($payload, DB::table('dnrpa_activity_history')->value('payload'));
+        $this->assertEquals($before, DB::table('dnrpa_refresh_state')->first());
+        $this->assertSame($snapshot, $store->history()['2026-09']);
+        Http::assertNothingSent();
+    }
+
     public function test_command_publishes_dated_aggregate_history_and_claims_before_io(): void
     {
         $this->artisan('dnrpa:refresh')->expectsOutput('DNRPA: ready (2026-09).')->assertSuccessful();

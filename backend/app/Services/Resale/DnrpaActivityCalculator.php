@@ -65,23 +65,26 @@ final class DnrpaActivityCalculator
                 $models[$key]['transfers'] += $row['transfers'];
             }
         }
-        $models = array_values($models);
-        usort($models, fn ($a, $b) => $b['transfers'] <=> $a['transfers']
-            ?: [$a['make'], $a['model'], $a['special']] <=> [$b['make'], $b['model'], $b['special']]);
-        $previous = null;
-        $better = 0;
-        foreach ($models as $index => &$model) {
-            if ($previous !== $model['transfers']) {
-                $better = $index;
-            }
-            $previous = $model['transfers'];
-            // Competition rank, integer bands: ties never split at a percentile cutoff.
-            $model['score'] = 100 - 20 * min(4, intdiv($better * 5, max(1, count($models) - 1)));
-        }
+        $models = $this->scoreModels(array_values($models));
 
         return ['source' => 'DNRPA', 'window_start' => $months[0], 'window_end' => $months[5],
             'catalog_snapshot_id' => $catalog, 'months' => $months, 'transfers' => $transfers,
             'identified' => $identified, 'unmatched' => $unmatched, 'models' => $models];
+    }
+
+    /** Rescore validated positive transfer totals without mutating their source evidence. */
+    public function scoreModels(array $models): array
+    {
+        usort($models, fn ($a, $b) => $b['transfers'] <=> $a['transfers']
+            ?: [$a['make'], $a['model'], $a['special']] <=> [$b['make'], $b['model'], $b['special']]);
+        $maximum = $models[0]['transfers'] ?? 0;
+        foreach ($models as &$model) {
+            // Continuous volume sensitivity, with diminishing returns rather than percentile bands.
+            $model['score'] = $model['transfers'] === $maximum ? 100
+                : 100 * log1p($model['transfers']) / log1p($maximum);
+        }
+
+        return $models;
     }
 
     private function validSnapshot(array $snapshot): bool

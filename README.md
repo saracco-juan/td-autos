@@ -58,6 +58,12 @@ Cuentas de demo (contraseña `TdAutos2026!`): `admin@demo.tdautos.test`, `compra
 
 Para probar con volumen, `php artisan db:local --vehiculos=10000` suma a esa base unas 50 concesionarias activas con suscripción vigente (`concesionaria01@volumen.tdautos.test` a `concesionaria50@volumen.tdautos.test`, misma contraseña) y reparte entre ellas la cantidad de vehículos pedida, de forma desigual y siempre con los mismos datos: modelos y carrocerías reales del mercado argentino, precios y kilometrajes acordes al año, patentes únicas y 7 fotos por vehículo. Las fotos son 7 imágenes numeradas que se escriben en el disco `public` (`backend/storage/app/public/vehiculos/volumen`); corré `php artisan storage:link` una vez para que se vean. Sin la opción, la base queda como antes. Es solo para SQLite local: no sirve para Supabase.
 
+#### Puntaje de actividad de reventa
+
+HU05 suma las transferencias DNRPA de seis meses cerrados por grupo identificado de marca/modelo. El puntaje continuo es `100 * log(1 + transferencias) / log(1 + máximo del período)`: el mayor volumen recibe 100 y los demás valores crecen con rendimientos decrecientes, sin bandas por percentiles. Los empates conservan el mismo puntaje.
+
+La lectura actual recalcula el puntaje desde los conteos guardados; no modifica el historial ni descarga nuevamente las fuentes. Con 37.988 y 1.666 transferencias, los puntajes son 100 y aproximadamente 70,4. Es un índice relativo de actividad, no una probabilidad de venta. La prioridad de reventa mantiene 50% de actividad DNRPA y 50% de retención ACARA.
+
 ### 2. Frontend web
 
 ```bash

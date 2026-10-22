@@ -17,6 +17,10 @@ final class DnrpaActivityStore
             ->selectSub(DB::table('dnrpa_activity_history')->select('payload')->orderByDesc('month')->limit(1), 'payload')->first();
         $checked = $row->checked_at ?? null;
         $snapshot = ($row->payload ?? null) === null ? null : json_decode($row->payload, true, 512, JSON_THROW_ON_ERROR);
+        if ($snapshot !== null) {
+            // Project the current scoring rule; retain the original payload and monthly counts unchanged.
+            $snapshot['activity']['models'] = (new DnrpaActivityCalculator)->scoreModels($snapshot['activity']['models']);
+        }
         $stale = $snapshot !== null && ($checked === null || CarbonImmutable::parse($checked)->addDays(14)->lessThanOrEqualTo(now()));
 
         return ['snapshot' => $snapshot, 'checked_at' => $checked === null ? null : CarbonImmutable::parse($checked)->toISOString(),
