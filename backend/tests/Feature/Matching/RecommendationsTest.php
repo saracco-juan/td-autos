@@ -133,6 +133,31 @@ class RecommendationsTest extends TestCase
         Http::assertSentCount(1); // Only the existing shared quote; no ACARA/DNRPA HTTP.
     }
 
+    public function test_nullable_legacy_inventory_identity_does_not_break_resale_recommendations(): void
+    {
+        $this->buyer(['prioridad' => 'reventa']);
+        $valid = $this->car(['marca' => 'Test', 'modelo' => 'Example', 'version' => 'Base']);
+        $this->car(['marca' => null]);
+        $this->car(['modelo' => null]);
+        Cache::forever('resale.acara.last-valid.v1', ['snapshot_id' => 'acara:test', 'source_date' => '2026-10-19',
+            'fetched_at' => now()->toISOString(),
+            'rows' => [['make' => 'Test', 'model' => 'Example', 'version' => 'Base', 'version_id' => 'base',
+                'currency' => 'ARS', 'values' => [2025 => '100', 2022 => '80']]]]);
+        DB::table('dnrpa_refresh_state')->insert(['id' => 1, 'checked_at' => now()]);
+        DB::table('dnrpa_activity_history')->insert(['month' => '2026-09', 'payload' => json_encode(['activity' => [
+            'window_start' => '2026-04', 'window_end' => '2026-09', 'catalog_snapshot_id' => 'acara:test',
+            'models' => [['make' => 'test', 'model' => 'example', 'special' => [], 'score' => 100]],
+        ]])]);
+        $before = $this->snapshot();
+
+        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonCount(1, 'results')
+            ->assertJsonPath('results.0.listing_id', $valid->id)->assertJsonPath('results.0.score', 97.5)
+            ->assertJsonPath('results.0.components.priority', 90);
+
+        $this->assertSame($before, $this->snapshot());
+        Http::assertSentCount(1);
+    }
+
     public function test_real_listing_payload_uses_one_quote_and_exposes_only_public_facts(): void
     {
         $this->buyer();

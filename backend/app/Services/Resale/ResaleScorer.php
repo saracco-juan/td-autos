@@ -21,7 +21,7 @@ final class ResaleScorer
         }
         $calculator = new ValueRetentionCalculator;
         foreach ($vehicles as $vehicle) {
-            $matches = $curves[$this->key([$vehicle->marca, $vehicle->modelo, $vehicle->version ?? ''])] ?? [];
+            $matches = $curves[$this->key([$vehicle->marca ?? '', $vehicle->modelo ?? '', $vehicle->version ?? ''])] ?? [];
             $row = count($matches) === 1 ? $matches[0] : null;
             $comparison = $retention = $activityScore = null;
             if ($row !== null) {
