@@ -690,3 +690,31 @@ Una demo moderada se reconstruye con `php artisan db:local --vehiculos=100`: dej
 HU05 suma las transferencias DNRPA de seis meses cerrados por grupo identificado de marca/modelo. El puntaje continuo es `100 * log(1 + transferencias) / log(1 + máximo del período)`: el mayor volumen recibe 100 y los demás valores crecen con rendimientos decrecientes, sin bandas por percentiles. Los empates conservan el mismo puntaje.
 
 La búsqueda actual muestra vehículos elegibles de concesionarias; la integración de Mercado Libre fue retirada. Los registros históricos de publicaciones externas se conservan, pero ya no se consultan ni se actualizan. La lectura de reventa recalcula el puntaje desde los conteos guardados; no modifica el historial ni descarga nuevamente las fuentes. Con 37.988 y 1.666 transferencias, los puntajes son 100 y aproximadamente 70,4. Es un índice relativo de actividad, no una probabilidad de venta. La prioridad de reventa mantiene 50% de actividad DNRPA y 50% de retención ACARA.
+
+## Calculator monthly refresh (HU10)
+
+`php artisan calculadora:refresh` keeps the moving values of the ownership cost calculator up to date and stores one snapshot per run in `calculator_refresh_snapshot` (`App\Models\CalculatorRefreshSnapshot`: fetch date, status `valid`/`failed`, fuel source date, CPI month and the effective values as JSON). Readers (`EffectiveRates`) use the latest `valid` snapshot over `config/calculadora.php`; the config is the fallback when there is none. A source that fails keeps its part from the previous valid snapshot, and an attempt where nothing answered is recorded as `failed` without replacing anything.
+
+| Value | Source | How it is used |
+| --- | --- | --- |
+| Fuel prices per province (nafta, diesel, GNC) | Secretaría de Energía, CKAN package `precios-en-surtidor`, resource "Precios vigentes en surtidor - Resolución 314/2016" (CSV, ~9 MB, streamed; the resource URL is resolved from the package, never hardcoded) | 90th percentile of the daytime (`Diurno`) price per product and province, ignoring zero prices. The dealer's province wins, then the national 90th percentile, then `fuel_prices` in the config |
+| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)` |
+
+`rates_updated_at` in the costs response is the snapshot fetch date (the config `updated_at` when there is no snapshot).
+
+Schedule: the 1st of each month at 04:00 Argentina time (`routes/console.php`, without overlap). Render free has no scheduler, so in deploy the GitHub workflow `Cron` calls `POST /internal/cron/calculadora` (same `CRON_SECRET` bearer as the subscriptions endpoint) at `0 7 1 * *` UTC; "Run workflow" by hand triggers it too.
+
+Run it locally against a throwaway SQLite database (it downloads the real sources, never touches production):
+
+```powershell
+cd backend
+New-Item -ItemType File -Force $env:TEMP\calc.sqlite | Out-Null
+$env:DB_CONNECTION = 'sqlite'; $env:DB_DATABASE = "$env:TEMP\calc.sqlite"; $env:DB_URL = ''; $env:CACHE_STORE = 'array'
+php artisan migrate --force
+php artisan calculadora:refresh
+php artisan schedule:list
+```
+
+Expect `Fuel prices: refreshed (...)`, `CPI: refreshed (...)` and exit 0; exit 1 means a source kept its previous value. Tests: `php artisan test --filter=CalculatorRefreshTest` (HTTP faked).
+
+By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`insurance_annual_rate`, `transfer.dnrpa_rate`, `transfer.stamp_rate`, `patente_annual_rate`), and, when the ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are reviewed, move `cpi_base_month` to the month those amounts are stated in. Update `updated_at` too.

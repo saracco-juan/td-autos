@@ -11,6 +11,11 @@ return [
     // Date the rates were last reviewed (shown on the screen as "valores actualizados al ...").
     'updated_at' => '2026-10-23',
 
+    // Month (YYYY-MM) in which the ARS amounts below (maintenance.annual_base, transfer.fixed_costs) are stated.
+    // The monthly refresh (calculadora:refresh) scales them by max(1, CPI latest / CPI of this month).
+    // Move it forward together with those amounts when they are reviewed by hand.
+    'cpi_base_month' => '2026-08',
+
     // Every concept rounds UP to a multiple of this amount (ARS).
     'rounding' => 1000,
 
@@ -23,7 +28,8 @@ return [
         'no_sabe' => 1500,
     ],
 
-    // ARS per liter (nafta, diesel) or per m3 (gnc).
+    // ARS per liter (nafta, diesel) or per m3 (gnc). Fallback: the monthly refresh overrides them with the
+    // 90th percentile per province from the Secretaría de Energía (national figure for provinces without rows).
     // Nafta súper: YPF Mendoza 2026-09-28 (above CABA). Diesel: hedge over YPF Mendoza 2,295.
     // GNC: estimate over the 1,050 reported in Mar del Plata in 2026-05.
     'fuel_prices' => [

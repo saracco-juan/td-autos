@@ -20,6 +20,7 @@ final class VehicleCostEstimate
         private readonly OwnershipCostCalculator $calculator,
         private readonly DolarApi $exchange,
         private readonly SubscriptionLifecycle $lifecycle,
+        private readonly EffectiveRates $effectiveRates,
     ) {}
 
     /** @return array<string, mixed>|self::NOT_FOUND|self::RATE_UNAVAILABLE */
@@ -35,7 +36,6 @@ final class VehicleCostEstimate
             return self::NOT_FOUND;
         }
 
-        $rates = config('calculadora');
         $isUsd = $vehicle->moneda === 'USD';
         $exchange = $isUsd ? $this->exchange->current() : null;
         $sell = $exchange['quote']['sell'] ?? null;
@@ -46,8 +46,10 @@ final class VehicleCostEstimate
         $priceArs = $isUsd ? $price * (float) $sell : $price;
 
         $diagnosis = Diagnostico::where('usuario_id', $userId)->first();
-        [$kmPerMonth, $source] = $this->km($km, $diagnosis, $rates['km_per_month']);
         $province = (string) $vehicle->propiedad->concesionaria->provincia;
+        // Config overridden by the latest refresh snapshot: fuel price of the dealer's province, CPI-indexed ARS amounts.
+        $rates = $this->effectiveRates->forProvince($this->calculator->normalizeProvince($province));
+        [$kmPerMonth, $source] = $this->km($km, $diagnosis, $rates['km_per_month']);
 
         $result = $this->calculator->calculate([
             'price_ars' => $priceArs, 'fuel' => $vehicle->combustible,
