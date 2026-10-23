@@ -37,7 +37,7 @@ export function explainConcept(
       const gnc = fuel.unit === 'm3'
       const unit = gnc ? 'm³' : 'L'
       const priceLabel = gnc ? 'el m³ de GNC' : `el litro de ${FUEL_NAMES[fuel.price_fuel_type]}`
-      return `${groupThousands(fuel.km_per_month)} km por mes × ${decimal(fuel.consumption_l_100km)} ${unit} cada 100 km, que es el consumo de este auto, × ${formatPrice(fuel.unit_price)} ${priceLabel} = ${money}.`
+      return `${groupThousands(fuel.km_per_month)} km por mes × ${decimal(fuel.consumption_l_100km)} ${unit} cada 100 km (consumo del auto) × ${formatPrice(fuel.unit_price)} ${priceLabel} = ${money}.`
     }
     case 'insurance': {
       const { annual_rate: rate, coverage } = breakdown.insurance

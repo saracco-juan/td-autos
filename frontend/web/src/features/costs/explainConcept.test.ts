@@ -16,23 +16,23 @@ const breakdown = (changes: Partial<CostBreakdown> = {}): CostBreakdown => ({
 describe('explainConcept', () => {
   it('explains the fuel with the km, the consumption and the price', () => {
     expect(explainConcept('fuel', breakdown(), 255000)).toBe(
-      '1.500 km por mes × 8 L cada 100 km, que es el consumo de este auto, × $ 2.125 el litro de nafta = $ 255.000.',
+      '1.500 km por mes × 8 L cada 100 km (consumo del auto) × $ 2.125 el litro de nafta = $ 255.000.',
     )
   })
 
   it('reads diesel with an accent and a decimal consumption with a comma', () => {
     const fuel = { km_per_month: 1500, consumption_l_100km: 6.5, fuel_type: 'diesel' as const, price_fuel_type: 'diesel' as const, unit: 'litro' as const, unit_price: 2450 }
-    expect(explainConcept('fuel', breakdown({ fuel }), 240000)).toContain('6,5 L cada 100 km, que es el consumo de este auto, × $ 2.450 el litro de diésel = $ 240.000.')
+    expect(explainConcept('fuel', breakdown({ fuel }), 240000)).toContain('6,5 L cada 100 km (consumo del auto) × $ 2.450 el litro de diésel = $ 240.000.')
   })
 
   it('uses cubic meters for GNC', () => {
     const fuel = { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'gnc' as const, price_fuel_type: 'gnc' as const, unit: 'm3' as const, unit_price: 1100 }
-    expect(explainConcept('fuel', breakdown({ fuel }), 132000)).toContain('8 m³ cada 100 km, que es el consumo de este auto, × $ 1.100 el m³ de GNC = $ 132.000.')
+    expect(explainConcept('fuel', breakdown({ fuel }), 132000)).toContain('8 m³ cada 100 km (consumo del auto) × $ 1.100 el m³ de GNC = $ 132.000.')
   })
 
   it('prices a hybrid with the nafta price', () => {
     const fuel = { km_per_month: 1500, consumption_l_100km: 5, fuel_type: 'hibrido' as const, price_fuel_type: 'nafta' as const, unit: 'litro' as const, unit_price: 2125 }
-    expect(explainConcept('fuel', breakdown({ fuel }), 160000)).toContain('5 L cada 100 km, que es el consumo de este auto, × $ 2.125 el litro de nafta = $ 160.000.')
+    expect(explainConcept('fuel', breakdown({ fuel }), 160000)).toContain('5 L cada 100 km (consumo del auto) × $ 2.125 el litro de nafta = $ 160.000.')
   })
 
   it('says there is no fuel estimate when the car has no consumption data', () => {

@@ -76,8 +76,8 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
         <Row label="Patente" value={perMonth(monthly.patente)} info={info('Patente', 'patente', monthly.patente)} />
         <Row label="Mantenimiento" value={perMonth(monthly.maintenance)} info={info('Mantenimiento', 'maintenance', monthly.maintenance)} />
         <Row label="Total por mes" value={formatPrice(monthly.total)} strong />
+        <Row label="Total por año" value={formatPrice(monthly.yearly_total)} strong />
       </dl>
-      <p className={styles.note}>Equivale a {formatPrice(monthly.yearly_total)} por año</p>
       {monthly.not_estimated.includes('fuel') ? <p className={styles.note}>El total no incluye el combustible.</p> : null}
     </section>
   )
@@ -215,13 +215,17 @@ export default function OwnershipCostsPage() {
               </select>
             )}
           </Field>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
-          >
-            RECALCULAR
-          </button>
+          {/* The spacer takes the height of a field label, so the button lines up with the inputs. */}
+          <div className={styles.action}>
+            <span aria-hidden="true" className={styles.actionSpacer}>&nbsp;</span>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
+            >
+              RECALCULAR
+            </button>
+          </div>
         </form>
       ) : null}
       {loading || data ? (

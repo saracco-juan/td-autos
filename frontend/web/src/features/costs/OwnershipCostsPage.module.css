@@ -81,10 +81,21 @@
   font-size: 12px;
 }
 
-/* Lines up with the inputs (label 12 + gap 6 above them). */
+/* Same column as a field (label line + 6 gap + 48 control), so the button lines up with the inputs. */
+.action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.actionSpacer {
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .submit {
-  align-self: end;
   width: 100%;
+  height: 48px;
 }
 
 /* The loader lives here, centered; the header and the form stay in place. */
@@ -150,8 +161,11 @@
 }
 
 .total {
-  border-bottom: 0;
   font-weight: 700;
+}
+
+.total:last-child {
+  border-bottom: 0;
 }
 
 .total dt {
@@ -180,5 +194,10 @@
 @media (max-width: 600px) {
   .page {
     padding-top: 8px;
+  }
+
+  /* Stacked fields: no label to line up with. */
+  .actionSpacer {
+    display: none;
   }
 }

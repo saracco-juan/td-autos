@@ -53,7 +53,9 @@ it('shows what it costs to keep and to buy the vehicle without ceiling wording',
   expect(within(monthly()).getByText('$ 66.000 por mes')).toBeInTheDocument()
   expect(within(monthly()).getByText('Total por mes')).toBeInTheDocument()
   expect(within(monthly()).getByText('$ 306.000')).toBeInTheDocument()
-  expect(within(monthly()).getByText('Equivale a $ 3.672.000 por año')).toBeInTheDocument()
+  const yearly = within(monthly()).getByText('Total por año').closest('div') as HTMLElement
+  expect(within(yearly).getByText('$ 3.672.000')).toBeInTheDocument()
+  expect(within(monthly()).queryByText(/Equivale a/)).not.toBeInTheDocument()
 
   expect(within(purchase()).getByText('$ 20.000.000')).toBeInTheDocument()
   expect(within(purchase()).getByText('$ 700.000')).toBeInTheDocument()
@@ -70,7 +72,7 @@ it('puts an info button next to each concept and explains it with the numbers of
     await userEvent.click(screen.getByRole('button', { name: `Cómo calculamos ${name}` }))
     return screen.getByRole('tooltip')
   }
-  expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km, que es el consumo de este auto, × $ 1.000 el litro de nafta = $ 120.000.')
+  expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km (consumo del auto) × $ 1.000 el litro de nafta = $ 120.000.')
   expect(await tip('Seguro')).toHaveTextContent('6% anual del valor del auto para terceros completo, dividido 12 meses = $ 100.000 por mes.')
   expect(await tip('Patente')).toHaveTextContent('Alícuota anual de 1,2% en Córdoba')
   expect(await tip('Mantenimiento')).toHaveTextContent('Service anual de referencia para un auto a nafta ($ 600.000)')
