@@ -1,5 +1,7 @@
 import { useId } from 'react'
+import { Link } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
+import buttonStyles from '../../components/button.module.css'
 import { formatKilometers, formatPrice } from '../inventory/format'
 import { EQUIPMENT_GROUPS } from '../inventory/matchingFields'
 import type { Recommendation } from './matching'
@@ -40,6 +42,9 @@ export default function MatchingVehicleCard({ result }: { result: Recommendation
         <p className={alertStyles.warning}>Sin estimación de reventa: compatibilidad parcial sobre los factores conocidos, con descuento de 10 puntos por falta de datos, no por mala reventa.</p>
       ) : null}
       {result.warnings.includes('resale_stale') ? <p className={alertStyles.warning}>Reventa calculada con la última evidencia disponible; actualización pendiente.</p> : null}
+      <Link to={`/vehiculos/${result.listing_id}/costos`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+        CALCULAR COSTOS
+      </Link>
       <details className={styles.meta}>
         <summary>Ver atributos y motivos</summary>
         <p>Uso: {displayScore(components.usage)} · Carrocería: {displayScore(components.body)} · Prioridad: {components.priority === null ? 'no disponible' : displayScore(components.priority)} · Confort: {displayScore(components.comfort)} (sobre 100).</p>

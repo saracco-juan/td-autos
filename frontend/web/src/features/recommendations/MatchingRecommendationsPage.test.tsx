@@ -136,3 +136,9 @@ it('keeps a USD publication distinct from its ARS equivalent and shows its actua
   expect(screen.getByText('Equivalente: $ 20.600.000')).toBeInTheDocument()
   expect(screen.getByRole('img')).toHaveAttribute('src', '/demo/corolla.webp')
 })
+
+it('links each card to the cost estimate of its vehicle', async () => {
+  renderPage()
+  const card = await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
+  expect(within(card).getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/1/costos')
+})
