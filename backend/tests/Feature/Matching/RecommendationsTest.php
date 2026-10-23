@@ -125,6 +125,21 @@ class RecommendationsTest extends TestCase
             ->assertJsonPath('results.0.resale.comparison', null);
         $this->assertSame($inventoryBefore, $car->fresh()->getAttributes());
         $car->update(['version' => 'Base', 'potencia' => 110, 'transmision' => 'manual']);
+        $car->update(['version' => 'Feel Pack 1.6 AT', 'potencia' => 115, 'transmision' => 'automatica']);
+        $grouped = $natural;
+        $grouped['rows'][] = array_replace($natural['rows'][0], ['version' => '1.6 Feel Pack AT (115cv) (L23)', 'version_id' => 'base:2']);
+        Cache::forever('resale.acara.last-valid.v1', $grouped);
+        $this->getJson('/api/recomendaciones')->assertOk()
+            ->assertJsonPath('results.0.resale.estimate.reference_count', 2)
+            ->assertJsonPath('results.0.resale.comparison', null);
+        $approximate = $natural;
+        $approximate['rows'][0] = array_replace($natural['rows'][0], ['model' => 'Example Extended', 'version' => '1.6 Feel Pack AT (115cv) 4Ptas.']);
+        Cache::forever('resale.acara.last-valid.v1', $approximate);
+        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results.0.resale.model_match.approximate', true)
+            ->assertJsonPath('results.0.resale.model_match.reference_model', 'Example Extended')
+            ->assertJsonPath('results.0.resale.retention_score', 72.9)->assertJsonPath('results.0.resale.activity_score', 100)
+            ->assertJsonPath('results.0.resale.comparison', null);
+        $car->update(['version' => 'Base', 'potencia' => 110, 'transmision' => 'manual']);
         foreach (['missing version', 'missing year', 'ambiguous identity', 'missing activity', 'missing catalog'] as $case) {
             DB::table('dnrpa_activity_history')->updateOrInsert(['month' => '2026-09'], ['payload' => json_encode(['activity' => $activity])]);
             $changed = $catalog;

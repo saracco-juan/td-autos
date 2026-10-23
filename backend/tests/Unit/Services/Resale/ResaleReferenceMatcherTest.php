@@ -69,10 +69,10 @@ class ResaleReferenceMatcherTest extends TestCase
         $this->assertSame(70.0, $this->score('BÁSE---', ['Base'])['score']);
         $feel = '1.6 Feel Pack AT (115cv) (L18)';
         $fell = '1.6 Fell Pack AT (115cv) (L18)';
-        $this->assertNull($this->score('Fill Pack 1.6 AT', [$feel, $fell])['score']);
+        $this->assertSame(2, $this->score('Fill Pack 1.6 AT', [$feel, $fell])['estimate']['reference_count']);
         $this->assertNull($this->score('Feel Pack 1.6 AT', [$feel, $feel])['score']);
         $this->assertSame($feel, $this->score('Feel Pack 1.6 AT', [$feel, $fell])['comparison']['version_id']);
-        $this->assertNull($this->score('Feel Pack 1.6 AT', [$feel, str_replace('L18', 'L20', $feel)])['score']);
+        $this->assertSame(2, $this->score('Feel Pack 1.6 AT', [$feel, str_replace('L18', 'L20', $feel)])['estimate']['reference_count']);
     }
 
     public function test_model_year_disambiguates_without_stitching_generations(): void

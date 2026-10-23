@@ -63,7 +63,7 @@ class ResaleScorerTest extends TestCase
         $this->assertEqualsWithDelta(10, $row['estimate']['annual_depreciation_percent'], 1e-10);
         $this->assertNull($row['comparison']);
         foreach ([null, 0, -1, INF] as $invalid) {
-            $this->assertNull($this->scores(['values' => [2025 => $invalid, 2024 => 100, 2023 => 81]])['estimate']);
+            $this->assertSame([2023, 2024], $this->scores(['values' => [2025 => $invalid, 2024 => 100, 2023 => 81]])['estimate']['years_used']);
         }
     }
 }

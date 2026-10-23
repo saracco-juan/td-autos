@@ -122,6 +122,20 @@ it('explains annualized estimates separately from observed year prices', async (
   expect(screen.getByText(/Retención estimada a 3 años: 75,5/)).toBeVisible()
 })
 
+it('shows grouped uncertainty and raw appreciation separately from the capped score', async () => {
+  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(),
+    resale: { activity_score: 80, retention_score: 100, source_date: '2026-10-19',
+      window_start: '2026-04', window_end: '2026-09', stale: false,
+      estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: -10,
+        years_used: [2023, 2025], retained_percent: 133.1, reference_count: 2, retention_range: [130, 136] } },
+  }] })
+  renderPage()
+  await screen.findByRole('list')
+  await userEvent.click(screen.getByText('Ver atributos y motivos'))
+  expect(screen.getByText(/Retención estimada a 3 años: 133,1%/)).toBeVisible()
+  expect(screen.getByText(/Estimación por grupo: 2 referencias compatibles.*130.*136/)).toBeVisible()
+})
+
 it.each([new NetworkError(new Error()), new HttpError(500, null)])('retries failures without showing stale results', async (error) => {
   vi.mocked(apiFetch).mockRejectedValueOnce(error).mockResolvedValueOnce(ready())
   renderPage()
@@ -148,4 +162,16 @@ it('keeps a USD publication distinct from its ARS equivalent and shows its actua
   expect(await screen.findByText('Publicado: US$ 20.000')).toBeInTheDocument()
   expect(screen.getByText('Equivalente: $ 20.600.000')).toBeInTheDocument()
   expect(screen.getByRole('img')).toHaveAttribute('src', '/demo/corolla.webp')
+})
+
+it('identifies inferred model families as approximate rather than exact', async () => {
+  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(),
+    resale: { activity_score: 80, retention_score: 75, source_date: '2026-10-19',
+      window_start: '2026-04', window_end: '2026-09', stale: false,
+      model_match: { approximate: true, listing_model: 'Example', reference_model: 'Example Extended' } },
+  }] })
+  renderPage()
+  await screen.findByRole('list')
+  await userEvent.click(screen.getByText('Ver atributos y motivos'))
+  expect(screen.getByText(/Referencia aproximada.*Example Extended.*Example.*No confirma/)).toBeVisible()
 })

@@ -4,7 +4,7 @@ namespace App\Services\Resale;
 
 use Illuminate\Support\Str;
 
-/** Batch local evidence only: unique catalog references, never remote lookups. */
+/** Batch local evidence only: compatible catalog references, never remote lookups. */
 final class ResaleScorer
 {
     public function scores(iterable $vehicles, array $prices, array $transfers): array
@@ -23,20 +23,26 @@ final class ResaleScorer
         $matcher = new ResaleReferenceMatcher;
         foreach ($vehicles as $vehicle) {
             $family = [$vehicle->marca ?? '', $vehicle->modelo ?? ''];
-            $row = $matcher->resolve($vehicle, $curves[$this->key($family)] ?? []);
+            $references = $matcher->candidates($vehicle, $curves[$this->key($family)] ?? []);
+            $modelMatch = null;
+            if ($references === []) {
+                $references = $matcher->approximateCandidates($vehicle, $catalog['rows'] ?? []);
+                if ($references !== []) {
+                    $modelMatch = ['approximate' => true, 'listing_model' => $family[1], 'reference_model' => $references[0]['model']];
+                }
+            }
+            $row = count($references) === 1 ? $references[0] : null;
             $comparison = $retention = $activityScore = $estimate = null;
-            if ($row !== null) {
+            if ($row !== null && $modelMatch === null) {
                 $point = ['snapshot_id' => $catalog['snapshot_id'], 'version_id' => $row['version_id'],
                     'currency' => $row['currency'], 'model_year' => (int) $vehicle->anio,
                     'price' => $row['values'][$vehicle->anio] ?? null];
                 $older = array_replace($point, ['model_year' => $vehicle->anio - 3,
                     'price' => $row['values'][$vehicle->anio - 3] ?? null]);
                 $comparison = $calculator->compare($point, $older);
-                if (is_numeric($point['price']) && is_finite((float) $point['price']) && $point['price'] > 0) {
-                    $estimate = $calculator->estimate($row + ['snapshot_id' => $catalog['snapshot_id']]);
-                }
-                $retention = $estimate['score'] ?? null;
             }
+            $estimate = $calculator->estimateGroup($references, $catalog['snapshot_id'] ?? '');
+            $retention = $estimate['score'] ?? null;
             // DNRPA measures family activity independently of an available ACARA year pair.
             $tokens = explode(' ', $this->normalize(($vehicle->modelo ?? '').' '.($vehicle->version ?? '')
                 .' '.($row['version'] ?? '').' '.($vehicle->combustible ?? '')));
@@ -46,7 +52,7 @@ final class ResaleScorer
             $results[$vehicle->id] = [
                 'score' => $retention === null || $activityScore === null ? null : ($retention + $activityScore) / 2,
                 'activity_score' => $activityScore, 'retention_score' => $retention, 'comparison' => $comparison,
-                'estimate' => $estimate,
+                'estimate' => $estimate, 'model_match' => $modelMatch,
                 'reference' => $row === null ? null : array_intersect_key($row, array_flip(['version_id', 'version', 'currency'])),
                 'source_date' => $catalog['source_date'] ?? null, 'snapshot_id' => $catalog['snapshot_id'] ?? null,
                 'window_start' => $activity['window_start'] ?? null, 'window_end' => $activity['window_end'] ?? null,

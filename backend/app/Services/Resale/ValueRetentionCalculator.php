@@ -5,6 +5,56 @@ namespace App\Services\Resale;
 /** Same-date model-year references, not observed history or future sale prices. */
 final class ValueRetentionCalculator
 {
+    /** Complete-link price similarity: every pair must overlap and stay within 5%, never chain. */
+    public function estimateGroup(array $rows, string $snapshot): ?array
+    {
+        $estimates = [];
+        foreach ($rows as $i => $row) {
+            foreach (array_slice($rows, 0, $i) as $other) {
+                foreach (['make', 'model', 'currency', '_technical'] as $key) {
+                    if (($row[$key] ?? null) !== ($other[$key] ?? null)) {
+                        return null;
+                    }
+                }
+                $overlap = 0;
+                foreach ($row['values'] as $year => $price) {
+                    $peer = $other['values'][$year] ?? null;
+                    if (is_numeric($price) && is_numeric($peer) && is_finite((float) $price)
+                        && is_finite((float) $peer) && $price > 0 && $peer > 0) {
+                        $overlap++;
+                        if (max($price, $peer) / min($price, $peer) > 1.05 + 1e-12) {
+                            return null;
+                        }
+                    }
+                }
+                if ($overlap === 0) {
+                    return null;
+                }
+            }
+            $estimate = $this->estimate($row + ['snapshot_id' => $snapshot]);
+            if ($estimate === null || isset($estimates[$row['version_id']])) {
+                return null;
+            }
+            $estimates[$row['version_id']] = $estimate;
+        }
+        if (count($estimates) <= 1) {
+            return $estimates === [] ? null : reset($estimates);
+        }
+        $rates = array_map(fn ($e) => log($e['annual_retained_percent'] / 100), array_values($estimates));
+        sort($rates, SORT_NUMERIC);
+        $middle = intdiv(count($rates), 2);
+        $rate = count($rates) % 2 ? $rates[$middle] : ($rates[$middle - 1] + $rates[$middle]) / 2;
+        $retained = round(100 * exp(3 * $rate), 12);
+        $years = array_values(array_unique(array_merge(...array_column($estimates, 'years_used'))));
+        sort($years);
+
+        return array_replace(reset($estimates), ['version_id' => null, 'reference_count' => count($estimates),
+            'curves' => array_values($estimates), 'years_used' => $years, 'interval_count' => array_sum(array_column($estimates, 'interval_count')),
+            'annual_retained_percent' => 100 * exp($rate), 'annual_depreciation_percent' => 100 - 100 * exp($rate),
+            'retained_percent' => $retained, 'score' => min(100.0, $retained),
+            'retention_range' => [min(array_column($estimates, 'retained_percent')), max(array_column($estimates, 'retained_percent'))]]);
+    }
+
     /** Median adjacent log-retention rate on one curve; the horizon is modeled, not observed. */
     public function estimate(array $curve): ?array
     {
@@ -39,8 +89,8 @@ final class ValueRetentionCalculator
         }
 
         return ['method' => 'annualized', 'horizon_years' => 3,
-            'annual_retained_percent' => round($annual, 12), 'annual_depreciation_percent' => round(100 - $annual, 12),
-            'retained_percent' => round($retained, 12), 'score' => min(100.0, round($retained, 12)),
+            'annual_retained_percent' => $annual, 'annual_depreciation_percent' => round(100 - $annual, 12),
+            'retained_percent' => $retained, 'score' => min(100.0, round($retained, 12)),
             'years_used' => $years, 'interval_count' => count($rates),
             'snapshot_id' => $curve['snapshot_id'], 'version_id' => $curve['version_id'], 'currency' => $curve['currency']];
     }

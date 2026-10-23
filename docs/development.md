@@ -49,7 +49,7 @@ The scorer resolves references locally within the same normalized make/model. Ex
 priority; otherwise engine, transmission, stated power/generation and the listing year constrain
 trim-token matching. Word order, technical catalog annotations and automatic/Tiptronic labels do
 not require changing the listing. A single long token may differ by at most two edits only when
-no strict candidate exists; multiple surviving candidates always abstain. Trim modifiers such as
+no strict candidate exists; ambiguous candidates abstain unless they meet the compatible-group rules below. Trim modifiers such as
 Pack, Plus, Bitono and Cuero remain significant. This is conservative lookup, not vehicle validation.
 
 The response includes the selected `resale.reference` even when its three-year endpoint is absent.
@@ -72,8 +72,24 @@ The API's additive `resale.estimate` records the method, used years, interval co
 annual rate and modeled horizon. `comparison` remains an observed endpoint comparison, or null
 when the exact pair is absent; legacy `compare()` and `threeYearScore()` contracts are unchanged.
 These same-date model-year references estimate age-related differences, not observed historical
-price changes. A single valid year is insufficient. Ambiguous identities still abstain until the
-separate grouping unit; no form, CSV, catalog refresh or inventory repair is involved.
+price changes. A single valid year is insufficient; the listing's exact year need not have a price.
+
+### Compatible version groups
+
+Catalog slash-separated names are alternatives, not words a dealer must reproduce together.
+Explicit technical conflicts still reject a candidate. Available listing-year evidence takes
+precedence across matching tiers, preventing an old exact label from hiding a supported generation.
+Otherwise other available years may support an estimate. Engine suffixes and numbered gearboxes
+are interpreted with shared technical rules, not per-make or per-model aliases.
+
+An unresolved set may be estimated only if every pair shares make/model, currency and parsed
+engine/power/gearbox/body/door/fuel/special identity, has overlapping positive year prices, and
+differs by at most **5% in every overlapping year**. This initial conservative tolerance is global;
+it is not a claim that all such cars are identical. Pairwise checks prevent transitive price chains.
+Each generation's rate is computed on its own curve; only rates are aggregated. The UI reports
+the candidate count and retention range, without claiming an exact version. No source prices are
+stitched or rewritten. Raw projections may exceed 100%; only the ranking component is capped.
+No form, CSV, catalog refresh or inventory repair is involved.
 
 ## Google sign-in from a phone (development only)
 
@@ -763,3 +779,14 @@ Una demo moderada se reconstruye con `php artisan db:local --vehiculos=100`: dej
 HU05 suma las transferencias DNRPA de seis meses cerrados por grupo identificado de marca/modelo. El puntaje continuo es `100 * log(1 + transferencias) / log(1 + máximo del período)`: el mayor volumen recibe 100 y los demás valores crecen con rendimientos decrecientes, sin bandas por percentiles. Los empates conservan el mismo puntaje.
 
 La búsqueda actual muestra vehículos elegibles de concesionarias; la integración de Mercado Libre fue retirada. Los registros históricos de publicaciones externas se conservan, pero ya no se consultan ni se actualizan. La lectura de reventa recalcula el puntaje desde los conteos guardados; no modifica el historial ni descarga nuevamente las fuentes. Con 37.988 y 1.666 transferencias, los puntajes son 100 y aproximadamente 70,4. Es un índice relativo de actividad, no una probabilidad de venta. La prioridad de reventa mantiene 50% de actividad DNRPA y 50% de retención ACARA.
+
+### Approximate related model families
+
+Exact-family version candidates always win. With none, a whole-token model-name extension
+may supply an approximate reference only within the same make and one unique family.
+Engine, CV power, transmission, body/door evidence, trim alias and listing-year price must agree;
+missing or competing evidence abstains. Existing fuel, turbo, generation and gearbox guards apply.
+This is inference, not proof of model identity: the API/UI expose both family labels and explicitly
+mark the retention reference approximate. DNRPA activity remains independently tied to the published
+model family; no transfers are reassigned to the inferred ACARA family. No observed listing
+comparison is claimed. No model-specific aliases, ingestion changes or cross-family curve stitching.

@@ -10,7 +10,9 @@ export type Recommendation = {
   resale?: {
     activity_score: number | null; retention_score: number | null; source_date: string | null
     window_start: string | null; window_end: string | null; stale: boolean
-    estimate?: { method: 'annualized'; horizon_years: number; annual_depreciation_percent: number; years_used: number[] } | null
+    model_match?: { approximate: true; listing_model: string; reference_model: string } | null
+    estimate?: { method: 'annualized'; horizon_years: number; annual_depreciation_percent: number; years_used: number[]
+      retained_percent?: number; reference_count?: number; retention_range?: [number, number] } | null
   } | null
   published_price: number
   published_currency: 'ARS' | 'USD'
