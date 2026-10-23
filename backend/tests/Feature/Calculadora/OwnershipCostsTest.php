@@ -99,7 +99,7 @@ class OwnershipCostsTest extends TestCase
             ->assertHeader('Cache-Control', 'no-store, private')
             ->assertExactJson([
                 'vehicle' => ['id' => $car->id, 'make' => $car->marca, 'model' => $car->modelo, 'version' => $car->version,
-                    'year' => 2022, 'province' => 'Córdoba', 'published_price' => 20000000.0, 'published_currency' => 'ARS'],
+                    'year' => 2022, 'fuel' => 'nafta', 'province' => 'Córdoba', 'published_price' => 20000000.0, 'published_currency' => 'ARS'],
                 'inputs' => ['km_per_month' => 1500, 'km_source' => 'diagnostico', 'coverage' => 'terceros_completo'],
                 'purchase' => ['price' => 20000000, 'transfer' => 700000, 'total' => 20700000,
                     'budget' => ['max' => 25000000.0, 'fits' => true, 'difference' => 4300000.0]],
@@ -119,6 +119,15 @@ class OwnershipCostsTest extends TestCase
                 'rates_updated_at' => '2026-10-01',
                 'exchange_rate' => null,
             ]);
+    }
+
+    public function test_the_vehicle_fuel_type_is_exposed(): void
+    {
+        $this->buyer();
+        $electric = $this->car(['combustible' => 'electrico', 'consumo_urbano' => null, 'consumo_ruta' => null]);
+
+        $this->getJson("/api/vehiculos/{$electric->id}/costos")->assertOk()
+            ->assertJsonPath('vehicle.fuel', 'electrico')->assertJsonPath('monthly.fuel', null);
     }
 
     public function test_budget_exceeded_reports_a_negative_difference(): void

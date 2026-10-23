@@ -63,7 +63,7 @@ final class VehicleCostEstimate
         return [
             'vehicle' => [
                 'id' => (int) $vehicle->id, 'make' => $vehicle->marca, 'model' => $vehicle->modelo, 'version' => $vehicle->version,
-                'year' => (int) $vehicle->anio, 'province' => $province,
+                'year' => (int) $vehicle->anio, 'fuel' => $vehicle->combustible, 'province' => $province,
                 'published_price' => $price, 'published_currency' => $vehicle->moneda,
             ],
             'inputs' => ['km_per_month' => $kmPerMonth, 'km_source' => $source, 'coverage' => $coverage],
