@@ -15,6 +15,15 @@ const costs = (): OwnershipCosts => ({
   purchase: { price: 20000000, transfer: 700000, total: 20700000, budget: { max: 25000000, fits: true, difference: 4300000 } },
   monthly: { fuel: 120000, insurance: 100000, patente: 20000, maintenance: 66000, total: 306000,
     yearly_total: 3672000, not_estimated: [] },
+  breakdown: {
+    fuel: { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'nafta', price_fuel_type: 'nafta', unit: 'litro', unit_price: 1000 },
+    insurance: { base: 20000000, coverage: 'terceros_completo', annual_rate: 0.06 },
+    patente: { base: 20000000, province: 'Córdoba', province_known: true, annual_rate: 0.012 },
+    maintenance: { fuel_type: 'nafta', annual_base: 600000, age_years: 4, age_factor: 1.2, km: 40000, km_factor: 1.1,
+      turbo_factor: null, automatic_factor: null },
+    transfer: { base: 20000000, dnrpa_rate: 0.01, stamp_rate: 0.02, province: 'Córdoba', province_known: true, fixed_costs: 100000 },
+    rounding: 1000,
+  },
   rates_updated_at: '2026-10-23',
   exchange_rate: null,
 })
@@ -51,6 +60,42 @@ it('shows what it costs to keep and to buy the vehicle as ceilings', async () =>
   expect(within(purchase()).getByText('hasta $ 20.700.000')).toBeInTheDocument()
   expect(screen.getByText(/Estimación orientativa con valores actualizados al 23\/10\/2026, en la provincia de Córdoba\./)).toBeInTheDocument()
   expect(screen.getByText(/Puede salirte menos, no más\./)).toBeInTheDocument()
+})
+
+it('puts an info button next to each concept and explains it with the numbers of the vehicle', async () => {
+  renderPage()
+  await screen.findByRole('heading', { level: 1 })
+  const tip = async (name: string) => {
+    await userEvent.click(screen.getByRole('button', { name: `Cómo calculamos ${name}` }))
+    return screen.getByRole('tooltip')
+  }
+  expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km × $ 1.000 el litro de nafta = $ 120.000.')
+  expect(await tip('Seguro')).toHaveTextContent('6% anual del valor del auto para terceros completo, dividido 12 meses = $ 100.000 por mes.')
+  expect(await tip('Patente')).toHaveTextContent('Alícuota anual de 1,2% en Córdoba')
+  expect(await tip('Mantenimiento')).toHaveTextContent('Service anual de referencia para un auto a nafta ($ 600.000)')
+  expect(await tip('Transferencia')).toHaveTextContent('Arancel del registro (1%) + sellos de Córdoba (2%)')
+  expect(within(monthly()).getAllByRole('button')).toHaveLength(4)
+  expect(within(purchase()).getAllByRole('button')).toHaveLength(1)
+  expect(screen.queryByRole('button', { name: /Precio publicado/ })).not.toBeInTheDocument()
+})
+
+it('explains why the fuel has no estimate', async () => {
+  const data = costs()
+  vi.mocked(apiFetch).mockResolvedValue({ ...data, monthly: { ...data.monthly, fuel: null, total: 186000, yearly_total: 2232000,
+    not_estimated: ['fuel'] }, breakdown: { ...data.breakdown, fuel: null } })
+  renderPage()
+  await userEvent.click(await screen.findByRole('button', { name: 'Cómo calculamos Combustible' }))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('No tenemos datos de consumo de este auto, así que no podemos estimar el combustible.')
+})
+
+it('explains the conversion of a USD price with its own info button', async () => {
+  const data = costs()
+  vi.mocked(apiFetch).mockResolvedValue({ ...data,
+    vehicle: { ...data.vehicle, published_price: 20000, published_currency: 'USD' },
+    exchange_rate: { sell: 1030, updated_at: '2026-10-20T12:00:00Z' } })
+  renderPage()
+  await userEvent.click(await screen.findByRole('button', { name: 'Cómo calculamos Precio publicado' }))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('Precio publicado en US$ 20.000, convertido al dólar oficial venta de $ 1.030.')
 })
 
 it('prefills the form from the diagnosis and explains where the km come from', async () => {

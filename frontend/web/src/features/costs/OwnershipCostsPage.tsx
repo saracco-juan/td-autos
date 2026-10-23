@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import InfoTip from '../../components/InfoTip'
 import screenStyles from '../../components/screen.module.css'
 import { HttpError } from '../../lib/http'
 import Field from '../auth/shared/Field'
 import SessionLoading from '../auth/session/SessionLoading'
 import { formatPrice } from '../inventory/format'
 import { fetchCosts } from './api'
+import { explainConcept, type Concept } from './explainConcept'
 import { formatDate } from './format'
 import styles from './OwnershipCostsPage.module.css'
 import type { Coverage, CostsQuery, OwnershipCosts } from './types'
@@ -27,10 +29,15 @@ const KM_HINTS = {
 type FieldErrors = { km?: string[]; coverage?: string[] }
 type ValidationBody = { errors?: { km?: string[]; cobertura?: string[] } }
 
-function Row({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+type RowProps = { label: string; value: string; strong?: boolean; info?: { name: string; text: string } }
+
+function Row({ label, value, strong = false, info }: RowProps) {
   return (
     <div className={`${styles.row} ${strong ? styles.total : ''}`}>
-      <dt>{label}</dt>
+      <dt>
+        {label}
+        {info ? <InfoTip label={`Cómo calculamos ${info.name}`}>{info.text}</InfoTip> : null}
+      </dt>
       <dd>{value}</dd>
     </div>
   )
@@ -52,16 +59,22 @@ function fieldErrorsOf(error: unknown): FieldErrors | null {
 }
 
 function MonthlyCard({ data }: { data: OwnershipCosts }) {
-  const { monthly } = data
+  const { monthly, breakdown } = data
+  const info = (name: string, concept: Concept, amount: number | null) =>
+    ({ name, text: explainConcept(concept, breakdown, amount) })
   const perMonth = (value: number) => `hasta ${formatPrice(value)} por mes`
   return (
     <section className={styles.card} aria-labelledby="costs-monthly">
       <h2 id="costs-monthly" className={styles.cardTitle}>Para mantenerlo</h2>
       <dl className={styles.rows}>
-        <Row label="Combustible" value={monthly.fuel === null ? 'No podemos estimarlo' : perMonth(monthly.fuel)} />
-        <Row label="Seguro" value={perMonth(monthly.insurance)} />
-        <Row label="Patente" value={perMonth(monthly.patente)} />
-        <Row label="Mantenimiento" value={perMonth(monthly.maintenance)} />
+        <Row
+          label="Combustible"
+          value={monthly.fuel === null ? 'No podemos estimarlo' : perMonth(monthly.fuel)}
+          info={info('Combustible', 'fuel', monthly.fuel)}
+        />
+        <Row label="Seguro" value={perMonth(monthly.insurance)} info={info('Seguro', 'insurance', monthly.insurance)} />
+        <Row label="Patente" value={perMonth(monthly.patente)} info={info('Patente', 'patente', monthly.patente)} />
+        <Row label="Mantenimiento" value={perMonth(monthly.maintenance)} info={info('Mantenimiento', 'maintenance', monthly.maintenance)} />
         <Row label="Total por mes" value={`hasta ${formatPrice(monthly.total)}`} strong />
       </dl>
       <p className={styles.note}>Equivale a hasta {formatPrice(monthly.yearly_total)} por año</p>
@@ -71,17 +84,28 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
 }
 
 function PurchaseCard({ data }: { data: OwnershipCosts }) {
-  const { purchase, vehicle, exchange_rate: rate } = data
+  const { purchase, vehicle, exchange_rate: rate, breakdown } = data
   const budget = purchase.budget
+  const usd = vehicle.published_currency === 'USD' && rate
+    ? { published: vehicle.published_price, rate: rate.sell }
+    : undefined
   return (
     <section className={styles.card} aria-labelledby="costs-purchase">
       <h2 id="costs-purchase" className={styles.cardTitle}>Para comprarlo</h2>
       <dl className={styles.rows}>
-        <Row label="Precio" value={formatPrice(purchase.price)} />
-        <Row label="Transferencia" value={formatPrice(purchase.transfer)} />
+        <Row
+          label="Precio"
+          value={formatPrice(purchase.price)}
+          info={usd ? { name: 'Precio publicado', text: explainConcept('price', breakdown, purchase.price, usd) } : undefined}
+        />
+        <Row
+          label="Transferencia"
+          value={formatPrice(purchase.transfer)}
+          info={{ name: 'Transferencia', text: explainConcept('transfer', breakdown, purchase.transfer) }}
+        />
         <Row label="Total" value={`hasta ${formatPrice(purchase.total)}`} strong />
       </dl>
-      {vehicle.published_currency === 'USD' && rate ? (
+      {usd && rate ? (
         <p className={styles.note}>
           Publicado en {formatPrice(vehicle.published_price, 'USD')}, al dólar oficial venta de {formatPrice(rate.sell)} ({formatDate(rate.updated_at)}).
         </p>
