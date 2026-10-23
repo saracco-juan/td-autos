@@ -63,14 +63,16 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
   const info = (name: string, concept: Concept, amount: number | null) =>
     ({ name, text: explainConcept(concept, breakdown, amount) })
   const perMonth = (value: number) => `${formatPrice(value)} por mes`
+  // Electric cars have no fuel to price yet: charging costs are announced, not estimated (D15).
+  const electric = data.vehicle.fuel === 'electrico'
   return (
     <section className={styles.card} aria-labelledby="costs-monthly">
       <h2 id="costs-monthly" className={styles.cardTitle}>Para mantenerlo</h2>
       <dl className={styles.rows}>
         <Row
           label="Combustible"
-          value={monthly.fuel === null ? 'No podemos estimarlo' : perMonth(monthly.fuel)}
-          info={info('Combustible', 'fuel', monthly.fuel)}
+          value={monthly.fuel !== null ? perMonth(monthly.fuel) : electric ? 'Próximamente' : 'No podemos estimarlo'}
+          info={info('Combustible', electric && monthly.fuel === null ? 'charging' : 'fuel', monthly.fuel)}
         />
         <Row label="Seguro" value={perMonth(monthly.insurance)} info={info('Seguro', 'insurance', monthly.insurance)} />
         <Row label="Patente" value={perMonth(monthly.patente)} info={info('Patente', 'patente', monthly.patente)} />
@@ -78,7 +80,9 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
         <Row label="Total por mes" value={formatPrice(monthly.total)} strong />
         <Row label="Total por año" value={formatPrice(monthly.yearly_total)} strong />
       </dl>
-      {monthly.not_estimated.includes('fuel') ? <p className={styles.note}>El total no incluye el combustible.</p> : null}
+      {monthly.not_estimated.includes('fuel') ? (
+        <p className={styles.note}>{electric ? 'El total no incluye la carga del auto.' : 'El total no incluye el combustible.'}</p>
+      ) : null}
     </section>
   )
 }

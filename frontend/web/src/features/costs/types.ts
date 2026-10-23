@@ -42,6 +42,8 @@ export type OwnershipCosts = {
     model: string
     version: string | null
     year: number
+    // The vehicle's combustible; null when the listing has none.
+    fuel: FuelType | null
     province: string | null
     published_price: number
     published_currency: 'ARS' | 'USD'

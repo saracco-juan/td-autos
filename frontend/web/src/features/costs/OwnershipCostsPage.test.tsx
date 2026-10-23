@@ -9,7 +9,7 @@ import type { OwnershipCosts } from './types'
 vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 
 const costs = (): OwnershipCosts => ({
-  vehicle: { id: 1, make: 'Toyota', model: 'Corolla', version: 'XEI', year: 2022, province: 'Córdoba',
+  vehicle: { id: 1, make: 'Toyota', model: 'Corolla', version: 'XEI', year: 2022, fuel: 'nafta', province: 'Córdoba',
     published_price: 20000000, published_currency: 'ARS' },
   inputs: { km_per_month: 1500, km_source: 'diagnostico', coverage: 'terceros_completo' },
   purchase: { price: 20000000, transfer: 700000, total: 20700000, budget: { max: 25000000, fits: true, difference: 4300000 } },
@@ -143,6 +143,31 @@ it('says the fuel cannot be estimated and that the total leaves it out', async (
   renderPage()
   expect(await screen.findByText('No podemos estimarlo')).toBeInTheDocument()
   expect(within(monthly()).getByText('$ 186.000')).toBeInTheDocument()
+  expect(screen.getByText('El total no incluye el combustible.')).toBeInTheDocument()
+})
+
+it('shows charging costs as coming soon for an electric car', async () => {
+  const data = costs()
+  vi.mocked(apiFetch).mockResolvedValue({ ...data, vehicle: { ...data.vehicle, fuel: 'electrico' },
+    monthly: { ...data.monthly, fuel: null, total: 186000, yearly_total: 2232000, not_estimated: ['fuel'] },
+    breakdown: { ...data.breakdown, fuel: null } })
+  renderPage()
+  expect(await screen.findByText('Próximamente')).toBeInTheDocument()
+  expect(screen.queryByText('No podemos estimarlo')).not.toBeInTheDocument()
+  expect(screen.getByText('El total no incluye la carga del auto.')).toBeInTheDocument()
+  expect(screen.queryByText('El total no incluye el combustible.')).not.toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 186.000')).toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Cómo calculamos Combustible' }))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('Pronto vas a poder ver cuánto te cuesta cargarlo.')
+})
+
+it('keeps "No podemos estimarlo" for a non-electric car without a fuel type', async () => {
+  const data = costs()
+  vi.mocked(apiFetch).mockResolvedValue({ ...data, vehicle: { ...data.vehicle, fuel: null },
+    monthly: { ...data.monthly, fuel: null, not_estimated: ['fuel'] }, breakdown: { ...data.breakdown, fuel: null } })
+  renderPage()
+  expect(await screen.findByText('No podemos estimarlo')).toBeInTheDocument()
+  expect(screen.queryByText('Próximamente')).not.toBeInTheDocument()
   expect(screen.getByText('El total no incluye el combustible.')).toBeInTheDocument()
 })
 

@@ -1,7 +1,7 @@
 import { formatPrice, groupThousands } from '../inventory/format'
 import type { CostBreakdown, FuelType } from './types'
 
-export type Concept = 'fuel' | 'insurance' | 'patente' | 'maintenance' | 'transfer' | 'price'
+export type Concept = 'fuel' | 'charging' | 'insurance' | 'patente' | 'maintenance' | 'transfer' | 'price'
 
 const FUEL_NAMES: Record<'nafta' | 'diesel' | 'gnc', string> = { nafta: 'nafta', diesel: 'diésel', gnc: 'GNC' }
 const CAR_BY_FUEL: Record<FuelType, string> = {
@@ -39,6 +39,8 @@ export function explainConcept(
       const priceLabel = gnc ? 'el m³ de GNC' : `el litro de ${FUEL_NAMES[fuel.price_fuel_type]}`
       return `${groupThousands(fuel.km_per_month)} km por mes × ${decimal(fuel.consumption_l_100km)} ${unit} cada 100 km (consumo del auto) × ${formatPrice(fuel.unit_price)} ${priceLabel} = ${money}.`
     }
+    case 'charging':
+      return 'Pronto vas a poder ver cuánto te cuesta cargarlo.'
     case 'insurance': {
       const { annual_rate: rate, coverage } = breakdown.insurance
       const label = coverage === 'todo_riesgo' ? 'todo riesgo' : 'terceros completo'

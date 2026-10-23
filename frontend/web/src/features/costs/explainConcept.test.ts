@@ -35,6 +35,10 @@ describe('explainConcept', () => {
     expect(explainConcept('fuel', breakdown({ fuel }), 160000)).toContain('5 L cada 100 km (consumo del auto) × $ 2.125 el litro de nafta = $ 160.000.')
   })
 
+  it('tells an electric car that charging costs are coming', () => {
+    expect(explainConcept('charging', breakdown({ fuel: null }), null)).toBe('Pronto vas a poder ver cuánto te cuesta cargarlo.')
+  })
+
   it('says there is no fuel estimate when the car has no consumption data', () => {
     const text = explainConcept('fuel', breakdown({ fuel: null }), null)
     expect(text).toBe('No tenemos datos de consumo de este auto, así que no podemos estimar el combustible.')
