@@ -4,7 +4,7 @@ namespace App\Services\Resale;
 
 use Illuminate\Support\Str;
 
-/** Batch local evidence only: exact inventory labels, never aliases or remote lookups. */
+/** Batch local evidence only: unique catalog references, never remote lookups. */
 final class ResaleScorer
 {
     public function scores(iterable $vehicles, array $prices, array $transfers): array
@@ -13,16 +13,17 @@ final class ResaleScorer
         $activity = $transfers['snapshot']['activity'] ?? null;
         $curves = $groups = $results = [];
         foreach ($catalog['rows'] ?? [] as $row) {
-            $key = $this->key([$row['make'], $row['model'], $row['version']]);
+            $key = $this->key([$row['make'], $row['model']]);
             $curves[$key][] = $row;
         }
         foreach ($activity['models'] ?? [] as $row) {
             $groups[$this->key([$row['make'], $row['model'], implode(' ', $row['special'])])][] = $row;
         }
         $calculator = new ValueRetentionCalculator;
+        $matcher = new ResaleReferenceMatcher;
         foreach ($vehicles as $vehicle) {
-            $matches = $curves[$this->key([$vehicle->marca ?? '', $vehicle->modelo ?? '', $vehicle->version ?? ''])] ?? [];
-            $row = count($matches) === 1 ? $matches[0] : null;
+            $family = [$vehicle->marca ?? '', $vehicle->modelo ?? ''];
+            $row = $matcher->resolve($vehicle, $curves[$this->key($family)] ?? []);
             $comparison = $retention = $activityScore = null;
             if ($row !== null) {
                 $point = ['snapshot_id' => $catalog['snapshot_id'], 'version_id' => $row['version_id'],
@@ -32,15 +33,17 @@ final class ResaleScorer
                     'price' => $row['values'][$vehicle->anio - 3] ?? null]);
                 $comparison = $calculator->compare($point, $older);
                 $retention = $calculator->threeYearScore($point, $older);
-                // Exactly the reader's explicit, catalog-corroborated special markers.
-                $tokens = explode(' ', $this->normalize($row['model'].' '.$row['version']));
-                $special = array_values(array_intersect(['diesel', 'gti'], $tokens));
-                $group = $groups[$this->key([$row['make'], $row['model'], implode(' ', $special)])] ?? [];
-                $activityScore = count($group) === 1 ? $group[0]['score'] : null;
             }
+            // DNRPA measures family activity independently of an available ACARA year pair.
+            $tokens = explode(' ', $this->normalize(($vehicle->modelo ?? '').' '.($vehicle->version ?? '')
+                .' '.($row['version'] ?? '').' '.($vehicle->combustible ?? '')));
+            $special = array_values(array_intersect(['diesel', 'gti'], $tokens));
+            $group = $groups[$this->key([...$family, implode(' ', $special)])] ?? [];
+            $activityScore = count($group) === 1 ? $group[0]['score'] : null;
             $results[$vehicle->id] = [
                 'score' => $retention === null || $activityScore === null ? null : ($retention + $activityScore) / 2,
                 'activity_score' => $activityScore, 'retention_score' => $retention, 'comparison' => $comparison,
+                'reference' => $row === null ? null : array_intersect_key($row, array_flip(['version_id', 'version', 'currency'])),
                 'source_date' => $catalog['source_date'] ?? null, 'snapshot_id' => $catalog['snapshot_id'] ?? null,
                 'window_start' => $activity['window_start'] ?? null, 'window_end' => $activity['window_end'] ?? null,
                 'activity_catalog_snapshot_id' => $activity['catalog_snapshot_id'] ?? null,

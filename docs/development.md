@@ -41,7 +41,23 @@ data, not real offers. No year or missing price is changed to manufacture a thre
 For a manual check, start the API and web as in `getting-started.md`, open the demo buyer's
 recommendations and expand vehicle attributes. Titles and engine/power/turbo must agree with the
 selected demo variants. Existing photos and prices must remain unchanged. This repair alone does
-not add tolerant catalog matching; resale can still be unavailable until the separate resolver fix.
+not itself add tolerant catalog matching.
+
+### Resale reference matching
+
+The scorer resolves references locally within the same normalized make/model. Exact labels retain
+priority; otherwise engine, transmission, stated power/generation and the listing year constrain
+trim-token matching. Word order, technical catalog annotations and automatic/Tiptronic labels do
+not require changing the listing. A single long token may differ by at most two edits only when
+no strict candidate exists; multiple surviving candidates always abstain. Trim modifiers such as
+Pack, Plus, Bitono and Cuero remain significant. This is conservative lookup, not vehicle validation.
+
+The response includes the selected `resale.reference` even when its three-year endpoint is absent.
+DNRPA family activity is independent of price-reference availability; diesel/GTI groups stay separate.
+A complete resale score still requires both activity and retention. Prices must come from one
+version/generation and currency: missing years are never stitched from another row or interpolated.
+Thus finding a catalog model does not guarantee a complete resale estimate. Inventory and CSV
+contracts are unchanged, and recommendation requests never persist corrected labels.
 
 ## Google sign-in from a phone (development only)
 

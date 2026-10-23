@@ -90,7 +90,7 @@ class RecommendationsTest extends TestCase
 
     public function test_hu05_local_resale_sources_combine_without_refresh_or_writes(): void
     {
-        $this->buyer(['prioridad' => 'reventa']);
+        $this->buyer(['prioridad' => 'reventa', 'transmision' => 'indiferente']);
         $car = $this->car(['marca' => 'Test', 'modelo' => 'Example', 'version' => 'Base']);
         $catalog = ['snapshot_id' => 'acara:test', 'source_date' => '2026-10-19', 'fetched_at' => now()->toISOString(),
             'rows' => [['make' => 'Test', 'model' => 'Example', 'version' => 'Base', 'version_id' => 'base',
@@ -105,6 +105,17 @@ class RecommendationsTest extends TestCase
             ->assertJsonPath('results.0.score', 97.5)->assertJsonPath('results.0.components.priority', 90)
             ->assertJsonPath('results.0.resale.activity_score', 100)->assertJsonPath('results.0.resale.retention_score', 80)
             ->assertJsonPath('results.0.resale.source_date', '2026-10-19')->assertJsonPath('results.0.resale.window_end', '2026-09');
+        $car->update(['version' => 'Feel Pack 1.6 AT', 'motor' => '1.6', 'potencia' => 115,
+            'potencia_unidad' => 'CV', 'transmision' => 'automatica']);
+        $natural = $catalog;
+        $natural['rows'][0]['version'] = '1.6 Feel Pack AT (115cv) (L18)';
+        Cache::forever('resale.acara.last-valid.v1', $natural);
+        $inventoryBefore = $car->fresh()->getAttributes();
+        $this->getJson('/api/recomendaciones')->assertOk()
+            ->assertJsonPath('results.0.resale.retention_score', 80)
+            ->assertJsonPath('results.0.resale.reference.version', '1.6 Feel Pack AT (115cv) (L18)');
+        $this->assertSame($inventoryBefore, $car->fresh()->getAttributes());
+        $car->update(['version' => 'Base', 'potencia' => 110, 'transmision' => 'manual']);
         foreach (['missing version', 'missing year', 'ambiguous identity', 'missing activity', 'missing catalog'] as $case) {
             DB::table('dnrpa_activity_history')->updateOrInsert(['month' => '2026-09'], ['payload' => json_encode(['activity' => $activity])]);
             $changed = $catalog;
