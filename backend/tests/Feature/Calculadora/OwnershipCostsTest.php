@@ -105,6 +105,17 @@ class OwnershipCostsTest extends TestCase
                     'budget' => ['max' => 25000000.0, 'fits' => true, 'difference' => 4300000.0]],
                 'monthly' => ['fuel' => 120000, 'insurance' => 100000, 'patente' => 20000, 'maintenance' => 66000,
                     'total' => 306000, 'yearly_total' => 3672000, 'not_estimated' => []],
+                'breakdown' => [
+                    'fuel' => ['km_per_month' => 1500, 'consumption_l_100km' => 8.0, 'fuel_type' => 'nafta', 'price_fuel_type' => 'nafta',
+                        'unit' => 'litro', 'unit_price' => 1000],
+                    'insurance' => ['base' => 20000000.0, 'coverage' => 'terceros_completo', 'annual_rate' => 0.06],
+                    'patente' => ['base' => 20000000.0, 'province' => 'Córdoba', 'province_known' => true, 'annual_rate' => 0.012],
+                    'maintenance' => ['fuel_type' => 'nafta', 'annual_base' => 600000, 'age_years' => 4, 'age_factor' => 1.2,
+                        'km' => 40000, 'km_factor' => 1.1, 'turbo_factor' => null, 'automatic_factor' => null],
+                    'transfer' => ['base' => 20000000.0, 'dnrpa_rate' => 0.01, 'stamp_rate' => 0.02, 'province' => 'Córdoba',
+                        'province_known' => true, 'fixed_costs' => 100000],
+                    'rounding' => 1000,
+                ],
                 'rates_updated_at' => '2026-10-01',
                 'exchange_rate' => null,
             ]);
@@ -229,7 +240,8 @@ class OwnershipCostsTest extends TestCase
 
         $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
             ->assertJsonPath('monthly.fuel', null)
-            ->assertJsonPath('monthly.not_estimated', ['fuel']);
+            ->assertJsonPath('monthly.not_estimated', ['fuel'])
+            ->assertJsonPath('breakdown.fuel', null);
     }
 
     public function test_unknown_hidden_and_non_dealer_vehicles_answer_404(): void

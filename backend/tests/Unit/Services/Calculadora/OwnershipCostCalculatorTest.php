@@ -70,6 +70,58 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame([], $r['monthly']['not_estimated']);
     }
 
+    public function test_reference_case_exposes_how_each_concept_was_calculated(): void
+    {
+        $this->assertEquals([
+            'fuel' => ['km_per_month' => 1500, 'consumption_l_100km' => 8.0, 'fuel_type' => 'nafta', 'price_fuel_type' => 'nafta',
+                'unit' => 'litro', 'unit_price' => 1000],
+            'insurance' => ['base' => 20000000, 'coverage' => 'terceros_completo', 'annual_rate' => 0.06],
+            'patente' => ['base' => 20000000, 'province' => 'Córdoba', 'province_known' => true, 'annual_rate' => 0.012],
+            'maintenance' => ['fuel_type' => 'nafta', 'annual_base' => 600000, 'age_years' => 4, 'age_factor' => 1.2,
+                'km' => 40000, 'km_factor' => 1.1, 'turbo_factor' => null, 'automatic_factor' => null],
+            'transfer' => ['base' => 20000000, 'dnrpa_rate' => 0.01, 'stamp_rate' => 0.02, 'province' => 'Córdoba',
+                'province_known' => true, 'fixed_costs' => 100000],
+            'rounding' => 1000,
+        ], $this->estimate()['breakdown']);
+    }
+
+    public function test_breakdown_fuel_is_null_when_fuel_is_not_estimated(): void
+    {
+        $this->assertNull($this->estimate(['fuel' => 'electrico'])['breakdown']['fuel']);
+    }
+
+    public function test_breakdown_flags_an_unknown_province_and_the_rate_used(): void
+    {
+        $b = $this->estimate(province: 'Atlantida')['breakdown'];
+
+        $this->assertFalse($b['patente']['province_known']);
+        $this->assertFalse($b['transfer']['province_known']);
+        $this->assertSame('Atlantida', $b['patente']['province']);
+        $this->assertEquals(0.02, $b['patente']['annual_rate']);
+        $this->assertEquals(0.03, $b['transfer']['stamp_rate']);
+    }
+
+    public function test_breakdown_uses_cubic_meters_for_gnc_and_nafta_price_for_hybrid(): void
+    {
+        $gnc = $this->estimate(['fuel' => 'gnc'])['breakdown']['fuel'];
+        $this->assertSame('m3', $gnc['unit']);
+        $this->assertSame('gnc', $gnc['price_fuel_type']);
+        $this->assertEquals(500, $gnc['unit_price']);
+
+        $hybrid = $this->estimate(['fuel' => 'hibrido'])['breakdown']['fuel'];
+        $this->assertSame('hibrido', $hybrid['fuel_type']);
+        $this->assertSame('nafta', $hybrid['price_fuel_type']);
+        $this->assertSame('litro', $hybrid['unit']);
+    }
+
+    public function test_breakdown_reports_turbo_and_automatic_factors_only_when_they_apply(): void
+    {
+        $m = $this->estimate(['turbo' => true, 'transmision' => 'automatica'])['breakdown']['maintenance'];
+
+        $this->assertEquals(1.1, $m['turbo_factor']);
+        $this->assertEquals(1.2, $m['automatic_factor']);
+    }
+
     public function test_every_concept_rounds_up_and_totals_sum_rounded_concepts(): void
     {
         $r = $this->estimate(['price_ars' => 20000001], rates: ['fuel_prices' => ['nafta' => 1000.4]]);
