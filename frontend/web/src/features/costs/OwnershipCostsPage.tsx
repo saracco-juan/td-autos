@@ -21,7 +21,7 @@ const COVERAGES: { value: Coverage; label: string }[] = [
   { value: 'todo_riesgo', label: 'Todo riesgo' },
 ]
 const KM_HINTS = {
-  diagnostico: 'Según lo que elegiste en tu diagnóstico.',
+  diagnostico: undefined,
   default: 'Usamos un valor estimado.',
   usuario: undefined,
 }

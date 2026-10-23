@@ -101,11 +101,11 @@ it('explains the conversion of a USD price with its own info button', async () =
   expect(screen.getByRole('tooltip')).toHaveTextContent('Precio publicado en US$ 20.000, convertido al dólar oficial venta de $ 1.030.')
 })
 
-it('prefills the form from the diagnosis and explains where the km come from', async () => {
+it('prefills the form from the diagnosis without a hint under the km', async () => {
   renderPage()
   expect(await screen.findByLabelText('Kilómetros por mes')).toHaveValue(1500)
   expect(screen.getByLabelText('Cobertura del seguro')).toHaveValue('terceros_completo')
-  expect(screen.getByText('Según lo que elegiste en tu diagnóstico.')).toBeInTheDocument()
+  expect(screen.queryByText(/diagnóstico/)).not.toBeInTheDocument()
 })
 
 it('explains an estimated default km value', async () => {
