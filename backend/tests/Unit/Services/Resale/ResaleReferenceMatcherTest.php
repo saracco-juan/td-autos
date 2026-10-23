@@ -43,6 +43,43 @@ class ResaleReferenceMatcherTest extends TestCase
         }
     }
 
+    public function test_turbo_word_and_engine_suffix_are_equivalent_technical_annotations(): void
+    {
+        foreach ([
+            ['LT 1.4 Turbo MT', '1.4T MT LT (153cv) 4Ptas.', 'manual'],
+            ['Limited 1.0 Turbo AT', '1.0T Limited AT (120cv)', 'automatica'],
+            ['Core 1.2 Turbo 6MT', '1.2TSI Core MT6 (75cv)', 'manual'],
+            ['Core 1.2 TSI MT', '1.2 Turbo Core MT (75cv)', 'manual'],
+        ] as [$label, $reference, $transmission]) {
+            $result = $this->score($label, [$reference], ['transmision' => $transmission, 'turbo' => true]);
+            $this->assertSame(70.0, $result['score'], $label);
+            $this->assertSame(80.0, $result['retention_score'], $label);
+            $this->assertSame(60, $result['activity_score'], $label);
+            $this->assertSame($reference, $result['reference']['version_id'], $label);
+            $this->assertSame('ARS', $result['reference']['currency'], $label);
+            $this->assertNull($result['model_match'], $label);
+        }
+    }
+
+    public function test_turbo_normalization_preserves_conflicting_facts_and_real_trim_modifiers(): void
+    {
+        $reference = '1.4T MT Core (153cv)';
+        $facts = ['transmision' => 'manual', 'motor' => '1.4', 'potencia' => 153,
+            'potencia_unidad' => 'CV', 'turbo' => true];
+        foreach ([['turbo' => false], ['motor' => '1.6'], ['potencia' => 150],
+            ['transmision' => 'automatica']] as $conflict) {
+            $result = $this->score('Core 1.4 Turbo MT', [$reference], array_replace($facts, $conflict));
+            $this->assertNull($result['retention_score']);
+            $this->assertNull($result['score']);
+        }
+        foreach (['Core Plus', 'Core S', 'Core GTI'] as $trim) {
+            $this->assertNull($this->score("$trim 1.4 Turbo MT", [$reference], $facts)['retention_score']);
+        }
+        $before = $this->score('Core 1.4T MT', [$reference], $facts);
+        $this->assertSame(70.0, $before['score']);
+        $this->assertSame($before, $this->score('Core 1.4 Turbo MT', [$reference], $facts));
+    }
+
     public function test_never_chooses_another_trim_or_conflicting_technical_identity(): void
     {
         $reference = '1.6 Feel Pack AT (115cv) (L18)';

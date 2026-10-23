@@ -94,6 +94,23 @@ class GroupedRetentionTest extends TestCase
         $this->assertNull($this->score('Core 1.2 MT', [$row, $exact], ['_body' => 'Hatchback'])['model_match']);
     }
 
+    public function test_related_family_turbo_word_uses_the_same_technical_normalization(): void
+    {
+        $row = array_replace($this->row('1.2T Core MT (75cv) 5Ptas.'), ['model' => 'Hatch MK']);
+        $facts = ['_body' => 'Hatchback', 'turbo' => true];
+        $result = $this->score('Core 1.2 Turbo MT', [$row], $facts);
+        $this->assertEqualsWithDelta(72.9, $result['retention_score'], 1e-9);
+        $this->assertEqualsWithDelta(66.45, $result['score'], 1e-9);
+        $this->assertSame(60, $result['activity_score']);
+        $this->assertSame(['approximate' => true, 'listing_model' => 'Hatch',
+            'reference_model' => 'Hatch MK'], $result['model_match']);
+        $this->assertSame('ARS', $result['reference']['currency']);
+        $this->assertNull($result['comparison']);
+        $this->assertSame($this->score('Core 1.2T MT', [$row], $facts), $result);
+        $this->assertNull($this->score('Core 1.2 Turbo MT', [$row], array_replace($facts, ['turbo' => false]))['estimate']);
+        $this->assertNull($this->score('Core Plus 1.2 Turbo MT', [$row], $facts)['estimate']);
+    }
+
     public function test_related_models_abstain_on_ambiguity_or_insufficient_technical_evidence(): void
     {
         $row = array_replace($this->row('1.2 Core MT (75cv) 5Ptas.'), ['model' => 'Hatch MK']);

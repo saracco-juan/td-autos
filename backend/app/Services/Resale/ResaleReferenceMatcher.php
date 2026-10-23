@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 /** Resolve compatible local references; never stitch curves or choose the first ambiguous match. */
 final class ResaleReferenceMatcher
 {
+    private const TURBO_WORDS = 'tsi|tfsi|thp|tbi|turbo';
+
     public function resolve(object $car, array $rows): ?array
     {
         $matches = $this->candidates($car, $rows, false);
@@ -155,10 +157,12 @@ final class ResaleReferenceMatcher
         preg_match('/\b([345])\s*ptas\b/', $label, $doors);
         $body = preg_match('/\b(variant|sw|rural|familiar)\b/', $label) ? 'wagon' : (preg_match('/\b(sedan|4ptas)\b/', $label) ? 'sedan' : null);
         $fuel = preg_match('/\b(diesel|tdi|hdi|dci)\b/', $label) ? 'diesel' : null;
-        $turbo = preg_match('/\b(tsi|tfsi|thp|tbi|turbo)\b|\d[.,]\dt\b/', $label) ? true : null;
+        $turbo = preg_match('/\b('.self::TURBO_WORDS.')\b|\d[.,]\dt\b/', $label) ? true : null;
         $trim = preg_replace([
             '/\b\d[.,]\d(?:tsi|tbi|tdi|t)?\b/', '/\b\d+\s*cv\b/', '/\bl\d{2}\b/',
-            '/\b(at\d?|\d?at|cvt|tiptronic|dsg|powershift|automatic[ao]|\d?mt|mt\d?|manual|tsi|tfsi|thp|tbi)\b/',
+            '/\b(at\d?|\d?at|cvt|tiptronic|dsg|powershift|automatic[ao]|\d?mt|mt\d?|manual)\b/',
+            // Technical terms cannot also become trim modifiers; keep recognition and removal in sync.
+            '/\b('.self::TURBO_WORDS.')\b/',
             '/\bi[ -]?vtec\b/', '/\bpaddleshift\s*\d*\b/',
             '/\b(sedan|\d\s*ptas|[24]wd)\b/',
         ], ' ', $label);

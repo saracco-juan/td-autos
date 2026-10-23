@@ -52,6 +52,12 @@ not require changing the listing. A single long token may differ by at most two 
 no strict candidate exists; ambiguous candidates abstain unless they meet the compatible-group rules below. Trim modifiers such as
 Pack, Plus, Bitono and Cuero remain significant. This is conservative lookup, not vehicle validation.
 
+Turbo words (`turbo`, `TSI`, `TFSI`, `THP`, `TBI`) use one shared vocabulary for technical
+recognition and removal from trim tokens. Thus `Core 1.4 Turbo MT` and `1.4T MT Core`
+can identify the same version without changing the listing, in both exact and related-family
+lookup. Explicit turbo, engine, power and gearbox contradictions still reject the reference;
+real trim modifiers remain significant. This rule is independent of vehicle make/model.
+
 The response includes the selected `resale.reference` even when its three-year endpoint is absent.
 DNRPA family activity is independent of price-reference availability; diesel/GTI groups stay separate.
 A complete resale score still requires both activity and retention. Prices must come from one
