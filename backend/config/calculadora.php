@@ -42,8 +42,8 @@ return [
     'transfer' => [
         // DNRPA registration fee, fraction of the vehicle value: 1% in 2026 sources, 1.5% kept as a hedge.
         'dnrpa_rate' => 0.015,
-        // Minimum fee 33,600 + police check 25,000 + forms and domain report ~20,000 + gestor 150,000 (ARS).
-        'fixed_costs' => 230000,
+        // Minimum fee 33,600 + police check 25,000 + forms and domain report ~20,000, rounded up; no gestor (ARS).
+        'fixed_costs' => 80000,
         // Provincial stamp tax on a used car transfer, fraction of the vehicle value, by normalized province.
         'stamp_rate' => [
             'buenos_aires' => 0.03, 'caba' => 0.03, 'catamarca' => 0.015, 'chaco' => 0.015,
