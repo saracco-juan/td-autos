@@ -19,9 +19,6 @@ function decimal(value: number): string {
 
 const percent = (rate: number) => `${decimal(rate * 100)}%`
 
-const withRounding = (text: string, breakdown: CostBreakdown) =>
-  `${text} Redondeamos para arriba a $${groupThousands(breakdown.rounding)}.`
-
 /**
  * Spanish text that shows where an amount comes from, using the real numbers of the vehicle.
  * `amount` is the figure shown on the screen; `usd` is only read for the published price.
@@ -40,22 +37,19 @@ export function explainConcept(
       const gnc = fuel.unit === 'm3'
       const unit = gnc ? 'm³' : 'L'
       const priceLabel = gnc ? 'el m³ de GNC' : `el litro de ${FUEL_NAMES[fuel.price_fuel_type]}`
-      return withRounding(
-        `${groupThousands(fuel.km_per_month)} km por mes × ${decimal(fuel.consumption_l_100km)} ${unit} cada 100 km × ${formatPrice(fuel.unit_price)} ${priceLabel} = ${money}. Usamos el consumo más alto del auto (urbano o ruta).`,
-        breakdown,
-      )
+      return `${groupThousands(fuel.km_per_month)} km por mes × ${decimal(fuel.consumption_l_100km)} ${unit} cada 100 km, que es el consumo de este auto, × ${formatPrice(fuel.unit_price)} ${priceLabel} = ${money}.`
     }
     case 'insurance': {
       const { annual_rate: rate, coverage } = breakdown.insurance
       const label = coverage === 'todo_riesgo' ? 'todo riesgo' : 'terceros completo'
-      return withRounding(`${percent(rate)} anual del valor del auto para ${label}, dividido 12 meses = ${money} por mes.`, breakdown)
+      return `${percent(rate)} anual del valor del auto para ${label}, dividido 12 meses = ${money} por mes.`
     }
     case 'patente': {
       const { province, province_known: known, annual_rate: rate } = breakdown.patente
       const lead = known
         ? `Alícuota anual de ${percent(rate)} en ${province}, sobre`
-        : `No reconocimos la provincia, así que usamos la alícuota más alta (${percent(rate)}) sobre`
-      return withRounding(`${lead} el valor del auto, dividido 12 meses = ${money} por mes.`, breakdown)
+        : `Alícuota anual de ${percent(rate)} sobre`
+      return `${lead} el valor del auto, dividido 12 meses = ${money} por mes.`
     }
     case 'maintenance': {
       const m = breakdown.maintenance
@@ -64,19 +58,17 @@ export function explainConcept(
         m.turbo_factor === null ? '' : `, turbo (×${decimal(m.turbo_factor)})`,
         m.automatic_factor === null ? '' : `, caja automática (×${decimal(m.automatic_factor)})`,
       ].join('')
-      return withRounding(
-        `Service anual de referencia para ${CAR_BY_FUEL[m.fuel_type]} (${formatPrice(m.annual_base)}), ajustado por antigüedad (${years}, ×${decimal(m.age_factor)}) y kilometraje (${groupThousands(m.km)} km, ×${decimal(m.km_factor)})${extras}, dividido 12 meses = ${money} por mes.`,
-        breakdown,
+      return (
+        `Service anual de referencia para ${CAR_BY_FUEL[m.fuel_type]} (${formatPrice(m.annual_base)}), ajustado por antigüedad (${years}, ×${decimal(m.age_factor)}) y kilometraje (${groupThousands(m.km)} km, ×${decimal(m.km_factor)})${extras}, dividido 12 meses = ${money} por mes.`
       )
     }
     case 'transfer': {
       const t = breakdown.transfer
       const stamp = t.province_known
         ? `sellos de ${t.province} (${percent(t.stamp_rate)})`
-        : `sellos (${percent(t.stamp_rate)}, el más alto porque no reconocimos la provincia)`
-      return withRounding(
-        `Arancel del registro (${percent(t.dnrpa_rate)}) + ${stamp} sobre el valor del auto, más ${formatPrice(t.fixed_costs)} de gastos fijos (formularios, verificación y gestor) = ${money}.`,
-        breakdown,
+        : `sellos (${percent(t.stamp_rate)})`
+      return (
+        `Arancel del registro (${percent(t.dnrpa_rate)}) + ${stamp} sobre el valor del auto, más ${formatPrice(t.fixed_costs)} de gastos fijos (formularios y verificación) = ${money}.`
       )
     }
     case 'price':

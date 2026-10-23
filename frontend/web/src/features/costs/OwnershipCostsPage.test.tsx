@@ -40,26 +40,27 @@ beforeEach(() => {
   vi.mocked(apiFetch).mockReset().mockResolvedValue(costs())
 })
 
-it('shows what it costs to keep and to buy the vehicle as ceilings', async () => {
+it('shows what it costs to keep and to buy the vehicle without ceiling wording', async () => {
   renderPage()
   expect(await screen.findByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2022' })).toBeInTheDocument()
   expect(apiFetch).toHaveBeenCalledWith('/api/vehiculos/1/costos')
   expect(screen.getByText('COSTO DE POSESIÓN')).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Volver a recomendaciones' })).toHaveAttribute('href', '/recomendaciones')
 
-  expect(within(monthly()).getByText('hasta $ 120.000 por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('hasta $ 100.000 por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('hasta $ 20.000 por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('hasta $ 66.000 por mes')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 120.000 por mes')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 100.000 por mes')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 20.000 por mes')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 66.000 por mes')).toBeInTheDocument()
   expect(within(monthly()).getByText('Total por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('hasta $ 306.000')).toBeInTheDocument()
-  expect(within(monthly()).getByText('Equivale a hasta $ 3.672.000 por año')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 306.000')).toBeInTheDocument()
+  expect(within(monthly()).getByText('Equivale a $ 3.672.000 por año')).toBeInTheDocument()
 
   expect(within(purchase()).getByText('$ 20.000.000')).toBeInTheDocument()
   expect(within(purchase()).getByText('$ 700.000')).toBeInTheDocument()
-  expect(within(purchase()).getByText('hasta $ 20.700.000')).toBeInTheDocument()
-  expect(screen.getByText(/Estimación orientativa con valores actualizados al 23\/10\/2026, en la provincia de Córdoba\./)).toBeInTheDocument()
-  expect(screen.getByText(/Puede salirte menos, no más\./)).toBeInTheDocument()
+  expect(within(purchase()).getByText('$ 20.700.000')).toBeInTheDocument()
+  expect(screen.getByText('Estimación orientativa con valores actualizados al 23/10/2026, en la provincia de Córdoba. Es un estimativo aproximado.')).toBeInTheDocument()
+  expect(screen.getByText('Cuánto te costaría comprarlo y mantenerlo, más allá del precio publicado.')).toBeInTheDocument()
+  expect(document.body.textContent).not.toMatch(/hasta|máxim|más alt|salirte/i)
 })
 
 it('puts an info button next to each concept and explains it with the numbers of the vehicle', async () => {
@@ -69,7 +70,7 @@ it('puts an info button next to each concept and explains it with the numbers of
     await userEvent.click(screen.getByRole('button', { name: `Cómo calculamos ${name}` }))
     return screen.getByRole('tooltip')
   }
-  expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km × $ 1.000 el litro de nafta = $ 120.000.')
+  expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km, que es el consumo de este auto, × $ 1.000 el litro de nafta = $ 120.000.')
   expect(await tip('Seguro')).toHaveTextContent('6% anual del valor del auto para terceros completo, dividido 12 meses = $ 100.000 por mes.')
   expect(await tip('Patente')).toHaveTextContent('Alícuota anual de 1,2% en Córdoba')
   expect(await tip('Mantenimiento')).toHaveTextContent('Service anual de referencia para un auto a nafta ($ 600.000)')
@@ -102,7 +103,7 @@ it('prefills the form from the diagnosis and explains where the km come from', a
   renderPage()
   expect(await screen.findByLabelText('Kilómetros por mes')).toHaveValue(1500)
   expect(screen.getByLabelText('Cobertura del seguro')).toHaveValue('terceros_completo')
-  expect(screen.getByText('Tomamos el máximo del rango que elegiste en tu diagnóstico.')).toBeInTheDocument()
+  expect(screen.getByText('Según lo que elegiste en tu diagnóstico.')).toBeInTheDocument()
 })
 
 it('explains an estimated default km value', async () => {
@@ -129,7 +130,7 @@ it('hides the budget message when there is no cap', async () => {
   const data = costs()
   vi.mocked(apiFetch).mockResolvedValue({ ...data, purchase: { ...data.purchase, budget: null } })
   renderPage()
-  await screen.findByText('hasta $ 20.700.000')
+  await screen.findByText('$ 20.700.000')
   expect(screen.queryByText(/presupuesto/)).not.toBeInTheDocument()
 })
 
@@ -139,7 +140,7 @@ it('says the fuel cannot be estimated and that the total leaves it out', async (
     total: 186000, yearly_total: 2232000, not_estimated: ['fuel'] } })
   renderPage()
   expect(await screen.findByText('No podemos estimarlo')).toBeInTheDocument()
-  expect(within(monthly()).getByText('hasta $ 186.000')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 186.000')).toBeInTheDocument()
   expect(screen.getByText('El total no incluye el combustible.')).toBeInTheDocument()
 })
 
@@ -170,7 +171,7 @@ it('recalculates with the km and the coverage the user chose, loading only the r
   const data = costs()
   resolve({ ...data, inputs: { km_per_month: 2500, km_source: 'usuario', coverage: 'todo_riesgo' },
     monthly: { ...data.monthly, total: 400000 } })
-  expect(await within(await screen.findByRole('region', { name: 'Para mantenerlo' })).findByText('hasta $ 400.000')).toBeInTheDocument()
+  expect(await within(await screen.findByRole('region', { name: 'Para mantenerlo' })).findByText('$ 400.000')).toBeInTheDocument()
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 
@@ -205,7 +206,7 @@ it('shows the server validation messages under each field and keeps the previous
   await userEvent.click(screen.getByRole('button', { name: 'RECALCULAR' }))
   expect(await screen.findByText('Revisá los kilómetros: el máximo es 20.000 por mes.')).toBeInTheDocument()
   expect(screen.getByText('Elegí una cobertura de la lista.')).toBeInTheDocument()
-  expect(within(monthly()).getByText('hasta $ 306.000')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 306.000')).toBeInTheDocument()
 })
 
 it('says the vehicle was not found', async () => {

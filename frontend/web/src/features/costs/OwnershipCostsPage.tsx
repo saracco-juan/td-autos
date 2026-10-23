@@ -21,7 +21,7 @@ const COVERAGES: { value: Coverage; label: string }[] = [
   { value: 'todo_riesgo', label: 'Todo riesgo' },
 ]
 const KM_HINTS = {
-  diagnostico: 'Tomamos el máximo del rango que elegiste en tu diagnóstico.',
+  diagnostico: 'Según lo que elegiste en tu diagnóstico.',
   default: 'Usamos un valor estimado.',
   usuario: undefined,
 }
@@ -62,7 +62,7 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
   const { monthly, breakdown } = data
   const info = (name: string, concept: Concept, amount: number | null) =>
     ({ name, text: explainConcept(concept, breakdown, amount) })
-  const perMonth = (value: number) => `hasta ${formatPrice(value)} por mes`
+  const perMonth = (value: number) => `${formatPrice(value)} por mes`
   return (
     <section className={styles.card} aria-labelledby="costs-monthly">
       <h2 id="costs-monthly" className={styles.cardTitle}>Para mantenerlo</h2>
@@ -75,9 +75,9 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
         <Row label="Seguro" value={perMonth(monthly.insurance)} info={info('Seguro', 'insurance', monthly.insurance)} />
         <Row label="Patente" value={perMonth(monthly.patente)} info={info('Patente', 'patente', monthly.patente)} />
         <Row label="Mantenimiento" value={perMonth(monthly.maintenance)} info={info('Mantenimiento', 'maintenance', monthly.maintenance)} />
-        <Row label="Total por mes" value={`hasta ${formatPrice(monthly.total)}`} strong />
+        <Row label="Total por mes" value={formatPrice(monthly.total)} strong />
       </dl>
-      <p className={styles.note}>Equivale a hasta {formatPrice(monthly.yearly_total)} por año</p>
+      <p className={styles.note}>Equivale a {formatPrice(monthly.yearly_total)} por año</p>
       {monthly.not_estimated.includes('fuel') ? <p className={styles.note}>El total no incluye el combustible.</p> : null}
     </section>
   )
@@ -103,7 +103,7 @@ function PurchaseCard({ data }: { data: OwnershipCosts }) {
           value={formatPrice(purchase.transfer)}
           info={{ name: 'Transferencia', text: explainConcept('transfer', breakdown, purchase.transfer) }}
         />
-        <Row label="Total" value={`hasta ${formatPrice(purchase.total)}`} strong />
+        <Row label="Total" value={formatPrice(purchase.total)} strong />
       </dl>
       {usd && rate ? (
         <p className={styles.note}>
@@ -121,7 +121,7 @@ function PurchaseCard({ data }: { data: OwnershipCosts }) {
   )
 }
 
-// Figma 2373:7378 "06 - Calculadora financiera", reshaped to the ceiling blocks decided for UH-10 (DESIGN.md).
+// Figma 2373:7378 "06 - Calculadora financiera", reshaped to the cost blocks decided for UH-10 (DESIGN.md).
 export default function OwnershipCostsPage() {
   const { id = '' } = useParams()
   const [data, setData] = useState<OwnershipCosts | null>(null)
@@ -182,7 +182,7 @@ export default function OwnershipCostsPage() {
           <div className={styles.titleBlock}>
             <p className={screenStyles.eyebrow}>COSTO DE POSESIÓN</p>
             <h1 className={screenStyles.title}>{title}</h1>
-            <p className={styles.subtitle}>Lo máximo que podría costarte comprarlo y mantenerlo, más allá del precio publicado.</p>
+            <p className={styles.subtitle}>Cuánto te costaría comprarlo y mantenerlo, más allá del precio publicado.</p>
           </div>
         ) : null}
       </div>
@@ -235,8 +235,7 @@ export default function OwnershipCostsPage() {
               </div>
               <p className={styles.disclaimer}>
                 Estimación orientativa con valores actualizados al {formatDate(data.rates_updated_at)}
-                {data.vehicle.province ? `, en la provincia de ${data.vehicle.province}` : ''}.
-                {' '}Los valores reales dependen de la aseguradora, el municipio y el precio del combustible. Puede salirte menos, no más.
+                {data.vehicle.province ? `, en la provincia de ${data.vehicle.province}` : ''}. Es un estimativo aproximado.
               </p>
             </>
           ) : null}
