@@ -109,4 +109,17 @@ class GroupedRetentionTest extends TestCase
         $this->assertNull($this->score('Core 1.2 MT', [$row])['estimate']);
         $this->assertNull($this->score('Core 1.2 MT', [$row], ['_body' => 'Hatchback', 'potencia' => null])['estimate']);
     }
+
+    public function test_existing_body_normalization_profiles_are_preserved_in_both_matching_paths(): void
+    {
+        $exact = $this->row('1.2 Core MT (75cv) 4Ptas.');
+        $related = array_replace($exact, ['model' => 'Hatch MK']);
+        foreach ([['Sedán', true, true], ['Hatchback', false, false],
+            ['Rural / familiar', false, false], ['Rural familiar', true, false],
+            ['Sedán!', true, true], ['unknown body', true, false], [null, true, false]] as [$body, $ordinary, $approximate]) {
+            $facts = ['_body' => $body];
+            $this->assertSame($ordinary, $this->score('Core 1.2 MT', [$exact], $facts)['estimate'] !== null);
+            $this->assertSame($approximate, $this->score('Core 1.2 MT', [$related], $facts)['estimate'] !== null);
+        }
+    }
 }

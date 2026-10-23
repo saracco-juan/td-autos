@@ -21,16 +21,10 @@ final class ResaleReferenceMatcher
             return [];
         }
         $wanted = $this->parts($label);
-        $engine = $this->engine($this->text((string) ($car->motor ?? '')));
-        $power = ($car->potencia_unidad ?? '') === 'CV' ? $car->potencia : null;
-        $transmission = match ($car->transmision ?? null) {
-            'automatica' => 'auto', 'manual' => 'manual', default => null,
-        };
-        $body = method_exists($car, 'relationLoaded') && $car->relationLoaded('tipoCarroceria')
-            ? $this->text($car->getRelation('tipoCarroceria')->nombre ?? '') : '';
-        $wanted['body'] ??= ['hatchback' => 'hatch', 'sedan' => 'sedan', 'rural / familiar' => 'wagon'][$body] ?? null;
-        foreach (['engine' => $engine, 'power' => $power, 'transmission' => $transmission,
-            'fuel' => $car->combustible ?? null, 'turbo' => $car->turbo ?? null] as $key => $fact) {
+        $facts = $this->listingFacts($car);
+        $wanted['body'] ??= $facts['body'];
+        unset($facts['body']);
+        foreach ($facts as $key => $fact) {
             if ($fact !== null && $wanted[$key] !== null && $wanted[$key] != $fact) {
                 return [];
             }
@@ -73,21 +67,17 @@ final class ResaleReferenceMatcher
     /** Approximate family inference needs positive technical evidence, not name similarity alone. */
     public function approximateCandidates(object $car, array $rows): array
     {
-        $normalize = fn ($v) => trim(preg_replace('/[^a-z0-9]+/', ' ', $this->text($v)));
+        $normalize = $this->normalize(...);
         $model = $normalize($car->modelo ?? '');
-        $engine = $this->engine((string) ($car->motor ?? ''));
-        $transmission = ['manual' => 'manual', 'automatica' => 'auto'][$car->transmision ?? ''] ?? null;
-        $body = method_exists($car, 'relationLoaded') && $car->relationLoaded('tipoCarroceria')
-            ? $normalize($car->getRelation('tipoCarroceria')->nombre ?? '') : '';
-        $body = ['hatchback' => 'hatch', 'sedan' => 'sedan', 'rural familiar' => 'wagon'][$body] ?? null;
+        $facts = $this->listingFacts($car, approximate: true);
         $wanted = $this->parts($this->text($car->version ?? ''));
-        if (strlen($model) < 3 || $engine === null || $transmission === null || $body === null
-            || ($car->potencia_unidad ?? '') !== 'CV' || ! ($car->potencia > 0) || $wanted['trim'] === []) {
+        if (strlen($model) < 3 || $facts['engine'] === null || $facts['transmission'] === null || $facts['body'] === null
+            || ! ($facts['power'] > 0) || $wanted['trim'] === []) {
             return [];
         }
         $identity = $this->parts($this->text(($car->modelo ?? '').' '.($car->version ?? '')));
-        $identity['fuel'] ??= $car->combustible ?? null;
-        $identity['turbo'] ??= $car->turbo ?? null;
+        $identity['fuel'] ??= $facts['fuel'];
+        $identity['turbo'] ??= $facts['turbo'];
         $families = [];
         foreach ($rows as $row) {
             $candidate = $normalize($row['model']);
@@ -101,8 +91,8 @@ final class ResaleReferenceMatcher
             $parts = $this->parts($this->text($row['version']));
             $candidateBody = $parts['body'] ?? ['3' => 'hatch', '5' => 'hatch', '4' => 'sedan'][$parts['doors']] ?? null;
             $price = $row['values'][$car->anio] ?? null;
-            if ($parts['engine'] !== $engine || $parts['power'] != $car->potencia
-                || $parts['transmission'] !== $transmission || $candidateBody !== $body
+            if ($parts['engine'] !== $facts['engine'] || $parts['power'] != $facts['power']
+                || $parts['transmission'] !== $facts['transmission'] || $candidateBody !== $facts['body']
                 || ! in_array($wanted['trim'], $parts['aliases'], true)
                 || ! is_numeric($price) || ! is_finite((float) $price) || $price <= 0) {
                 continue;
@@ -113,6 +103,30 @@ final class ResaleReferenceMatcher
         }
 
         return count($families) === 1 ? reset($families) : [];
+    }
+
+    /** Shared facts, preserving the existing ordinary and approximate normalization profiles. */
+    private function listingFacts(object $car, bool $approximate = false): array
+    {
+        $engine = (string) ($car->motor ?? '');
+        $body = method_exists($car, 'relationLoaded') && $car->relationLoaded('tipoCarroceria')
+            ? ($car->getRelation('tipoCarroceria')->nombre ?? '') : '';
+        $normalize = $approximate ? $this->normalize(...) : $this->text(...);
+        $bodies = [];
+        foreach (['hatchback' => 'hatch', 'sedan' => 'sedan', 'rural / familiar' => 'wagon'] as $name => $identity) {
+            $bodies[$normalize($name)] = $identity;
+        }
+
+        return ['engine' => $this->engine($approximate ? $engine : $this->text($engine)),
+            'power' => ($car->potencia_unidad ?? '') === 'CV' ? $car->potencia : null,
+            'transmission' => ['manual' => 'manual', 'automatica' => 'auto'][$car->transmision ?? ''] ?? null,
+            'fuel' => $car->combustible ?? null, 'turbo' => $car->turbo ?? null,
+            'body' => $bodies[$normalize($body)] ?? null];
+    }
+
+    private function normalize(string $value): string
+    {
+        return trim(preg_replace('/[^a-z0-9]+/', ' ', $this->text($value)));
     }
 
     private function compatible(array $wanted, array $candidate): bool

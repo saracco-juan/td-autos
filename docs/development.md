@@ -86,7 +86,7 @@ An unresolved set may be estimated only if every pair shares make/model, currenc
 engine/power/gearbox/body/door/fuel/special identity, has overlapping positive year prices, and
 differs by at most **5% in every overlapping year**. This initial conservative tolerance is global;
 it is not a claim that all such cars are identical. Pairwise checks prevent transitive price chains.
-Each generation's rate is computed on its own curve; only rates are aggregated. The UI reports
+Each reference/version's rate is computed on its own curve; only rates are aggregated. The UI reports
 the candidate count and retention range, without claiming an exact version. No source prices are
 stitched or rewritten. Raw projections may exceed 100%; only the ranking component is capped.
 No form, CSV, catalog refresh or inventory repair is involved.
