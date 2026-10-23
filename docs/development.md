@@ -55,9 +55,25 @@ Pack, Plus, Bitono and Cuero remain significant. This is conservative lookup, no
 The response includes the selected `resale.reference` even when its three-year endpoint is absent.
 DNRPA family activity is independent of price-reference availability; diesel/GTI groups stay separate.
 A complete resale score still requires both activity and retention. Prices must come from one
-version/generation and currency: missing years are never stitched from another row or interpolated.
+version/generation and currency: missing years are never stitched from another row.
 Thus finding a catalog model does not guarantee a complete resale estimate. Inventory and CSV
 contracts are unchanged, and recommendation requests never persist corrected labels.
+
+### Annualized depreciation estimates
+
+For an identified reference curve with at least two finite positive model-year prices, each
+adjacent available-year interval contributes `log(older_price / newer_price) / year_gap`.
+The median of these log-retention rates estimates annual retention; gaps need not equal three.
+All valid year points on that one curve contribute, irrespective of their input order. The
+three-year matching component remains comparable across cars: `100 * exp(3 * median_rate)`,
+capped at 100 only for scoring. Raw appreciation and annual depreciation remain visible.
+
+The API's additive `resale.estimate` records the method, used years, interval count, source identity,
+annual rate and modeled horizon. `comparison` remains an observed endpoint comparison, or null
+when the exact pair is absent; legacy `compare()` and `threeYearScore()` contracts are unchanged.
+These same-date model-year references estimate age-related differences, not observed historical
+price changes. A single valid year is insufficient. Ambiguous identities still abstain until the
+separate grouping unit; no form, CSV, catalog refresh or inventory repair is involved.
 
 ## Google sign-in from a phone (development only)
 

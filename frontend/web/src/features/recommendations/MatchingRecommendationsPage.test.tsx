@@ -109,6 +109,19 @@ it('HU05 shows dated resale sources and retained stale evidence', async () => {
   expect(screen.getByText(/no precios futuros garantizados/)).toBeVisible()
 })
 
+it('explains annualized estimates separately from observed year prices', async () => {
+  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(),
+    resale: { activity_score: 80, retention_score: 75.5, source_date: '2026-10-19',
+      window_start: '2026-04', window_end: '2026-09', stale: false,
+      estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: 8.9, years_used: [2017, 2018, 2019] } },
+  }] })
+  renderPage()
+  await screen.findByRole('list')
+  await userEvent.click(screen.getByText('Ver atributos y motivos'))
+  expect(screen.getByText(/Depreciación anual estimada: 8,9%.*2017, 2018, 2019/)).toBeVisible()
+  expect(screen.getByText(/Retención estimada a 3 años: 75,5/)).toBeVisible()
+})
+
 it.each([new NetworkError(new Error()), new HttpError(500, null)])('retries failures without showing stale results', async (error) => {
   vi.mocked(apiFetch).mockRejectedValueOnce(error).mockResolvedValueOnce(ready())
   renderPage()

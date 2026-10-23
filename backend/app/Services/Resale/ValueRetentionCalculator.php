@@ -5,6 +5,46 @@ namespace App\Services\Resale;
 /** Same-date model-year references, not observed history or future sale prices. */
 final class ValueRetentionCalculator
 {
+    /** Median adjacent log-retention rate on one curve; the horizon is modeled, not observed. */
+    public function estimate(array $curve): ?array
+    {
+        $points = [];
+        foreach ($curve['values'] ?? [] as $year => $price) {
+            if (! is_numeric($year) || (float) $year !== (float) (int) $year || $year < 1900 || $year > 2100) {
+                continue;
+            }
+            $point = ['snapshot_id' => $curve['snapshot_id'] ?? null, 'version_id' => $curve['version_id'] ?? null,
+                'currency' => $curve['currency'] ?? null, 'model_year' => (int) $year, 'price' => $price];
+            if ($this->validPoint($point)) {
+                $points[(int) $year] = (float) $price;
+            }
+        }
+        ksort($points, SORT_NUMERIC);
+        if (count($points) < 2) {
+            return null;
+        }
+        $rates = [];
+        $years = array_keys($points);
+        for ($i = 1; $i < count($years); $i++) {
+            [$older, $newer] = [$years[$i - 1], $years[$i]];
+            $rates[] = (log($points[$older]) - log($points[$newer])) / ($newer - $older);
+        }
+        sort($rates, SORT_NUMERIC);
+        $middle = intdiv(count($rates), 2);
+        $logRate = count($rates) % 2 ? $rates[$middle] : ($rates[$middle - 1] + $rates[$middle]) / 2;
+        $annual = exp($logRate) * 100;
+        $retained = exp(3 * $logRate) * 100;
+        if (! is_finite($annual) || ! is_finite($retained) || $annual <= 0 || $retained <= 0) {
+            return null;
+        }
+
+        return ['method' => 'annualized', 'horizon_years' => 3,
+            'annual_retained_percent' => round($annual, 12), 'annual_depreciation_percent' => round(100 - $annual, 12),
+            'retained_percent' => round($retained, 12), 'score' => min(100.0, round($retained, 12)),
+            'years_used' => $years, 'interval_count' => count($rates),
+            'snapshot_id' => $curve['snapshot_id'], 'version_id' => $curve['version_id'], 'currency' => $curve['currency']];
+    }
+
     /** Fixed HU05 horizon; missing evidence is not a zero score. */
     public function threeYearScore(array $reference, array $older): ?float
     {

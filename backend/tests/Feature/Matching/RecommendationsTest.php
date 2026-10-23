@@ -115,6 +115,15 @@ class RecommendationsTest extends TestCase
             ->assertJsonPath('results.0.resale.retention_score', 80)
             ->assertJsonPath('results.0.resale.reference.version', '1.6 Feel Pack AT (115cv) (L18)');
         $this->assertSame($inventoryBefore, $car->fresh()->getAttributes());
+        $natural['rows'][0]['values'] = [2025 => '100', 2023 => '81'];
+        Cache::forever('resale.acara.last-valid.v1', $natural);
+        $this->getJson('/api/recomendaciones')->assertOk()
+            ->assertJsonPath('results.0.resale.retention_score', 72.9)
+            ->assertJsonPath('results.0.resale.estimate.method', 'annualized')
+            ->assertJsonPath('results.0.resale.estimate.years_used', [2023, 2025])
+            ->assertJsonPath('results.0.resale.estimate.horizon_years', 3)
+            ->assertJsonPath('results.0.resale.comparison', null);
+        $this->assertSame($inventoryBefore, $car->fresh()->getAttributes());
         $car->update(['version' => 'Base', 'potencia' => 110, 'transmision' => 'manual']);
         foreach (['missing version', 'missing year', 'ambiguous identity', 'missing activity', 'missing catalog'] as $case) {
             DB::table('dnrpa_activity_history')->updateOrInsert(['month' => '2026-09'], ['payload' => json_encode(['activity' => $activity])]);

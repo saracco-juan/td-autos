@@ -41,7 +41,7 @@ class ResaleScorerTest extends TestCase
 
     public function test_hu05_missing_ambiguous_or_different_generation_is_not_invented(): void
     {
-        foreach ([['version' => 'Base L20'], ['values' => [2025 => 100, 2023 => 80]],
+        foreach ([['version' => 'Base L20'],
             ['values' => [2025 => 100, 2022 => null]]] as $changes) {
             $this->assertNull($this->scores($changes)['score']);
         }
@@ -52,5 +52,18 @@ class ResaleScorerTest extends TestCase
         $car = new Vehiculo(['marca' => 'Test', 'modelo' => 'Example', 'anio' => 2025]);
         $this->assertNull((new ResaleScorer)->scores([$car], ['snapshot' => null, 'stale' => false],
             ['snapshot' => null, 'stale' => false])[$car->id]['score']);
+    }
+
+    public function test_two_year_evidence_produces_an_explicit_estimate_not_an_observed_three_year_pair(): void
+    {
+        $row = $this->scores(['values' => [2025 => 100, 2023 => 81]]);
+        $this->assertEqualsWithDelta(72.9, $row['retention_score'], 1e-10);
+        $this->assertEqualsWithDelta(66.45, $row['score'], 1e-10);
+        $this->assertSame([2023, 2025], $row['estimate']['years_used']);
+        $this->assertEqualsWithDelta(10, $row['estimate']['annual_depreciation_percent'], 1e-10);
+        $this->assertNull($row['comparison']);
+        foreach ([null, 0, -1, INF] as $invalid) {
+            $this->assertNull($this->scores(['values' => [2025 => $invalid, 2024 => 100, 2023 => 81]])['estimate']);
+        }
     }
 }
