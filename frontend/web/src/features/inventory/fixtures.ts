@@ -1,5 +1,13 @@
-import type { Vehiculo } from './types'
+import type { Vehiculo, VehicleCatalog } from './types'
 import { EQUIPMENT_FIELDS } from './matchingFields'
+
+export const VEHICLE_CATALOG: VehicleCatalog = {
+  snapshot_id: 'test', source_date: '2026-10-24', stale: false, warning: null,
+  entries: [
+    { id: 'selected-corolla', marca: 'Toyota', modelo: 'Corolla', version: 'XEI' },
+    { id: 'selected-civic', marca: 'Honda', modelo: 'Civic', version: 'EX' },
+  ],
+}
 
 // Synthetic, explicitly declared test facts; never inferred from the example model.
 export const MATCHING_FACTS = {

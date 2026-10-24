@@ -26,6 +26,7 @@ class MatchingFactsApiTest extends TestCase
     {
         parent::setUp();
         $this->setUpInteractsWithVehiculos();
+        $this->seedVehicleCatalog();
         TipoCarroceria::query()->firstOrCreate(['nombre' => 'Sedán']);
     }
 

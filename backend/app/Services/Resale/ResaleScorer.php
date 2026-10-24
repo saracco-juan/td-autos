@@ -11,10 +11,11 @@ final class ResaleScorer
     {
         $catalog = $prices['snapshot'];
         $activity = $transfers['snapshot']['activity'] ?? null;
-        $curves = $groups = $results = [];
+        $curves = $identities = $groups = $results = [];
         foreach ($catalog['rows'] ?? [] as $row) {
             $key = $this->key([$row['make'], $row['model']]);
             $curves[$key][] = $row;
+            $identities[$row['version_id']][] = $row;
         }
         foreach ($activity['models'] ?? [] as $row) {
             $groups[$this->key([$row['make'], $row['model'], implode(' ', $row['special'])])][] = $row;
@@ -23,9 +24,16 @@ final class ResaleScorer
         $matcher = new ResaleReferenceMatcher;
         foreach ($vehicles as $vehicle) {
             $family = [$vehicle->marca ?? '', $vehicle->modelo ?? ''];
-            $references = $matcher->candidates($vehicle, $curves[$this->key($family)] ?? []);
+            $linked = is_string($vehicle->acara_version_id ?? null) && $vehicle->acara_version_id !== '';
+            if ($linked) {
+                $references = $identities[$vehicle->acara_version_id] ?? [];
+                // Duplicate references are not resolved by selecting the first price curve.
+                $references = count($references) === 1 ? $references : [];
+            } else {
+                $references = $matcher->candidates($vehicle, $curves[$this->key($family)] ?? []);
+            }
             $modelMatch = null;
-            if ($references === []) {
+            if (! $linked && $references === []) {
                 $references = $matcher->approximateCandidates($vehicle, $catalog['rows'] ?? []);
                 if ($references !== []) {
                     $modelMatch = ['approximate' => true, 'listing_model' => $family[1], 'reference_model' => $references[0]['model']];

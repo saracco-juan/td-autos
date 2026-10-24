@@ -25,6 +25,12 @@ class CreateVehiculoTest extends TestCase
 
     private const URL = '/api/concesionaria/vehiculos';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedVehicleCatalog();
+    }
+
     /**
      * TC-55: an active dealer saves a vehicle with seven photos.
      */
@@ -75,12 +81,12 @@ class CreateVehiculoTest extends TestCase
         );
     }
 
-    public function test_optional_fields_can_be_omitted(): void
+    public function test_description_can_be_omitted_but_catalog_version_is_preserved(): void
     {
         $this->actingAs($this->dealer())
-            ->post(self::URL, $this->payload(['version' => null, 'descripcion' => null]), ['Accept' => 'application/json'])
+            ->post(self::URL, $this->payload(['descripcion' => null]), ['Accept' => 'application/json'])
             ->assertCreated()
-            ->assertJsonPath('vehiculo.version', null)
+            ->assertJsonPath('vehiculo.version', 'XEI 2.0 CVT')
             ->assertJsonPath('vehiculo.descripcion', null);
     }
 

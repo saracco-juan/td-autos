@@ -603,6 +603,46 @@ Expect 200 and catalog entries when a cached snapshot exists, or 503 with the
 explicit unavailable state otherwise. An unauthenticated request returns 401;
 a non-dealer or unapproved dealer returns 403. No new UI is wired in this step.
 
+## Catalog-linked manual inventory entry
+
+Manual vehicle creation now requires `acara_version_id` and the exact
+`marca`/`modelo`/`version` tuple returned by the dealer catalog endpoint. The web
+form supplies searchable native suggestions in that order and clears dependent
+selections when the parent changes. Free text outside the catalog cannot be
+submitted as a new identity; the API independently validates the tuple.
+
+The nullable `vehiculo.acara_version_id` migration adds no automatic backfill.
+Apply the normal migrations from the setup guide in the intended environment
+before serving this API version; these changes have only been migrated in test
+databases, not the live inventory. Existing vehicles may retain their unchanged
+identity while editing other fields, even when the catalog is unavailable.
+Changing identity requires a catalog selection. Omitting the ID on an unchanged
+edit preserves the stored reference rather than silently unlinking it.
+
+The resale scorer resolves linked vehicles by that exact source ID; a disappeared
+or duplicate ID produces no price reference, never an approximate substitute.
+Unlinked legacy vehicles retain the previous matching path. Year-price coverage,
+retention formulas and DNRPA activity remain independent and unchanged. Selecting
+a catalog version does not verify the dealer's other technical declarations or
+guarantee that depreciation can be estimated. IDs remain label hashes and may
+change if the source renames a version.
+
+Manual smoke test after starting the API/web app as in `getting-started.md`:
+
+1. Sign in as an active dealer and open **CARGAR VEHÍCULO**. Search for a make,
+   then a model, then a version. Each list contains only its applicable options.
+2. Change the make: the model/version clear. Enter an unknown version and submit:
+   the form explains that a catalog selection is required and saves nothing.
+3. Choose a valid identity, complete the other fields and add seven photos in a
+   disposable test environment. Save: the dealer inventory receives the vehicle
+   and its catalog ID. A missing ACARA price for the chosen year does not block
+   this identity selection or invent a price.
+4. Edit an unlinked legacy vehicle without changing its identity: unrelated edits
+   remain allowed. The notice explains how to link it explicitly.
+
+XLSX template/import replacement is a separate pending unit; CSV has not yet been
+removed by this manual-entry unit.
+
 ## HU05 stage 13b: ACARA PDF reader
 
 `App\Services\Resale\AcaraPriceReader::read($pdfBytes)` normalizes the official

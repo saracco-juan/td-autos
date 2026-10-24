@@ -1,12 +1,16 @@
 import { apiFetch } from '../../lib/http'
 import { fetchDiagnosis } from '../diagnosis/api'
 import type { BodyType } from '../diagnosis/types'
-import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse } from './types'
+import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse, VehicleCatalog } from './types'
 import { normalizePlate, type VehicleValues } from './vehicleFields'
 
 export async function fetchVehicles(): Promise<Vehiculo[]> {
   const response = await apiFetch<VehiculosResponse>('/api/concesionaria/vehiculos')
   return response.vehiculos
+}
+
+export function fetchVehicleCatalog(): Promise<VehicleCatalog> {
+  return apiFetch<VehicleCatalog>('/api/concesionaria/vehiculos/catalogo')
 }
 
 // The API answers 204 with no body; a vehicle that is not the dealer's (or is gone) answers 404.

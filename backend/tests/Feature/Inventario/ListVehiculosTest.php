@@ -108,6 +108,7 @@ class ListVehiculosTest extends TestCase
                 'marca' => $vehiculo->marca,
                 'modelo' => $vehiculo->modelo,
                 'version' => $vehiculo->version,
+                'acara_version_id' => null,
                 'anio' => $vehiculo->anio,
                 'kilometraje' => $vehiculo->kilometraje,
                 'precio' => 18500000,

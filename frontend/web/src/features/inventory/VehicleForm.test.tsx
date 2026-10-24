@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
-import { fetchBodyTypes, type VehicleSubmission } from './api'
-import { inactiveBody, MATCHING_FACTS, vehiculo } from './fixtures'
+import { fetchBodyTypes, fetchVehicleCatalog, type VehicleSubmission } from './api'
+import { inactiveBody, MATCHING_FACTS, VEHICLE_CATALOG, vehiculo } from './fixtures'
 import { matchingValues } from './matchingFields'
 import VehicleForm from './VehicleForm'
 import { emptyValues, valuesFromVehicle, type VehicleValues } from './vehicleFields'
 
-vi.mock('./api', () => ({ fetchBodyTypes: vi.fn() }))
+vi.mock('./api', () => ({ fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
 
 const BODY_TYPES = [
   { id: 1, nombre: 'Sedán' },
@@ -26,7 +26,7 @@ async function renderForm({ values = emptyValues(), photos = [], onSubmit = () =
   const submit = vi.fn(onSubmit)
   render(
     <MemoryRouter>
-      <VehicleForm title="Cargar vehículo" subtitle="Subtítulo" initialValues={values} initialPhotos={photos} submitLabel="GUARDAR VEHÍCULO" onSubmit={submit} />
+      <VehicleForm title="Cargar vehículo" subtitle="Subtítulo" initialValues={values} initialPhotos={photos} isEditing={photos.length > 0} submitLabel="GUARDAR VEHÍCULO" onSubmit={submit} />
     </MemoryRouter>,
   )
   await screen.findByLabelText('Patente')
@@ -41,6 +41,7 @@ function fillValid() {
   fill('Patente', 'ab-123 cd')
   fill('Marca', 'Toyota')
   fill('Modelo', 'Corolla')
+  fill('Versión', 'XEI')
   fill('Año', '2021')
   fill('Kilometraje', '60000')
   fill('Precio', '18500000')
@@ -60,6 +61,8 @@ describe('VehicleForm', () => {
   beforeEach(() => {
     vi.mocked(fetchBodyTypes).mockReset()
     vi.mocked(fetchBodyTypes).mockResolvedValue(BODY_TYPES)
+    vi.mocked(fetchVehicleCatalog).mockReset()
+    vi.mocked(fetchVehicleCatalog).mockResolvedValue(VEHICLE_CATALOG)
   })
 
   it('keeps CANCELAR and the save button in the pinned action bar', async () => {
@@ -68,6 +71,39 @@ describe('VehicleForm', () => {
     const bar = screen.getByRole('group', { name: 'Acciones' })
     expect(within(bar).getByRole('link', { name: 'CANCELAR' })).toBeInTheDocument()
     expect(within(bar).getByRole('button', { name: 'GUARDAR VEHÍCULO' })).toHaveAttribute('type', 'submit')
+  })
+
+  it('HU21: exposes searchable catalog options and clears dependent identity when the make changes', async () => {
+    await renderForm()
+    expect(screen.getByLabelText('Marca')).toHaveAttribute('list', 'vehicle-marca-options')
+    fill('Marca', 'Toyota')
+    expect(document.querySelector('#vehicle-modelo-options option')).toHaveAttribute('value', 'Corolla')
+    expect(document.querySelector('#vehicle-modelo-options option[value="Civic"]')).toBeNull()
+    fill('Modelo', 'Corolla')
+    fill('Versión', 'XEI')
+    fill('Marca', 'Other')
+    expect(screen.getByLabelText('Modelo')).toHaveValue('')
+    expect(screen.getByLabelText('Versión')).toHaveValue('')
+  })
+
+  it('HU21: prevents free-text versions outside the catalog from being submitted', async () => {
+    const saved = vehiculo()
+    const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
+    fill('Versión', 'Invented version')
+    await userEvent.setup().click(submitButton())
+    expect(submit).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Versión')).toHaveAccessibleDescription('Elegí la marca, el modelo y la versión del catálogo.')
+  })
+
+  it('HU21: preserves legacy identity during a catalog outage', async () => {
+    vi.mocked(fetchVehicleCatalog).mockRejectedValue(new HttpError(503, {}))
+    const saved = vehiculo()
+    const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
+    expect(screen.getByText(/El catálogo no está disponible/)).toBeInTheDocument()
+    fill('Precio', '20000000')
+    await userEvent.setup().click(submitButton())
+    expect(submit).toHaveBeenCalledTimes(1)
+    expect(submit.mock.calls[0][0].values.acara_version_id).toBe('')
   })
 
   describe('loading the body types', () => {
@@ -136,7 +172,7 @@ describe('VehicleForm', () => {
     it('renders the fields in order with their labels, and the actions of Figma 38:923', async () => {
       await renderForm()
 
-      const labels = ['Patente', 'Marca', 'Modelo', 'Versión (opcional)', 'Año', 'Kilometraje', 'Precio', 'Transmisión', 'Combustible', 'Carrocería', 'Ubicación', 'Descripción (opcional)']
+      const labels = ['Patente', 'Marca', 'Modelo', 'Versión', 'Año', 'Kilometraje', 'Precio', 'Transmisión', 'Combustible', 'Carrocería', 'Ubicación', 'Descripción (opcional)']
       const controls = labels.map((label) => screen.getByLabelText(label))
       for (let index = 1; index < controls.length; index++) {
         expect(controls[index - 1].compareDocumentPosition(controls[index]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -161,7 +197,7 @@ describe('VehicleForm', () => {
       await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
 
       expect(screen.getByLabelText('Patente')).toHaveValue('AB123CD')
-      expect(screen.getByLabelText('Versión (opcional)')).toHaveValue('XEI')
+      expect(screen.getByLabelText('Versión')).toHaveValue('XEI')
       expect(screen.getByLabelText('Transmisión')).toHaveValue('automatica')
       expect(screen.getByLabelText('Carrocería')).toHaveValue('2')
       expect(screen.getByLabelText('Descripción (opcional)')).toHaveValue('Único dueño')
@@ -243,12 +279,14 @@ describe('VehicleForm', () => {
       await user.click(screen.getByRole('button', { name: 'Quitar foto 2' }))
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), files)
       fill('Marca', 'Honda')
+      fill('Modelo', 'Civic')
+      fill('Versión', 'EX')
 
       await user.click(submitButton())
 
       expect(submit).toHaveBeenCalledTimes(1)
       const sent = submit.mock.calls[0][0]
-      expect(sent.values).toEqual({ ...valuesFromVehicle(saved), marca: 'Honda' })
+      expect(sent.values).toEqual({ ...valuesFromVehicle(saved), marca: 'Honda', modelo: 'Civic', version: 'EX', acara_version_id: 'selected-civic' })
       expect(sent.newPhotos).toEqual(files)
       expect(sent.removedPhotoIds).toEqual([2])
     })

@@ -3,11 +3,11 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
-import { fetchBodyTypes, fetchVehicle, updateVehicle } from './api'
+import { fetchBodyTypes, fetchVehicle, fetchVehicleCatalog, updateVehicle } from './api'
 import EditVehiclePage from './EditVehiclePage'
 import { PAUSED_HINT, PAUSED_TEXT, inactiveBody, vehiculo } from './fixtures'
 
-vi.mock('./api', () => ({ fetchVehicle: vi.fn(), updateVehicle: vi.fn(), fetchBodyTypes: vi.fn() }))
+vi.mock('./api', () => ({ fetchVehicle: vi.fn(), updateVehicle: vi.fn(), fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
 
 function Inventory() {
   const location = useLocation()
@@ -30,6 +30,7 @@ describe('EditVehiclePage', () => {
     vi.mocked(fetchVehicle).mockReset()
     vi.mocked(updateVehicle).mockReset()
     vi.mocked(fetchBodyTypes).mockReset()
+    vi.mocked(fetchVehicleCatalog).mockResolvedValue({ snapshot_id: 'test', source_date: null, stale: false, warning: null, entries: [] })
     vi.mocked(fetchBodyTypes).mockResolvedValue([
       { id: 1, nombre: 'Hatchback' },
       { id: 2, nombre: 'Sedán' },
@@ -55,7 +56,7 @@ describe('EditVehiclePage', () => {
     expect(screen.getByRole('link', { name: 'Volver al inventario' })).toHaveAttribute('href', '/concesionaria/inventario')
     expect(await screen.findByLabelText('Patente')).toHaveValue('AB123CD')
     expect(screen.getByLabelText('Marca')).toHaveValue('Toyota')
-    expect(screen.getByLabelText('Versión (opcional)')).toHaveValue('XEI')
+    expect(screen.getByLabelText('Versión')).toHaveValue('XEI')
     expect(screen.getByLabelText('Carrocería')).toHaveValue('2')
     expect(screen.getAllByRole('img')).toHaveLength(7)
     expect(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' })).toBeInTheDocument()

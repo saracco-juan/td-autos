@@ -66,4 +66,15 @@ class ResaleScorerTest extends TestCase
             $this->assertSame([2023, 2024], $this->scores(['values' => [2025 => $invalid, 2024 => 100, 2023 => 81]])['estimate']['years_used']);
         }
     }
+
+    public function test_explicit_catalog_link_selects_only_its_reference_without_text_guessing(): void
+    {
+        $linked = $this->scores(carChanges: ['acara_version_id' => 'generation:1', 'version' => 'Imported display label']);
+        $this->assertSame('generation:1', $linked['reference']['version_id']);
+        $this->assertSame(70.0, $linked['score']);
+        $this->assertNull($this->scores(carChanges: ['acara_version_id' => 'missing'])['reference']);
+        $this->assertNull($this->scores(carChanges: ['acara_version_id' => 'missing'])['estimate']);
+        $this->assertNull($this->scores(carChanges: ['acara_version_id' => 'generation:1'], duplicate: true)['reference']);
+        $this->assertSame(70.0, $this->scores(carChanges: ['acara_version_id' => null])['score']);
+    }
 }
