@@ -8,7 +8,7 @@ namespace App\Services\Calculadora;
  * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases, the patente bracket limits and fixed amounts
  * and the service prices are scaled the same way from their own base month (`insurance.cpi_base_month`,
  * `patente.cpi_base_month`, and `cpi_base_month` of each `service.brands.*` and of `service.fallback`). Percentages
- * and service intervals are never touched.
+ * and service intervals are never touched. `updated_at` is the older of the config review date and the fuel price date.
  */
 final class EffectiveRates
 {
@@ -52,7 +52,12 @@ final class EffectiveRates
                 }
             }
         }
-        $rates['updated_at'] = $snapshot->fetched_at->toDateString();
+        // The screen shows one date: the older of the hand review (percentages, scales, service prices) and the fuel
+        // prices in force, so it never claims a freshness that part of the rates does not have.
+        $fuelDate = $payload['fuel']['source_date'] ?? null;
+        if (is_string($fuelDate) && $fuelDate < (string) $rates['updated_at']) {
+            $rates['updated_at'] = $fuelDate;
+        }
 
         return $rates;
     }

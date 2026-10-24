@@ -530,12 +530,23 @@ class CalculatorRefreshTest extends TestCase
         $this->assertSame(100000, app(EffectiveRates::class)->forProvince('cordoba')['transfer']['fixed_costs']);
     }
 
-    public function test_rates_updated_at_is_the_snapshot_fetch_date(): void
+    public function test_rates_updated_at_keeps_the_hand_review_date_when_it_is_older_than_the_fuel_prices(): void
     {
         $this->fakeSources();
         app(CalculatorRatesStore::class)->refresh();
 
-        $this->assertSame('2026-11-01', app(EffectiveRates::class)->forProvince('cordoba')['updated_at']);
+        $this->assertSame('2026-10-01', app(EffectiveRates::class)->forProvince('cordoba')['updated_at']);
+    }
+
+    public function test_rates_updated_at_is_the_fuel_price_date_when_it_is_older_than_the_hand_review(): void
+    {
+        $this->fakeSources();
+        app(CalculatorRatesStore::class)->refresh();
+        config(['calculadora.updated_at' => '2026-12-15']);
+
+        $fuelDate = CalculatorRefreshSnapshot::sole()->payload['fuel']['source_date'];
+        $this->assertMatchesRegularExpression('/^2026-10-\d{2}$/', $fuelDate);
+        $this->assertSame($fuelDate, app(EffectiveRates::class)->forProvince('cordoba')['updated_at']);
     }
 
     public function test_the_costs_endpoint_uses_the_province_fuel_price_and_indexed_service(): void
@@ -550,7 +561,7 @@ class CalculatorRefreshTest extends TestCase
         // Fuel: 1500 km x 8 L / 100 x 1720 = 206.400 -> 207.000 (the config price is 1.000).
         $response->assertJsonPath('monthly.fuel', 207000)
             ->assertJsonPath('breakdown.fuel.unit_price', 1720)
-            ->assertJsonPath('rates_updated_at', '2026-11-01');
+            ->assertJsonPath('rates_updated_at', '2026-10-01');
         // Service: 2 services x (sedan reference 380.000 x 12600 / 12000 = 399.000) = 798.000 (it was 760.000 unindexed).
         $response->assertJsonPath('yearly.service', 798000);
         $this->assertSame(399000, $response->json('breakdown.service.price_per_service'));
@@ -616,6 +627,24 @@ class CalculatorRefreshTest extends TestCase
 
         $this->postJson('/internal/cron/calculadora', [], ['Authorization' => 'Bearer right'])->assertOk()
             ->assertJsonPath('status', 'valid')->assertJsonPath('fuel', 'refreshed')->assertJsonPath('cpi', 'refreshed');
+    }
+
+    public function test_the_cron_endpoint_fails_when_nothing_could_be_refreshed(): void
+    {
+        $this->fakeSources(fuelOk: false, cpiOk: false);
+        config(['cron.secret' => 'right']);
+
+        $this->postJson('/internal/cron/calculadora', [], ['Authorization' => 'Bearer right'])->assertStatus(503)
+            ->assertJsonPath('status', 'failed');
+    }
+
+    public function test_the_cron_endpoint_fails_when_a_source_only_kept_its_previous_values(): void
+    {
+        $this->fakeSources(cpiOk: false);
+        config(['cron.secret' => 'right']);
+
+        $this->postJson('/internal/cron/calculadora', [], ['Authorization' => 'Bearer right'])->assertStatus(503)
+            ->assertJsonPath('fuel', 'refreshed')->assertJsonPath('cpi', fn ($cpi) => $cpi !== 'refreshed');
     }
 
     private function car(): Vehiculo

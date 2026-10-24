@@ -26,6 +26,11 @@ class CalculatorCronController extends Controller
         // The CSV download can take a while on a cold free instance.
         set_time_limit(300);
 
-        return response()->json($store->refresh());
+        $result = $store->refresh();
+        // Same rule as the artisan command: anything short of both sources refreshed fails the run, so the
+        // scheduler job turns red instead of hiding stale prices.
+        $refreshed = $result['fuel'] === 'refreshed' && $result['cpi'] === 'refreshed';
+
+        return response()->json($result, $refreshed ? 200 : 503);
     }
 }
