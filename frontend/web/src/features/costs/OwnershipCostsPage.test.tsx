@@ -20,9 +20,10 @@ const costs = (): OwnershipCosts => ({
     insurance: { coverage: 'terceros_completo', base: 20000000, body_type: 'sedan', body_label: 'Sedán', base_monthly: 114000,
       value_rate: 0.023, by_value: false, zone_factor: 0.8, province: 'Córdoba', province_known: true, tr_ratio: null,
       terceros_completo: 92000 },
-    patente: { base: 20000000, province: 'Córdoba', province_known: true, annual_rate: 0.012 },
-    maintenance: { fuel_type: 'nafta', annual_base: 600000, age_years: 4, age_factor: 1.2, km: 40000, km_factor: 1.1,
-      turbo_factor: null, automatic_factor: null },
+    patente: { base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.025, bracket_fixed: null,
+      bracket_from: null, annual: 500000 },
+    maintenance: { fuel_type: 'nafta', body_type: 'sedan', body_label: 'Sedán', km_per_month: 1500, per_km: 38, age_years: 4,
+      age_factor: 1.2, fuel_factor: 1 },
     transfer: { base: 20000000, dnrpa_rate: 0.01, stamp_rate: 0.02, province: 'Córdoba', province_known: true, fixed_costs: 100000 },
     rounding: 1000,
   },
@@ -76,8 +77,8 @@ it('puts an info button next to each concept and explains it with the numbers of
   }
   expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km (consumo del auto) × $ 1.000 el litro de nafta = $ 120.000.')
   expect(await tip('Seguro')).toHaveTextContent('Terceros completo para un sedán: $ 114.000 por mes de referencia, × 0,8 por la zona (Córdoba) = $ 92.000 por mes.')
-  expect(await tip('Patente')).toHaveTextContent('Alícuota anual de 1,2% en Córdoba')
-  expect(await tip('Mantenimiento')).toHaveTextContent('Service anual de referencia para un auto a nafta ($ 600.000)')
+  expect(await tip('Patente')).toHaveTextContent('Patente en Córdoba: 2,5% anual del valor del auto')
+  expect(await tip('Mantenimiento')).toHaveTextContent('1.500 km por mes × $ 38 por km para un sedán (service oficial) × 1,2 por antigüedad (4 años)')
   expect(await tip('Transferencia')).toHaveTextContent('Arancel del registro (1%) + sellos de Córdoba (2%)')
   expect(within(monthly()).getAllByRole('button')).toHaveLength(4)
   expect(within(purchase()).getAllByRole('button')).toHaveLength(1)

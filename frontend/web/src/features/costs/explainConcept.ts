@@ -4,12 +4,13 @@ import type { BodyType, CostBreakdown, FuelType } from './types'
 export type Concept = 'fuel' | 'charging' | 'insurance' | 'patente' | 'maintenance' | 'transfer' | 'price'
 
 const FUEL_NAMES: Record<'nafta' | 'diesel' | 'gnc', string> = { nafta: 'nafta', diesel: 'diésel', gnc: 'GNC' }
-const CAR_BY_FUEL: Record<FuelType, string> = {
-  nafta: 'un auto a nafta',
-  diesel: 'un auto a diésel',
-  gnc: 'un auto a GNC',
-  hibrido: 'un auto híbrido',
-  electrico: 'un auto eléctrico',
+// Why the fuel factor applies, in the maintenance text ("× 1,15 por GNC").
+const FUEL_REASON: Record<FuelType, string> = {
+  nafta: 'ser a nafta',
+  diesel: 'ser diésel',
+  gnc: 'GNC',
+  hibrido: 'ser híbrido',
+  electrico: 'ser eléctrico',
 }
 
 // Argentine decimals: 3.2 -> "3,2", 8 -> "8". Rounded to two decimals so float noise (0.07 * 100) never shows.
@@ -41,6 +42,29 @@ function explainInsurance(insurance: CostBreakdown['insurance'], money: string):
   return `Terceros completo${body ? ` para ${body}` : ''}: ${formatPrice(Math.round(insurance.base_monthly))} por mes de referencia, ${zone} = ${money} por mes. Sale de cotizaciones publicadas en octubre de 2026.`
 }
 
+function explainPatente(patente: CostBreakdown['patente'], money: string): string {
+  const where = patente.province_known ? ` en ${patente.province}` : ''
+  const monthly = `dividido 12 meses = ${money} por mes.`
+  if (patente.method === 'scale') {
+    const annual = `${formatPrice(patente.annual)} al año`
+    if (!patente.bracket_fixed) {
+      return `Patente${where}: ${percent(patente.rate)} del valor del auto (${formatPrice(patente.base)}) = ${annual}, ${monthly}`
+    }
+    return `Patente${where}: sobre el valor del auto (${formatPrice(patente.base)}) corresponde ${formatPrice(patente.bracket_fixed)} + ${percent(patente.rate)} de lo que supera ${formatPrice(patente.bracket_from ?? 0)} = ${annual}, ${monthly}`
+  }
+  if (patente.method === 'bracket_rate') {
+    return `Patente${where}: ${percent(patente.rate)} anual del valor del auto, ${monthly}`
+  }
+  return `Alícuota anual de ${percent(patente.rate)}${where ? `${where},` : ''} sobre el valor del auto, ${monthly}`
+}
+
+function explainMaintenance(m: CostBreakdown['maintenance'], money: string): string {
+  const body = m.body_type === null ? '' : ` para ${BODY_PHRASES[m.body_type]}`
+  const age = m.age_factor === 1 ? '' : ` × ${decimal(m.age_factor)} por antigüedad (${m.age_years} ${m.age_years === 1 ? 'año' : 'años'})`
+  const fuel = m.fuel_factor === 1 ? '' : ` × ${decimal(m.fuel_factor)} por ${FUEL_REASON[m.fuel_type]}`
+  return `${groupThousands(m.km_per_month)} km por mes × $ ${decimal(m.per_km)} por km${body} (service oficial)${age}${fuel} = ${money} por mes.`
+}
+
 /**
  * Spanish text that shows where an amount comes from, using the real numbers of the vehicle.
  * `amount` is the figure shown on the screen; `usd` is only read for the published price.
@@ -65,24 +89,10 @@ export function explainConcept(
       return 'Pronto vas a poder ver cuánto te cuesta cargarlo.'
     case 'insurance':
       return explainInsurance(breakdown.insurance, money)
-    case 'patente': {
-      const { province, province_known: known, annual_rate: rate } = breakdown.patente
-      const lead = known
-        ? `Alícuota anual de ${percent(rate)} en ${province}, sobre`
-        : `Alícuota anual de ${percent(rate)} sobre`
-      return `${lead} el valor del auto, dividido 12 meses = ${money} por mes.`
-    }
-    case 'maintenance': {
-      const m = breakdown.maintenance
-      const years = `${m.age_years} ${m.age_years === 1 ? 'año' : 'años'}`
-      const extras = [
-        m.turbo_factor === null ? '' : `, turbo (×${decimal(m.turbo_factor)})`,
-        m.automatic_factor === null ? '' : `, caja automática (×${decimal(m.automatic_factor)})`,
-      ].join('')
-      return (
-        `Service anual de referencia para ${CAR_BY_FUEL[m.fuel_type]} (${formatPrice(m.annual_base)}), ajustado por antigüedad (${years}, ×${decimal(m.age_factor)}) y kilometraje (${groupThousands(m.km)} km, ×${decimal(m.km_factor)})${extras}, dividido 12 meses = ${money} por mes.`
-      )
-    }
+    case 'patente':
+      return explainPatente(breakdown.patente, money)
+    case 'maintenance':
+      return explainMaintenance(breakdown.maintenance, money)
     case 'transfer': {
       const t = breakdown.transfer
       const stamp = t.province_known

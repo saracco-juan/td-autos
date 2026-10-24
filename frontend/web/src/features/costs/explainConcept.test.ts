@@ -12,9 +12,10 @@ const insurance = (changes: Partial<CostBreakdown['insurance']> = {}): CostBreak
 const breakdown = (changes: Partial<CostBreakdown> = {}): CostBreakdown => ({
   fuel: { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'nafta', price_fuel_type: 'nafta', unit: 'litro', unit_price: 2125 },
   insurance: insurance(),
-  patente: { base: 23000000, province: 'Córdoba', province_known: true, annual_rate: 0.032 },
-  maintenance: { fuel_type: 'nafta', annual_base: 1000000, age_years: 5, age_factor: 1, km: 70000, km_factor: 1.2,
-    turbo_factor: null, automatic_factor: null },
+  patente: { base: 23000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.03, bracket_fixed: null,
+    bracket_from: null, annual: 690000 },
+  maintenance: { fuel_type: 'nafta', body_type: 'hatchback', body_label: 'Hatchback', km_per_month: 1500, per_km: 20, age_years: 8,
+    age_factor: 1.2, fuel_factor: 1 },
   transfer: { base: 23000000, dnrpa_rate: 0.015, stamp_rate: 0.03, province: 'Córdoba', province_known: true, fixed_costs: 80000 },
   rounding: 1000,
   ...changes,
@@ -108,40 +109,86 @@ describe('explainConcept', () => {
     for (const text of texts) expect(text).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
   })
 
-  it('explains the patente with the provincial rate in Argentine format', () => {
-    expect(explainConcept('patente', breakdown(), 62000)).toBe(
-      'Alícuota anual de 3,2% en Córdoba, sobre el valor del auto, dividido 12 meses = $ 62.000 por mes.',
+  it('explains the patente scale with the bracket fixed amount, the rate and the excess', () => {
+    const patente = { base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
+      bracket_fixed: 233000, bracket_from: 18700000, annual: 290000 }
+    expect(explainConcept('patente', breakdown({ patente }), 25000)).toBe(
+      'Patente en Buenos Aires: sobre el valor del auto ($ 20.600.000) corresponde $ 233.000 + 3% de lo que supera $ 18.700.000 = $ 290.000 al año, dividido 12 meses = $ 25.000 por mes.',
+    )
+  })
+
+  it('explains the first bracket of the scale as a plain share of the value', () => {
+    const patente = { base: 10000000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.01,
+      bracket_fixed: 0, bracket_from: 0, annual: 100000 }
+    expect(explainConcept('patente', breakdown({ patente }), 9000)).toBe(
+      'Patente en Buenos Aires: 1% del valor del auto ($ 10.000.000) = $ 100.000 al año, dividido 12 meses = $ 9.000 por mes.',
+    )
+  })
+
+  it('explains the whole-value bracket rate in Argentine format', () => {
+    const patente = { base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const, rate: 0.025,
+      bracket_fixed: null, bracket_from: null, annual: 500000 }
+    expect(explainConcept('patente', breakdown({ patente }), 42000)).toBe(
+      'Patente en Córdoba: 2,5% anual del valor del auto, dividido 12 meses = $ 42.000 por mes.',
+    )
+  })
+
+  it('explains a flat patente with the provincial rate', () => {
+    const patente = { base: 23000000, province: 'Mendoza', province_known: true, method: 'flat' as const, rate: 0.03,
+      bracket_fixed: null, bracket_from: null, annual: 690000 }
+    expect(explainConcept('patente', breakdown({ patente }), 58000)).toBe(
+      'Alícuota anual de 3% en Mendoza, sobre el valor del auto, dividido 12 meses = $ 58.000 por mes.',
     )
   })
 
   it('omits the province name when it was not recognized', () => {
-    const patente = { base: 23000000, province: 'Atlántida', province_known: false, annual_rate: 0.045 }
-    expect(explainConcept('patente', breakdown({ patente }), 87000)).toBe(
-      'Alícuota anual de 4,5% sobre el valor del auto, dividido 12 meses = $ 87.000 por mes.',
+    const patente = { base: 23000000, province: 'Atlántida', province_known: false, method: 'flat' as const, rate: 0.035,
+      bracket_fixed: null, bracket_from: null, annual: 805000 }
+    expect(explainConcept('patente', breakdown({ patente }), 68000)).toBe(
+      'Alícuota anual de 3,5% sobre el valor del auto, dividido 12 meses = $ 68.000 por mes.',
     )
   })
 
-  it('explains the maintenance with the age and km factors', () => {
-    expect(explainConcept('maintenance', breakdown(), 100000)).toBe(
-      'Service anual de referencia para un auto a nafta ($ 1.000.000), ajustado por antigüedad (5 años, ×1) y kilometraje (70.000 km, ×1,2), dividido 12 meses = $ 100.000 por mes.',
+  it('never mentions maximums or rounding in the patente text', () => {
+    const scale = { base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
+      bracket_fixed: 233000, bracket_from: 18700000, annual: 290000 }
+    for (const patente of [scale, breakdown().patente]) {
+      expect(explainConcept('patente', breakdown({ patente }), 25000)).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
+    }
+  })
+
+  it('explains the maintenance per km with the body type, the age and the amount', () => {
+    expect(explainConcept('maintenance', breakdown(), 36000)).toBe(
+      '1.500 km por mes × $ 20 por km para un hatchback (service oficial) × 1,2 por antigüedad (8 años) = $ 36.000 por mes.',
     )
   })
 
-  it('adds the turbo and automatic factors only when they apply', () => {
-    const maintenance = { ...breakdown().maintenance, age_years: 1, turbo_factor: 1.15, automatic_factor: 1.2 }
-    const text = explainConcept('maintenance', breakdown({ maintenance }), 140000)
-    expect(text).toContain('antigüedad (1 año, ×1)')
-    expect(text).toContain('(70.000 km, ×1,2), turbo (×1,15), caja automática (×1,2), dividido 12 meses')
-    expect(explainConcept('maintenance', breakdown(), 100000)).not.toMatch(/turbo|automática/)
+  it('omits the age part when its factor is 1', () => {
+    const maintenance = { ...breakdown().maintenance, age_years: 3, age_factor: 1 }
+    const text = explainConcept('maintenance', breakdown({ maintenance }), 30000)
+    expect(text).toBe('1.500 km por mes × $ 20 por km para un hatchback (service oficial) = $ 30.000 por mes.')
+    expect(text).not.toContain('antigüedad')
   })
 
-  it('names the fuel type of a diesel, GNC, hybrid and electric car', () => {
-    const named = (fuel_type: CostBreakdown['maintenance']['fuel_type']) =>
-      explainConcept('maintenance', breakdown({ maintenance: { ...breakdown().maintenance, fuel_type } }), 1000)
-    expect(named('diesel')).toContain('para un auto a diésel')
-    expect(named('gnc')).toContain('para un auto a GNC')
-    expect(named('hibrido')).toContain('para un auto híbrido')
-    expect(named('electrico')).toContain('para un auto eléctrico')
+  it('adds the GNC and electric factors only when they apply', () => {
+    const named = (fuel_type: CostBreakdown['maintenance']['fuel_type'], fuel_factor: number) =>
+      explainConcept('maintenance', breakdown({ maintenance: { ...breakdown().maintenance, fuel_type, fuel_factor } }), 1000)
+    expect(named('gnc', 1.15)).toContain('× 1,2 por antigüedad (8 años) × 1,15 por GNC = $ 1.000 por mes.')
+    expect(named('electrico', 0.5)).toContain('× 0,5 por ser eléctrico')
+    expect(named('nafta', 1)).not.toMatch(/GNC|eléctrico/)
+    expect(named('diesel', 1)).not.toMatch(/diésel/)
+  })
+
+  it('leaves the body type out when it is not in the per-km table and shows decimal amounts per km', () => {
+    const maintenance = { ...breakdown().maintenance, body_type: null, body_label: null, per_km: 39.9 }
+    expect(explainConcept('maintenance', breakdown({ maintenance }), 72000)).toBe(
+      '1.500 km por mes × $ 39,9 por km (service oficial) × 1,2 por antigüedad (8 años) = $ 72.000 por mes.',
+    )
+  })
+
+  it('uses the singular for one year of age', () => {
+    const maintenance = { ...breakdown().maintenance, age_years: 1, age_factor: 1.2 }
+    expect(explainConcept('maintenance', breakdown({ maintenance }), 36000)).toContain('por antigüedad (1 año)')
   })
 
   it('explains the transfer with the registry fee, the stamp tax and the fixed costs', () => {

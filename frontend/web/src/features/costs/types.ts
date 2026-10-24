@@ -33,16 +33,30 @@ export type CostBreakdown = {
     // Terceros completo as shown on the screen (the base of todo riesgo).
     terceros_completo: number
   }
-  patente: { base: number; province: string; province_known: boolean; annual_rate: number }
+  patente: {
+    base: number
+    province: string
+    province_known: boolean
+    // scale: fixed + rate over the excess of the bracket; bracket_rate: one rate over the whole value; flat: one rate.
+    method: 'scale' | 'bracket_rate' | 'flat'
+    // The rate that applies: over the excess (scale) or over the whole value (bracket_rate, flat).
+    rate: number
+    // Scale only: the fixed amount of the bracket and the limit it starts at; null otherwise.
+    bracket_fixed: number | null
+    bracket_from: number | null
+    annual: number
+  }
   maintenance: {
     fuel_type: FuelType
-    annual_base: number
+    // Slug and label of the body type; null when the car's body type is not in the per-km table.
+    body_type: BodyType | null
+    body_label: string | null
+    km_per_month: number
+    // ARS per km of the body type, CPI-indexed.
+    per_km: number
     age_years: number
     age_factor: number
-    km: number
-    km_factor: number
-    turbo_factor: number | null
-    automatic_factor: number | null
+    fuel_factor: number
   }
   transfer: {
     base: number
