@@ -585,8 +585,9 @@ HTTP 503 with `acara_unavailable`; a stale snapshot remains available with
 form selectors and XLSX template. It retains versions without year prices and
 deduplicates identical identities only; it never merges their price curves.
 Conflicting labels under the same ID are excluded rather than selecting the first.
-IDs are source-label hashes, not permanent IDs across source renames. The original
-price snapshot and existing vehicle records are unchanged by this endpoint.
+IDs are source-label hashes, not permanent IDs across source renames. The catalog
+projection does not modify the price snapshot or vehicle records. The existing
+dealer guard still performs its normal subscription lifecycle synchronization.
 
 To smoke-test, start the backend and web app as described in `getting-started.md`,
 sign in as an active dealer, and run this in the web app's browser console:
