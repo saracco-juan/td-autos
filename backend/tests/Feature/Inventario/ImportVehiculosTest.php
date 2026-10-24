@@ -61,6 +61,22 @@ class ImportVehiculosTest extends TestCase
         $this->assertNull($this->plateOwner('AB123CD'));
     }
 
+    public function test_import_preserves_an_unchanged_catalog_link_and_clears_it_when_identity_changes(): void
+    {
+        $user = $this->dealer();
+        $vehicle = $this->vehicleOf($user->concesionaria, 7, 'AB123CD');
+        $id = 'acara:'.str_repeat('a', 64);
+        $vehicle->update(['marca' => 'Toyota', 'modelo' => 'Corolla', 'version' => 'XEI 2.0 CVT', 'acara_version_id' => $id]);
+        $this->import($user, [$this->csvRow(['precio' => '12345'])])->assertOk()
+            ->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
+        $this->assertSame($id, $vehicle->fresh()->acara_version_id);
+        $this->import($user, [$this->csvRow(['marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend'])])->assertOk()
+            ->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
+        $this->assertSame('Focus', $vehicle->fresh()->modelo);
+        $this->assertNull($vehicle->fresh()->acara_version_id);
+        $this->assertDatabaseCount('vehiculo', 1);
+    }
+
     public function test_tc58_creates_new_overwrites_matching_and_keeps_absent_vehicles(): void
     {
         $user = $this->dealer();

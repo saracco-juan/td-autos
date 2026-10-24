@@ -25,7 +25,17 @@ class VehiculoImporter
 
         foreach ($plan->actualizaciones() as $row) {
             $vehiculo = Vehiculo::query()->findOrFail($row->vehiculoId);
-            $vehiculo->update($this->attributes($row));
+            $attributes = $this->attributes($row);
+            if (! array_key_exists('acara_version_id', $attributes)) {
+                foreach (['marca', 'modelo', 'version'] as $field) {
+                    if ((string) ($attributes[$field] ?? '') !== (string) $vehiculo->$field) {
+                        // An old import must not retain the reference of a different identity.
+                        $attributes['acara_version_id'] = null;
+                        break;
+                    }
+                }
+            }
+            $vehiculo->update($attributes);
             $replaced = [...$replaced, ...$vehiculo->fotos()->pluck('ubicacion_archivo')->all()];
             $vehiculo->fotos()->delete();
             $this->storePhotos($vehiculo, $row);

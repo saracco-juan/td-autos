@@ -641,7 +641,9 @@ Manual smoke test after starting the API/web app as in `getting-started.md`:
    remain allowed. The notice explains how to link it explicitly.
 
 XLSX template/import replacement is a separate pending unit; CSV has not yet been
-removed by this manual-entry unit.
+removed by this manual-entry unit. Until that replacement, an import preserves a
+link only when its identity labels stay unchanged; changing them clears the old
+link instead of retaining a reference to a different vehicle version.
 
 ## HU05 stage 13b: ACARA PDF reader
 

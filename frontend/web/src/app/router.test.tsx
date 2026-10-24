@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
-import { fetchBodyTypes, fetchVehicle, fetchVehicles } from '../features/inventory/api'
-import { VEHICULOS, vehiculo } from '../features/inventory/fixtures'
+import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api'
+import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api'
@@ -46,6 +46,7 @@ vi.mock('../features/inventory/api', () => ({
   createVehicle: vi.fn(),
   updateVehicle: vi.fn(),
   fetchBodyTypes: vi.fn(),
+  fetchVehicleCatalog: vi.fn(),
   previewImport: vi.fn(),
   confirmImport: vi.fn(),
 }))
@@ -131,6 +132,7 @@ describe('app routes', () => {
     vi.mocked(fetchVehicle).mockResolvedValue(vehiculo())
     vi.mocked(fetchBodyTypes).mockReset()
     vi.mocked(fetchBodyTypes).mockResolvedValue([{ id: 2, nombre: 'Sedán' }])
+    vi.mocked(fetchVehicleCatalog).mockResolvedValue(VEHICLE_CATALOG)
     vi.mocked(fetchDealerDirectory).mockReset()
     vi.mocked(fetchDealerDirectory).mockResolvedValue(directory())
     vi.mocked(fetchDealer).mockReset()
