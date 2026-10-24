@@ -8,6 +8,7 @@ use App\Models\TipoCarroceria;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
+use App\Services\Catalog\FixedAcaraCatalog;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -43,7 +44,7 @@ trait InteractsWithVehiculos
             $rows[] = ['make' => $make, 'model' => $model, 'version' => $version,
                 'version_id' => $this->catalogId($make, $model, $version), 'currency' => 'ARS', 'values' => []];
         }
-        Cache::forever('resale.acara.last-valid.v1', ['snapshot_id' => 'acara:test',
+        Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), ['snapshot_id' => 'acara:test',
             'source_date' => now()->toDateString(), 'fetched_at' => now()->toIso8601String(), 'rows' => $rows]);
         $this->catalogVersionId = $rows[0]['version_id'];
     }

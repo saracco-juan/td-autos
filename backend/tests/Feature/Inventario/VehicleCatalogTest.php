@@ -5,6 +5,7 @@ namespace Tests\Feature\Inventario;
 use App\Models\Concesionaria;
 use App\Models\User;
 use App\Models\Vehiculo;
+use App\Services\Catalog\FixedAcaraCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -16,8 +17,6 @@ class VehicleCatalogTest extends TestCase
     use RefreshDatabase;
 
     private const URL = '/api/concesionaria/vehiculos/catalogo';
-
-    private const CACHE_KEY = 'resale.acara.last-valid.v1';
 
     public function test_catalog_requires_an_authenticated_approved_dealer(): void
     {
@@ -53,7 +52,7 @@ class VehicleCatalogTest extends TestCase
                 'snapshot_id' => 'acara:test', 'source_date' => '2026-10-19', 'stale' => false,
                 'warning' => null, 'entries' => [$this->entry($chevrolet), $this->entry($fiat)],
             ]);
-        $this->assertSame($snapshot, Cache::get(self::CACHE_KEY));
+        $this->assertSame($snapshot, Cache::store('catalog')->get(FixedAcaraCatalog::cacheKey()));
         $this->assertSame($count, Vehiculo::query()->count());
     }
 
@@ -70,7 +69,7 @@ class VehicleCatalogTest extends TestCase
         $row = $this->row('FIAT', 'STRADA', 'Freedom');
         $snapshot = $this->snapshot([$row]);
         $snapshot['fetched_at'] = now()->subDays(15)->toIso8601String();
-        Cache::forever(self::CACHE_KEY, $snapshot);
+        Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), $snapshot);
         $this->actingAs(Concesionaria::factory()->active()->create()->usuario)
             ->getJson(self::URL)->assertOk()->assertJsonPath('stale', true)
             ->assertJsonPath('warning', 'acara_stale')
@@ -94,7 +93,7 @@ class VehicleCatalogTest extends TestCase
     {
         $snapshot = ['snapshot_id' => 'acara:test', 'source_date' => '2026-10-19',
             'fetched_at' => now()->toIso8601String(), 'rows' => $rows];
-        Cache::forever(self::CACHE_KEY, $snapshot);
+        Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), $snapshot);
 
         return $snapshot;
     }

@@ -4,6 +4,7 @@ namespace Tests\Feature\Inventario;
 
 use App\Models\TipoCarroceria;
 use App\Models\Vehiculo;
+use App\Services\Catalog\FixedAcaraCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -20,7 +21,7 @@ class VehicleCatalogLinkTest extends TestCase
     private function catalog(): string
     {
         $id = 'acara:'.hash('sha256', 'test-corolla');
-        Cache::forever('resale.acara.last-valid.v1', [
+        Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), [
             'snapshot_id' => 'acara:test', 'source_date' => now()->toDateString(),
             'fetched_at' => now()->toIso8601String(), 'rows' => [
                 ['version_id' => $id, 'make' => 'Toyota', 'model' => 'Corolla',
@@ -52,7 +53,7 @@ class VehicleCatalogLinkTest extends TestCase
             $this->assertDatabaseCount('vehiculo', 0);
             $this->assertSame([], Storage::disk($this->disk)->allFiles());
         }
-        Cache::forget('resale.acara.last-valid.v1');
+        Cache::store('catalog')->forget(FixedAcaraCatalog::cacheKey());
         $this->postJson(self::URL, $this->payload(['acara_version_id' => $id]))->assertUnprocessable()->assertJsonValidationErrors('acara_version_id');
         $this->assertDatabaseCount('vehiculo', 0);
     }
@@ -79,7 +80,7 @@ class VehicleCatalogLinkTest extends TestCase
         $input = $this->payload(['acara_version_id' => $id]);
         $created = $this->postJson(self::URL, $input)->assertCreated();
         unset($input['fotos']);
-        Cache::forget('resale.acara.last-valid.v1');
+        Cache::store('catalog')->forget(FixedAcaraCatalog::cacheKey());
         foreach ([$id, null] as $submitted) {
             $this->postJson(self::URL.'/'.$created->json('vehiculo.id'), [...$input, 'acara_version_id' => $submitted, 'precio' => 12345])
                 ->assertOk()->assertJsonPath('vehiculo.acara_version_id', $id);

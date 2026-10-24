@@ -599,7 +599,7 @@ const response = await fetch('http://localhost:8000/api/concesionaria/vehiculos/
 console.log(response.status, await response.json());
 ```
 
-Expect 200 and catalog entries when a cached snapshot exists, or 503 with the
+Expect 200 and catalog entries when the permanent catalog is loaded, or 503 with the
 explicit unavailable state otherwise. An unauthenticated request returns 401;
 a non-dealer or unapproved dealer returns 403. No new UI is wired in this step.
 
@@ -679,44 +679,24 @@ decoded stream; these are **not** a total memory/time sandbox. Before scheduled
 ingestion, run in a bounded background worker and validate deployment resources;
 do not expose arbitrary PDF uploads or execute this in recommendation requests.
 
-## HU05 stage 13b2: automatic ACARA acquisition
+## Fixed ACARA catalog (HU05/HU21)
 
-`AcaraPriceSource` downloads the fixed [ACARA PDF endpoint](https://api.acara.org.ar/api/v1/prices/download-vehicule-processed-pdf?file=acara_precios.pdf),
-passes its bytes to the reader, then atomically replaces one complete last-valid
-snapshot in the configured persistent Laravel cache. No inventory or ranking is
-changed. Duplicate version labels remain separate rows; consumers must not assume
-their `version_id` is unique or choose conflicting prices arbitrarily.
+The fixed catalog is loaded once into permanent tables and served through a local,
+disposable cache. See [setup, storage and cache behavior](fixed-catalog.md) for the
+explicit local-PDF import, failure cases and maintenance boundaries.
 
-`current()` reads local data only, with `snapshot`, `stale` and `warning` fields.
-`refresh()` claims at most one attempt every 14 days across callers, including
-failures. HTTP errors, redirects, invalid/future/backdated PDFs and extraction
-errors leave the previous snapshot unchanged. Missing data yields
-`acara_unavailable`; a retrieval older than 14 days yields `acara_stale`.
-Snapshots carry ACARA's source date, byte hash, URL and distinct `fetched_at` time.
+`AcaraPriceSource::current()` preserves its `snapshot/stale/warning` envelope,
+source date, hash, URL and `fetched_at` (the one-time import time). The existing
+14-day age warning remains: fixed prices are not presented as current market data.
+Missing prices remain null and conflicting source curves remain distinct.
 
-Use the existing database/file/Redis cache, never array/null outside tests.
-Cache clearing/eviction loses both fallback and throttle; this is not a historical
-valuation archive. No new schema, credentials, `.env` edits or dependencies are needed.
-HTTPS verification stays enabled; Windows conditionally uses native CA trust.
-Downloads use a temporary-file sink, 25 MiB transfer/actual-size guards, 20/60-second
-connect/total timeouts, no redirects, automatic decompression or immediate retries.
+`acara:refresh` and its automatic schedule are removed. DNRPA and subscription
+schedules are unchanged. Requests never download or parse the PDF.
+Offline source/API/schedule checks: `php artisan test --filter=FixedAcaraSourceTest`.
+The catalog endpoint remains usable after local cache loss once the tables are loaded.
 
-The Laravel scheduler checks daily in a separate PHP process capped at 512 MiB
-and 120 seconds of PHP execution, without overlap. Its 14-day claim prevents daily
-downloads. The host must already run Laravel's scheduler; this change installs no
-OS task. Parsing is never triggered by a recommendation request or arbitrary upload.
-
-Manual PowerShell check (writes source cache only, not inventory):
-```powershell
-cd D:\DaVinci\TESIS\td-autos\backend
-php -d memory_limit=512M -d max_execution_time=120 artisan acara:refresh
-php -d memory_limit=512M -d max_execution_time=120 artisan acara:refresh
-php artisan schedule:list
-```
-Expect `ACARA: ready (N rows).`, exit 0, and the same cached row count on the
-second call without another download. An unavailable/stale warning exits 1 and
-retains prior data. The schedule lists the daily ACARA check and existing hourly
-subscriptions task. Offline regression tests: `php artisan test --filter=AcaraPriceSourceTest`.
+Thesis documentation updates remain pending in Engram
+(`documentation/thesis-catalog-xlsx-pending`); these are implementation notes only.
 
 ## DNRPA monthly activity reader (HU05, first stage 13c slice)
 
@@ -832,7 +812,7 @@ Readers see the snapshot and check date in one query. A superseded attempt canno
 The daily 01:00 scheduler runs in a separate 512 MiB / 600-second PHP process with
 a 15-minute overlap guard. The durable database claim also covers manual callers.
 No host cron is installed here. Before operational use, apply the additive migration
-and initialize ACARA with `php artisan acara:refresh`; a missing local catalog fails
+and initialize ACARA with `php artisan catalog:import-acara <local-pdf>`; a missing catalog fails
 safely. Tests use isolated SQLite; existing inventory and remote Supabase are untouched.
 Recommendation integration remains the next stage.
 

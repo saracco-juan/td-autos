@@ -51,9 +51,9 @@ PDF reader. It never downloads a URL or replaces an initialized catalog.
 | Different PDF, invalid/future input, or storage failure | 1 | `ACARA catalog import failed: ...` |
 
 Failures leave no partial dataset. Do not use migration rollback to update prices.
-This command prepares fixed storage; the legacy source/scheduler switch is a
-separate integration step. It does not change inventory, selectors or XLSX imports.
+The fixed tables now supply the existing source adapter; automatic ACARA downloads
+are removed. Loading the catalog does not change inventory or XLSX imports.
 
 Offline regression: run `php -d memory_limit=512M vendor/bin/phpunit --filter
-'FixedAcaraCatalogTest|ImportAcaraCatalogTest|AcaraPriceSourceTest' --no-progress`
+'FixedAcaraCatalogTest|ImportAcaraCatalogTest|FixedAcaraSourceTest' --no-progress`
 from `backend`. Tests use isolated SQLite, synthetic PDF data and blocked HTTP.

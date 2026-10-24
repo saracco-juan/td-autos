@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Resale;
 
+use App\Services\Catalog\FixedAcaraCatalog;
 use App\Services\Resale\DnrpaActivityCalculator;
 use App\Services\Resale\DnrpaActivityStore;
 use Illuminate\Console\Scheduling\Schedule;
@@ -30,7 +31,7 @@ class DnrpaActivityStoreTest extends TestCase
         $this->travelTo(now()->parse('2026-10-21T12:00:00Z'));
         config(['cache.default' => 'array']);
         Http::preventStrayRequests();
-        Cache::forever('resale.acara.last-valid.v1', ['snapshot_id' => 'catalog-1', 'fetched_at' => now()->toISOString(),
+        Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), ['snapshot_id' => 'catalog-1', 'fetched_at' => now()->toISOString(),
             'rows' => [['make' => 'Toyota', 'model' => 'Corolla', 'version' => 'XLI']]]);
         Http::fake(function ($request) {
             if ($this->fail) {
@@ -142,7 +143,7 @@ class DnrpaActivityStoreTest extends TestCase
 
     public function test_missing_catalog_preserves_unavailable_state_without_http(): void
     {
-        Cache::flush();
+        Cache::store('catalog')->flush();
         $this->artisan('dnrpa:refresh')->expectsOutput('DNRPA: dnrpa_unavailable (none).')->assertFailed();
         $this->assertSame('dnrpa_unavailable', app(DnrpaActivityStore::class)->refresh()['warning']);
         $this->assertDatabaseCount('dnrpa_activity_history', 0);
@@ -186,7 +187,7 @@ class DnrpaActivityStoreTest extends TestCase
         $this->assertStringContainsString('max_execution_time=600', $event->command);
         $this->assertTrue($event->withoutOverlapping);
         $this->assertSame(15, $event->expiresAt);
-        $this->assertSame('0 0 * * *', $events->first(fn ($event) => str_contains($event->command, 'acara:refresh'))->expression);
+        $this->assertNull($events->first(fn ($event) => str_contains($event->command, 'acara:refresh')));
         $this->assertSame('0 * * * *', $events->first(fn ($event) => str_contains($event->command, 'suscripciones:procesar'))->expression);
         Http::assertNothingSent();
     }
