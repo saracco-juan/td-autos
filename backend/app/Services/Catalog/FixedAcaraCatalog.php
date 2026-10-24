@@ -22,7 +22,7 @@ final class FixedAcaraCatalog
             'driver', 'host', 'port', 'database', 'username', 'unix_socket', 'prefix', 'search_path',
         ]));
 
-        return 'catalog.acara.fixed.v1:'.hash('sha256', json_encode([$connection->getName(), $identity], JSON_THROW_ON_ERROR));
+        return 'catalog.acara.fixed.v2:'.hash('sha256', json_encode([$connection->getName(), $identity], JSON_THROW_ON_ERROR));
     }
 
     public function current(): ?array
@@ -38,7 +38,7 @@ final class FixedAcaraCatalog
         $snapshot = $this->readDatabase();
         if ($snapshot !== null) {
             try {
-                Cache::store('catalog')->forever(self::cacheKey(), $snapshot);
+                Cache::store('catalog')->put(self::cacheKey(), $snapshot, 300);
             } catch (Throwable $error) {
                 $this->cacheWarning($error);
             }
@@ -50,17 +50,17 @@ final class FixedAcaraCatalog
     /** Receives the existing reader's validated snapshot; never replaces fixed data. */
     public function import(array $snapshot): bool
     {
-        return DB::transaction(function () use ($snapshot): bool {
-            $existing = DB::table('catalog_import')->find(1);
-            if ($existing !== null) {
-                if ($existing->sha256 === $snapshot['sha256']) {
+        $created = DB::transaction(function () use ($snapshot): bool {
+            // Claim atomically, then compare the winner instead of racing a SELECT/INSERT.
+            $claimed = DB::table('catalog_import')->insertOrIgnore(['id' => 1, 'source_date' => $snapshot['source_date'],
+                'sha256' => $snapshot['sha256'], 'snapshot_id' => $snapshot['snapshot_id'], 'imported_at' => now()]);
+            if ($claimed === 0) {
+                $existing = DB::table('catalog_import')->find(1);
+                if ($existing !== null && $existing->sha256 === $snapshot['sha256']) {
                     return false;
                 }
                 throw new RuntimeException('The fixed ACARA catalog is already loaded; replacement is not supported.');
             }
-            // The singleton primary key also rejects concurrent initializers atomically.
-            DB::table('catalog_import')->insert(['id' => 1, 'source_date' => $snapshot['source_date'],
-                'sha256' => $snapshot['sha256'], 'snapshot_id' => $snapshot['snapshot_id'], 'imported_at' => now()]);
             $brands = $models = $versions = $prices = [];
             foreach ($snapshot['rows'] as $index => $row) {
                 $brand = $brands[$row['make']] ??= DB::table('catalog_brands')->insertGetId(['name' => $row['make']]);
@@ -85,6 +85,14 @@ final class FixedAcaraCatalog
 
             return true;
         });
+        // Only invalidate after successful persistence, including identical retries.
+        try {
+            Cache::store('catalog')->forget(self::cacheKey());
+        } catch (Throwable $error) {
+            $this->cacheWarning($error);
+        }
+
+        return $created;
     }
 
     private function readDatabase(): ?array

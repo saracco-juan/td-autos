@@ -126,6 +126,47 @@ class FixedAcaraCatalogTest extends TestCase
         }
     }
 
+    public function test_import_and_identical_retry_discard_a_stale_local_snapshot(): void
+    {
+        $catalog = app(FixedAcaraCatalog::class);
+        foreach ([true, false] as $created) {
+            Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), ['snapshot_id' => 'obsolete']);
+            $this->assertSame($created, $catalog->import($this->snapshot()));
+            $this->assertSame($this->snapshot()['snapshot_id'], $catalog->current()['snapshot_id']);
+        }
+        $this->assertDatabaseCount('catalog_prices', 6);
+    }
+
+    public function test_cached_snapshot_expires_after_database_reset(): void
+    {
+        $catalog = app(FixedAcaraCatalog::class);
+        $catalog->import($this->snapshot());
+        $this->assertNotNull($catalog->current());
+        foreach (['catalog_prices', 'catalog_versions', 'catalog_models', 'catalog_brands', 'catalog_import'] as $table) {
+            DB::table($table)->delete();
+        }
+        $this->travel(301)->seconds();
+        $this->assertNull($catalog->current());
+    }
+
+    public function test_an_interleaved_initializer_with_the_same_checksum_is_a_noop(): void
+    {
+        $snapshot = $this->snapshot();
+        $interleaved = false;
+        $winner = null;
+        DB::connection()->beforeExecuting(function ($sql) use ($snapshot, &$interleaved, &$winner): void {
+            if (! $interleaved && str_starts_with($sql, 'insert') && str_contains($sql, '"catalog_import"')) {
+                $interleaved = true;
+                $winner = app(FixedAcaraCatalog::class)->import($snapshot);
+            }
+        });
+        $this->assertFalse(app(FixedAcaraCatalog::class)->import($snapshot));
+        $this->assertTrue($winner);
+        $this->assertDatabaseCount('catalog_import', 1);
+        $this->assertDatabaseCount('catalog_prices', 6);
+        $this->assertSame($snapshot['sha256'], DB::table('catalog_import')->value('sha256'));
+    }
+
     private function snapshot(string $date = '19/10/2026'): array
     {
         return app(AcaraPriceReader::class)->read(AcaraPdf::make($date));
