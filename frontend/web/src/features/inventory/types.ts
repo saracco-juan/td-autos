@@ -37,5 +37,5 @@ export type VehicleCatalog = {
   entries: VehicleCatalogEntry[]
 }
 
-// What both CSV import endpoints answer: how many vehicles the file creates and how many it updates.
+// What both XLSX import endpoints answer: how many vehicles the file creates and how many it updates.
 export type ImportCounts = { nuevos: number; actualizaciones: number }

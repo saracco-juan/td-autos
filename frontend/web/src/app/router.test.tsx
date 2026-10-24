@@ -756,21 +756,21 @@ describe('app routes', () => {
       expect(screen.getAllByRole('main')).toHaveLength(1)
     })
 
-    it('UH22: an active dealer reaches the CSV import at /concesionaria/inventario/importar inside the shell', async () => {
+    it('UH22: an active dealer reaches the XLSX import at /concesionaria/inventario/importar inside the shell', async () => {
       asDealer('activa')
       const router = renderAt('/concesionaria/inventario/importar')
 
-      expect(await screen.findByRole('heading', { level: 1, name: 'Importar CSV' })).toBeInTheDocument()
+      expect(await screen.findByRole('heading', { level: 1, name: 'Importar XLSX' })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/concesionaria/inventario/importar')
       expect(screen.getAllByRole('main')).toHaveLength(1)
     })
 
-    it('UH22: a pending dealer opening the CSV import is blocked', async () => {
+    it('UH22: a pending dealer opening the XLSX import is blocked', async () => {
       asDealer('pendiente')
       renderAt('/concesionaria/inventario/importar')
 
       expect(await screen.findByRole('alert')).toHaveTextContent('Tu cuenta está pendiente de aprobación.')
-      expect(screen.queryByLabelText('Archivo CSV')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Archivo XLSX')).not.toBeInTheDocument()
     })
 
     it('UH21: an active dealer reaches the edit form at /concesionaria/inventario/:id/editar with the vehicle loaded', async () => {

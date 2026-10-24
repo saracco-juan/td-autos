@@ -6,7 +6,7 @@ import barStyles from "../../components/checklist/pinnedBar.module.css";
 import ScrollArea from "../../components/ScrollArea";
 import { HttpError } from "../../lib/http";
 import SessionLoading from "../auth/session/SessionLoading";
-import { confirmImport, previewImport } from "./api";
+import { confirmImport, fetchInventoryTemplate, previewImport } from "./api";
 import {
   inactiveSubscription,
   type InactiveSubscription,
@@ -22,17 +22,17 @@ import VehicleFormPage from "./VehicleFormPage";
 type Preview = "none" | "loading" | ImportCounts;
 
 const FORMAT_HELP =
-  "Columnas: patente, marca, modelo, version (opcional), anio, kilometraje, precio, transmision, combustible, carroceria, ubicacion, descripcion (opcional) y fotos. " +
-  "Separá las columnas con ; o ,. En fotos, poné de 7 a 20 URLs http o https separadas por |. Hasta 500 filas y 2 MB.";
+  "Completá la hoja Inventario de la plantilla XLSX. Elegí marca, modelo y versión del catálogo. " +
+  "En fotos, poné de 7 a 20 URLs http o https separadas por |. Hasta 500 filas y 2 MB.";
 
 const MATCHING_HELP = [
   "Conservá también todas las columnas nuevas de la plantilla: moneda (ARS o USD), plazas (entero positivo, incluye conductor), motor, turbo, potencia (entero positivo), potencia_unidad (CV, HP o kW), consumo_urbano, consumo_ruta y equipamiento.",
   "Turbo y cada dato de seguridad y confort requieren sí o no. Vacío no significa no. Android Auto o Apple CarPlay es una sola respuesta: sí si tiene al menos uno.",
   "Consumos en L/100 km, mayores que cero, con punto decimal y hasta dos decimales. Son obligatorios para nafta y diesel; opcionales para gnc, hibrido y electrico. Transmisión: manual o automatica. Carrocería: el nombre de la lista del alta manual.",
-  "La fila de ejemplo contiene datos ficticios: reemplazalos por los de cada vehículo. Descargá la plantilla actualizada; las versiones incompletas se rechazan sin aplicar cambios.",
+  "El servidor valida todas las filas, aunque borres los desplegables. Una selección de catálogo inválida o incompleta rechaza todo el archivo sin aplicar cambios. Las versiones sin precios de referencia también se pueden cargar; no se inventa una estimación.",
 ];
 
-// Import vehicles from a CSV (Figma 38:1005, CU-20): picking the file requests the preview; confirming applies the same file.
+// Figma 2373:8817 (CU-20), with the authorized XLSX format change. Preview and confirm use the same file.
 export default function ImportInventoryPage() {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
@@ -40,9 +40,19 @@ export default function ImportInventoryPage() {
   const [failure, setFailure] = useState<ImportFailure | null>(null);
   const [blocked, setBlocked] = useState<InactiveSubscription | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const templateRequest = useRef<{ cancelled: boolean; url: string | null } | null>(null);
   const failureRef = useRef<HTMLDivElement>(null);
   // The latest picked file: the answer of an earlier one is dropped.
   const currentFile = useRef<File | null>(null);
+
+  useEffect(() => () => {
+    const request = templateRequest.current;
+    if (request) {
+      request.cancelled = true;
+      if (request.url) URL.revokeObjectURL(request.url);
+    }
+  }, []);
 
   // The errors take the focus once shown, so the result is announced.
   useEffect(() => {
@@ -54,6 +64,29 @@ export default function ImportInventoryPage() {
     const inactive = inactiveSubscription(error);
     if (inactive) setBlocked(inactive);
     else setFailure(importFailureFrom(error));
+  };
+
+  const downloadTemplate = async () => {
+    if (downloading) return;
+    if (templateRequest.current?.url) URL.revokeObjectURL(templateRequest.current.url);
+    const request = { cancelled: false, url: null as string | null };
+    templateRequest.current = request;
+    setDownloading(true);
+    setFailure(null);
+    setBlocked(null);
+    try {
+      const blob = await fetchInventoryTemplate();
+      if (request.cancelled) return;
+      request.url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = request.url;
+      link.download = "plantilla-inventario.xlsx";
+      link.click();
+    } catch (error) {
+      if (!request.cancelled) showFailure(error);
+    } finally {
+      if (!request.cancelled) setDownloading(false);
+    }
   };
 
   const pickFile = async (picked: File) => {
@@ -93,7 +126,7 @@ export default function ImportInventoryPage() {
 
   return (
     <VehicleFormPage
-      title="Importar CSV"
+      title="Importar XLSX"
       subtitle="Subí un archivo para cargar o actualizar varios vehículos a la vez."
       actions={
         <div className={barStyles.actions}>
@@ -128,17 +161,19 @@ export default function ImportInventoryPage() {
         {MATCHING_HELP.map((help) => (
           <p key={help} className={styles.cardBody}>{help}</p>
         ))}
-        <a
-          href="/plantilla-inventario.csv"
-          download="plantilla-inventario.csv"
+        <button
+          type="button"
+          disabled={downloading || confirming}
+          aria-busy={downloading}
+          onClick={() => void downloadTemplate()}
           className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.template}`}
         >
-          DESCARGAR PLANTILLA
-        </a>
+          {downloading ? "DESCARGANDO…" : "DESCARGAR PLANTILLA"}
+        </button>
       </section>
       <div className={styles.fileRow}>
         <div className={styles.fileField}>
-          <span className={styles.fileLabel}>Archivo CSV</span>
+          <span className={styles.fileLabel}>Archivo XLSX</span>
           <span className={styles.fileName}>
             {file?.name ?? "Ningún archivo seleccionado"}
           </span>
@@ -149,8 +184,8 @@ export default function ImportInventoryPage() {
           SELECCIONAR ARCHIVO
           <input
             type="file"
-            aria-label="Archivo CSV"
-            accept=".csv,text/csv"
+            aria-label="Archivo XLSX"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className={styles.fileInput}
             disabled={confirming}
             onChange={(event) => {
