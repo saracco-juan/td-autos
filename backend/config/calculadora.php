@@ -11,8 +11,8 @@ return [
     // Date the rates were last reviewed (shown on the screen as "valores actualizados al ...").
     'updated_at' => '2026-10-24',
 
-    // Month (YYYY-MM) in which the ARS amounts below (maintenance.annual_base, transfer.fixed_costs) are stated.
-    // insurance and patente state their ARS amounts at their own `cpi_base_month`.
+    // Month (YYYY-MM) in which the ARS amounts below (transfer.fixed_costs) are stated.
+    // insurance, patente and maintenance state their ARS amounts at their own `cpi_base_month`.
     // The monthly refresh (calculadora:refresh) scales them by max(1, CPI latest / CPI of this month).
     // Move it forward together with those amounts when they are reviewed by hand.
     'cpi_base_month' => '2026-08',
@@ -170,17 +170,28 @@ return [
         ],
     ],
 
+    // Maintenance per month = km per month x per_km[body type] x age factor x fuel factor, rounded up.
+    // The km per month is the one fuel uses (diagnostico, default or the user's input). An unknown body type takes
+    // the highest per_km.
+    //
+    // Sources: first official services at a 10,000 km interval.
+    //  - La Nación 2025-10, official service ranking:
+    //    https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/
+    //  - iProfesional 2026-04:
+    //    https://www.iprofesional.com/autos/452731-service-auto-cuanto-cuesta-concesionarias-y-que-precio-en-taller-independiente
+    //
+    // Yearly review: per_km and the factors, together with `cpi_base_month` and `updated_at`.
     'maintenance' => [
-        // ARS per year for a vehicle in the first band of age and km. Nafta and diesel: two official
-        // dealer services (Toyota Yacopini list, 2026-08). Gnc, hibrido and electrico are estimates.
-        'annual_base' => [
-            'nafta' => 1000000,
-            'diesel' => 1300000,
-            'gnc' => 1150000,
-            'hibrido' => 900000,
-            'electrico' => 450000,
+        // ARS per km at `cpi_base_month`. The monthly refresh scales them by max(1, CPI latest / CPI of that month).
+        'per_km' => [
+            'hatchback' => 20,
+            'sedan' => 38,
+            'rural' => 34,
+            'suv' => 34,
+            'pickup' => 40,
+            'furgon' => 34,
         ],
-        // Ordered bands: the first band whose max is >= the value applies; max null is the open band.
+        // Ordered bands: the first band whose max is >= the age in years applies; max null is the open band.
         // The factors are judgment calls, without a source.
         'age_factors' => [
             ['max' => 5, 'factor' => 1.0],
@@ -188,13 +199,15 @@ return [
             ['max' => 15, 'factor' => 1.5],
             ['max' => null, 'factor' => 1.8],
         ],
-        'km_factors' => [
-            ['max' => 60000, 'factor' => 1.0],
-            ['max' => 120000, 'factor' => 1.2],
-            ['max' => 200000, 'factor' => 1.5],
-            ['max' => null, 'factor' => 1.9],
+        // Gnc and electrico are estimates, without a source. An unknown fuel takes the highest factor.
+        'fuel_factor' => [
+            'nafta' => 1.0,
+            'diesel' => 1.0,
+            'hibrido' => 1.0,
+            'gnc' => 1.15,
+            'electrico' => 0.5,
         ],
-        'turbo_factor' => 1.15,
-        'automatic_factor' => 1.2,
+        // Month (YYYY-MM) of the per_km amounts; independent from the top-level `cpi_base_month`.
+        'cpi_base_month' => '2026-04',
     ],
 ];

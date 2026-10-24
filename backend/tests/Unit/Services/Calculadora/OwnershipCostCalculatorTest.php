@@ -52,11 +52,10 @@ class OwnershipCostCalculatorTest extends TestCase
                 'flat_rate' => ['mendoza' => 0.03, 'santa_fe' => 0.023, 'misiones' => 0.018],
             ],
             'maintenance' => [
-                'annual_base' => ['nafta' => 600000, 'diesel' => 720000, 'gnc' => 660000, 'hibrido' => 480000, 'electrico' => 360000],
+                'per_km' => ['hatchback' => 20, 'sedan' => 38, 'rural' => 34, 'suv' => 34, 'pickup' => 40, 'furgon' => 34],
                 'age_factors' => [['max' => 3, 'factor' => 1.0], ['max' => 7, 'factor' => 1.2], ['max' => null, 'factor' => 1.5]],
-                'km_factors' => [['max' => 30000, 'factor' => 1.0], ['max' => 80000, 'factor' => 1.1], ['max' => null, 'factor' => 1.3]],
-                'turbo_factor' => 1.1,
-                'automatic_factor' => 1.2,
+                'fuel_factor' => ['nafta' => 1.0, 'diesel' => 1.0, 'hibrido' => 1.0, 'gnc' => 1.15, 'electrico' => 0.5],
+                'cpi_base_month' => '2026-04',
             ],
         ], $changes);
     }
@@ -65,7 +64,7 @@ class OwnershipCostCalculatorTest extends TestCase
     {
         return array_replace([
             'price_ars' => 20000000, 'body_type' => 'Hatchback', 'fuel' => 'nafta', 'consumo_urbano' => 8, 'consumo_ruta' => 6,
-            'anio' => 2022, 'kilometraje' => 40000, 'turbo' => false, 'transmision' => 'manual',
+            'anio' => 2022,
         ], $changes);
     }
 
@@ -76,14 +75,14 @@ class OwnershipCostCalculatorTest extends TestCase
 
     /*
      * Reference case (HU10 Escenario 3), computed by hand. Price 20.000.000 ARS, nafta, 8/6 L/100 km,
-     * year 2022 (age 4), 40.000 km, no turbo, manual, Córdoba, 1.500 km/month, terceros completo.
+     * year 2022 (age 4), Córdoba, 1.500 km/month, terceros completo.
      *
      * purchase.transfer = 20.000.000 x (0,01 + 0,02) + 100.000 = 700.000; total = 20.700.000
      * fuel        = 1.500 x max(8, 6) / 100 x 1.000 = 120.000
      * insurance   = max(103.000 (hatchback base), 20.000.000 x 0,023 / 12 = 38.333) x 0,8 (Córdoba) = 82.400 -> 83.000
      * patente     = 20.000.000 x 0,025 (Córdoba, up to 20.000.000, whole value) / 12 = 41.667 -> 42.000
-     * maintenance = 600.000 x 1,2 (age 4 -> band <= 7) x 1,1 (40.000 km -> band <= 80.000) / 12 = 66.000
-     * monthly total = 311.000; yearly = 3.732.000
+     * maintenance = 1.500 km x 20 (hatchback) x 1,2 (age 4 -> band <= 7) x 1,0 (nafta) = 36.000
+     * monthly total = 281.000; yearly = 3.372.000
      */
     public function test_reference_case(): void
     {
@@ -93,9 +92,9 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(120000, $r['monthly']['fuel']);
         $this->assertSame(83000, $r['monthly']['insurance']);
         $this->assertSame(42000, $r['monthly']['patente']);
-        $this->assertSame(66000, $r['monthly']['maintenance']);
-        $this->assertSame(311000, $r['monthly']['total']);
-        $this->assertSame(3732000, $r['monthly']['yearly_total']);
+        $this->assertSame(36000, $r['monthly']['maintenance']);
+        $this->assertSame(281000, $r['monthly']['total']);
+        $this->assertSame(3372000, $r['monthly']['yearly_total']);
         $this->assertSame([], $r['monthly']['not_estimated']);
     }
 
@@ -109,8 +108,8 @@ class OwnershipCostCalculatorTest extends TestCase
                 'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 83000],
             'patente' => ['base' => 20000000, 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
                 'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000],
-            'maintenance' => ['fuel_type' => 'nafta', 'annual_base' => 600000, 'age_years' => 4, 'age_factor' => 1.2,
-                'km' => 40000, 'km_factor' => 1.1, 'turbo_factor' => null, 'automatic_factor' => null],
+            'maintenance' => ['fuel_type' => 'nafta', 'body_type' => 'hatchback', 'body_label' => 'Hatchback', 'km_per_month' => 1500,
+                'per_km' => 20.0, 'age_years' => 4, 'age_factor' => 1.2, 'fuel_factor' => 1.0],
             'transfer' => ['base' => 20000000, 'dnrpa_rate' => 0.01, 'stamp_rate' => 0.02, 'province' => 'Córdoba',
                 'province_known' => true, 'fixed_costs' => 100000],
             'rounding' => 1000,
@@ -148,12 +147,16 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame('litro', $hybrid['unit']);
     }
 
-    public function test_breakdown_reports_turbo_and_automatic_factors_only_when_they_apply(): void
+    public function test_breakdown_reports_the_fuel_factor_and_an_unknown_body_type(): void
     {
-        $m = $this->estimate(['turbo' => true, 'transmision' => 'automatica'])['breakdown']['maintenance'];
+        $gnc = $this->estimate(['fuel' => 'gnc'])['breakdown']['maintenance'];
+        $this->assertSame('gnc', $gnc['fuel_type']);
+        $this->assertEquals(1.15, $gnc['fuel_factor']);
 
-        $this->assertEquals(1.1, $m['turbo_factor']);
-        $this->assertEquals(1.2, $m['automatic_factor']);
+        $unknown = $this->estimate(['body_type' => 'Cupé'])['breakdown']['maintenance'];
+        $this->assertNull($unknown['body_type']);
+        $this->assertNull($unknown['body_label']);
+        $this->assertEquals(40, $unknown['per_km']);
     }
 
     public function test_every_concept_rounds_up_and_totals_sum_rounded_concepts(): void
@@ -168,8 +171,8 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(121000, $r['monthly']['fuel']);
         $this->assertSame(83000, $r['monthly']['insurance']);
         $this->assertSame(51000, $r['monthly']['patente']);
-        $this->assertSame(66000, $r['monthly']['maintenance']);
-        $this->assertSame(121000 + 83000 + 51000 + 66000, $r['monthly']['total']);
+        $this->assertSame(36000, $r['monthly']['maintenance']);
+        $this->assertSame(121000 + 83000 + 51000 + 36000, $r['monthly']['total']);
         $this->assertSame($r['monthly']['total'] * 12, $r['monthly']['yearly_total']);
     }
 
@@ -340,26 +343,42 @@ class OwnershipCostCalculatorTest extends TestCase
 
         $this->assertNull($r['monthly']['fuel']);
         $this->assertSame(['fuel'], $r['monthly']['not_estimated']);
-        $this->assertSame(191000, $r['monthly']['total']);
+        $this->assertSame(161000, $r['monthly']['total']);
     }
 
+    /**
+     * Monthly maintenance = km per month x per_km x age factor x fuel factor, rounded up to 1.000.
+     * Test bands: age <= 3 -> 1,0; <= 7 -> 1,2; open -> 1,5.
+     */
     #[DataProvider('maintenanceCases')]
-    public function test_maintenance_factors(array $changes, int $expected): void
+    public function test_maintenance_per_km(array $changes, int $km, int $expected): void
     {
-        $this->assertSame($expected, $this->estimate($changes)['monthly']['maintenance']);
+        $this->assertSame($expected, $this->estimate($changes, km: $km)['monthly']['maintenance']);
     }
 
     public static function maintenanceCases(): array
     {
         return [
-            'new car, low km (band 1 both)' => [['anio' => 2025, 'kilometraje' => 10000], 50000],
-            'age on the band limit stays in the band' => [['anio' => 2023, 'kilometraje' => 10000], 50000],
-            'old car, open band' => [['anio' => 2010, 'kilometraje' => 10000], 75000],
-            'high km, open band' => [['anio' => 2025, 'kilometraje' => 200000], 65000],
-            'turbo' => [['anio' => 2025, 'kilometraje' => 10000, 'turbo' => true], 55000],
-            'automatic' => [['anio' => 2025, 'kilometraje' => 10000, 'transmision' => 'automatica'], 60000],
-            'diesel base' => [['anio' => 2025, 'kilometraje' => 10000, 'fuel' => 'diesel'], 60000],
-            'future year counts as age 0' => [['anio' => 2027, 'kilometraje' => 0], 50000],
+            'hatchback in the first age band: 1.500 km x 20' => [['anio' => 2025], 1500, 30000],
+            'age on the band limit stays in the band' => [['anio' => 2023], 1500, 30000],
+            'age 4 takes the second band' => [['anio' => 2022], 1500, 36000],
+            'old car, open band' => [['anio' => 2010], 1500, 45000],
+            'future year counts as age 0' => [['anio' => 2027], 1500, 30000],
+            'sedan' => [['anio' => 2025, 'body_type' => 'Sedán'], 1500, 57000],
+            'rural / familiar maps to rural' => [['anio' => 2025, 'body_type' => 'Rural / familiar'], 1500, 51000],
+            'suv' => [['anio' => 2025, 'body_type' => 'SUV'], 1500, 51000],
+            'pickup' => [['anio' => 2025, 'body_type' => 'Pickup'], 1500, 60000],
+            'furgon' => [['anio' => 2025, 'body_type' => 'Furgón'], 1500, 51000],
+            'unknown body type takes the highest per km' => [['anio' => 2025, 'body_type' => 'Cupé'], 1500, 60000],
+            'missing body type takes the highest per km' => [['anio' => 2025, 'body_type' => null], 1500, 60000],
+            'gnc 1,15 (34.500 rounds up)' => [['anio' => 2025, 'fuel' => 'gnc'], 1500, 35000],
+            'electric 0,5' => [['anio' => 2025, 'fuel' => 'electrico'], 1500, 15000],
+            'diesel 1,0' => [['anio' => 2025, 'fuel' => 'diesel'], 1500, 30000],
+            'hybrid 1,0' => [['anio' => 2025, 'fuel' => 'hibrido'], 1500, 30000],
+            'all factors: sedan, open age band, gnc (98.325 rounds up)' => [['anio' => 2010, 'body_type' => 'Sedán', 'fuel' => 'gnc'], 1500, 99000],
+            'the km per month override changes it' => [['anio' => 2025], 3000, 60000],
+            'few km' => [['anio' => 2025], 500, 10000],
+            'no km' => [['anio' => 2025], 0, 0],
         ];
     }
 

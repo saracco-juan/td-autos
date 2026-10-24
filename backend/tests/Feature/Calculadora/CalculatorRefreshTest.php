@@ -67,11 +67,10 @@ class CalculatorRefreshTest extends TestCase
                 'flat_rate' => ['caba' => 0.01, 'mendoza' => 0.03],
             ],
             'maintenance' => [
-                'annual_base' => ['nafta' => 600000, 'diesel' => 720000, 'gnc' => 660000, 'hibrido' => 480000, 'electrico' => 360000],
+                'per_km' => ['hatchback' => 20, 'sedan' => 38],
                 'age_factors' => [['max' => 3, 'factor' => 1.0], ['max' => 7, 'factor' => 1.2], ['max' => null, 'factor' => 1.5]],
-                'km_factors' => [['max' => 30000, 'factor' => 1.0], ['max' => 80000, 'factor' => 1.1], ['max' => null, 'factor' => 1.3]],
-                'turbo_factor' => 1.1,
-                'automatic_factor' => 1.2,
+                'fuel_factor' => ['nafta' => 1.0, 'diesel' => 1.0, 'hibrido' => 1.0, 'gnc' => 1.15, 'electrico' => 0.5],
+                'cpi_base_month' => '2026-04',
             ],
         ], $changes);
     }
@@ -264,7 +263,7 @@ class CalculatorRefreshTest extends TestCase
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
         $this->assertSame(config('calculadora.fuel_prices'), $rates['fuel_prices']);
-        $this->assertSame(600000, $rates['maintenance']['annual_base']['nafta']);
+        $this->assertSame(20, $rates['maintenance']['per_km']['hatchback']);
         $this->assertSame(100000, $rates['transfer']['fixed_costs']);
         $this->assertSame('2026-10-01', $rates['updated_at']);
     }
@@ -298,8 +297,6 @@ class CalculatorRefreshTest extends TestCase
 
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
-        $this->assertEqualsWithDelta(600000 * $factor, $rates['maintenance']['annual_base']['nafta'], 1.0);
-        $this->assertEqualsWithDelta(360000 * $factor, $rates['maintenance']['annual_base']['electrico'], 1.0);
         $this->assertEqualsWithDelta(100000 * $factor, $rates['transfer']['fixed_costs'], 1.0);
         $this->assertSame(0.01, $rates['transfer']['dnrpa_rate']);
         $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
@@ -335,10 +332,10 @@ class CalculatorRefreshTest extends TestCase
 
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
-        // Insurance: 13650 / 13000 = 1,05. Maintenance keeps its own month (2026-08): 13650 / 12276,766.
+        // Insurance: 13650 / 13000 = 1,05. The transfer keeps the main month (2026-08): 13650 / 12276,766.
         $this->assertSame(105000, $rates['insurance']['tc_base']['hatchback']);
         $this->assertSame(157500, $rates['insurance']['tc_base']['pickup']);
-        $this->assertEqualsWithDelta(600000 * 13650.0 / 12276.766, $rates['maintenance']['annual_base']['nafta'], 1.0);
+        $this->assertEqualsWithDelta(100000 * 13650.0 / 12276.766, $rates['transfer']['fixed_costs'], 1.0);
         $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
         $this->assertSame(1.8, $rates['insurance']['tr_ratio']['hatchback']);
     }
@@ -382,7 +379,7 @@ class CalculatorRefreshTest extends TestCase
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
         $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
-        $this->assertGreaterThan(600000, $rates['maintenance']['annual_base']['nafta']);
+        $this->assertGreaterThan(100000, $rates['transfer']['fixed_costs']);
     }
 
     public function test_the_refresh_fetches_every_base_month_in_use(): void
@@ -435,6 +432,42 @@ class CalculatorRefreshTest extends TestCase
         $this->assertSame(config('calculadora.patente.scale'), app(EffectiveRates::class)->forProvince('buenos_aires')['patente']['scale']);
     }
 
+    public function test_maintenance_per_km_is_indexed_from_its_own_base_month(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-04-01', 12000.0], ['2026-08-01', 12276.766], ['2026-09-01', 12600.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $maintenance = app(EffectiveRates::class)->forProvince('cordoba')['maintenance'];
+
+        // 12600 / 12000 = 1,05; the factors and the base month are untouched.
+        $this->assertEqualsWithDelta(21.0, $maintenance['per_km']['hatchback'], 0.001);
+        $this->assertEqualsWithDelta(39.9, $maintenance['per_km']['sedan'], 0.001);
+        $this->assertSame(1.15, $maintenance['fuel_factor']['gnc']);
+        $this->assertSame(1.2, $maintenance['age_factors'][1]['factor']);
+    }
+
+    public function test_maintenance_per_km_keeps_the_config_until_its_base_month_is_published_and_never_goes_below_it(): void
+    {
+        $this->fakeSources();
+        app(CalculatorRatesStore::class)->refresh();
+        $this->assertSame(20, app(EffectiveRates::class)->forProvince('cordoba')['maintenance']['per_km']['hatchback']);
+
+        $this->fakeSources(cpiRows: [['2026-04-01', 13000.0], ['2026-08-01', 12276.766], ['2026-09-01', 12600.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+        $this->assertSame(20, app(EffectiveRates::class)->forProvince('cordoba')['maintenance']['per_km']['hatchback']);
+    }
+
+    public function test_the_refresh_requests_the_cpi_from_the_oldest_base_month(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-02-01', 10000.0], ['2026-04-01', 11000.0], ['2026-08-01', 12276.766], ['2026-10-01', 13000.0], ['2026-11-01', 13650.0]]);
+
+        app(CalculatorRatesStore::class)->refresh();
+
+        $cpi = CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi'];
+        $this->assertEquals(['2026-02' => 10000.0, '2026-04' => 11000.0, '2026-10' => 13000.0], $cpi['extra_bases']);
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'start_date=2026-02-01'));
+    }
+
     public function test_the_cpi_factor_never_goes_below_one(): void
     {
         Http::swap(new Factory);
@@ -445,7 +478,7 @@ class CalculatorRefreshTest extends TestCase
 
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
-        $this->assertSame(600000, $rates['maintenance']['annual_base']['nafta']);
+        $this->assertSame(20, $rates['maintenance']['per_km']['hatchback']);
         $this->assertSame(100000, $rates['transfer']['fixed_costs']);
     }
 
@@ -455,7 +488,7 @@ class CalculatorRefreshTest extends TestCase
         app(CalculatorRatesStore::class)->refresh();
         config(['calculadora.cpi_base_month' => '2026-05']);
 
-        $this->assertSame(600000, app(EffectiveRates::class)->forProvince('cordoba')['maintenance']['annual_base']['nafta']);
+        $this->assertSame(100000, app(EffectiveRates::class)->forProvince('cordoba')['transfer']['fixed_costs']);
     }
 
     public function test_rates_updated_at_is_the_snapshot_fetch_date(): void
@@ -468,7 +501,7 @@ class CalculatorRefreshTest extends TestCase
 
     public function test_the_costs_endpoint_uses_the_province_fuel_price_and_indexed_maintenance(): void
     {
-        $this->fakeSources();
+        $this->fakeSources(cpiRows: [['2026-04-01', 12000.0], ['2026-08-01', 12276.766], ['2026-09-01', 12600.0]]);
         app(CalculatorRatesStore::class)->refresh();
         $this->actingAs(User::factory()->create());
         $car = $this->car();
@@ -479,9 +512,9 @@ class CalculatorRefreshTest extends TestCase
         $response->assertJsonPath('monthly.fuel', 207000)
             ->assertJsonPath('breakdown.fuel.unit_price', 1720)
             ->assertJsonPath('rates_updated_at', '2026-11-01');
-        // Maintenance: 600.000 x factor 1,0263 x 1,2 x 1,1 / 12 = 67.7xx -> 68.000 (it was 66.000).
-        $response->assertJsonPath('monthly.maintenance', 68000);
-        $this->assertEqualsWithDelta(615797, $response->json('breakdown.maintenance.annual_base'), 2);
+        // Maintenance: 1.500 km x (38 x 12600 / 12000 = 39,9) x 1,2 = 71.820 -> 72.000 (it was 69.000 unindexed).
+        $response->assertJsonPath('monthly.maintenance', 72000);
+        $this->assertEqualsWithDelta(39.9, $response->json('breakdown.maintenance.per_km'), 0.001);
         $this->assertEqualsWithDelta(102633, $response->json('breakdown.transfer.fixed_costs'), 2);
     }
 
@@ -492,7 +525,7 @@ class CalculatorRefreshTest extends TestCase
 
         $this->getJson("/api/vehiculos/{$car->id}/costos?km=1500")->assertOk()
             ->assertJsonPath('monthly.fuel', 120000)
-            ->assertJsonPath('monthly.maintenance', 66000)
+            ->assertJsonPath('monthly.maintenance', 69000)
             ->assertJsonPath('rates_updated_at', '2026-10-01');
     }
 

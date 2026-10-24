@@ -54,8 +54,7 @@ final class VehicleCostEstimate
         $result = $this->calculator->calculate([
             'price_ars' => $priceArs, 'body_type' => $vehicle->tipoCarroceria?->nombre, 'fuel' => $vehicle->combustible,
             'consumo_urbano' => $vehicle->consumo_urbano, 'consumo_ruta' => $vehicle->consumo_ruta,
-            'anio' => (int) $vehicle->anio, 'kilometraje' => (int) $vehicle->kilometraje,
-            'turbo' => (bool) $vehicle->turbo, 'transmision' => (string) $vehicle->transmision,
+            'anio' => (int) $vehicle->anio,
         ], $province, $kmPerMonth, $coverage, $rates, now()->year);
 
         $result['purchase']['budget'] = $this->budget($diagnosis, $result['purchase']['total']);

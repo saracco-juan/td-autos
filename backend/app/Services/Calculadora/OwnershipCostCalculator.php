@@ -17,7 +17,7 @@ final class OwnershipCostCalculator
     ];
 
     /**
-     * @param  array{price_ars: float|int, body_type?: ?string, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int, kilometraje: int, turbo: bool, transmision: string}  $vehicle
+     * @param  array{price_ars: float|int, body_type?: ?string, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int}  $vehicle
      * @param  array<string, mixed>  $rates  config('calculadora')
      * @return array{purchase: array{price: int, transfer: int, total: int}, monthly: array{fuel: ?int, insurance: int, patente: int, maintenance: int, total: int, yearly_total: int, not_estimated: list<string>}, breakdown: array<string, mixed>}
      */
@@ -39,8 +39,8 @@ final class OwnershipCostCalculator
         $insurance = $insuranceCalc['amount'];
         $patenteCalc = $this->patente($base, $slug, trim($province), $rates['patente']);
         $patente = $this->ceil($patenteCalc['annual'] / 12, $step);
-        $maintenanceInputs = $this->maintenanceInputs($vehicle, $rates, $currentYear);
-        $maintenance = $this->ceil($maintenanceInputs['yearly'] / 12, $step);
+        $maintenanceCalc = $this->maintenance($vehicle, $kmPerMonth, $rates['maintenance'], $currentYear);
+        $maintenance = $this->ceil($maintenanceCalc['monthly'], $step);
 
         $total = ($fuel ?? 0) + $insurance + $patente + $maintenance;
         $provinceName = trim($province);
@@ -57,7 +57,7 @@ final class OwnershipCostCalculator
                 'fuel' => $fuelInputs === null ? null : ['km_per_month' => $kmPerMonth] + $fuelInputs,
                 'insurance' => $insuranceCalc['breakdown'],
                 'patente' => $patenteCalc,
-                'maintenance' => array_diff_key($maintenanceInputs, ['yearly' => true]),
+                'maintenance' => array_diff_key($maintenanceCalc, ['monthly' => true]),
                 'transfer' => [
                     'base' => $base, 'dnrpa_rate' => (float) $rates['transfer']['dnrpa_rate'], 'stamp_rate' => $stamp,
                     'province' => $provinceName, 'province_known' => $stampKnown,
@@ -199,22 +199,28 @@ final class OwnershipCostCalculator
         ];
     }
 
-    /** @return array{fuel_type: string, annual_base: float, age_years: int, age_factor: float, km: int, km_factor: float, turbo_factor: ?float, automatic_factor: ?float, yearly: float} */
-    private function maintenanceInputs(array $vehicle, array $rates, int $currentYear): array
+    /**
+     * Monthly maintenance = km per month x ARS per km of the body type x age factor x fuel factor, rounded up by the
+     * caller. An unknown body type or fuel takes the highest per-km amount or factor.
+     *
+     * @param  array<string, mixed>  $maintenance  rates['maintenance']
+     * @return array{body_type: ?string, body_label: ?string, fuel_type: string, km_per_month: int, per_km: float, age_years: int, age_factor: float, fuel_factor: float, monthly: float}
+     */
+    private function maintenance(array $vehicle, int $kmPerMonth, array $maintenance, int $currentYear): array
     {
-        $maintenance = $rates['maintenance'];
-        $bases = $maintenance['annual_base'];
+        $bodyName = $vehicle['body_type'] ?? null;
+        $bodySlug = $this->bodySlug($bodyName);
+        $bodyKnown = isset($maintenance['per_km'][$bodySlug]);
+        $perKm = (float) ($maintenance['per_km'][$bodySlug] ?? max($maintenance['per_km']));
         $age = max(0, $currentYear - (int) $vehicle['anio']);
-        $annualBase = (float) ($bases[$vehicle['fuel']] ?? max($bases));
         $ageFactor = $this->band($maintenance['age_factors'], $age);
-        $kmFactor = $this->band($maintenance['km_factors'], (int) $vehicle['kilometraje']);
-        $turbo = $vehicle['turbo'] ? (float) $maintenance['turbo_factor'] : null;
-        $automatic = $vehicle['transmision'] === 'automatica' ? (float) $maintenance['automatic_factor'] : null;
+        $fuelFactor = (float) ($maintenance['fuel_factor'][$vehicle['fuel']] ?? max($maintenance['fuel_factor']));
 
         return [
-            'fuel_type' => $vehicle['fuel'], 'annual_base' => $annualBase, 'age_years' => $age, 'age_factor' => $ageFactor,
-            'km' => (int) $vehicle['kilometraje'], 'km_factor' => $kmFactor, 'turbo_factor' => $turbo, 'automatic_factor' => $automatic,
-            'yearly' => $annualBase * $ageFactor * $kmFactor * ($turbo ?? 1.0) * ($automatic ?? 1.0),
+            'body_type' => $bodyKnown ? $bodySlug : null, 'body_label' => $bodyKnown ? trim((string) $bodyName) : null,
+            'fuel_type' => $vehicle['fuel'], 'km_per_month' => $kmPerMonth, 'per_km' => $perKm,
+            'age_years' => $age, 'age_factor' => $ageFactor, 'fuel_factor' => $fuelFactor,
+            'monthly' => $kmPerMonth * $perKm * $ageFactor * $fuelFactor,
         ];
     }
 

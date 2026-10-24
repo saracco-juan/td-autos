@@ -698,7 +698,7 @@ La búsqueda actual muestra vehículos elegibles de concesionarias; la integraci
 | Value | Source | How it is used |
 | --- | --- | --- |
 | Fuel prices per province (nafta, diesel, GNC) | Secretaría de Energía, CKAN package `precios-en-surtidor`, resource "Precios vigentes en surtidor - Resolución 314/2016" (CSV, ~9 MB, streamed; the resource URL is resolved from the package, never hardcoded) | 90th percentile of the daytime (`Diurno`) price per product and province, ignoring zero prices. The dealer's province wins, then the national 90th percentile, then `fuel_prices` in the config |
-| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`) and the patente bracket limits and fixed amounts (`patente.scale`, `patente.bracket_rate`; never their rates) use their own months, `insurance.cpi_base_month` and `patente.cpi_base_month`, with the same floor at 1. The snapshot keeps each of those months' index in `cpi.extra_bases` and the refresh fetches every base month in use; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
+| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`), the patente bracket limits and fixed amounts (`patente.scale`, `patente.bracket_rate`; never their rates) and the maintenance ARS per km (`maintenance.per_km`) use their own months, `insurance.cpi_base_month`, `patente.cpi_base_month` and `maintenance.cpi_base_month`, with the same floor at 1. The snapshot keeps each of those months' index in `cpi.extra_bases` and the refresh fetches every base month in use; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
 
 `rates_updated_at` in the costs response is the snapshot fetch date (the config `updated_at` when there is no snapshot).
 
@@ -717,7 +717,7 @@ php artisan schedule:list
 
 Expect `Fuel prices: refreshed (...)`, `CPI: refreshed (...)` and exit 0; exit 1 means a source kept its previous value. Tests: `php artisan test --filter=CalculatorRefreshTest` (HTTP faked).
 
-By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, the `patente` scales and flat rates), and, when the ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are reviewed, move `cpi_base_month` to the month those amounts are stated in. Update `updated_at` too.
+By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, the `patente` scales and flat rates, `maintenance.age_factors` and `maintenance.fuel_factor`), and, when the ARS amounts are reviewed, move the base month that goes with them to the month they are stated in (`cpi_base_month` for `transfer.fixed_costs`, `insurance.cpi_base_month`, `patente.cpi_base_month`, `maintenance.cpi_base_month`). The CPI refresh fetches every base month in use (today 2026-02, 2026-04, 2026-08 and 2026-10). Update `updated_at` too.
 
 ### Insurance model
 
@@ -755,3 +755,22 @@ Review it once a year, together with `updated_at` and `patente.cpi_base_month`:
 | CABA scale | Approximation: the ARBA scale. AGIP's brackets were not found | Replace with AGIP's scale when it is found |
 | Córdoba brackets | hacecuentas.com (unofficial, https://hacecuentas.com/calculadora-patente-auto-cordoba-2026-valuacion-fiscal-cuotas) | Check them against the provincial tax authority if it publishes them |
 | `flat_rate` | Top of each province scale (servidos.ar 2026-09, Infobae/UADE 2026-05-20) | Update the rates; move a province to `scale` or `bracket_rate` when its scale is found |
+
+### Maintenance model
+
+The `maintenance` block of `config/calculadora.php` prices upkeep per kilometer instead of a yearly base:
+
+- Monthly maintenance = `km per month x per_km[body type] x age factor x fuel factor`, rounded up to the step. The km per month is the same one fuel uses (diagnostico answer, default, or the user's input), so changing the km on the screen changes both.
+- `per_km` (ARS per km): hatchback 20, sedan 38, rural 34, SUV 34, pickup 40, furgon 34. Source: first official services at a 10.000 km interval, [La Nación 2025-10](https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/) and [iProfesional 2026-04](https://www.iprofesional.com/autos/452731-service-auto-cuanto-cuesta-concesionarias-y-que-precio-en-taller-independiente). The body type maps like the insurance one ("Rural / familiar" is `rural`); an unknown or missing body type takes the highest value.
+- `age_factors`: 1.0 up to 5 years, 1.2 up to 10, 1.5 up to 15, 1.8 above (judgment, no source).
+- `fuel_factor`: nafta, diesel and hibrido 1.0; GNC 1.15 and electrico 0.5 are estimates without a source. An unknown fuel takes the highest factor.
+- Dropped: the yearly base per fuel, the km, turbo and automatic factors (per-km pricing already covers km).
+- CPI: `per_km` is multiplied by `max(1, CPI latest / CPI of maintenance.cpi_base_month)` (`2026-04`); the factors never are.
+- Check: 1.500 km a month, hatchback, up to 5 years old -> 1.500 x 20 = 30.000 a month. The developer's own car (C3) lands near 30.000 against a real 24.000.
+
+Review it once a year, together with `updated_at` and `maintenance.cpi_base_month`:
+
+| Value | Source | What to do |
+| --- | --- | --- |
+| `per_km` | Official service rankings per 10.000 km interval (La Nación, iProfesional) | Recompute the six values from the new first-service prices and set `maintenance.cpi_base_month` to the month of the source |
+| `age_factors`, `fuel_factor` | Judgment | Change only if old, GNC or electric cars start to look wrong |

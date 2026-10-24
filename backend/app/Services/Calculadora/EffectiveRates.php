@@ -4,10 +4,10 @@ namespace App\Services\Calculadora;
 
 /**
  * The calculator rates in force: config('calculadora') overridden by the latest valid refresh snapshot.
- * Fuel: the dealer's province, then the national value, then the config. ARS amounts (maintenance bases,
- * transfer fixed costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases and the patente bracket limits
- * and fixed amounts are scaled the same way from their own base month (`insurance.cpi_base_month`,
- * `patente.cpi_base_month`). Percentages are never touched.
+ * Fuel: the dealer's province, then the national value, then the config. ARS amounts (transfer fixed
+ * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases, the patente bracket limits and fixed amounts
+ * and the maintenance ARS per km are scaled the same way from their own base month (`insurance.cpi_base_month`,
+ * `patente.cpi_base_month`, `maintenance.cpi_base_month`). Percentages are never touched.
  */
 final class EffectiveRates
 {
@@ -31,12 +31,15 @@ final class EffectiveRates
         $cpi = $payload['cpi'] ?? null;
         $factor = $this->cpiFactor($cpi, (string) ($rates['cpi_base_month'] ?? ''));
         if ($factor > 1) {
-            $rates['maintenance']['annual_base'] = array_map(fn ($amount) => (int) round($amount * $factor), $rates['maintenance']['annual_base']);
             $rates['transfer']['fixed_costs'] = (int) round($rates['transfer']['fixed_costs'] * $factor);
         }
         $insuranceFactor = $this->cpiFactor($cpi, (string) ($rates['insurance']['cpi_base_month'] ?? ''));
         if ($insuranceFactor > 1) {
             $rates['insurance']['tc_base'] = array_map(fn ($amount) => (int) round($amount * $insuranceFactor), $rates['insurance']['tc_base']);
+        }
+        $maintenanceFactor = $this->cpiFactor($cpi, (string) ($rates['maintenance']['cpi_base_month'] ?? ''));
+        if ($maintenanceFactor > 1) {
+            $rates['maintenance']['per_km'] = array_map(fn ($amount) => round($amount * $maintenanceFactor, 2), $rates['maintenance']['per_km']);
         }
         $patenteFactor = $this->cpiFactor($cpi, (string) ($rates['patente']['cpi_base_month'] ?? ''));
         if ($patenteFactor > 1) {

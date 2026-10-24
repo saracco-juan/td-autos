@@ -57,7 +57,7 @@ final class CalculatorRatesStore
     private function extraBaseMonths(): array
     {
         $months = array_map(fn (string $key) => (string) config($key), [
-            'calculadora.insurance.cpi_base_month', 'calculadora.patente.cpi_base_month',
+            'calculadora.insurance.cpi_base_month', 'calculadora.patente.cpi_base_month', 'calculadora.maintenance.cpi_base_month',
         ]);
 
         return array_values(array_unique(array_filter($months)));

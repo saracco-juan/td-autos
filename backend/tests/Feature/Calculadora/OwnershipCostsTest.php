@@ -53,11 +53,10 @@ class OwnershipCostsTest extends TestCase
                 'flat_rate' => ['caba' => 0.01, 'mendoza' => 0.03],
             ],
             'maintenance' => [
-                'annual_base' => ['nafta' => 600000, 'diesel' => 720000, 'gnc' => 660000, 'hibrido' => 480000, 'electrico' => 360000],
+                'per_km' => ['hatchback' => 20, 'sedan' => 38],
                 'age_factors' => [['max' => 3, 'factor' => 1.0], ['max' => 7, 'factor' => 1.2], ['max' => null, 'factor' => 1.5]],
-                'km_factors' => [['max' => 30000, 'factor' => 1.0], ['max' => 80000, 'factor' => 1.1], ['max' => null, 'factor' => 1.3]],
-                'turbo_factor' => 1.1,
-                'automatic_factor' => 1.2,
+                'fuel_factor' => ['nafta' => 1.0, 'diesel' => 1.0, 'hibrido' => 1.0, 'gnc' => 1.15, 'electrico' => 0.5],
+                'cpi_base_month' => '2026-04',
             ],
         ]]);
     }
@@ -119,8 +118,8 @@ class OwnershipCostsTest extends TestCase
                 'inputs' => ['km_per_month' => 1500, 'km_source' => 'diagnostico', 'coverage' => 'terceros_completo'],
                 'purchase' => ['price' => 20000000, 'transfer' => 700000, 'total' => 20700000,
                     'budget' => ['max' => 25000000.0, 'fits' => true, 'difference' => 4300000.0]],
-                'monthly' => ['fuel' => 120000, 'insurance' => 92000, 'patente' => 42000, 'maintenance' => 66000,
-                    'total' => 320000, 'yearly_total' => 3840000, 'not_estimated' => []],
+                'monthly' => ['fuel' => 120000, 'insurance' => 92000, 'patente' => 42000, 'maintenance' => 69000,
+                    'total' => 323000, 'yearly_total' => 3876000, 'not_estimated' => []],
                 'breakdown' => [
                     'fuel' => ['km_per_month' => 1500, 'consumption_l_100km' => 8.0, 'fuel_type' => 'nafta', 'price_fuel_type' => 'nafta',
                         'unit' => 'litro', 'unit_price' => 1000],
@@ -129,8 +128,8 @@ class OwnershipCostsTest extends TestCase
                         'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 92000],
                     'patente' => ['base' => 20000000.0, 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
                         'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000.0],
-                    'maintenance' => ['fuel_type' => 'nafta', 'annual_base' => 600000, 'age_years' => 4, 'age_factor' => 1.2,
-                        'km' => 40000, 'km_factor' => 1.1, 'turbo_factor' => null, 'automatic_factor' => null],
+                    'maintenance' => ['fuel_type' => 'nafta', 'body_type' => 'sedan', 'body_label' => 'Sedán', 'km_per_month' => 1500,
+                        'per_km' => 38.0, 'age_years' => 4, 'age_factor' => 1.2, 'fuel_factor' => 1.0],
                     'transfer' => ['base' => 20000000.0, 'dnrpa_rate' => 0.01, 'stamp_rate' => 0.02, 'province' => 'Córdoba',
                         'province_known' => true, 'fixed_costs' => 100000],
                     'rounding' => 1000,
