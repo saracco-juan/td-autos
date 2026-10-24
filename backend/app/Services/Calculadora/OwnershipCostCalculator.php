@@ -3,8 +3,8 @@
 namespace App\Services\Calculadora;
 
 /**
- * Ceiling estimate of what a vehicle costs to buy and to keep per month. Pure: no database, HTTP or clock.
- * Every concept rounds up and totals add the rounded concepts, so the screen always adds up.
+ * Ceiling estimate of what a vehicle costs to buy and to keep per month, plus the yearly service. Pure: no database,
+ * HTTP or clock. Every concept rounds up and totals add the rounded concepts, so the screen always adds up.
  */
 final class OwnershipCostCalculator
 {
@@ -17,9 +17,9 @@ final class OwnershipCostCalculator
     ];
 
     /**
-     * @param  array{price_ars: float|int, body_type?: ?string, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int}  $vehicle
+     * @param  array{price_ars: float|int, marca?: ?string, modelo?: ?string, body_type?: ?string, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int}  $vehicle
      * @param  array<string, mixed>  $rates  config('calculadora')
-     * @return array{purchase: array{price: int, transfer: int, total: int}, monthly: array{fuel: ?int, insurance: int, patente: int, maintenance: int, total: int, yearly_total: int, not_estimated: list<string>}, breakdown: array<string, mixed>}
+     * @return array{purchase: array{price: int, transfer: int, total: int}, monthly: array{fuel: ?int, insurance: int, patente: int, total: int, not_estimated: list<string>}, yearly: array{service: int, total: int}, breakdown: array<string, mixed>}
      */
     public function calculate(array $vehicle, string $province, int $kmPerMonth, string $coverage, array $rates, int $currentYear): array
     {
@@ -39,25 +39,25 @@ final class OwnershipCostCalculator
         $insurance = $insuranceCalc['amount'];
         $patenteCalc = $this->patente($base, $slug, trim($province), $rates['patente']);
         $patente = $this->ceil($patenteCalc['annual'] / 12, $step);
-        $maintenanceCalc = $this->maintenance($vehicle, $kmPerMonth, $rates['maintenance'], $currentYear);
-        $maintenance = $this->ceil($maintenanceCalc['monthly'], $step);
+        $serviceCalc = $this->service($vehicle, $kmPerMonth, $rates['service']);
+        $service = $this->ceil($serviceCalc['yearly'], $step);
 
-        $total = ($fuel ?? 0) + $insurance + $patente + $maintenance;
+        $total = ($fuel ?? 0) + $insurance + $patente;
         $provinceName = trim($province);
         $stampKnown = isset($rates['transfer']['stamp_rate'][$slug]);
 
         return [
             'purchase' => ['price' => $price, 'transfer' => $transfer, 'total' => $price + $transfer],
             'monthly' => [
-                'fuel' => $fuel, 'insurance' => $insurance, 'patente' => $patente, 'maintenance' => $maintenance,
-                'total' => $total, 'yearly_total' => $total * 12,
+                'fuel' => $fuel, 'insurance' => $insurance, 'patente' => $patente, 'total' => $total,
                 'not_estimated' => $fuel === null ? ['fuel'] : [],
             ],
+            'yearly' => ['service' => $service, 'total' => $total * 12 + $service],
             'breakdown' => [
                 'fuel' => $fuelInputs === null ? null : ['km_per_month' => $kmPerMonth] + $fuelInputs,
                 'insurance' => $insuranceCalc['breakdown'],
                 'patente' => $patenteCalc,
-                'maintenance' => array_diff_key($maintenanceCalc, ['monthly' => true]),
+                'service' => array_diff_key($serviceCalc, ['yearly' => true]),
                 'transfer' => [
                     'base' => $base, 'dnrpa_rate' => (float) $rates['transfer']['dnrpa_rate'], 'stamp_rate' => $stamp,
                     'province' => $provinceName, 'province_known' => $stampKnown,
@@ -200,40 +200,101 @@ final class OwnershipCostCalculator
     }
 
     /**
-     * Monthly maintenance = km per month x ARS per km of the body type x age factor x fuel factor, rounded up by the
-     * caller. An unknown body type or fuel takes the highest per-km amount or factor.
+     * Yearly service = services per year x price per service x fuel factor, rounded up by the caller.
+     * Services per year = ceil(max(km per year / interval km, 12 / interval months)).
+     * The price comes from brand + model, then brand + body type, then the reference value of the body type; an unknown
+     * body type takes the highest reference value and an unknown fuel the highest factor.
      *
-     * @param  array<string, mixed>  $maintenance  rates['maintenance']
-     * @return array{body_type: ?string, body_label: ?string, fuel_type: string, km_per_month: int, per_km: float, age_years: int, age_factor: float, fuel_factor: float, monthly: float}
+     * @param  array<string, mixed>  $service  rates['service']
+     * @return array{brand: ?string, brand_known: bool, model_matched: bool, body_type: ?string, body_label: ?string, km_per_year: int, interval_km: int, interval_months: int, services_per_year: int, price_per_service: float, fuel_factor: float, source_label: string, yearly: float}
      */
-    private function maintenance(array $vehicle, int $kmPerMonth, array $maintenance, int $currentYear): array
+    private function service(array $vehicle, int $kmPerMonth, array $service): array
     {
         $bodyName = $vehicle['body_type'] ?? null;
         $bodySlug = $this->bodySlug($bodyName);
-        $bodyKnown = isset($maintenance['per_km'][$bodySlug]);
-        $perKm = (float) ($maintenance['per_km'][$bodySlug] ?? max($maintenance['per_km']));
-        $age = max(0, $currentYear - (int) $vehicle['anio']);
-        $ageFactor = $this->band($maintenance['age_factors'], $age);
-        $fuelFactor = (float) ($maintenance['fuel_factor'][$vehicle['fuel']] ?? max($maintenance['fuel_factor']));
+        $fallback = $service['fallback'];
+        $brandKey = $this->brandKey((string) ($vehicle['marca'] ?? ''), $service['brands']);
+        $brand = $brandKey === null ? null : $service['brands'][$brandKey];
+        $modelKey = $brand === null ? null : $this->modelKey((string) ($vehicle['modelo'] ?? ''), array_keys($brand['models'] ?? []));
+
+        if ($brand !== null && $modelKey !== null) {
+            $price = (float) $brand['models'][$modelKey];
+            $intervalKm = (int) ($brand['model_overrides'][$modelKey]['interval_km'] ?? $brand['interval_km']);
+            $label = 'service oficial '.$brand['label'].' '.trim((string) $vehicle['modelo']);
+        } elseif ($brand !== null && isset($brand['body'][$bodySlug])) {
+            $price = (float) $brand['body'][$bodySlug];
+            $intervalKm = (int) $brand['interval_km'];
+            $label = 'service oficial '.$brand['label'];
+        } else {
+            $brand = null;
+            $price = (float) ($fallback['body'][$bodySlug] ?? max($fallback['body']));
+            $intervalKm = (int) $fallback['interval_km'];
+            $label = 'valor de referencia';
+        }
+        $intervalMonths = (int) (($brand ?? $fallback)['interval_months']);
+
+        $kmPerYear = $kmPerMonth * 12;
+        // Rounding the ratio first absorbs float noise (exactly two intervals must not become three services).
+        $services = (int) ceil(round(max($kmPerYear / $intervalKm, 12 / $intervalMonths), 6));
+        $fuelFactor = (float) ($service['fuel_factor'][$vehicle['fuel']] ?? max($service['fuel_factor']));
+        $bodyKnown = isset($fallback['body'][$bodySlug]);
 
         return [
+            // brand_known: the brand has data, even when this vehicle ended up on the reference value.
+            'brand' => $brandKey === null ? null : (string) $service['brands'][$brandKey]['label'],
+            'brand_known' => $brandKey !== null, 'model_matched' => $modelKey !== null && $brand !== null,
             'body_type' => $bodyKnown ? $bodySlug : null, 'body_label' => $bodyKnown ? trim((string) $bodyName) : null,
-            'fuel_type' => $vehicle['fuel'], 'km_per_month' => $kmPerMonth, 'per_km' => $perKm,
-            'age_years' => $age, 'age_factor' => $ageFactor, 'fuel_factor' => $fuelFactor,
-            'monthly' => $kmPerMonth * $perKm * $ageFactor * $fuelFactor,
+            'km_per_year' => $kmPerYear, 'interval_km' => $intervalKm, 'interval_months' => $intervalMonths,
+            'services_per_year' => $services, 'price_per_service' => $price, 'fuel_factor' => $fuelFactor,
+            'source_label' => $label, 'yearly' => $services * $price * $fuelFactor,
         ];
     }
 
-    /** @param list<array{max: ?int, factor: float}> $bands */
-    private function band(array $bands, float $value): float
+    /**
+     * The configured brand a `marca` refers to (its key or one of its aliases), ignoring case and accents.
+     *
+     * @param  array<string, array<string, mixed>>  $brands
+     */
+    private function brandKey(string $marca, array $brands): ?string
     {
-        foreach ($bands as $band) {
-            if ($band['max'] === null || $value <= $band['max']) {
-                return (float) $band['factor'];
+        $name = $this->words($marca);
+        if ($name === '') {
+            return null;
+        }
+        foreach ($brands as $key => $brand) {
+            $names = array_map($this->words(...), [(string) $key, ...(array) ($brand['aliases'] ?? [])]);
+            if (in_array($name, $names, true)) {
+                return (string) $key;
             }
         }
 
-        return (float) end($bands)['factor'];
+        return null;
+    }
+
+    /**
+     * The longest configured model that appears as whole words inside the vehicle's `modelo` ("Gol Trend" matches
+     * "gol"; "Corolla Cross" matches "corolla cross" before "corolla"; "Golf" never matches "gol").
+     *
+     * @param  list<string|int>  $models
+     */
+    private function modelKey(string $modelo, array $models): ?string
+    {
+        $haystack = ' '.$this->words($modelo).' ';
+        $best = null;
+        foreach ($models as $model) {
+            $needle = $this->words((string) $model);
+            if ($needle !== '' && str_contains($haystack, ' '.$needle.' ') && ($best === null || strlen($needle) > strlen($this->words($best)))) {
+                $best = (string) $model;
+            }
+        }
+
+        return $best;
+    }
+
+    /** Lowercase, accent-free words separated by single spaces ("T-Cross" and "t cross" are the same). */
+    private function words(string $text): string
+    {
+        return str_replace('_', ' ', $this->slug($text));
     }
 
     private function ceil(float $amount, int $step): int

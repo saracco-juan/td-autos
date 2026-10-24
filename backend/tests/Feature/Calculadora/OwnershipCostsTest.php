@@ -52,11 +52,19 @@ class OwnershipCostsTest extends TestCase
                 'bracket_rate' => ['cordoba' => [['up_to' => 20000000, 'rate' => 0.025], ['up_to' => null, 'rate' => 0.03]]],
                 'flat_rate' => ['caba' => 0.01, 'mendoza' => 0.03],
             ],
-            'maintenance' => [
-                'per_km' => ['hatchback' => 20, 'sedan' => 38],
-                'age_factors' => [['max' => 3, 'factor' => 1.0], ['max' => 7, 'factor' => 1.2], ['max' => null, 'factor' => 1.5]],
+            'service' => [
                 'fuel_factor' => ['nafta' => 1.0, 'diesel' => 1.0, 'hibrido' => 1.0, 'gnc' => 1.15, 'electrico' => 0.5],
-                'cpi_base_month' => '2026-04',
+                'brands' => [
+                    'toyota' => [
+                        'label' => 'Toyota', 'aliases' => [], 'interval_km' => 10000, 'interval_months' => 12, 'cpi_base_month' => '2026-08',
+                        'models' => ['yaris' => 361000],
+                        'body' => ['hatchback' => 361000, 'sedan' => 486000],
+                    ],
+                ],
+                'fallback' => [
+                    'interval_km' => 10000, 'interval_months' => 12, 'cpi_base_month' => '2025-09',
+                    'body' => ['hatchback' => 200000, 'sedan' => 380000],
+                ],
             ],
         ]]);
     }
@@ -93,7 +101,7 @@ class OwnershipCostsTest extends TestCase
             'tipo_carroceria_id' => TipoCarroceria::where('nombre', 'Sedán')->value('id'), 'anio' => 2022, 'kilometraje' => 40000,
             'precio' => 20000000, 'moneda' => 'ARS', 'combustible' => 'nafta', 'transmision' => 'manual',
             'plazas' => 5, 'motor' => '1.6', 'turbo' => false, 'potencia' => 110, 'potencia_unidad' => 'CV',
-            'consumo_urbano' => 8, 'consumo_ruta' => 6,
+            'consumo_urbano' => 8, 'consumo_ruta' => 6, 'marca' => 'Renault', 'modelo' => 'Logan',
         ], $changes));
         VehiculoConcesionaria::factory()->create(['vehiculo_id' => $vehicle->id, 'concesionaria_id' => $dealer->id, 'visible' => $visible]);
 
@@ -118,8 +126,8 @@ class OwnershipCostsTest extends TestCase
                 'inputs' => ['km_per_month' => 1500, 'km_source' => 'diagnostico', 'coverage' => 'terceros_completo'],
                 'purchase' => ['price' => 20000000, 'transfer' => 700000, 'total' => 20700000,
                     'budget' => ['max' => 25000000.0, 'fits' => true, 'difference' => 4300000.0]],
-                'monthly' => ['fuel' => 120000, 'insurance' => 92000, 'patente' => 42000, 'maintenance' => 69000,
-                    'total' => 323000, 'yearly_total' => 3876000, 'not_estimated' => []],
+                'monthly' => ['fuel' => 120000, 'insurance' => 92000, 'patente' => 42000, 'total' => 254000, 'not_estimated' => []],
+                'yearly' => ['service' => 760000, 'total' => 3808000],
                 'breakdown' => [
                     'fuel' => ['km_per_month' => 1500, 'consumption_l_100km' => 8.0, 'fuel_type' => 'nafta', 'price_fuel_type' => 'nafta',
                         'unit' => 'litro', 'unit_price' => 1000],
@@ -128,8 +136,9 @@ class OwnershipCostsTest extends TestCase
                         'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 92000],
                     'patente' => ['base' => 20000000.0, 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
                         'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000.0],
-                    'maintenance' => ['fuel_type' => 'nafta', 'body_type' => 'sedan', 'body_label' => 'Sedán', 'km_per_month' => 1500,
-                        'per_km' => 38.0, 'age_years' => 4, 'age_factor' => 1.2, 'fuel_factor' => 1.0],
+                    'service' => ['brand' => null, 'brand_known' => false, 'model_matched' => false, 'body_type' => 'sedan', 'body_label' => 'Sedán',
+                        'km_per_year' => 18000, 'interval_km' => 10000, 'interval_months' => 12, 'services_per_year' => 2,
+                        'price_per_service' => 380000.0, 'fuel_factor' => 1.0, 'source_label' => 'valor de referencia'],
                     'transfer' => ['base' => 20000000.0, 'dnrpa_rate' => 0.01, 'stamp_rate' => 0.02, 'province' => 'Córdoba',
                         'province_known' => true, 'fixed_costs' => 100000],
                     'rounding' => 1000,
@@ -137,6 +146,23 @@ class OwnershipCostsTest extends TestCase
                 'rates_updated_at' => '2026-10-01',
                 'exchange_rate' => null,
             ]);
+    }
+
+    public function test_the_yearly_service_uses_the_brand_and_model_of_the_vehicle(): void
+    {
+        $this->buyer();
+        $car = $this->car(['marca' => 'Toyota', 'modelo' => 'Yaris', 'tipo_carroceria_id' => TipoCarroceria::where('nombre', 'Hatchback')->value('id')]);
+
+        // 18.000 km / 10.000 -> 2 services x 361.000 = 722.000; the monthly total keeps only fuel, insurance and patente.
+        $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
+            ->assertJsonPath('yearly.service', 722000)
+            ->assertJsonPath('yearly.total', 722000 + 12 * 245000)
+            ->assertJsonPath('breakdown.service.brand', 'Toyota')
+            ->assertJsonPath('breakdown.service.model_matched', true)
+            ->assertJsonPath('breakdown.service.source_label', 'service oficial Toyota Yaris')
+            ->assertJsonMissingPath('monthly.maintenance')
+            ->assertJsonMissingPath('monthly.yearly_total')
+            ->assertJsonMissingPath('breakdown.maintenance');
     }
 
     public function test_the_vehicle_fuel_type_is_exposed(): void

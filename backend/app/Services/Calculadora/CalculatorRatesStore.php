@@ -57,10 +57,16 @@ final class CalculatorRatesStore
     private function extraBaseMonths(): array
     {
         $months = array_map(fn (string $key) => (string) config($key), [
-            'calculadora.insurance.cpi_base_month', 'calculadora.patente.cpi_base_month', 'calculadora.maintenance.cpi_base_month',
+            'calculadora.insurance.cpi_base_month', 'calculadora.patente.cpi_base_month', 'calculadora.service.fallback.cpi_base_month',
         ]);
+        foreach ((array) config('calculadora.service.brands', []) as $brand) {
+            $months[] = (string) ($brand['cpi_base_month'] ?? '');
+        }
 
-        return array_values(array_unique(array_filter($months)));
+        // The main base month travels on its own; repeating it would only duplicate the stored index.
+        $main = (string) config('calculadora.cpi_base_month');
+
+        return array_values(array_unique(array_filter($months, fn (string $month) => $month !== '' && $month !== $main)));
     }
 
     private function attempt(string $label, callable $fetch): ?array

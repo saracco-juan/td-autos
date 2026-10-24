@@ -698,7 +698,7 @@ La búsqueda actual muestra vehículos elegibles de concesionarias; la integraci
 | Value | Source | How it is used |
 | --- | --- | --- |
 | Fuel prices per province (nafta, diesel, GNC) | Secretaría de Energía, CKAN package `precios-en-surtidor`, resource "Precios vigentes en surtidor - Resolución 314/2016" (CSV, ~9 MB, streamed; the resource URL is resolved from the package, never hardcoded) | 90th percentile of the daytime (`Diurno`) price per product and province, ignoring zero prices. The dealer's province wins, then the national 90th percentile, then `fuel_prices` in the config |
-| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`), the patente bracket limits and fixed amounts (`patente.scale`, `patente.bracket_rate`; never their rates) and the maintenance ARS per km (`maintenance.per_km`) use their own months, `insurance.cpi_base_month`, `patente.cpi_base_month` and `maintenance.cpi_base_month`, with the same floor at 1. The snapshot keeps each of those months' index in `cpi.extra_bases` and the refresh fetches every base month in use; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
+| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`), the patente bracket limits and fixed amounts (`patente.scale`, `patente.bracket_rate`; never their rates) and the service prices (`service.brands.*.models` and `.body`, `service.fallback.body`; never the intervals) use their own months, `insurance.cpi_base_month`, `patente.cpi_base_month` and the `cpi_base_month` of each service brand and of `service.fallback`, with the same floor at 1. The snapshot keeps each of those months' index in `cpi.extra_bases` and the refresh fetches every base month in use; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
 
 `rates_updated_at` in the costs response is the snapshot fetch date (the config `updated_at` when there is no snapshot).
 
@@ -717,7 +717,7 @@ php artisan schedule:list
 
 Expect `Fuel prices: refreshed (...)`, `CPI: refreshed (...)` and exit 0; exit 1 means a source kept its previous value. Tests: `php artisan test --filter=CalculatorRefreshTest` (HTTP faked).
 
-By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, the `patente` scales and flat rates, `maintenance.age_factors` and `maintenance.fuel_factor`), and, when the ARS amounts are reviewed, move the base month that goes with them to the month they are stated in (`cpi_base_month` for `transfer.fixed_costs`, `insurance.cpi_base_month`, `patente.cpi_base_month`, `maintenance.cpi_base_month`). The CPI refresh fetches every base month in use (today 2026-02, 2026-04, 2026-08 and 2026-10). Update `updated_at` too.
+By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, the `patente` scales and flat rates, `service.fuel_factor` and the service intervals), and, when the ARS amounts are reviewed, move the base month that goes with them to the month they are stated in (`cpi_base_month` for `transfer.fixed_costs`, `insurance.cpi_base_month`, `patente.cpi_base_month`, and the `cpi_base_month` of each `service.brands.*` and of `service.fallback`). The CPI refresh fetches every base month in use (today 2025-09, 2025-12, 2026-02, 2026-08 and 2026-10). Update `updated_at` too.
 
 ### Insurance model
 
@@ -756,21 +756,26 @@ Review it once a year, together with `updated_at` and `patente.cpi_base_month`:
 | Córdoba brackets | hacecuentas.com (unofficial, https://hacecuentas.com/calculadora-patente-auto-cordoba-2026-valuacion-fiscal-cuotas) | Check them against the provincial tax authority if it publishes them |
 | `flat_rate` | Top of each province scale (servidos.ar 2026-09, Infobae/UADE 2026-05-20) | Update the rates; move a province to `scale` or `bracket_rate` when its scale is found |
 
-### Maintenance model
+### Service model
 
-The `maintenance` block of `config/calculadora.php` prices upkeep per kilometer instead of a yearly base:
+The `service` block of `config/calculadora.php` replaces the old monthly maintenance (km x ARS per km). The service is an occasional cost: it is NOT part of the monthly total, it only enters the yearly one.
 
-- Monthly maintenance = `km per month x per_km[body type] x age factor x fuel factor`, rounded up to the step. The km per month is the same one fuel uses (diagnostico answer, default, or the user's input), so changing the km on the screen changes both.
-- `per_km` (ARS per km): hatchback 20, sedan 38, rural 34, SUV 34, pickup 40, furgon 34. Source: first official services at a 10.000 km interval, [La Nación 2025-10](https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/) and [iProfesional 2026-04](https://www.iprofesional.com/autos/452731-service-auto-cuanto-cuesta-concesionarias-y-que-precio-en-taller-independiente). The body type maps like the insurance one ("Rural / familiar" is `rural`); an unknown or missing body type takes the highest value.
-- `age_factors`: 1.0 up to 5 years, 1.2 up to 10, 1.5 up to 15, 1.8 above (judgment, no source).
-- `fuel_factor`: nafta, diesel and hibrido 1.0; GNC 1.15 and electrico 0.5 are estimates without a source. An unknown fuel takes the highest factor.
-- Dropped: the yearly base per fuel, the km, turbo and automatic factors (per-km pricing already covers km).
-- CPI: `per_km` is multiplied by `max(1, CPI latest / CPI of maintenance.cpi_base_month)` (`2026-04`); the factors never are.
-- Check: 1.500 km a month, hatchback, up to 5 years old -> 1.500 x 20 = 30.000 a month. The developer's own car (C3) lands near 30.000 against a real 24.000.
+- Service per year = `services per year x price per service x fuel factor`, rounded up to the step.
+- Services per year = `ceil(max(km per year / interval_km, 12 / interval_months))`. The km per month is the same one fuel uses (diagnostico answer, default, or the user's input), so changing the km on the screen changes both; with no km at all the time rule still asks for one service a year.
+- Price per service (ARS, the average over one service cycle), looked up in this order: brand + model (`brands.<brand>.models`), then brand + body type (`brands.<brand>.body`), then `fallback.body`. An unknown or missing body type takes the highest fallback value; the body type maps like the insurance one ("Rural / familiar" is `rural`).
+- Brand: matched on `vehiculo.marca` by its key or an alias (`vw` for Volkswagen), ignoring case and accents. Model: the longest configured model that appears as whole words in `vehiculo.modelo` ("Gol Trend" is `gol`, "Corolla Cross" is `corolla cross` and never `corolla`, "Golf" is never `gol`). `model_overrides` changes the interval of one model (the Amarok is every 10.000 km, the rest of Volkswagen every 15.000).
+- Brands with data: Toyota (10.000 km, 12 months unconfirmed, base 2026-08), Volkswagen (15.000 km, base 2025-12), Fiat and Peugeot (10.000 km, base 2025-09). Fiat pickups and furgones, and every Peugeot body but the hatchback, use the fallback. BMW has no Argentine price or interval published, so it uses the fallback too. The `fallback` (10.000 km, 12 months, base 2025-09) is the old per-km value x 10.000.
+- `fuel_factor`: nafta, diesel and hibrido 1.0; GNC 1.15 and electrico 0.5 are estimates without a source. An unknown fuel takes the highest factor. The service price does not depend on age.
+- CPI: each brand and the fallback carry their own `cpi_base_month`; their prices are multiplied by `max(1, CPI latest / CPI of that month)`. Intervals and factors never are.
+- Check: Toyota Yaris, 1.500 km a month: 18.000 km / 10.000 = 1,8 -> 2 services x 361.000 = 722.000 a year. A hatchback of an unlisted brand: 2 x 200.000 = 400.000 a year.
 
-Review it once a year, together with `updated_at` and `maintenance.cpi_base_month`:
+Review it once a year, together with `updated_at` and each `cpi_base_month`:
 
 | Value | Source | What to do |
 | --- | --- | --- |
-| `per_km` | Official service rankings per 10.000 km interval (La Nación, iProfesional) | Recompute the six values from the new first-service prices and set `maintenance.cpi_base_month` to the month of the source |
-| `age_factors`, `fuel_factor` | Judgment | Change only if old, GNC or electric cars start to look wrong |
+| Toyota prices | Yacopini official list, Aug-2026 (https://toyotayacopini.com/servicio-de-posventa/) | Update `models` and `body`, confirm the 12-month interval and set the brand's `cpi_base_month` to the month of the list |
+| Volkswagen prices | VW Mataderos list, undated (https://vwmataderos.com.ar/institucional/postventa/precios-de-servicio.htm) | Update the prices and set `cpi_base_month` to the month the list is read |
+| Fiat and Peugeot prices | Infobae 2025-09-17 and La Nación 2025-10 (https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/) | Recompute the prices and set their `cpi_base_month` |
+| `fallback.body` | La Nación 2025-10 official service ranking (first services at 10.000 km) | Recompute the six values and set `fallback.cpi_base_month` |
+| Other brands | Official price lists of each brand | Add a brand block (`label`, `aliases`, intervals, `cpi_base_month`, `models`, `body`) when a list is found |
+| `fuel_factor` | Judgment | Change only if GNC or electric cars start to look wrong |

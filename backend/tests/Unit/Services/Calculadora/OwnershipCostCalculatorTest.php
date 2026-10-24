@@ -51,11 +51,30 @@ class OwnershipCostCalculatorTest extends TestCase
                 ],
                 'flat_rate' => ['mendoza' => 0.03, 'santa_fe' => 0.023, 'misiones' => 0.018],
             ],
-            'maintenance' => [
-                'per_km' => ['hatchback' => 20, 'sedan' => 38, 'rural' => 34, 'suv' => 34, 'pickup' => 40, 'furgon' => 34],
-                'age_factors' => [['max' => 3, 'factor' => 1.0], ['max' => 7, 'factor' => 1.2], ['max' => null, 'factor' => 1.5]],
+            'service' => [
                 'fuel_factor' => ['nafta' => 1.0, 'diesel' => 1.0, 'hibrido' => 1.0, 'gnc' => 1.15, 'electrico' => 0.5],
-                'cpi_base_month' => '2026-04',
+                'brands' => [
+                    'toyota' => [
+                        'label' => 'Toyota', 'aliases' => [], 'interval_km' => 10000, 'interval_months' => 12, 'cpi_base_month' => '2026-08',
+                        'models' => ['etios' => 315000, 'yaris' => 361000, 'corolla' => 486000, 'corolla cross' => 487000, 'hilux' => 593000],
+                        'body' => ['hatchback' => 361000, 'sedan' => 486000, 'suv' => 486000, 'rural' => 486000, 'pickup' => 593000, 'furgon' => 593000],
+                    ],
+                    'volkswagen' => [
+                        'label' => 'Volkswagen', 'aliases' => ['vw'], 'interval_km' => 15000, 'interval_months' => 12, 'cpi_base_month' => '2025-12',
+                        'models' => ['gol' => 326000, 'polo' => 383000, 'amarok' => 650000],
+                        'model_overrides' => ['amarok' => ['interval_km' => 10000]],
+                        'body' => ['hatchback' => 383000, 'sedan' => 383000, 'suv' => 456000, 'rural' => 456000, 'pickup' => 650000, 'furgon' => 650000],
+                    ],
+                    'fiat' => [
+                        'label' => 'Fiat', 'aliases' => [], 'interval_km' => 10000, 'interval_months' => 12, 'cpi_base_month' => '2025-09',
+                        'models' => ['cronos' => 378000],
+                        'body' => ['hatchback' => 271000, 'sedan' => 378000],
+                    ],
+                ],
+                'fallback' => [
+                    'interval_km' => 10000, 'interval_months' => 12, 'cpi_base_month' => '2025-09',
+                    'body' => ['hatchback' => 200000, 'sedan' => 380000, 'suv' => 340000, 'rural' => 340000, 'furgon' => 340000, 'pickup' => 400000],
+                ],
             ],
         ], $changes);
     }
@@ -63,7 +82,7 @@ class OwnershipCostCalculatorTest extends TestCase
     private function vehicle(array $changes = []): array
     {
         return array_replace([
-            'price_ars' => 20000000, 'body_type' => 'Hatchback', 'fuel' => 'nafta', 'consumo_urbano' => 8, 'consumo_ruta' => 6,
+            'price_ars' => 20000000, 'marca' => 'Renault', 'modelo' => 'Sandero', 'body_type' => 'Hatchback', 'fuel' => 'nafta', 'consumo_urbano' => 8, 'consumo_ruta' => 6,
             'anio' => 2022,
         ], $changes);
     }
@@ -81,8 +100,9 @@ class OwnershipCostCalculatorTest extends TestCase
      * fuel        = 1.500 x max(8, 6) / 100 x 1.000 = 120.000
      * insurance   = max(103.000 (hatchback base), 20.000.000 x 0,023 / 12 = 38.333) x 0,8 (Córdoba) = 82.400 -> 83.000
      * patente     = 20.000.000 x 0,025 (Córdoba, up to 20.000.000, whole value) / 12 = 41.667 -> 42.000
-     * maintenance = 1.500 km x 20 (hatchback) x 1,2 (age 4 -> band <= 7) x 1,0 (nafta) = 36.000
-     * monthly total = 281.000; yearly = 3.372.000
+     * monthly total = 120.000 + 83.000 + 42.000 = 245.000 (the service is not monthly)
+     * service     = ceil(max(18.000 km / 10.000 km, 12 / 12 months)) = 2 services x 200.000 (fallback hatchback) x 1,0 = 400.000 per year
+     * yearly total = 245.000 x 12 + 400.000 = 3.340.000
      */
     public function test_reference_case(): void
     {
@@ -92,9 +112,10 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(120000, $r['monthly']['fuel']);
         $this->assertSame(83000, $r['monthly']['insurance']);
         $this->assertSame(42000, $r['monthly']['patente']);
-        $this->assertSame(36000, $r['monthly']['maintenance']);
-        $this->assertSame(281000, $r['monthly']['total']);
-        $this->assertSame(3372000, $r['monthly']['yearly_total']);
+        $this->assertArrayNotHasKey('maintenance', $r['monthly']);
+        $this->assertArrayNotHasKey('yearly_total', $r['monthly']);
+        $this->assertSame(245000, $r['monthly']['total']);
+        $this->assertSame(['service' => 400000, 'total' => 3340000], $r['yearly']);
         $this->assertSame([], $r['monthly']['not_estimated']);
     }
 
@@ -108,8 +129,9 @@ class OwnershipCostCalculatorTest extends TestCase
                 'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 83000],
             'patente' => ['base' => 20000000, 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
                 'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000],
-            'maintenance' => ['fuel_type' => 'nafta', 'body_type' => 'hatchback', 'body_label' => 'Hatchback', 'km_per_month' => 1500,
-                'per_km' => 20.0, 'age_years' => 4, 'age_factor' => 1.2, 'fuel_factor' => 1.0],
+            'service' => ['brand' => null, 'brand_known' => false, 'model_matched' => false, 'body_type' => 'hatchback', 'body_label' => 'Hatchback',
+                'km_per_year' => 18000, 'interval_km' => 10000, 'interval_months' => 12, 'services_per_year' => 2,
+                'price_per_service' => 200000, 'fuel_factor' => 1.0, 'source_label' => 'valor de referencia'],
             'transfer' => ['base' => 20000000, 'dnrpa_rate' => 0.01, 'stamp_rate' => 0.02, 'province' => 'Córdoba',
                 'province_known' => true, 'fixed_costs' => 100000],
             'rounding' => 1000,
@@ -149,14 +171,13 @@ class OwnershipCostCalculatorTest extends TestCase
 
     public function test_breakdown_reports_the_fuel_factor_and_an_unknown_body_type(): void
     {
-        $gnc = $this->estimate(['fuel' => 'gnc'])['breakdown']['maintenance'];
-        $this->assertSame('gnc', $gnc['fuel_type']);
+        $gnc = $this->estimate(['fuel' => 'gnc'])['breakdown']['service'];
         $this->assertEquals(1.15, $gnc['fuel_factor']);
 
-        $unknown = $this->estimate(['body_type' => 'Cupé'])['breakdown']['maintenance'];
+        $unknown = $this->estimate(['body_type' => 'Cupé'])['breakdown']['service'];
         $this->assertNull($unknown['body_type']);
         $this->assertNull($unknown['body_label']);
-        $this->assertEquals(40, $unknown['per_km']);
+        $this->assertEquals(400000, $unknown['price_per_service']);
     }
 
     public function test_every_concept_rounds_up_and_totals_sum_rounded_concepts(): void
@@ -171,9 +192,8 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(121000, $r['monthly']['fuel']);
         $this->assertSame(83000, $r['monthly']['insurance']);
         $this->assertSame(51000, $r['monthly']['patente']);
-        $this->assertSame(36000, $r['monthly']['maintenance']);
-        $this->assertSame(121000 + 83000 + 51000 + 36000, $r['monthly']['total']);
-        $this->assertSame($r['monthly']['total'] * 12, $r['monthly']['yearly_total']);
+        $this->assertSame(121000 + 83000 + 51000, $r['monthly']['total']);
+        $this->assertSame($r['monthly']['total'] * 12 + $r['yearly']['service'], $r['yearly']['total']);
     }
 
     public function test_todo_riesgo_uses_its_own_insurance_rate(): void
@@ -334,7 +354,7 @@ class OwnershipCostCalculatorTest extends TestCase
 
         $this->assertNull($r['monthly']['fuel']);
         $this->assertSame(['fuel'], $r['monthly']['not_estimated']);
-        $this->assertSame($r['monthly']['insurance'] + $r['monthly']['patente'] + $r['monthly']['maintenance'], $r['monthly']['total']);
+        $this->assertSame($r['monthly']['insurance'] + $r['monthly']['patente'], $r['monthly']['total']);
     }
 
     public function test_missing_consumption_has_no_fuel_estimate(): void
@@ -343,43 +363,156 @@ class OwnershipCostCalculatorTest extends TestCase
 
         $this->assertNull($r['monthly']['fuel']);
         $this->assertSame(['fuel'], $r['monthly']['not_estimated']);
-        $this->assertSame(161000, $r['monthly']['total']);
+        $this->assertSame(125000, $r['monthly']['total']);
+    }
+
+    /** @return array<string, mixed> the `service` breakdown of an estimate */
+    private function service(array $vehicle = [], int $km = 1500, array $rates = []): array
+    {
+        return $this->estimate($vehicle, km: $km, rates: $rates)['breakdown']['service'];
     }
 
     /**
-     * Monthly maintenance = km per month x per_km x age factor x fuel factor, rounded up to 1.000.
-     * Test bands: age <= 3 -> 1,0; <= 7 -> 1,2; open -> 1,5.
+     * Services per year = ceil(max(km per year / interval km, 12 / interval months)). Fallback: 10.000 km / 12 months.
      */
-    #[DataProvider('maintenanceCases')]
-    public function test_maintenance_per_km(array $changes, int $km, int $expected): void
+    #[DataProvider('servicesPerYear')]
+    public function test_services_per_year(int $kmPerMonth, int $expected): void
     {
-        $this->assertSame($expected, $this->estimate($changes, km: $km)['monthly']['maintenance']);
+        $this->assertSame($expected, $this->service(km: $kmPerMonth)['services_per_year']);
     }
 
-    public static function maintenanceCases(): array
+    public static function servicesPerYear(): array
     {
         return [
-            'hatchback in the first age band: 1.500 km x 20' => [['anio' => 2025], 1500, 30000],
-            'age on the band limit stays in the band' => [['anio' => 2023], 1500, 30000],
-            'age 4 takes the second band' => [['anio' => 2022], 1500, 36000],
-            'old car, open band' => [['anio' => 2010], 1500, 45000],
-            'future year counts as age 0' => [['anio' => 2027], 1500, 30000],
-            'sedan' => [['anio' => 2025, 'body_type' => 'Sedán'], 1500, 57000],
-            'rural / familiar maps to rural' => [['anio' => 2025, 'body_type' => 'Rural / familiar'], 1500, 51000],
-            'suv' => [['anio' => 2025, 'body_type' => 'SUV'], 1500, 51000],
-            'pickup' => [['anio' => 2025, 'body_type' => 'Pickup'], 1500, 60000],
-            'furgon' => [['anio' => 2025, 'body_type' => 'Furgón'], 1500, 51000],
-            'unknown body type takes the highest per km' => [['anio' => 2025, 'body_type' => 'Cupé'], 1500, 60000],
-            'missing body type takes the highest per km' => [['anio' => 2025, 'body_type' => null], 1500, 60000],
-            'gnc 1,15 (34.500 rounds up)' => [['anio' => 2025, 'fuel' => 'gnc'], 1500, 35000],
-            'electric 0,5' => [['anio' => 2025, 'fuel' => 'electrico'], 1500, 15000],
-            'diesel 1,0' => [['anio' => 2025, 'fuel' => 'diesel'], 1500, 30000],
-            'hybrid 1,0' => [['anio' => 2025, 'fuel' => 'hibrido'], 1500, 30000],
-            'all factors: sedan, open age band, gnc (98.325 rounds up)' => [['anio' => 2010, 'body_type' => 'Sedán', 'fuel' => 'gnc'], 1500, 99000],
-            'the km per month override changes it' => [['anio' => 2025], 3000, 60000],
-            'few km' => [['anio' => 2025], 500, 10000],
-            'no km' => [['anio' => 2025], 0, 0],
+            'no km: the time rule asks for one' => [0, 1],
+            'few km: the time rule wins' => [500, 1],
+            'just under one interval a year' => [833, 1],
+            'just over one interval a year rounds up' => [834, 2],
+            'km rule: 1.2 services rounds up to 2' => [1000, 2],
+            'km rule: 1.8 services rounds up to 2' => [1500, 2],
+            'km rule: 2.0004 services rounds up to 3' => [1667, 3],
+            'heavy use' => [4500, 6],
         ];
+    }
+
+    public function test_the_interval_in_months_can_ask_for_more_services_than_the_km(): void
+    {
+        $b = $this->service(km: 0, rates: ['service' => ['fallback' => ['interval_months' => 6]]]);
+
+        $this->assertSame(2, $b['services_per_year']);
+        $this->assertSame(6, $b['interval_months']);
+    }
+
+    public function test_an_exact_number_of_intervals_does_not_round_up_by_float_noise(): void
+    {
+        // Volkswagen 15.000 km: 1.250 km per month = exactly one interval a year; 2.500 = exactly two.
+        $this->assertSame(1, $this->service(['marca' => 'Volkswagen', 'modelo' => 'Polo'], km: 1250)['services_per_year']);
+        $this->assertSame(2, $this->service(['marca' => 'Volkswagen', 'modelo' => 'Polo'], km: 2500)['services_per_year']);
+    }
+
+    /** @return array<string, array{0: array<string, mixed>, 1: int, 2: string}> vehicle, price per service, source label */
+    public static function priceLookups(): array
+    {
+        return [
+            'brand and model' => [['marca' => 'Toyota', 'modelo' => 'Yaris', 'body_type' => 'Hatchback'], 361000, 'service oficial Toyota Yaris'],
+            'the model decides over the body type' => [['marca' => 'Toyota', 'modelo' => 'Hilux', 'body_type' => 'SUV'], 593000, 'service oficial Toyota Hilux'],
+            'corolla cross is not corolla' => [['marca' => 'Toyota', 'modelo' => 'Corolla Cross', 'body_type' => 'SUV'], 487000, 'service oficial Toyota Corolla Cross'],
+            'corolla with a trim' => [['marca' => 'Toyota', 'modelo' => 'Corolla XEI', 'body_type' => 'Sedán'], 486000, 'service oficial Toyota Corolla XEI'],
+            'gol trend matches gol' => [['marca' => 'Volkswagen', 'modelo' => 'Gol Trend', 'body_type' => 'Hatchback'], 326000, 'service oficial Volkswagen Gol Trend'],
+            'gol does not match golf' => [['marca' => 'Volkswagen', 'modelo' => 'Golf', 'body_type' => 'Hatchback'], 383000, 'service oficial Volkswagen'],
+            'vw alias' => [['marca' => 'VW', 'modelo' => 'Polo', 'body_type' => 'Hatchback'], 383000, 'service oficial Volkswagen Polo'],
+            'brand in capitals' => [['marca' => 'VOLKSWAGEN', 'modelo' => 'POLO', 'body_type' => 'Hatchback'], 383000, 'service oficial Volkswagen POLO'],
+            'accents and padding' => [['marca' => '  Fíat ', 'modelo' => 'Cronos', 'body_type' => 'Sedán'], 378000, 'service oficial Fiat Cronos'],
+            'brand and body type when the model is not listed' => [['marca' => 'Toyota', 'modelo' => 'Prius', 'body_type' => 'Hatchback'], 361000, 'service oficial Toyota'],
+            'brand without that body type uses the reference' => [['marca' => 'Fiat', 'modelo' => 'Strada', 'body_type' => 'Pickup'], 400000, 'valor de referencia'],
+            'an unknown brand uses the reference' => [['marca' => 'Citroën', 'modelo' => 'C3', 'body_type' => 'Hatchback'], 200000, 'valor de referencia'],
+            'bmw has no data and uses the reference' => [['marca' => 'BMW', 'modelo' => 'Serie 1', 'body_type' => 'Hatchback'], 200000, 'valor de referencia'],
+            'unknown body type takes the highest reference' => [['marca' => 'BMW', 'modelo' => 'X', 'body_type' => 'Cupé'], 400000, 'valor de referencia'],
+            'missing body type takes the highest reference' => [['marca' => 'Toyota', 'modelo' => 'Prius', 'body_type' => null], 400000, 'valor de referencia'],
+            'missing brand and model use the reference' => [['marca' => null, 'modelo' => null], 200000, 'valor de referencia'],
+        ];
+    }
+
+    #[DataProvider('priceLookups')]
+    public function test_price_lookup_order(array $vehicle, int $price, string $source): void
+    {
+        $b = $this->service($vehicle);
+
+        $this->assertSame($price, (int) $b['price_per_service']);
+        $this->assertSame($source, $b['source_label']);
+    }
+
+    public function test_the_breakdown_flags_what_matched(): void
+    {
+        $model = $this->service(['marca' => 'Toyota', 'modelo' => 'Yaris', 'body_type' => 'Hatchback']);
+        $this->assertSame('Toyota', $model['brand']);
+        $this->assertTrue($model['brand_known']);
+        $this->assertTrue($model['model_matched']);
+
+        $body = $this->service(['marca' => 'Toyota', 'modelo' => 'Prius', 'body_type' => 'Hatchback']);
+        $this->assertTrue($body['brand_known']);
+        $this->assertFalse($body['model_matched']);
+
+        $unknown = $this->service(['marca' => 'BMW', 'modelo' => 'X1', 'body_type' => 'SUV']);
+        $this->assertFalse($unknown['brand_known']);
+        $this->assertNull($unknown['brand']);
+    }
+
+    public function test_the_service_for_a_listed_vehicle_is_services_times_price(): void
+    {
+        // Yaris, 1.500 km a month: 18.000 / 10.000 -> 2 services x 361.000 = 722.000 per year.
+        $r = $this->estimate(['marca' => 'Toyota', 'modelo' => 'Yaris', 'body_type' => 'Hatchback']);
+
+        $this->assertSame(722000, $r['yearly']['service']);
+        $this->assertSame(18000, $r['breakdown']['service']['km_per_year']);
+        $this->assertSame(10000, $r['breakdown']['service']['interval_km']);
+        $this->assertSame(2, $r['breakdown']['service']['services_per_year']);
+    }
+
+    public function test_the_amarok_uses_its_own_interval_and_the_brand_keeps_the_default(): void
+    {
+        // 1.000 km a month = 12.000 km a year: Amarok every 10.000 km -> 2 services; any other Volkswagen every 15.000 -> 1.
+        $amarok = $this->service(['marca' => 'Volkswagen', 'modelo' => 'Amarok V6', 'body_type' => 'Pickup'], km: 1000);
+        $this->assertSame(10000, $amarok['interval_km']);
+        $this->assertSame(2, $amarok['services_per_year']);
+
+        $polo = $this->service(['marca' => 'Volkswagen', 'modelo' => 'Polo', 'body_type' => 'Hatchback'], km: 1000);
+        $this->assertSame(15000, $polo['interval_km']);
+        $this->assertSame(1, $polo['services_per_year']);
+    }
+
+    public function test_a_volkswagen_pickup_that_is_not_the_amarok_keeps_the_brand_interval(): void
+    {
+        $pickup = $this->service(['marca' => 'Volkswagen', 'modelo' => 'Saveiro', 'body_type' => 'Pickup'], km: 1000);
+
+        $this->assertSame(15000, $pickup['interval_km']);
+        $this->assertSame(650000, (int) $pickup['price_per_service']);
+    }
+
+    public function test_the_fuel_factor_scales_the_yearly_service(): void
+    {
+        $this->assertSame(400000, $this->estimate()['yearly']['service']);
+        // 2 x 200.000 x 1,15 = 460.000
+        $this->assertSame(460000, $this->estimate(['fuel' => 'gnc'])['yearly']['service']);
+        $this->assertSame(200000, $this->estimate(['fuel' => 'electrico'])['yearly']['service']);
+        $this->assertSame(400000, $this->estimate(['fuel' => 'diesel'])['yearly']['service']);
+        $this->assertSame(400000, $this->estimate(['fuel' => 'hibrido'])['yearly']['service']);
+        $this->assertEquals(0.5, $this->service(['fuel' => 'electrico'])['fuel_factor']);
+    }
+
+    public function test_the_yearly_service_rounds_up_and_the_totals_add_up(): void
+    {
+        // 2 x 200.100 x 1,15 = 460.230 -> 461.000
+        $r = $this->estimate(['fuel' => 'gnc'], rates: ['service' => ['fallback' => ['body' => ['hatchback' => 200100]]]]);
+
+        $this->assertSame(461000, $r['yearly']['service']);
+        $this->assertSame($r['monthly']['total'] * 12 + 461000, $r['yearly']['total']);
+        $this->assertArrayNotHasKey('maintenance', $r['monthly']);
+    }
+
+    public function test_no_km_still_costs_one_service_a_year(): void
+    {
+        $this->assertSame(200000, $this->estimate(km: 0)['yearly']['service']);
     }
 
     #[DataProvider('provinces')]

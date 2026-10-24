@@ -12,7 +12,7 @@ return [
     'updated_at' => '2026-10-24',
 
     // Month (YYYY-MM) in which the ARS amounts below (transfer.fixed_costs) are stated.
-    // insurance, patente and maintenance state their ARS amounts at their own `cpi_base_month`.
+    // insurance, patente and each service brand (and the service fallback) state their ARS amounts at their own `cpi_base_month`.
     // The monthly refresh (calculadora:refresh) scales them by max(1, CPI latest / CPI of this month).
     // Move it forward together with those amounts when they are reviewed by hand.
     'cpi_base_month' => '2026-08',
@@ -170,36 +170,27 @@ return [
         ],
     ],
 
-    // Maintenance per month = km per month x per_km[body type] x age factor x fuel factor, rounded up.
-    // The km per month is the one fuel uses (diagnostico, default or the user's input). An unknown body type takes
-    // the highest per_km.
+    // Service per year = services per year x price per service x fuel factor, rounded up. An occasional cost: it never
+    // enters the monthly total, only the yearly one.
     //
-    // Sources: first official services at a 10,000 km interval.
-    //  - La Nación 2025-10, official service ranking:
-    //    https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/
-    //  - iProfesional 2026-04:
-    //    https://www.iprofesional.com/autos/452731-service-auto-cuanto-cuesta-concesionarias-y-que-precio-en-taller-independiente
+    // services per year = ceil(max(km per year / interval_km, 12 / interval_months)); the km per month is the one fuel uses
+    // (diagnostico, default or the user's input).
     //
-    // Yearly review: per_km and the factors, together with `cpi_base_month` and `updated_at`.
-    'maintenance' => [
-        // ARS per km at `cpi_base_month`. The monthly refresh scales them by max(1, CPI latest / CPI of that month).
-        'per_km' => [
-            'hatchback' => 20,
-            'sedan' => 38,
-            'rural' => 34,
-            'suv' => 34,
-            'pickup' => 40,
-            'furgon' => 34,
-        ],
-        // Ordered bands: the first band whose max is >= the age in years applies; max null is the open band.
-        // The factors are judgment calls, without a source.
-        'age_factors' => [
-            ['max' => 5, 'factor' => 1.0],
-            ['max' => 10, 'factor' => 1.2],
-            ['max' => 15, 'factor' => 1.5],
-            ['max' => null, 'factor' => 1.8],
-        ],
-        // Gnc and electrico are estimates, without a source. An unknown fuel takes the highest factor.
+    // Price per service (ARS), the average over one service cycle, looked up in this order:
+    //  1. brand + model: `models`, matched as whole words inside the vehicle's `modelo` (the longest key wins, so
+    //     "corolla cross" is not "corolla" and "gol" matches "Gol Trend" but not "Golf");
+    //  2. brand + body type: the brand's `body` map;
+    //  3. `fallback.body`: reference values by body type, for any other brand, missing model or missing body type.
+    //     An unknown body type takes the highest reference value.
+    // A brand is matched on `vehiculo.marca` by its key or one of its `aliases`, ignoring case and accents.
+    // `model_overrides` replaces the brand's interval for one model. Each brand carries the `cpi_base_month` of its
+    // prices; the monthly refresh scales them by max(1, CPI latest / CPI of that month).
+    //
+    // BMW has no Argentine price or interval published, so it uses the fallback. Fuel factors (GNC, electric) are
+    // estimates without a source; an unknown fuel takes the highest factor. The service price does not depend on age.
+    //
+    // Yearly review: the prices, the intervals and the factors, together with each `cpi_base_month` and `updated_at`.
+    'service' => [
         'fuel_factor' => [
             'nafta' => 1.0,
             'diesel' => 1.0,
@@ -207,7 +198,108 @@ return [
             'gnc' => 1.15,
             'electrico' => 0.5,
         ],
-        // Month (YYYY-MM) of the per_km amounts; independent from the top-level `cpi_base_month`.
-        'cpi_base_month' => '2026-04',
+        'brands' => [
+            // Official dealer price list, Aug-2026: https://toyotayacopini.com/servicio-de-posventa/
+            // The 12-month interval is NOT confirmed.
+            'toyota' => [
+                'label' => 'Toyota',
+                'aliases' => [],
+                'interval_km' => 10000,
+                'interval_months' => 12,
+                'cpi_base_month' => '2026-08',
+                'models' => [
+                    'etios' => 315000,
+                    'yaris' => 361000,
+                    'corolla' => 486000,
+                    'corolla cross' => 486000,
+                    'hilux' => 593000,
+                    'sw4' => 612000,
+                ],
+                'body' => [
+                    'hatchback' => 361000,
+                    'sedan' => 486000,
+                    'suv' => 486000,
+                    'rural' => 486000,
+                    'pickup' => 593000,
+                    'furgon' => 593000,
+                ],
+            ],
+            // Dealer price list (undated, so its month is assumed): https://vwmataderos.com.ar/institucional/postventa/precios-de-servicio.htm
+            'volkswagen' => [
+                'label' => 'Volkswagen',
+                'aliases' => ['vw'],
+                'interval_km' => 15000,
+                'interval_months' => 12,
+                'cpi_base_month' => '2025-12',
+                'models' => [
+                    'gol' => 326000,
+                    'polo' => 383000,
+                    'virtus' => 383000,
+                    't cross' => 383000,
+                    'nivus' => 383000,
+                    'taos' => 456000,
+                    'golf' => 456000,
+                    'amarok' => 650000,
+                ],
+                'model_overrides' => [
+                    'amarok' => ['interval_km' => 10000],
+                ],
+                'body' => [
+                    'hatchback' => 383000,
+                    'sedan' => 383000,
+                    'suv' => 456000,
+                    'rural' => 456000,
+                    'pickup' => 650000,
+                    'furgon' => 650000,
+                ],
+            ],
+            // Infobae 2025-09-17 and La Nación 2025-10. Pickup and furgón are not set: they use the fallback.
+            // https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/
+            'fiat' => [
+                'label' => 'Fiat',
+                'aliases' => [],
+                'interval_km' => 10000,
+                'interval_months' => 12,
+                'cpi_base_month' => '2025-09',
+                'models' => [
+                    'cronos' => 378000,
+                ],
+                'body' => [
+                    'hatchback' => 271000, // 2-service pack / 2
+                    'sedan' => 378000,
+                    'suv' => 378000,
+                    'rural' => 378000,
+                ],
+            ],
+            // La Nación 2025-10 and Infobae 2025-09-17. The other bodies are not set: they use the fallback.
+            'peugeot' => [
+                'label' => 'Peugeot',
+                'aliases' => [],
+                'interval_km' => 10000,
+                'interval_months' => 12,
+                'cpi_base_month' => '2025-09',
+                'models' => [
+                    '208' => 401000,
+                ],
+                'body' => [
+                    'hatchback' => 401000,
+                ],
+            ],
+        ],
+        // Reference values by body type: La Nación 2025-10 official service ranking (first services at 10,000 km).
+        // https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/
+        'fallback' => [
+            'interval_km' => 10000,
+            'interval_months' => 12,
+            'cpi_base_month' => '2025-09',
+            'body' => [
+                'hatchback' => 200000,
+                'sedan' => 380000,
+                'suv' => 340000,
+                'rural' => 340000,
+                'furgon' => 340000,
+                'pickup' => 400000,
+            ],
+        ],
     ],
 ];

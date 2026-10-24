@@ -6,8 +6,9 @@ namespace App\Services\Calculadora;
  * The calculator rates in force: config('calculadora') overridden by the latest valid refresh snapshot.
  * Fuel: the dealer's province, then the national value, then the config. ARS amounts (transfer fixed
  * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases, the patente bracket limits and fixed amounts
- * and the maintenance ARS per km are scaled the same way from their own base month (`insurance.cpi_base_month`,
- * `patente.cpi_base_month`, `maintenance.cpi_base_month`). Percentages are never touched.
+ * and the service prices are scaled the same way from their own base month (`insurance.cpi_base_month`,
+ * `patente.cpi_base_month`, and `cpi_base_month` of each `service.brands.*` and of `service.fallback`). Percentages
+ * and service intervals are never touched.
  */
 final class EffectiveRates
 {
@@ -37,9 +38,11 @@ final class EffectiveRates
         if ($insuranceFactor > 1) {
             $rates['insurance']['tc_base'] = array_map(fn ($amount) => (int) round($amount * $insuranceFactor), $rates['insurance']['tc_base']);
         }
-        $maintenanceFactor = $this->cpiFactor($cpi, (string) ($rates['maintenance']['cpi_base_month'] ?? ''));
-        if ($maintenanceFactor > 1) {
-            $rates['maintenance']['per_km'] = array_map(fn ($amount) => round($amount * $maintenanceFactor, 2), $rates['maintenance']['per_km']);
+        foreach ((array) ($rates['service']['brands'] ?? []) as $key => $brand) {
+            $rates['service']['brands'][$key] = $this->indexServicePrices($brand, $this->cpiFactor($cpi, (string) ($brand['cpi_base_month'] ?? '')));
+        }
+        if (isset($rates['service']['fallback'])) {
+            $rates['service']['fallback'] = $this->indexServicePrices($rates['service']['fallback'], $this->cpiFactor($cpi, (string) ($rates['service']['fallback']['cpi_base_month'] ?? '')));
         }
         $patenteFactor = $this->cpiFactor($cpi, (string) ($rates['patente']['cpi_base_month'] ?? ''));
         if ($patenteFactor > 1) {
@@ -52,6 +55,25 @@ final class EffectiveRates
         $rates['updated_at'] = $snapshot->fetched_at->toDateString();
 
         return $rates;
+    }
+
+    /**
+     * A brand (or the fallback): its prices per model and per body type are ARS and get indexed; intervals never do.
+     *
+     * @param  array<string, mixed>  $source
+     * @return array<string, mixed>
+     */
+    private function indexServicePrices(array $source, float $factor): array
+    {
+        if ($factor > 1) {
+            foreach (['models', 'body'] as $key) {
+                if (isset($source[$key])) {
+                    $source[$key] = array_map(fn ($amount) => (int) round($amount * $factor), $source[$key]);
+                }
+            }
+        }
+
+        return $source;
     }
 
     /** Patente bracket: the limit and the fixed amount are ARS and get indexed; the rate never does. */
