@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecomendacionesController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
+use App\Http\Controllers\VehicleCatalogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +56,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
+        Route::get('/catalogo', VehicleCatalogController::class);
         Route::post('/importar/vista-previa', [ConcesionariaVehiculoImportController::class, 'preview']);
         Route::post('/importar', [ConcesionariaVehiculoImportController::class, 'import']);
         Route::get('/', [ConcesionariaVehiculoController::class, 'index']);

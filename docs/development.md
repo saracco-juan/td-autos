@@ -572,6 +572,36 @@ Run the isolated frontend checks with
 `npm run test -- src/features/recommendations/MatchingRecommendationsPage.test.tsx src/features/recommendations/matching.test.ts`
 from `frontend/web`. These tests fake API data and never change the local inventory.
 
+## HU21/HU22: shared inventory identity catalog
+
+`GET /api/concesionaria/vehiculos/catalogo` exposes the cached ACARA identities to
+authenticated, approved dealers using the existing active-subscription guard.
+It returns `snapshot_id`, `source_date`, `stale`, `warning` and sorted `entries`
+containing `id`, `marca`, `modelo` and `version`. An unavailable snapshot returns
+HTTP 503 with `acara_unavailable`; a stale snapshot remains available with
+`acara_stale`. This read does not refresh or parse a PDF.
+
+`App\Services\Inventario\VehicleCatalog` is the shared projection for the planned
+form selectors and XLSX template. It retains versions without year prices and
+deduplicates identical identities only; it never merges their price curves.
+Conflicting labels under the same ID are excluded rather than selecting the first.
+IDs are source-label hashes, not permanent IDs across source renames. The original
+price snapshot and existing vehicle records are unchanged by this endpoint.
+
+To smoke-test, start the backend and web app as described in `getting-started.md`,
+sign in as an active dealer, and run this in the web app's browser console:
+
+```js
+const response = await fetch('http://localhost:8000/api/concesionaria/vehiculos/catalogo', {
+  credentials: 'include', headers: { Accept: 'application/json' },
+});
+console.log(response.status, await response.json());
+```
+
+Expect 200 and catalog entries when a cached snapshot exists, or 503 with the
+explicit unavailable state otherwise. An unauthenticated request returns 401;
+a non-dealer or unapproved dealer returns 403. No new UI is wired in this step.
+
 ## HU05 stage 13b: ACARA PDF reader
 
 `App\Services\Resale\AcaraPriceReader::read($pdfBytes)` normalizes the official
