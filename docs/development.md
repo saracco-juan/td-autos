@@ -717,6 +717,25 @@ php artisan schedule:list
 
 Expect `Fuel prices: refreshed (...)`, `CPI: refreshed (...)` and exit 0; exit 1 means a source kept its previous value. Tests: `php artisan test --filter=CalculatorRefreshTest` (HTTP faked).
 
+### Calculator yearly review
+
+No source publishes the percentages, scales and service prices in a machine-readable form, so they are reviewed by hand once a year. `php artisan calculadora:review` (`App\Services\Calculadora\CalculatorReview`) is the control that reminds you. It **only alerts**: it never writes and never changes a rate; the values in force keep working, indexed by CPI.
+
+- Each hand-reviewed group is declared in the `review` block of `config/calculadora.php`: `label`, `config_path`, `reviewed_at` (ISO date) and `sources` (URLs).
+- A group is **stale** when `reviewed_at` is more than `review.max_age_months` (12) ago. Every source URL is requested once (GET, 5 s timeout) and reported when it answers 4xx/5xx or does not connect. The latest valid monthly snapshot is reported late when it is older than `review.snapshot_max_age_days` (40).
+- Schedule: January 1 at 05:00 Argentina time (`routes/console.php`, without overlap). In deploy, the GitHub workflow `Cron` calls `POST /internal/cron/calculadora-revision` (same `CRON_SECRET_PROD` bearer) at `0 8 1 1 *` UTC. The endpoint answers 200 with the review plus `title` and a Spanish `markdown` checklist; the job opens an issue with it (needs `issues: write`, already set on the job) unless nothing is stale. "Run workflow" by hand runs it too and opens an issue when something is stale.
+
+Run it locally (read-only; any database works, it only reads the latest snapshot):
+
+```powershell
+cd backend
+php artisan calculadora:review
+```
+
+It prints the stale and fresh groups, the unreachable sources and the snapshot age, and always exits 0.
+
+After reviewing a group (checking its sources and updating the values in `config/calculadora.php`), set its `reviewed_at` under `review.groups.<key>` to the review date, in the same commit as the values. Close the yearly issue when every checkbox is done. A source that moved: replace its URL in `sources`.
+
 By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, the `patente` scales and flat rates, `service.fuel_factor` and the service intervals), and, when the ARS amounts are reviewed, move the base month that goes with them to the month they are stated in (`cpi_base_month` for `transfer.fixed_costs`, `insurance.cpi_base_month`, `patente.cpi_base_month`, and the `cpi_base_month` of each `service.brands.*` and of `service.fallback`). The CPI refresh fetches every base month in use (today 2025-09, 2025-12, 2026-02, 2026-08 and 2026-10). Update `updated_at` too.
 
 ### Insurance model

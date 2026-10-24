@@ -302,4 +302,114 @@ return [
             ],
         ],
     ],
+
+    // Yearly review of the hand-reviewed values (D21). Data only: `calculadora:review` and the January 1 job read it to
+    // list the groups whose `reviewed_at` is older than `max_age_months` and to check that each source still answers.
+    // It never changes a rate. After reviewing a group, move its `reviewed_at` to the review date (see docs/development.md).
+    // Groups without `sources` have no public source; they are judgment or sourced only from the notes above.
+    'review' => [
+        'max_age_months' => 12,
+        // The monthly snapshot (calculadora:refresh) is reported late when the latest valid one is older than this.
+        'snapshot_max_age_days' => 40,
+        'groups' => [
+            'patente_scale' => [
+                'label' => 'Escalas de patente (Buenos Aires y CABA)',
+                'config_path' => 'patente.scale',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [
+                    'https://www.infobae.com/economia/2026/02/12/confirmado-a-partir-de-marzo-las-patentes-bonaerenses-comenzaran-a-pagarse-todos-los-meses/',
+                ],
+            ],
+            'patente_cordoba' => [
+                'label' => 'Tramos de patente de Córdoba',
+                'config_path' => 'patente.bracket_rate.cordoba',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [
+                    'https://hacecuentas.com/calculadora-patente-auto-cordoba-2026-valuacion-fiscal-cuotas',
+                ],
+            ],
+            'patente_flat' => [
+                'label' => 'Alícuotas de patente (otras provincias)',
+                'config_path' => 'patente.flat_rate',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [],
+            ],
+            'stamp_duty' => [
+                'label' => 'Sellado de transferencia por provincia',
+                'config_path' => 'transfer.stamp_rate',
+                'reviewed_at' => '2026-10-23',
+                'sources' => [],
+            ],
+            'dnrpa_transfer' => [
+                'label' => 'Arancel DNRPA y costos fijos de transferencia',
+                'config_path' => 'transfer.dnrpa_rate',
+                'reviewed_at' => '2026-10-23',
+                'sources' => [],
+            ],
+            'insurance_bases' => [
+                'label' => 'Bases, ratios y tasas sobre el valor del seguro',
+                'config_path' => 'insurance.tc_base',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [
+                    'https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina',
+                ],
+            ],
+            'insurance_zones' => [
+                'label' => 'Factores de zona del seguro',
+                'config_path' => 'insurance.zone_factor',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [
+                    'https://seguroya.com.ar/seguros-de-autos-precios',
+                ],
+            ],
+            'service_toyota' => [
+                'label' => 'Service Toyota (precios e intervalos)',
+                'config_path' => 'service.brands.toyota',
+                'reviewed_at' => '2026-10-24',
+                'sources' => ['https://toyotayacopini.com/servicio-de-posventa/'],
+            ],
+            'service_volkswagen' => [
+                'label' => 'Service Volkswagen (precios e intervalos)',
+                'config_path' => 'service.brands.volkswagen',
+                'reviewed_at' => '2026-10-24',
+                'sources' => ['https://vwmataderos.com.ar/institucional/postventa/precios-de-servicio.htm'],
+            ],
+            'service_fiat' => [
+                'label' => 'Service Fiat (precios e intervalos)',
+                'config_path' => 'service.brands.fiat',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [
+                    'https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/',
+                ],
+            ],
+            'service_peugeot' => [
+                'label' => 'Service Peugeot (precios e intervalos)',
+                'config_path' => 'service.brands.peugeot',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [
+                    'https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/',
+                ],
+            ],
+            'service_fallback' => [
+                'label' => 'Service de otras marcas (valores de referencia por carrocería)',
+                'config_path' => 'service.fallback',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [
+                    'https://www.lanacion.com.ar/autos/servicie-oficial-del-auto-el-ranking-de-precios-de-las-automotrices-nid01102025/',
+                ],
+            ],
+            'km_per_month' => [
+                'label' => 'Kilómetros por mes de cada respuesta del diagnóstico',
+                'config_path' => 'km_per_month',
+                'reviewed_at' => '2026-10-23',
+                'sources' => [],
+            ],
+            'cpi_base_months' => [
+                'label' => 'Meses base del IPC de los montos en pesos',
+                'config_path' => 'cpi_base_month',
+                'reviewed_at' => '2026-10-24',
+                'sources' => [],
+            ],
+        ],
+    ],
 ];
