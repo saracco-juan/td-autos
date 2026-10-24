@@ -2,9 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { explainConcept } from './explainConcept'
 import type { CostBreakdown } from './types'
 
+const insurance = (changes: Partial<CostBreakdown['insurance']> = {}): CostBreakdown['insurance'] => ({
+  coverage: 'terceros_completo', base: 23000000, body_type: 'hatchback', body_label: 'Hatchback', base_monthly: 103000,
+  value_rate: 0.023, by_value: false, zone_factor: 0.8, province: 'Córdoba', province_known: true, tr_ratio: null,
+  terceros_completo: 83000,
+  ...changes,
+})
+
 const breakdown = (changes: Partial<CostBreakdown> = {}): CostBreakdown => ({
   fuel: { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'nafta', price_fuel_type: 'nafta', unit: 'litro', unit_price: 2125 },
-  insurance: { base: 23000000, coverage: 'terceros_completo', annual_rate: 0.07 },
+  insurance: insurance(),
   patente: { base: 23000000, province: 'Córdoba', province_known: true, annual_rate: 0.032 },
   maintenance: { fuel_type: 'nafta', annual_base: 1000000, age_years: 5, age_factor: 1, km: 70000, km_factor: 1.2,
     turbo_factor: null, automatic_factor: null },
@@ -44,12 +51,61 @@ describe('explainConcept', () => {
     expect(text).toBe('No tenemos datos de consumo de este auto, así que no podemos estimar el combustible.')
   })
 
-  it('explains the insurance rate for each coverage', () => {
-    expect(explainConcept('insurance', breakdown(), 135000)).toBe(
-      '7% anual del valor del auto para terceros completo, dividido 12 meses = $ 135.000 por mes.',
+  it('explains terceros completo with the body base and the zone', () => {
+    expect(explainConcept('insurance', breakdown(), 83000)).toBe(
+      'Terceros completo para un hatchback: $ 103.000 por mes de referencia, × 0,8 por la zona (Córdoba) = $ 83.000 por mes. Sale de cotizaciones publicadas en octubre de 2026.',
     )
-    const todoRiesgo = breakdown({ insurance: { base: 23000000, coverage: 'todo_riesgo', annual_rate: 0.14 } })
-    expect(explainConcept('insurance', todoRiesgo, 269000)).toContain('14% anual del valor del auto para todo riesgo')
+  })
+
+  it('names each body type with its article', () => {
+    const tip = (body_type: CostBreakdown['insurance']['body_type']) =>
+      explainConcept('insurance', breakdown({ insurance: insurance({ body_type }) }), 83000)
+    expect(tip('sedan')).toContain('para un sedán')
+    expect(tip('rural')).toContain('para una rural')
+    expect(tip('suv')).toContain('para un SUV')
+    expect(tip('pickup')).toContain('para una pickup')
+    expect(tip('furgon')).toContain('para un furgón')
+  })
+
+  it('explains terceros completo by the value of the car when the value decides', () => {
+    const value = insurance({ body_type: 'pickup', body_label: 'Pickup', base: 80000000, by_value: true, zone_factor: 1,
+      province: 'Buenos Aires', terceros_completo: 154000 })
+    expect(explainConcept('insurance', breakdown({ insurance: value }), 154000)).toBe(
+      'Terceros completo: 2,3% anual del valor del auto, dividido 12 meses, × 1 por la zona (Buenos Aires) = $ 154.000 por mes.',
+    )
+  })
+
+  it('omits the body type and the province when they were not recognized', () => {
+    const unknown = insurance({ body_type: null, body_label: null, province_known: false, province: 'Atlántida' })
+    expect(explainConcept('insurance', breakdown({ insurance: unknown }), 83000)).toBe(
+      'Terceros completo: $ 103.000 por mes de referencia, × 0,8 por la zona = $ 83.000 por mes. Sale de cotizaciones publicadas en octubre de 2026.',
+    )
+  })
+
+  it('explains todo riesgo as terceros completo times the ratio of the body type', () => {
+    const tr = insurance({ coverage: 'todo_riesgo', body_type: 'pickup', body_label: 'Pickup', tr_ratio: 2.35, value_rate: 0.06,
+      terceros_completo: 154000 })
+    expect(explainConcept('insurance', breakdown({ insurance: tr }), 362000)).toBe(
+      'Todo riesgo: terceros completo ($ 154.000) × 2,35 para una pickup = $ 362.000 por mes.',
+    )
+  })
+
+  it('explains todo riesgo by the value of the car when the value decides', () => {
+    const tr = insurance({ coverage: 'todo_riesgo', body_type: 'pickup', body_label: 'Pickup', tr_ratio: 2.35, value_rate: 0.06,
+      by_value: true, base: 80000000, terceros_completo: 154000 })
+    expect(explainConcept('insurance', breakdown({ insurance: tr }), 400000)).toBe(
+      'Todo riesgo: 6% anual del valor del auto, dividido 12 meses = $ 400.000 por mes.',
+    )
+  })
+
+  it('never reveals a ceiling or a rounding in the insurance text', () => {
+    const texts = [
+      explainConcept('insurance', breakdown(), 83000),
+      explainConcept('insurance', breakdown({ insurance: insurance({ by_value: true }) }), 83000),
+      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.8 }) }), 150000),
+      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.8, by_value: true }) }), 150000),
+    ]
+    for (const text of texts) expect(text).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
   })
 
   it('explains the patente with the provincial rate in Argentine format', () => {

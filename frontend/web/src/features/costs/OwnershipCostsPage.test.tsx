@@ -13,11 +13,13 @@ const costs = (): OwnershipCosts => ({
     published_price: 20000000, published_currency: 'ARS' },
   inputs: { km_per_month: 1500, km_source: 'diagnostico', coverage: 'terceros_completo' },
   purchase: { price: 20000000, transfer: 700000, total: 20700000, budget: { max: 25000000, fits: true, difference: 4300000 } },
-  monthly: { fuel: 120000, insurance: 100000, patente: 20000, maintenance: 66000, total: 306000,
-    yearly_total: 3672000, not_estimated: [] },
+  monthly: { fuel: 120000, insurance: 92000, patente: 20000, maintenance: 66000, total: 298000,
+    yearly_total: 3576000, not_estimated: [] },
   breakdown: {
     fuel: { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'nafta', price_fuel_type: 'nafta', unit: 'litro', unit_price: 1000 },
-    insurance: { base: 20000000, coverage: 'terceros_completo', annual_rate: 0.06 },
+    insurance: { coverage: 'terceros_completo', base: 20000000, body_type: 'sedan', body_label: 'Sedán', base_monthly: 114000,
+      value_rate: 0.023, by_value: false, zone_factor: 0.8, province: 'Córdoba', province_known: true, tr_ratio: null,
+      terceros_completo: 92000 },
     patente: { base: 20000000, province: 'Córdoba', province_known: true, annual_rate: 0.012 },
     maintenance: { fuel_type: 'nafta', annual_base: 600000, age_years: 4, age_factor: 1.2, km: 40000, km_factor: 1.1,
       turbo_factor: null, automatic_factor: null },
@@ -48,13 +50,13 @@ it('shows what it costs to keep and to buy the vehicle without ceiling wording',
   expect(screen.getByRole('link', { name: 'Volver a recomendaciones' })).toHaveAttribute('href', '/recomendaciones')
 
   expect(within(monthly()).getByText('$ 120.000 por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('$ 100.000 por mes')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 92.000 por mes')).toBeInTheDocument()
   expect(within(monthly()).getByText('$ 20.000 por mes')).toBeInTheDocument()
   expect(within(monthly()).getByText('$ 66.000 por mes')).toBeInTheDocument()
   expect(within(monthly()).getByText('Total por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('$ 306.000')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 298.000')).toBeInTheDocument()
   const yearly = within(monthly()).getByText('Total por año').closest('div') as HTMLElement
-  expect(within(yearly).getByText('$ 3.672.000')).toBeInTheDocument()
+  expect(within(yearly).getByText('$ 3.576.000')).toBeInTheDocument()
   expect(within(monthly()).queryByText(/Equivale a/)).not.toBeInTheDocument()
 
   expect(within(purchase()).getByText('$ 20.000.000')).toBeInTheDocument()
@@ -73,7 +75,7 @@ it('puts an info button next to each concept and explains it with the numbers of
     return screen.getByRole('tooltip')
   }
   expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km (consumo del auto) × $ 1.000 el litro de nafta = $ 120.000.')
-  expect(await tip('Seguro')).toHaveTextContent('6% anual del valor del auto para terceros completo, dividido 12 meses = $ 100.000 por mes.')
+  expect(await tip('Seguro')).toHaveTextContent('Terceros completo para un sedán: $ 114.000 por mes de referencia, × 0,8 por la zona (Córdoba) = $ 92.000 por mes.')
   expect(await tip('Patente')).toHaveTextContent('Alícuota anual de 1,2% en Córdoba')
   expect(await tip('Mantenimiento')).toHaveTextContent('Service anual de referencia para un auto a nafta ($ 600.000)')
   expect(await tip('Transferencia')).toHaveTextContent('Arancel del registro (1%) + sellos de Córdoba (2%)')
@@ -233,7 +235,7 @@ it('shows the server validation messages under each field and keeps the previous
   await userEvent.click(screen.getByRole('button', { name: 'RECALCULAR' }))
   expect(await screen.findByText('Revisá los kilómetros: el máximo es 20.000 por mes.')).toBeInTheDocument()
   expect(screen.getByText('Elegí una cobertura de la lista.')).toBeInTheDocument()
-  expect(within(monthly()).getByText('$ 306.000')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 298.000')).toBeInTheDocument()
 })
 
 it('says the vehicle was not found', async () => {

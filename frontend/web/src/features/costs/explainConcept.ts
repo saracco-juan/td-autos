@@ -1,5 +1,5 @@
 import { formatPrice, groupThousands } from '../inventory/format'
-import type { CostBreakdown, FuelType } from './types'
+import type { BodyType, CostBreakdown, FuelType } from './types'
 
 export type Concept = 'fuel' | 'charging' | 'insurance' | 'patente' | 'maintenance' | 'transfer' | 'price'
 
@@ -17,7 +17,29 @@ function decimal(value: number): string {
   return String(Number(value.toFixed(2))).replace('.', ',')
 }
 
+const BODY_PHRASES: Record<BodyType, string> = {
+  hatchback: 'un hatchback',
+  sedan: 'un sedán',
+  rural: 'una rural',
+  suv: 'un SUV',
+  pickup: 'una pickup',
+  furgon: 'un furgón',
+}
+
 const percent = (rate: number) => `${decimal(rate * 100)}%`
+
+function explainInsurance(insurance: CostBreakdown['insurance'], money: string): string {
+  const body = insurance.body_type === null ? null : BODY_PHRASES[insurance.body_type]
+  const zone = `× ${decimal(insurance.zone_factor)} por la zona${insurance.province_known ? ` (${insurance.province})` : ''}`
+  const yearlyValue = `${percent(insurance.value_rate)} anual del valor del auto, dividido 12 meses`
+
+  if (insurance.coverage === 'todo_riesgo') {
+    if (insurance.by_value || insurance.tr_ratio === null) return `Todo riesgo: ${yearlyValue} = ${money} por mes.`
+    return `Todo riesgo: terceros completo (${formatPrice(insurance.terceros_completo)}) × ${decimal(insurance.tr_ratio)}${body ? ` para ${body}` : ''} = ${money} por mes.`
+  }
+  if (insurance.by_value) return `Terceros completo: ${yearlyValue}, ${zone} = ${money} por mes.`
+  return `Terceros completo${body ? ` para ${body}` : ''}: ${formatPrice(Math.round(insurance.base_monthly))} por mes de referencia, ${zone} = ${money} por mes. Sale de cotizaciones publicadas en octubre de 2026.`
+}
 
 /**
  * Spanish text that shows where an amount comes from, using the real numbers of the vehicle.
@@ -41,11 +63,8 @@ export function explainConcept(
     }
     case 'charging':
       return 'Pronto vas a poder ver cuánto te cuesta cargarlo.'
-    case 'insurance': {
-      const { annual_rate: rate, coverage } = breakdown.insurance
-      const label = coverage === 'todo_riesgo' ? 'todo riesgo' : 'terceros completo'
-      return `${percent(rate)} anual del valor del auto para ${label}, dividido 12 meses = ${money} por mes.`
-    }
+    case 'insurance':
+      return explainInsurance(breakdown.insurance, money)
     case 'patente': {
       const { province, province_known: known, annual_rate: rate } = breakdown.patente
       const lead = known
