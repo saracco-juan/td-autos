@@ -16,12 +16,12 @@ use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
- * UH22 (RF21, RF23, RF24, RF25, CU-20, RNF12): applying the CSV import. The whole file is
+ * UH22 (RF21, RF23, RF24, RF25, CU-20, RNF12): applying the XLSX import. The whole file is
  * validated again and then written in one transaction, or nothing is written.
  */
 class ImportVehiculosTest extends TestCase
 {
-    use InteractsWithImportCsv;
+    use InteractsWithImportXlsx;
     use InteractsWithVehiculos;
     use RefreshDatabase;
 
@@ -43,7 +43,7 @@ class ImportVehiculosTest extends TestCase
     {
         return $this->actingAs($user)->post(
             self::URL,
-            ['archivo' => $this->csvFile($this->csvContent($rows))],
+            ['archivo' => $this->workbookFile($this->workbookContent($rows))],
             ['Accept' => 'application/json'],
         );
     }
@@ -67,10 +67,10 @@ class ImportVehiculosTest extends TestCase
         $vehicle = $this->vehicleOf($user->concesionaria, 7, 'AB123CD');
         $id = 'acara:'.str_repeat('a', 64);
         $vehicle->update(['marca' => 'Toyota', 'modelo' => 'Corolla', 'version' => 'XEI 2.0 CVT', 'acara_version_id' => $id]);
-        $this->import($user, [$this->csvRow(['precio' => '12345'])])->assertOk()
+        $this->import($user, [$this->workbookRow(['precio' => '12345'])])->assertOk()
             ->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
         $this->assertSame($id, $vehicle->fresh()->acara_version_id);
-        $this->import($user, [$this->csvRow(['marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend'])])->assertOk()
+        $this->import($user, [$this->workbookRow(['marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend'])])->assertOk()
             ->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
         $this->assertSame('Focus', $vehicle->fresh()->modelo);
         $this->assertNull($vehicle->fresh()->acara_version_id);
@@ -89,8 +89,8 @@ class ImportVehiculosTest extends TestCase
         $absentMarca = $absent->marca;
 
         $this->import($user, [
-            $this->csvRow(['patente' => 'xy-987-zw', 'marca' => 'Ford', 'version' => '', 'precio' => '1000', 'fotos' => $this->photoCell(8)]),
-            $this->csvRow(['patente' => 'AB123CD']),
+            $this->workbookRow(['patente' => 'xy-987-zw', 'marca' => 'Ford', 'version' => '', 'precio' => '1000', 'fotos' => $this->photoCell(8)]),
+            $this->workbookRow(['patente' => 'AB123CD']),
         ])->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 1]);
 
         $created = $this->plateOwner('AB123CD');
@@ -129,8 +129,8 @@ class ImportVehiculosTest extends TestCase
         $existing = $this->vehicleOf($user->concesionaria, 7, 'XY987ZW');
 
         $response = $this->import($user, [
-            $this->csvRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
-            $this->csvRow(['patente' => 'AB123CD', 'fotos' => $this->photoCell(6)]),
+            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'AB123CD', 'fotos' => $this->photoCell(6)]),
         ]);
 
         $response->assertUnprocessable()
@@ -145,8 +145,8 @@ class ImportVehiculosTest extends TestCase
         $user = $this->dealer();
 
         $response = $this->import($user, [
-            $this->csvRow(['patente' => 'AB123CD']),
-            $this->csvRow(['patente' => 'ab-123-cd']),
+            $this->workbookRow(['patente' => 'AB123CD']),
+            $this->workbookRow(['patente' => 'ab-123-cd']),
         ]);
 
         $response->assertUnprocessable()->assertJsonPath('errores.0.patente', 'AB123CD');
@@ -160,8 +160,8 @@ class ImportVehiculosTest extends TestCase
         $other = $this->vehicleOf(Concesionaria::factory()->active()->create(), 7, 'OT123ER');
 
         $response = $this->import($user, [
-            $this->csvRow(['patente' => 'AB123CD']),
-            $this->csvRow(['patente' => 'OT123ER', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'AB123CD']),
+            $this->workbookRow(['patente' => 'OT123ER', 'marca' => 'Ford']),
         ]);
 
         $response->assertUnprocessable()
@@ -190,8 +190,8 @@ class ImportVehiculosTest extends TestCase
         });
 
         $response = $this->import($user, [
-            $this->csvRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
-            $this->csvRow(['patente' => 'AB123CD']),
+            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'AB123CD']),
         ]);
 
         $response->assertUnprocessable()
@@ -212,7 +212,7 @@ class ImportVehiculosTest extends TestCase
         $vehicle = $this->vehicleOf($user->concesionaria, 7, 'XY987ZW');
         $paths = $vehicle->fotos->pluck('ubicacion_archivo')->all();
 
-        $this->import($user, [$this->csvRow(['patente' => 'XY987ZW'])])->assertOk();
+        $this->import($user, [$this->workbookRow(['patente' => 'XY987ZW'])])->assertOk();
 
         foreach ($paths as $path) {
             Storage::disk($this->disk)->assertMissing($path);
@@ -228,8 +228,8 @@ class ImportVehiculosTest extends TestCase
         Vehiculo::creating(fn () => throw new \RuntimeException('boom'));
 
         $this->import($user, [
-            $this->csvRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
-            $this->csvRow(['patente' => 'AB123CD']),
+            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'AB123CD']),
         ])->assertStatus(500);
 
         foreach ($paths as $path) {
@@ -243,7 +243,7 @@ class ImportVehiculosTest extends TestCase
     public function test_dealer_endpoints_return_external_photo_urls_as_they_are(): void
     {
         $user = $this->dealer();
-        $this->import($user, [$this->csvRow()])->assertOk();
+        $this->import($user, [$this->workbookRow()])->assertOk();
         $id = $this->plateOwner('AB123CD')->vehiculo_id;
 
         $show = $this->actingAs($user)->getJson("/api/concesionaria/vehiculos/{$id}")->assertOk();
@@ -257,7 +257,7 @@ class ImportVehiculosTest extends TestCase
     public function test_hu21_edit_can_remove_url_photos_without_touching_the_disk(): void
     {
         $user = $this->dealer();
-        $this->import($user, [$this->csvRow(['fotos' => $this->photoCell(9)])])->assertOk();
+        $this->import($user, [$this->workbookRow(['fotos' => $this->photoCell(9)])])->assertOk();
         $vehicle = Vehiculo::query()->findOrFail($this->plateOwner('AB123CD')->vehiculo_id);
         Storage::disk($this->disk)->put('vehiculos/keep.png', 'x');
         $removed = $vehicle->fotos->take(2)->modelKeys();
@@ -274,7 +274,7 @@ class ImportVehiculosTest extends TestCase
     public function test_hu21_delete_works_with_url_photos(): void
     {
         $user = $this->dealer();
-        $this->import($user, [$this->csvRow()])->assertOk();
+        $this->import($user, [$this->workbookRow()])->assertOk();
         $id = $this->plateOwner('AB123CD')->vehiculo_id;
         Storage::disk($this->disk)->put('vehiculos/keep.png', 'x');
 
@@ -289,7 +289,7 @@ class ImportVehiculosTest extends TestCase
     {
         $user = Concesionaria::factory()->create()->usuario;
 
-        $this->import($user, [$this->csvRow()])
+        $this->import($user, [$this->workbookRow()])
             ->assertForbidden()
             ->assertExactJson(['message' => EnsureDealerIsActive::MESSAGE_PENDING]);
         $this->assertSame(0, Vehiculo::query()->count());
@@ -297,7 +297,7 @@ class ImportVehiculosTest extends TestCase
 
     public function test_buyer_is_forbidden(): void
     {
-        $this->import(User::factory()->create()->fresh(), [$this->csvRow()])->assertForbidden();
+        $this->import(User::factory()->create()->fresh(), [$this->workbookRow()])->assertForbidden();
     }
 
     public function test_guest_is_unauthenticated(): void

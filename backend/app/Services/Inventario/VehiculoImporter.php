@@ -9,7 +9,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 
 /**
  * Writes a valid import plan for a dealer: creates the new vehicles and overwrites the matching
- * ones, replacing all their photos with the CSV URLs. It never opens its own transaction: the
+ * ones, replacing all their photos with the XLSX URLs. It never opens its own transaction: the
  * caller wraps it, so a failure anywhere rolls the whole batch back (RNF12).
  */
 class VehiculoImporter
@@ -64,7 +64,7 @@ class VehiculoImporter
     }
 
     /**
-     * Optional columns the CSV left blank are cleared on an overwrite.
+     * Optional columns the XLSX left blank are cleared on an overwrite.
      *
      * @return array<string, mixed>
      */

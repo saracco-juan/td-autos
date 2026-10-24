@@ -9,14 +9,14 @@ use App\Support\VehiculoFields;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Validates a whole CSV for a dealer without writing anything (CU-20): file shape, every row,
+ * Validates a whole XLSX for a dealer without writing anything (CU-20): file shape, every row,
  * and the rules that need the whole batch (repeated plates, plates of other dealers). The
  * import endpoint runs the same plan again before it applies it.
  */
 class VehiculoImportPlanner
 {
     public function __construct(
-        private readonly VehiculoCsvReader $reader,
+        private readonly VehiculoXlsxReader $reader,
         private readonly VehiculoRowValidator $validator,
     ) {}
 
