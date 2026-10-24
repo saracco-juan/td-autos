@@ -314,11 +314,11 @@ class DerSchemaMigrationTest extends TestCase
                 'columns' => [
                     'id', 'origen', 'tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje',
                     'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion',
-                    ...$matchingFacts,
+                    ...$matchingFacts, 'acara_version_id',
                 ],
                 'nullable' => [
                     'tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda',
-                    'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion', ...$matchingFacts,
+                    'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion', ...$matchingFacts, 'acara_version_id',
                 ],
                 'primary' => ['id'],
                 'unique' => [],
