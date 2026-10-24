@@ -105,7 +105,7 @@ class PreviewImportTest extends TestCase
     public function test_optional_cells_may_be_empty_and_the_body_type_ignores_case_and_accents(): void
     {
         $this->previewRows($this->dealer(), [
-            $this->workbookRow(['version' => '', 'descripcion' => '', 'carroceria' => 'SEDAN']),
+            $this->workbookRow(['descripcion' => '', 'carroceria' => 'SEDAN']),
         ])->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
     }
 

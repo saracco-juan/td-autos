@@ -11,6 +11,11 @@ use Illuminate\Http\UploadedFile;
  */
 trait InteractsWithImportXlsx
 {
+    protected function setUpInteractsWithImportXlsx(): void
+    {
+        $this->seedVehicleCatalog();
+    }
+
     /** @var list<string> */
     private const WORKBOOK_HEADERS = [
         'patente', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio',

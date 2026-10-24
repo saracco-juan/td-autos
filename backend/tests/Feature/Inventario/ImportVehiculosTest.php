@@ -61,7 +61,7 @@ class ImportVehiculosTest extends TestCase
         $this->assertNull($this->plateOwner('AB123CD'));
     }
 
-    public function test_import_preserves_an_unchanged_catalog_link_and_clears_it_when_identity_changes(): void
+    public function test_import_preserves_an_unchanged_catalog_link_and_resolves_a_changed_identity(): void
     {
         $user = $this->dealer();
         $vehicle = $this->vehicleOf($user->concesionaria, 7, 'AB123CD');
@@ -70,10 +70,10 @@ class ImportVehiculosTest extends TestCase
         $this->import($user, [$this->workbookRow(['precio' => '12345'])])->assertOk()
             ->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
         $this->assertSame($id, $vehicle->fresh()->acara_version_id);
-        $this->import($user, [$this->workbookRow(['marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend'])])->assertOk()
+        $this->import($user, [$this->workbookRow(['marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend 1.6'])])->assertOk()
             ->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
         $this->assertSame('Focus', $vehicle->fresh()->modelo);
-        $this->assertNull($vehicle->fresh()->acara_version_id);
+        $this->assertSame($this->catalogId('Ford', 'Focus', 'Trend 1.6'), $vehicle->fresh()->acara_version_id);
         $this->assertDatabaseCount('vehiculo', 1);
     }
 
@@ -89,7 +89,7 @@ class ImportVehiculosTest extends TestCase
         $absentMarca = $absent->marca;
 
         $this->import($user, [
-            $this->workbookRow(['patente' => 'xy-987-zw', 'marca' => 'Ford', 'version' => '', 'precio' => '1000', 'fotos' => $this->photoCell(8)]),
+            $this->workbookRow(['patente' => 'xy-987-zw', 'marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend 1.6', 'precio' => '1000', 'fotos' => $this->photoCell(8)]),
             $this->workbookRow(['patente' => 'AB123CD']),
         ])->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 1]);
 
@@ -107,7 +107,7 @@ class ImportVehiculosTest extends TestCase
 
         $matching->refresh();
         $this->assertSame('Ford', $matching->marca);
-        $this->assertNull($matching->version);
+        $this->assertSame('Trend 1.6', $matching->version);
         $this->assertEquals(1000, $matching->precio);
         $this->assertFalse($this->plateOwner('XY987ZW')->visible);
         $this->assertSame($dealer->id, $this->plateOwner('XY987ZW')->concesionaria_id);
@@ -129,7 +129,7 @@ class ImportVehiculosTest extends TestCase
         $existing = $this->vehicleOf($user->concesionaria, 7, 'XY987ZW');
 
         $response = $this->import($user, [
-            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend 1.6']),
             $this->workbookRow(['patente' => 'AB123CD', 'fotos' => $this->photoCell(6)]),
         ]);
 
@@ -161,7 +161,7 @@ class ImportVehiculosTest extends TestCase
 
         $response = $this->import($user, [
             $this->workbookRow(['patente' => 'AB123CD']),
-            $this->workbookRow(['patente' => 'OT123ER', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'OT123ER', 'marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend 1.6']),
         ]);
 
         $response->assertUnprocessable()
@@ -190,7 +190,7 @@ class ImportVehiculosTest extends TestCase
         });
 
         $response = $this->import($user, [
-            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend 1.6']),
             $this->workbookRow(['patente' => 'AB123CD']),
         ]);
 
@@ -228,7 +228,7 @@ class ImportVehiculosTest extends TestCase
         Vehiculo::creating(fn () => throw new \RuntimeException('boom'));
 
         $this->import($user, [
-            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford']),
+            $this->workbookRow(['patente' => 'XY987ZW', 'marca' => 'Ford', 'modelo' => 'Focus', 'version' => 'Trend 1.6']),
             $this->workbookRow(['patente' => 'AB123CD']),
         ])->assertStatus(500);
 
