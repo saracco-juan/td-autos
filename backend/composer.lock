@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "98c491d758da4ad9fd5cee8af93615b0",
+    "content-hash": "14bf96719b98a0e081bf8f35b922bf3b",
     "packages": [
         {
             "name": "avadim/fast-excel-helper",
@@ -60,6 +60,65 @@
                 "source": "https://github.com/aVadim483/fast-excel-helper/tree/v1.4.0"
             },
             "time": "2026-08-16T14:46:55+00:00"
+        },
+        {
+            "name": "avadim/fast-excel-reader",
+            "version": "v4.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/aVadim483/fast-excel-reader.git",
+                "reference": "dd0d48d35e0fb41983043ed0ccfffa6de5ddfa07"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/aVadim483/fast-excel-reader/zipball/dd0d48d35e0fb41983043ed0ccfffa6de5ddfa07",
+                "reference": "dd0d48d35e0fb41983043ed0ccfffa6de5ddfa07",
+                "shasum": ""
+            },
+            "require": {
+                "avadim/fast-excel-helper": "^1.4",
+                "ext-ctype": "*",
+                "ext-dom": "*",
+                "ext-mbstring": "*",
+                "ext-xmlreader": "*",
+                "ext-zip": "*",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "avadim\\FastExcelReader\\": "./src/FastExcelReader"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Lightweight and very fast XLSX Excel Spreadsheet and CSV Reader in PHP",
+            "homepage": "https://github.com/aVadim483/fast-excel-reader",
+            "keywords": [
+                "MS Office",
+                "PHPExcel",
+                "csv",
+                "excel",
+                "import",
+                "library",
+                "office 2007",
+                "parser",
+                "php",
+                "reader",
+                "spreadsheet",
+                "xls",
+                "xlsx"
+            ],
+            "support": {
+                "issues": "https://github.com/aVadim483/fast-excel-reader/issues",
+                "source": "https://github.com/aVadim483/fast-excel-reader/tree/v4.5.0"
+            },
+            "time": "2026-10-08T17:06:36+00:00"
         },
         {
             "name": "avadim/fast-excel-writer",
