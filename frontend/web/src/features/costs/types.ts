@@ -22,7 +22,7 @@ export type CostBreakdown = {
     body_label: string | null
     // Monthly reference amount of the body type, CPI-indexed, before the zone factor.
     base_monthly: number
-    // Yearly fraction of the price used when the price decides (2,3% terceros completo, 6% todo riesgo).
+    // Yearly fraction of the price used when the price decides (2,3% terceros completo, 5,3% todo riesgo).
     value_rate: number
     by_value: boolean
     zone_factor: number

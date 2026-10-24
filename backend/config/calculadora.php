@@ -85,8 +85,9 @@ return [
             'pickup' => 2.35,
             'furgon' => 2.35,
         ],
-        // Fraction of the vehicle price per year: the floor of todo riesgo.
-        'value_rate_tr' => 0.06,
+        // Fraction of the vehicle price per year: the floor of todo riesgo. 5.3% puts an $80M Hilux
+        // at the top of the published todo riesgo range (352k a month).
+        'value_rate_tr' => 0.053,
         // Month (YYYY-MM) of the tc_base amounts; independent from the top-level `cpi_base_month`.
         // Until INDEC publishes it, the CPI factor is 1.
         'cpi_base_month' => '2026-10',
