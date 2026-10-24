@@ -57,7 +57,15 @@ class CalculatorRefreshTest extends TestCase
                 'cpi_base_month' => '2026-10',
             ],
             'transfer' => ['dnrpa_rate' => 0.01, 'fixed_costs' => 100000, 'stamp_rate' => ['cordoba' => 0.02, 'caba' => 0.01]],
-            'patente_annual_rate' => ['cordoba' => 0.012, 'caba' => 0.01],
+            'patente' => [
+                'cpi_base_month' => '2026-02',
+                'scale' => ['buenos_aires' => [
+                    ['up_to' => 14100000, 'fixed' => 0, 'rate' => 0.01], ['up_to' => 18700000, 'fixed' => 141000, 'rate' => 0.02],
+                    ['up_to' => 26100000, 'fixed' => 233000, 'rate' => 0.03], ['up_to' => null, 'fixed' => 455000, 'rate' => 0.04],
+                ]],
+                'bracket_rate' => ['cordoba' => [['up_to' => 20000000, 'rate' => 0.025], ['up_to' => null, 'rate' => 0.03]]],
+                'flat_rate' => ['caba' => 0.01, 'mendoza' => 0.03],
+            ],
             'maintenance' => [
                 'annual_base' => ['nafta' => 600000, 'diesel' => 720000, 'gnc' => 660000, 'hibrido' => 480000, 'electrico' => 360000],
                 'age_factors' => [['max' => 3, 'factor' => 1.0], ['max' => 7, 'factor' => 1.2], ['max' => null, 'factor' => 1.5]],
@@ -196,7 +204,7 @@ class CalculatorRefreshTest extends TestCase
                 ->only(['latest_month', 'latest_value', 'base_month', 'base_value'])->all(),
         );
         Http::assertSent(fn ($request) => str_contains($request->url(), 'ids=148.3_INIVELNAL_DICI_M_26')
-            && str_contains($request->url(), 'start_date=2026-08-01'));
+            && str_contains($request->url(), 'start_date=2026-02-01'));
     }
 
     public function test_a_failed_source_keeps_that_part_from_the_previous_valid_snapshot(): void
@@ -307,7 +315,7 @@ class CalculatorRefreshTest extends TestCase
         $cpi = CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi'];
         $this->assertEquals(['2026-10' => 13000.0], $cpi['extra_bases']);
         $this->assertSame('2026-11', $cpi['latest_month']);
-        Http::assertSent(fn ($request) => str_contains($request->url(), 'start_date=2026-08-01'));
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'start_date=2026-02-01'));
     }
 
     public function test_an_unpublished_insurance_base_month_is_skipped_and_the_refresh_still_succeeds(): void
@@ -375,6 +383,56 @@ class CalculatorRefreshTest extends TestCase
 
         $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
         $this->assertGreaterThan(600000, $rates['maintenance']['annual_base']['nafta']);
+    }
+
+    public function test_the_refresh_fetches_every_base_month_in_use(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-10-01', 13000.0], ['2026-11-01', 13650.0]]);
+
+        app(CalculatorRatesStore::class)->refresh();
+
+        $cpi = CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi'];
+        $this->assertSame('2026-08', $cpi['base_month']);
+        $this->assertEquals(['2026-02' => 10000.0, '2026-10' => 13000.0], $cpi['extra_bases']);
+    }
+
+    public function test_patente_limits_and_fixed_amounts_are_indexed_from_their_own_base_month_but_rates_are_not(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('buenos_aires')['patente'];
+
+        // Factor 11000 / 10000 = 1,1.
+        $this->assertSame(15510000, $patente['scale']['buenos_aires'][0]['up_to']);
+        $this->assertSame(0, $patente['scale']['buenos_aires'][0]['fixed']);
+        $this->assertSame(20570000, $patente['scale']['buenos_aires'][1]['up_to']);
+        $this->assertSame(256300, $patente['scale']['buenos_aires'][2]['fixed']);
+        $this->assertNull($patente['scale']['buenos_aires'][3]['up_to']);
+        $this->assertSame(500500, $patente['scale']['buenos_aires'][3]['fixed']);
+        $this->assertSame(22000000, $patente['bracket_rate']['cordoba'][0]['up_to']);
+        $this->assertSame(0.025, $patente['bracket_rate']['cordoba'][0]['rate']);
+        $this->assertSame(0.03, $patente['scale']['buenos_aires'][2]['rate']);
+        $this->assertSame(0.03, $patente['flat_rate']['mendoza']);
+    }
+
+    public function test_patente_keeps_the_config_until_its_base_month_is_published(): void
+    {
+        $this->fakeSources();
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('buenos_aires')['patente'];
+
+        $this->assertSame(config('calculadora.patente.scale'), $patente['scale']);
+        $this->assertSame(config('calculadora.patente.bracket_rate'), $patente['bracket_rate']);
+    }
+
+    public function test_the_patente_factor_never_goes_below_one(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 9000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $this->assertSame(config('calculadora.patente.scale'), app(EffectiveRates::class)->forProvince('buenos_aires')['patente']['scale']);
     }
 
     public function test_the_cpi_factor_never_goes_below_one(): void

@@ -12,6 +12,7 @@ return [
     'updated_at' => '2026-10-24',
 
     // Month (YYYY-MM) in which the ARS amounts below (maintenance.annual_base, transfer.fixed_costs) are stated.
+    // insurance and patente state their ARS amounts at their own `cpi_base_month`.
     // The monthly refresh (calculadora:refresh) scales them by max(1, CPI latest / CPI of this month).
     // Move it forward together with those amounts when they are reviewed by hand.
     'cpi_base_month' => '2026-08',
@@ -110,16 +111,63 @@ return [
         ],
     ],
 
-    // Annual vehicle tax, fraction of the vehicle value, by normalized province: top of each scale
-    // (servidos.ar 2026-09, Infobae/UADE 2026-05-20).
-    'patente_annual_rate' => [
-        'buenos_aires' => 0.045, 'caba' => 0.04, 'catamarca' => 0.016, 'chaco' => 0.022,
-        'chubut' => 0.027, 'cordoba' => 0.032, 'corrientes' => 0.02, 'entre_rios' => 0.0333,
-        'formosa' => 0.012, 'jujuy' => 0.015, 'la_pampa' => 0.02, 'la_rioja' => 0.015,
-        'mendoza' => 0.03, 'misiones' => 0.018, 'neuquen' => 0.02, 'rio_negro' => 0.035,
-        'salta' => 0.025, 'san_juan' => 0.015, 'san_luis' => 0.035, 'santa_cruz' => 0.028,
-        'santa_fe' => 0.023, 'santiago_del_estero' => 0.018, 'tierra_del_fuego' => 0.03,
-        'tucuman' => 0.02,
+    // Annual vehicle tax (patente), by normalized province. Three schemes, in this order of precedence:
+    //  - `scale`: progressive scale over the ARS price. Each bracket is {up_to, fixed, rate} and the tax is
+    //    fixed + rate x (price - previous up_to); the last bracket has up_to null. A price equal to a limit belongs
+    //    to the bracket that ends there.
+    //  - `bracket_rate`: one rate for the WHOLE price, chosen by the bracket {up_to, rate} the price falls in.
+    //  - `flat_rate`: one rate over the price. A province outside the three maps takes the highest flat rate.
+    // Monthly patente = annual / 12. The price stands in for the fiscal valuation.
+    //
+    // Sources:
+    //  - Buenos Aires: ARBA 2026 scale, Infobae 2026-02-12.
+    //    https://www.infobae.com/economia/2026/02/12/confirmado-a-partir-de-marzo-las-patentes-bonaerenses-comenzaran-a-pagarse-todos-los-meses/
+    //  - CABA: the same ARBA scale, as an APPROXIMATION: AGIP's brackets were not found.
+    //  - Córdoba: hacecuentas.com 2026 (unofficial calculator).
+    //    https://hacecuentas.com/calculadora-patente-auto-cordoba-2026-valuacion-fiscal-cuotas
+    //  - Flat rates: top of each scale (servidos.ar 2026-09, Infobae/UADE 2026-05-20).
+    //
+    // Yearly review: the scales and flat rates, together with `cpi_base_month` and `updated_at`.
+    'patente' => [
+        // Month (YYYY-MM) of the bracket limits and fixed amounts (ARBA scale: Feb-2026). The monthly refresh scales
+        // them by max(1, CPI latest / CPI of that month); the rates are never indexed.
+        'cpi_base_month' => '2026-02',
+        'scale' => [
+            'buenos_aires' => [
+                ['up_to' => 14100000, 'fixed' => 0, 'rate' => 0.01],
+                ['up_to' => 18700000, 'fixed' => 141000, 'rate' => 0.02],
+                ['up_to' => 26100000, 'fixed' => 233000, 'rate' => 0.03],
+                ['up_to' => 53900000, 'fixed' => 455000, 'rate' => 0.04],
+                ['up_to' => null, 'fixed' => 1567000, 'rate' => 0.045],
+            ],
+            // Approximation: ARBA's scale until AGIP's brackets are found.
+            'caba' => [
+                ['up_to' => 14100000, 'fixed' => 0, 'rate' => 0.01],
+                ['up_to' => 18700000, 'fixed' => 141000, 'rate' => 0.02],
+                ['up_to' => 26100000, 'fixed' => 233000, 'rate' => 0.03],
+                ['up_to' => 53900000, 'fixed' => 455000, 'rate' => 0.04],
+                ['up_to' => null, 'fixed' => 1567000, 'rate' => 0.045],
+            ],
+        ],
+        'bracket_rate' => [
+            'cordoba' => [
+                ['up_to' => 5000000, 'rate' => 0.015],
+                ['up_to' => 10000000, 'rate' => 0.02],
+                ['up_to' => 20000000, 'rate' => 0.025],
+                ['up_to' => 50000000, 'rate' => 0.03],
+                ['up_to' => 100000000, 'rate' => 0.0375],
+                ['up_to' => null, 'rate' => 0.045],
+            ],
+        ],
+        'flat_rate' => [
+            'catamarca' => 0.016, 'chaco' => 0.022,
+            'chubut' => 0.027, 'corrientes' => 0.02, 'entre_rios' => 0.0333,
+            'formosa' => 0.012, 'jujuy' => 0.015, 'la_pampa' => 0.02, 'la_rioja' => 0.015,
+            'mendoza' => 0.03, 'misiones' => 0.018, 'neuquen' => 0.02, 'rio_negro' => 0.035,
+            'salta' => 0.025, 'san_juan' => 0.015, 'san_luis' => 0.035, 'santa_cruz' => 0.028,
+            'santa_fe' => 0.023, 'santiago_del_estero' => 0.018, 'tierra_del_fuego' => 0.03,
+            'tucuman' => 0.02,
+        ],
     ],
 
     'maintenance' => [

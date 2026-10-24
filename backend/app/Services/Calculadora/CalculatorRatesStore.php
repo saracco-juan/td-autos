@@ -27,7 +27,7 @@ final class CalculatorRatesStore
         $fuel = $this->attempt('fuel prices', fn () => $this->fuel->fetch());
         $cpi = $this->attempt('CPI', fn () => $this->cpi->fetch(
             (string) config('calculadora.cpi_base_month'),
-            array_values(array_filter([(string) config('calculadora.insurance.cpi_base_month')])),
+            $this->extraBaseMonths(),
         ));
 
         $payload = ['fuel' => $fuel ?? $previous['fuel'] ?? null, 'cpi' => $cpi ?? $previous['cpi'] ?? null];
@@ -47,6 +47,20 @@ final class CalculatorRatesStore
             'fuel' => $this->outcome($fuel, $payload['fuel']),
             'cpi' => $this->outcome($cpi, $payload['cpi']),
         ];
+    }
+
+    /**
+     * Every base month in use besides the main one, so each ARS amount can be indexed from its own month.
+     *
+     * @return list<string>
+     */
+    private function extraBaseMonths(): array
+    {
+        $months = array_map(fn (string $key) => (string) config($key), [
+            'calculadora.insurance.cpi_base_month', 'calculadora.patente.cpi_base_month',
+        ]);
+
+        return array_values(array_unique(array_filter($months)));
     }
 
     private function attempt(string $label, callable $fetch): ?array

@@ -698,7 +698,7 @@ La búsqueda actual muestra vehículos elegibles de concesionarias; la integraci
 | Value | Source | How it is used |
 | --- | --- | --- |
 | Fuel prices per province (nafta, diesel, GNC) | Secretaría de Energía, CKAN package `precios-en-surtidor`, resource "Precios vigentes en surtidor - Resolución 314/2016" (CSV, ~9 MB, streamed; the resource URL is resolved from the package, never hardcoded) | 90th percentile of the daytime (`Diurno`) price per product and province, ignoring zero prices. The dealer's province wins, then the national 90th percentile, then `fuel_prices` in the config |
-| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`) use their own month, `insurance.cpi_base_month`, with the same floor at 1. The snapshot keeps that month's index in `cpi.extra_bases`; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
+| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`) and the patente bracket limits and fixed amounts (`patente.scale`, `patente.bracket_rate`; never their rates) use their own months, `insurance.cpi_base_month` and `patente.cpi_base_month`, with the same floor at 1. The snapshot keeps each of those months' index in `cpi.extra_bases` and the refresh fetches every base month in use; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
 
 `rates_updated_at` in the costs response is the snapshot fetch date (the config `updated_at` when there is no snapshot).
 
@@ -717,7 +717,7 @@ php artisan schedule:list
 
 Expect `Fuel prices: refreshed (...)`, `CPI: refreshed (...)` and exit 0; exit 1 means a source kept its previous value. Tests: `php artisan test --filter=CalculatorRefreshTest` (HTTP faked).
 
-By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, `patente_annual_rate`), and, when the ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are reviewed, move `cpi_base_month` to the month those amounts are stated in. Update `updated_at` too.
+By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, the `patente` scales and flat rates), and, when the ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are reviewed, move `cpi_base_month` to the month those amounts are stated in. Update `updated_at` too.
 
 ### Insurance model
 
@@ -736,3 +736,22 @@ Review it once a year, together with `updated_at` and `insurance.cpi_base_month`
 | `tr_ratio` | Same table: todo riesgo top / terceros completo top for each body type | Recompute the six ratios |
 | `zone_factor` | seguroya.com.ar mid-size terceros completo ranges per city (https://seguroya.com.ar/seguros-de-autos-precios), against AMBA = 1.0 | Recompute the factors and add provinces that publish a range; the rest keep `default` |
 | `value_rate_tc`, `value_rate_tr` | Judgment: the yearly fraction of the price at which the price overtakes the body base | Change only if expensive cars start to look wrong |
+
+### Patente model
+
+The `patente` block of `config/calculadora.php` replaces the old flat rate per province. The base is the ARS price of the vehicle, a stand-in for the fiscal valuation (the developer's own car implies a valuation close to market). Monthly patente = annual / 12, rounded up to the step. Each province has one scheme:
+
+- `scale` (Buenos Aires; CABA as an approximation because AGIP's brackets were not found): progressive. Each bracket is `{up_to, fixed, rate}` and the annual tax is `fixed + rate x (price - previous up_to)`. A price equal to a limit stays in the bracket that ends there.
+- `bracket_rate` (Córdoba): one rate over the WHOLE price, chosen by the bracket the price falls in.
+- `flat_rate` (every other province): one rate over the price. A province outside the three maps takes the highest flat rate.
+- CPI: `up_to` and `fixed` are ARS amounts and are multiplied by `max(1, CPI latest / CPI of patente.cpi_base_month)` (`2026-02`); rates are never indexed.
+- Worked example (calibration case): a hatchback priced 20.600.000 in Buenos Aires falls in the 18.700.000-26.100.000 bracket: 233.000 + 3% x 1.900.000 = 290.000 a year, 24.167 a month, rounded up to 25.000.
+
+Review it once a year, together with `updated_at` and `patente.cpi_base_month`:
+
+| Value | Source | What to do |
+| --- | --- | --- |
+| Buenos Aires scale | ARBA 2026 scale, Infobae 2026-02-12 (https://www.infobae.com/economia/2026/02/12/confirmado-a-partir-de-marzo-las-patentes-bonaerenses-comenzaran-a-pagarse-todos-los-meses/) | Replace the brackets with the new scale and set `patente.cpi_base_month` to the month it is stated in |
+| CABA scale | Approximation: the ARBA scale. AGIP's brackets were not found | Replace with AGIP's scale when it is found |
+| Córdoba brackets | hacecuentas.com (unofficial, https://hacecuentas.com/calculadora-patente-auto-cordoba-2026-valuacion-fiscal-cuotas) | Check them against the provincial tax authority if it publishes them |
+| `flat_rate` | Top of each province scale (servidos.ar 2026-09, Infobae/UADE 2026-05-20) | Update the rates; move a province to `scale` or `bracket_rate` when its scale is found |

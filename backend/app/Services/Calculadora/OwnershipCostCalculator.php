@@ -37,14 +37,13 @@ final class OwnershipCostCalculator
             : $this->ceil($kmPerMonth * $fuelInputs['consumption_l_100km'] / 100 * (float) $fuelInputs['unit_price'], $step);
         $insuranceCalc = $this->insurance($vehicle['body_type'] ?? null, $base, $slug, $province, $coverage, $rates['insurance'], $step);
         $insurance = $insuranceCalc['amount'];
-        $patenteRate = $this->provinceRate($rates['patente_annual_rate'], $slug);
-        $patente = $this->ceil($base * $patenteRate / 12, $step);
+        $patenteCalc = $this->patente($base, $slug, trim($province), $rates['patente']);
+        $patente = $this->ceil($patenteCalc['annual'] / 12, $step);
         $maintenanceInputs = $this->maintenanceInputs($vehicle, $rates, $currentYear);
         $maintenance = $this->ceil($maintenanceInputs['yearly'] / 12, $step);
 
         $total = ($fuel ?? 0) + $insurance + $patente + $maintenance;
         $provinceName = trim($province);
-        $patenteKnown = isset($rates['patente_annual_rate'][$slug]);
         $stampKnown = isset($rates['transfer']['stamp_rate'][$slug]);
 
         return [
@@ -57,7 +56,7 @@ final class OwnershipCostCalculator
             'breakdown' => [
                 'fuel' => $fuelInputs === null ? null : ['km_per_month' => $kmPerMonth] + $fuelInputs,
                 'insurance' => $insuranceCalc['breakdown'],
-                'patente' => ['base' => $base, 'province' => $provinceName, 'province_known' => $patenteKnown, 'annual_rate' => $patenteRate],
+                'patente' => $patenteCalc,
                 'maintenance' => array_diff_key($maintenanceInputs, ['yearly' => true]),
                 'transfer' => [
                     'base' => $base, 'dnrpa_rate' => (float) $rates['transfer']['dnrpa_rate'], 'stamp_rate' => $stamp,
@@ -125,6 +124,44 @@ final class OwnershipCostCalculator
                 'tr_ratio' => $trRatio, 'terceros_completo' => $terceros,
             ],
         ];
+    }
+
+    /**
+     * Annual patente, by the scheme of the province: progressive `scale` (fixed + rate x the excess over the previous
+     * limit), `bracket_rate` (one rate over the whole price, chosen by bracket) or `flat_rate`. A price equal to a limit
+     * belongs to the bracket that ends there. A province outside the three maps takes the highest flat rate.
+     *
+     * @param  array<string, mixed>  $patente  rates['patente']
+     * @return array{base: float, province: string, province_known: bool, method: string, rate: float, bracket_fixed: ?float, bracket_from: ?float, annual: float}
+     */
+    private function patente(float $base, string $slug, string $province, array $patente): array
+    {
+        $result = ['base' => $base, 'province' => $province, 'province_known' => true, 'bracket_fixed' => null, 'bracket_from' => null];
+
+        if (isset($patente['scale'][$slug])) {
+            $from = 0.0;
+            foreach ($patente['scale'][$slug] as $bracket) {
+                if ($bracket['up_to'] === null || $base <= $bracket['up_to']) {
+                    $fixed = (float) $bracket['fixed'];
+                    $rate = (float) $bracket['rate'];
+
+                    return array_merge($result, ['method' => 'scale', 'rate' => $rate, 'bracket_fixed' => $fixed, 'bracket_from' => $from,
+                        'annual' => $fixed + $rate * ($base - $from)]);
+                }
+                $from = (float) $bracket['up_to'];
+            }
+        }
+        if (isset($patente['bracket_rate'][$slug])) {
+            foreach ($patente['bracket_rate'][$slug] as $bracket) {
+                if ($bracket['up_to'] === null || $base <= $bracket['up_to']) {
+                    return array_merge($result, ['method' => 'bracket_rate', 'rate' => (float) $bracket['rate'], 'annual' => $base * (float) $bracket['rate']]);
+                }
+            }
+        }
+
+        $rate = $this->provinceRate($patente['flat_rate'], $slug);
+
+        return array_merge($result, ['province_known' => isset($patente['flat_rate'][$slug]), 'method' => 'flat', 'rate' => $rate, 'annual' => $base * $rate]);
     }
 
     /** "Rural / familiar" and "Rural" are the same body type. */

@@ -5,8 +5,9 @@ namespace App\Services\Calculadora;
 /**
  * The calculator rates in force: config('calculadora') overridden by the latest valid refresh snapshot.
  * Fuel: the dealer's province, then the national value, then the config. ARS amounts (maintenance bases,
- * transfer fixed costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases are scaled the same way
- * from their own base month (`insurance.cpi_base_month`). Percentages are never touched.
+ * transfer fixed costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases and the patente bracket limits
+ * and fixed amounts are scaled the same way from their own base month (`insurance.cpi_base_month`,
+ * `patente.cpi_base_month`). Percentages are never touched.
  */
 final class EffectiveRates
 {
@@ -37,9 +38,29 @@ final class EffectiveRates
         if ($insuranceFactor > 1) {
             $rates['insurance']['tc_base'] = array_map(fn ($amount) => (int) round($amount * $insuranceFactor), $rates['insurance']['tc_base']);
         }
+        $patenteFactor = $this->cpiFactor($cpi, (string) ($rates['patente']['cpi_base_month'] ?? ''));
+        if ($patenteFactor > 1) {
+            foreach (['scale', 'bracket_rate'] as $scheme) {
+                foreach ((array) ($rates['patente'][$scheme] ?? []) as $province => $brackets) {
+                    $rates['patente'][$scheme][$province] = array_map(fn (array $bracket) => $this->indexBracket($bracket, $patenteFactor), $brackets);
+                }
+            }
+        }
         $rates['updated_at'] = $snapshot->fetched_at->toDateString();
 
         return $rates;
+    }
+
+    /** Patente bracket: the limit and the fixed amount are ARS and get indexed; the rate never does. */
+    private function indexBracket(array $bracket, float $factor): array
+    {
+        foreach (['up_to', 'fixed'] as $key) {
+            if (isset($bracket[$key])) {
+                $bracket[$key] = (int) round($bracket[$key] * $factor);
+            }
+        }
+
+        return $bracket;
     }
 
     /**

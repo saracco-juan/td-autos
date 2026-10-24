@@ -8,6 +8,15 @@ use PHPUnit\Framework\TestCase;
 
 class OwnershipCostCalculatorTest extends TestCase
 {
+    /** ARBA 2026 scale: tax = fixed + rate x (price - previous limit). */
+    private const ARBA = [
+        ['up_to' => 14100000, 'fixed' => 0, 'rate' => 0.01],
+        ['up_to' => 18700000, 'fixed' => 141000, 'rate' => 0.02],
+        ['up_to' => 26100000, 'fixed' => 233000, 'rate' => 0.03],
+        ['up_to' => 53900000, 'fixed' => 455000, 'rate' => 0.04],
+        ['up_to' => null, 'fixed' => 1567000, 'rate' => 0.045],
+    ];
+
     /** Rates owned by the test: results never depend on config/calculadora.php. */
     private function rates(array $changes = []): array
     {
@@ -28,7 +37,20 @@ class OwnershipCostCalculatorTest extends TestCase
                 'fixed_costs' => 100000,
                 'stamp_rate' => ['cordoba' => 0.02, 'caba' => 0.01, 'buenos_aires' => 0.03],
             ],
-            'patente_annual_rate' => ['cordoba' => 0.012, 'caba' => 0.01, 'buenos_aires' => 0.02],
+            'patente' => [
+                'cpi_base_month' => '2026-02',
+                'scale' => [
+                    'buenos_aires' => self::ARBA,
+                    'caba' => self::ARBA,
+                ],
+                'bracket_rate' => [
+                    'cordoba' => [
+                        ['up_to' => 5000000, 'rate' => 0.015], ['up_to' => 10000000, 'rate' => 0.02], ['up_to' => 20000000, 'rate' => 0.025],
+                        ['up_to' => 50000000, 'rate' => 0.03], ['up_to' => 100000000, 'rate' => 0.0375], ['up_to' => null, 'rate' => 0.045],
+                    ],
+                ],
+                'flat_rate' => ['mendoza' => 0.03, 'santa_fe' => 0.023, 'misiones' => 0.018],
+            ],
             'maintenance' => [
                 'annual_base' => ['nafta' => 600000, 'diesel' => 720000, 'gnc' => 660000, 'hibrido' => 480000, 'electrico' => 360000],
                 'age_factors' => [['max' => 3, 'factor' => 1.0], ['max' => 7, 'factor' => 1.2], ['max' => null, 'factor' => 1.5]],
@@ -59,9 +81,9 @@ class OwnershipCostCalculatorTest extends TestCase
      * purchase.transfer = 20.000.000 x (0,01 + 0,02) + 100.000 = 700.000; total = 20.700.000
      * fuel        = 1.500 x max(8, 6) / 100 x 1.000 = 120.000
      * insurance   = max(103.000 (hatchback base), 20.000.000 x 0,023 / 12 = 38.333) x 0,8 (Córdoba) = 82.400 -> 83.000
-     * patente     = 20.000.000 x 0,012 / 12 = 20.000
+     * patente     = 20.000.000 x 0,025 (Córdoba, up to 20.000.000, whole value) / 12 = 41.667 -> 42.000
      * maintenance = 600.000 x 1,2 (age 4 -> band <= 7) x 1,1 (40.000 km -> band <= 80.000) / 12 = 66.000
-     * monthly total = 289.000; yearly = 3.468.000
+     * monthly total = 311.000; yearly = 3.732.000
      */
     public function test_reference_case(): void
     {
@@ -70,10 +92,10 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(['price' => 20000000, 'transfer' => 700000, 'total' => 20700000], $r['purchase']);
         $this->assertSame(120000, $r['monthly']['fuel']);
         $this->assertSame(83000, $r['monthly']['insurance']);
-        $this->assertSame(20000, $r['monthly']['patente']);
+        $this->assertSame(42000, $r['monthly']['patente']);
         $this->assertSame(66000, $r['monthly']['maintenance']);
-        $this->assertSame(289000, $r['monthly']['total']);
-        $this->assertSame(3468000, $r['monthly']['yearly_total']);
+        $this->assertSame(311000, $r['monthly']['total']);
+        $this->assertSame(3732000, $r['monthly']['yearly_total']);
         $this->assertSame([], $r['monthly']['not_estimated']);
     }
 
@@ -85,7 +107,8 @@ class OwnershipCostCalculatorTest extends TestCase
             'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000, 'body_type' => 'hatchback', 'body_label' => 'Hatchback',
                 'base_monthly' => 103000, 'value_rate' => 0.023, 'by_value' => false, 'zone_factor' => 0.8, 'province' => 'Córdoba',
                 'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 83000],
-            'patente' => ['base' => 20000000, 'province' => 'Córdoba', 'province_known' => true, 'annual_rate' => 0.012],
+            'patente' => ['base' => 20000000, 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
+                'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000],
             'maintenance' => ['fuel_type' => 'nafta', 'annual_base' => 600000, 'age_years' => 4, 'age_factor' => 1.2,
                 'km' => 40000, 'km_factor' => 1.1, 'turbo_factor' => null, 'automatic_factor' => null],
             'transfer' => ['base' => 20000000, 'dnrpa_rate' => 0.01, 'stamp_rate' => 0.02, 'province' => 'Córdoba',
@@ -106,7 +129,9 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertFalse($b['patente']['province_known']);
         $this->assertFalse($b['transfer']['province_known']);
         $this->assertSame('Atlantida', $b['patente']['province']);
-        $this->assertEquals(0.02, $b['patente']['annual_rate']);
+        $this->assertSame('flat', $b['patente']['method']);
+        $this->assertEquals(0.03, $b['patente']['rate']);
+        $this->assertEquals(600000, $b['patente']['annual']);
         $this->assertEquals(0.03, $b['transfer']['stamp_rate']);
     }
 
@@ -139,12 +164,12 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(20001000, $r['purchase']['price']);
         $this->assertSame(701000, $r['purchase']['transfer']);
         $this->assertSame(20702000, $r['purchase']['total']);
-        // fuel 120.048 -> 121.000; insurance 82.400 -> 83.000; patente 20.000,002 -> 21.000
+        // fuel 120.048 -> 121.000; insurance 82.400 -> 83.000; patente 50.000,0025 (3% bracket just over 20.000.000) -> 51.000
         $this->assertSame(121000, $r['monthly']['fuel']);
         $this->assertSame(83000, $r['monthly']['insurance']);
-        $this->assertSame(21000, $r['monthly']['patente']);
+        $this->assertSame(51000, $r['monthly']['patente']);
         $this->assertSame(66000, $r['monthly']['maintenance']);
-        $this->assertSame(121000 + 83000 + 21000 + 66000, $r['monthly']['total']);
+        $this->assertSame(121000 + 83000 + 51000 + 66000, $r['monthly']['total']);
         $this->assertSame($r['monthly']['total'] * 12, $r['monthly']['yearly_total']);
     }
 
@@ -315,7 +340,7 @@ class OwnershipCostCalculatorTest extends TestCase
 
         $this->assertNull($r['monthly']['fuel']);
         $this->assertSame(['fuel'], $r['monthly']['not_estimated']);
-        $this->assertSame(169000, $r['monthly']['total']);
+        $this->assertSame(191000, $r['monthly']['total']);
     }
 
     #[DataProvider('maintenanceCases')]
@@ -362,10 +387,117 @@ class OwnershipCostCalculatorTest extends TestCase
         ];
     }
 
-    public function test_unknown_province_takes_the_highest_patente_rate(): void
+    public function test_unknown_province_takes_the_highest_flat_patente_rate(): void
     {
-        // highest patente rate 0,02 -> 20.000.000 x 0,02 / 12 = 33.333,3 -> 34.000
-        $this->assertSame(34000, $this->estimate(province: 'Nowhere')['monthly']['patente']);
+        // highest flat rate 0,03 -> 20.000.000 x 0,03 / 12 = 50.000
+        $this->assertSame(50000, $this->estimate(province: 'Nowhere')['monthly']['patente']);
+    }
+
+    public function test_a_flat_province_pays_its_rate_over_the_price(): void
+    {
+        // Santa Fe 0,023: 20.000.000 x 0,023 / 12 = 38.333,3 -> 39.000
+        $r = $this->estimate(province: 'Santa Fe');
+
+        $this->assertSame(39000, $r['monthly']['patente']);
+        $this->assertEquals(['base' => 20000000, 'province' => 'Santa Fe', 'province_known' => true, 'method' => 'flat', 'rate' => 0.023,
+            'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 460000], $r['breakdown']['patente']);
+    }
+
+    /** @return array<string, array{0: int, 1: int, 2: int, 3: int}> price, expected annual, bracket fixed, bracket from */
+    public static function arbaBrackets(): array
+    {
+        return [
+            'first bracket' => [10000000, 100000, 0, 0],
+            'first limit stays in the first bracket' => [14100000, 141000, 0, 0],
+            'just over the first limit' => [14100001, 141000, 141000, 14100000],
+            'second bracket' => [16000000, 179000, 141000, 14100000],
+            'second limit stays in the second bracket' => [18700000, 233000, 141000, 14100000],
+            'third bracket (calibration case)' => [20600000, 290000, 233000, 18700000],
+            'third limit stays in the third bracket' => [26100000, 455000, 233000, 18700000],
+            'fourth bracket' => [40000000, 1011000, 455000, 26100000],
+            'fourth limit stays in the fourth bracket' => [53900000, 1567000, 455000, 26100000],
+            'open bracket' => [60000000, 1841500, 1567000, 53900000],
+        ];
+    }
+
+    #[DataProvider('arbaBrackets')]
+    public function test_buenos_aires_uses_the_progressive_arba_scale(int $price, int $annual, int $fixed, int $from): void
+    {
+        $r = $this->estimate(['price_ars' => $price], 'Buenos Aires');
+
+        $this->assertSame($this->ceilTo($annual / 12), $r['monthly']['patente']);
+        $this->assertSame('scale', $r['breakdown']['patente']['method']);
+        $this->assertEqualsWithDelta($annual, $r['breakdown']['patente']['annual'], 1.0);
+        $this->assertEquals($fixed, $r['breakdown']['patente']['bracket_fixed']);
+        $this->assertEquals($from, $r['breakdown']['patente']['bracket_from']);
+    }
+
+    private function ceilTo(float $amount): int
+    {
+        return (int) (ceil(round($amount / 1000, 6)) * 1000);
+    }
+
+    public function test_caba_uses_the_same_scale_as_buenos_aires(): void
+    {
+        $caba = $this->estimate(['price_ars' => 20600000], 'CABA')['breakdown']['patente'];
+
+        $this->assertSame('scale', $caba['method']);
+        $this->assertEquals(290000, $caba['annual']);
+    }
+
+    /**
+     * Calibration case 1: a hatchback priced 20.600.000 in Buenos Aires.
+     * Annual = 233.000 + 3% x (20.600.000 - 18.700.000) = 290.000; monthly = 24.166,67, rounded UP to the 1.000 step = 25.000.
+     */
+    public function test_calibration_case_hatchback_in_buenos_aires(): void
+    {
+        $r = $this->estimate(['price_ars' => 20600000], 'Provincia de Buenos Aires');
+
+        $this->assertEquals(290000, $r['breakdown']['patente']['annual']);
+        $this->assertSame(25000, $r['monthly']['patente']);
+    }
+
+    /** @return array<string, array{0: int, 1: float}> price, whole-value rate */
+    public static function cordobaBrackets(): array
+    {
+        return [
+            'up to 5M' => [5000000, 0.015],
+            'just over 5M' => [5000001, 0.02],
+            'up to 10M' => [10000000, 0.02],
+            'up to 20M' => [20000000, 0.025],
+            'just over 20M' => [20000001, 0.03],
+            'up to 50M' => [50000000, 0.03],
+            'up to 100M' => [100000000, 0.0375],
+            'above 100M' => [120000000, 0.045],
+        ];
+    }
+
+    #[DataProvider('cordobaBrackets')]
+    public function test_cordoba_applies_the_bracket_rate_to_the_whole_price(int $price, float $rate): void
+    {
+        $r = $this->estimate(['price_ars' => $price], 'Córdoba');
+
+        $this->assertSame('bracket_rate', $r['breakdown']['patente']['method']);
+        $this->assertEquals($rate, $r['breakdown']['patente']['rate']);
+        $this->assertEqualsWithDelta($price * $rate, $r['breakdown']['patente']['annual'], 0.001);
+        $this->assertSame($this->ceilTo($price * $rate / 12), $r['monthly']['patente']);
+    }
+
+    public function test_the_scale_limits_and_fixed_amounts_come_from_the_rates_it_receives(): void
+    {
+        // The refresh multiplies limits and fixed amounts (never the rates) by the CPI factor; the calculator just reads them.
+        $indexed = array_map(fn ($b) => [
+            'up_to' => $b['up_to'] === null ? null : (int) round($b['up_to'] * 1.1),
+            'fixed' => (int) round($b['fixed'] * 1.1),
+            'rate' => $b['rate'],
+        ], self::ARBA);
+
+        $r = $this->estimate(['price_ars' => 20600000], 'Buenos Aires', rates: ['patente' => ['scale' => ['buenos_aires' => $indexed]]]);
+
+        // 18.700.000 x 1,1 = 20.570.000: the price is now in the bracket that starts there.
+        // Fixed 233.000 x 1,1 = 256.300 + 3% x (20.600.000 - 20.570.000) = 257.200.
+        $this->assertEquals(257200, $r['breakdown']['patente']['annual']);
+        $this->assertEquals(20570000, $r['breakdown']['patente']['bracket_from']);
     }
 
     #[DataProvider('kmBands')]
