@@ -698,7 +698,7 @@ La búsqueda actual muestra vehículos elegibles de concesionarias; la integraci
 | Value | Source | How it is used |
 | --- | --- | --- |
 | Fuel prices per province (nafta, diesel, GNC) | Secretaría de Energía, CKAN package `precios-en-surtidor`, resource "Precios vigentes en surtidor - Resolución 314/2016" (CSV, ~9 MB, streamed; the resource URL is resolved from the package, never hardcoded) | 90th percentile of the daytime (`Diurno`) price per product and province, ignoring zero prices. The dealer's province wins, then the national 90th percentile, then `fuel_prices` in the config |
-| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)` |
+| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`) use their own month, `insurance.cpi_base_month`, with the same floor at 1. The snapshot keeps that month's index in `cpi.extra_bases`; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
 
 `rates_updated_at` in the costs response is the snapshot fetch date (the config `updated_at` when there is no snapshot).
 
@@ -717,4 +717,22 @@ php artisan schedule:list
 
 Expect `Fuel prices: refreshed (...)`, `CPI: refreshed (...)` and exit 0; exit 1 means a source kept its previous value. Tests: `php artisan test --filter=CalculatorRefreshTest` (HTTP faked).
 
-By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`insurance_annual_rate`, `transfer.dnrpa_rate`, `transfer.stamp_rate`, `patente_annual_rate`), and, when the ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are reviewed, move `cpi_base_month` to the month those amounts are stated in. Update `updated_at` too.
+By hand, once a year (nothing publishes them and they apply to the price): the percentages in `config/calculadora.php` (`transfer.dnrpa_rate`, `transfer.stamp_rate`, `patente_annual_rate`), and, when the ARS amounts (`maintenance.annual_base`, `transfer.fixed_costs`) are reviewed, move `cpi_base_month` to the month those amounts are stated in. Update `updated_at` too.
+
+### Insurance model
+
+The `insurance` block of `config/calculadora.php` replaces the old flat rate over the price (premiums barely scale with value: a pickup costs about 1.5 times a small hatchback, not 4 times):
+
+- Terceros completo per month = `max(tc_base[body type], price x value_rate_tc / 12) x zone_factor[province]`.
+- Todo riesgo per month = `max(TC x tr_ratio[body type], price x value_rate_tr / 12)`, where TC is the terceros completo already rounded up to the step, so the tooltip can explain it from the figure on the screen.
+- The body type comes from `vehiculo.tipo_carroceria_id` -> `tipo_carroceria.nombre`; "Rural / familiar" maps to `rural`. An unknown or missing body type takes the highest base and ratio. A province outside `zone_factor` (or unknown) takes `zone_factor.default`.
+- Not modeled for lack of data: vehicle age and GNC conversion.
+
+Review it once a year, together with `updated_at` and `insurance.cpi_base_month`:
+
+| Value | Source | What to do |
+| --- | --- | --- |
+| `tc_base` (ARS per month, AMBA) | multicotizadorseguros.com price table, top of each body-type range for recent units (https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina) | Read the new table, update the six bases and set `insurance.cpi_base_month` to the month of the table |
+| `tr_ratio` | Same table: todo riesgo top / terceros completo top for each body type | Recompute the six ratios |
+| `zone_factor` | seguroya.com.ar mid-size terceros completo ranges per city (https://seguroya.com.ar/seguros-de-autos-precios), against AMBA = 1.0 | Recompute the factors and add provinces that publish a range; the rest keep `default` |
+| `value_rate_tc`, `value_rate_tr` | Judgment: the yearly fraction of the price at which the price overtakes the body base | Change only if expensive cars start to look wrong |

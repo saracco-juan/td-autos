@@ -48,7 +48,14 @@ class CalculatorRefreshTest extends TestCase
             'rounding' => 1000,
             'km_per_month' => ['menos_500' => 500, '500_1500' => 1500, '1500_3000' => 3000, 'mas_3000' => 4500, 'no_sabe' => 1500],
             'fuel_prices' => ['nafta' => 1000, 'diesel' => 900, 'gnc' => 500],
-            'insurance_annual_rate' => ['terceros_completo' => 0.06, 'todo_riesgo' => 0.12],
+            'insurance' => [
+                'tc_base' => ['hatchback' => 100000, 'pickup' => 150000],
+                'value_rate_tc' => 0.023,
+                'zone_factor' => ['cordoba' => 0.8, 'default' => 0.8],
+                'tr_ratio' => ['hatchback' => 1.8, 'pickup' => 2.35],
+                'value_rate_tr' => 0.06,
+                'cpi_base_month' => '2026-10',
+            ],
             'transfer' => ['dnrpa_rate' => 0.01, 'fixed_costs' => 100000, 'stamp_rate' => ['cordoba' => 0.02, 'caba' => 0.01]],
             'patente_annual_rate' => ['cordoba' => 0.012, 'caba' => 0.01],
             'maintenance' => [
@@ -98,7 +105,8 @@ class CalculatorRefreshTest extends TestCase
         return $this->csv($rows);
     }
 
-    private function fakeSources(?string $csv = null, bool $fuelOk = true, bool $cpiOk = true): void
+    /** @param list<array{0: string, 1: float}>|null $cpiRows */
+    private function fakeSources(?string $csv = null, bool $fuelOk = true, bool $cpiOk = true, ?array $cpiRows = null): void
     {
         Http::swap(new Factory);
         Http::preventStrayRequests();
@@ -108,7 +116,7 @@ class CalculatorRefreshTest extends TestCase
                 ['name' => 'Precios vigentes en surtidor - Resolución 314/2016', 'format' => 'CSV', 'url' => self::CSV_URL],
             ]]]) : Http::response('', 500),
             self::CSV_URL => $fuelOk ? Http::response($csv ?? $this->fuelCsv(), 200, ['Content-Type' => 'text/csv']) : Http::response('', 500),
-            self::CPI => $cpiOk ? Http::response(['data' => [['2026-08-01', 12276.766], ['2026-09-01', 12600.0]]]) : Http::response('', 500),
+            self::CPI => $cpiOk ? Http::response(['data' => $cpiRows ?? [['2026-08-01', 12276.766], ['2026-09-01', 12600.0]]]) : Http::response('', 500),
         ]);
     }
 
@@ -286,7 +294,87 @@ class CalculatorRefreshTest extends TestCase
         $this->assertEqualsWithDelta(360000 * $factor, $rates['maintenance']['annual_base']['electrico'], 1.0);
         $this->assertEqualsWithDelta(100000 * $factor, $rates['transfer']['fixed_costs'], 1.0);
         $this->assertSame(0.01, $rates['transfer']['dnrpa_rate']);
-        $this->assertSame(0.06, $rates['insurance_annual_rate']['terceros_completo']);
+        $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
+        $this->assertSame(0.8, $rates['insurance']['zone_factor']['cordoba']);
+    }
+
+    public function test_the_insurance_base_month_is_stored_next_to_the_main_one_when_published(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-08-01', 12276.766], ['2026-10-01', 13000.0], ['2026-11-01', 13650.0]]);
+
+        app(CalculatorRatesStore::class)->refresh();
+
+        $cpi = CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi'];
+        $this->assertEquals(['2026-10' => 13000.0], $cpi['extra_bases']);
+        $this->assertSame('2026-11', $cpi['latest_month']);
+        Http::assertSent(fn ($request) => str_contains($request->url(), 'start_date=2026-08-01'));
+    }
+
+    public function test_an_unpublished_insurance_base_month_is_skipped_and_the_refresh_still_succeeds(): void
+    {
+        $this->fakeSources();
+
+        $result = app(CalculatorRatesStore::class)->refresh();
+
+        $this->assertSame('refreshed', $result['cpi']);
+        $this->assertSame([], CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi']['extra_bases']);
+    }
+
+    public function test_insurance_bases_are_indexed_from_their_own_base_month(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-08-01', 12276.766], ['2026-10-01', 13000.0], ['2026-11-01', 13650.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $rates = app(EffectiveRates::class)->forProvince('cordoba');
+
+        // Insurance: 13650 / 13000 = 1,05. Maintenance keeps its own month (2026-08): 13650 / 12276,766.
+        $this->assertSame(105000, $rates['insurance']['tc_base']['hatchback']);
+        $this->assertSame(157500, $rates['insurance']['tc_base']['pickup']);
+        $this->assertEqualsWithDelta(600000 * 13650.0 / 12276.766, $rates['maintenance']['annual_base']['nafta'], 1.0);
+        $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
+        $this->assertSame(1.8, $rates['insurance']['tr_ratio']['hatchback']);
+    }
+
+    public function test_insurance_bases_keep_the_config_until_the_base_month_is_published(): void
+    {
+        $this->fakeSources();
+        app(CalculatorRatesStore::class)->refresh();
+
+        $rates = app(EffectiveRates::class)->forProvince('cordoba');
+
+        $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
+        $this->assertSame(150000, $rates['insurance']['tc_base']['pickup']);
+    }
+
+    public function test_the_insurance_factor_never_goes_below_one(): void
+    {
+        $this->fakeSources(cpiRows: [['2026-08-01', 12000.0], ['2026-10-01', 13000.0], ['2026-11-01', 12800.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $this->assertSame(100000, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_base']['hatchback']);
+    }
+
+    public function test_the_insurance_base_month_may_equal_the_main_base_month(): void
+    {
+        config(['calculadora.insurance.cpi_base_month' => '2026-08']);
+        $this->fakeSources();
+        app(CalculatorRatesStore::class)->refresh();
+
+        // 12600 / 12276,766 = 1,02633 -> 102.633.
+        $this->assertEqualsWithDelta(102633, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_base']['hatchback'], 2);
+    }
+
+    public function test_a_snapshot_stored_before_the_insurance_base_month_existed_stays_readable(): void
+    {
+        CalculatorRefreshSnapshot::create([
+            'fetched_at' => now(), 'status' => CalculatorRefreshSnapshot::STATUS_VALID, 'cpi_month' => '2026-09',
+            'payload' => ['fuel' => null, 'cpi' => ['latest_month' => '2026-09', 'latest_value' => 12600.0, 'base_month' => '2026-08', 'base_value' => 12276.766]],
+        ]);
+
+        $rates = app(EffectiveRates::class)->forProvince('cordoba');
+
+        $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
+        $this->assertGreaterThan(600000, $rates['maintenance']['annual_base']['nafta']);
     }
 
     public function test_the_cpi_factor_never_goes_below_one(): void

@@ -12,14 +12,23 @@ final class CpiSource
 
     private const SERIES = '148.3_INIVELNAL_DICI_M_26';
 
-    /** @return array{latest_month: string, latest_value: float, base_month: string, base_value: float} */
-    public function fetch(string $baseMonth): array
+    /**
+     * `$extraMonths` are further base months (other ARS amounts stated at their own month). A month the series has not
+     * published yet is left out of `extra_bases`: its amounts stay unindexed instead of failing the refresh.
+     *
+     * @param  list<string>  $extraMonths
+     * @return array{latest_month: string, latest_value: float, base_month: string, base_value: float, extra_bases: array<string, float>}
+     */
+    public function fetch(string $baseMonth, array $extraMonths = []): array
     {
-        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $baseMonth) !== 1) {
-            throw new RuntimeException('CPI: the base month in the config is not YYYY-MM.');
+        foreach ([$baseMonth, ...$extraMonths] as $month) {
+            if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) !== 1) {
+                throw new RuntimeException('CPI: the base month in the config is not YYYY-MM.');
+            }
         }
+        $start = min([$baseMonth, ...$extraMonths]);
         $response = Http::acceptJson()->connectTimeout(10)->timeout(30)->get(self::URL, [
-            'ids' => self::SERIES, 'start_date' => $baseMonth.'-01', 'format' => 'json',
+            'ids' => self::SERIES, 'start_date' => $start.'-01', 'format' => 'json',
         ]);
         if (! $response->successful()) {
             throw new RuntimeException('CPI: the series API did not answer.');
@@ -38,6 +47,16 @@ final class CpiSource
         ksort($values);
         $latest = array_key_last($values);
 
-        return ['latest_month' => $latest, 'latest_value' => $values[$latest], 'base_month' => $baseMonth, 'base_value' => $values[$baseMonth]];
+        $extraBases = [];
+        foreach ($extraMonths as $month) {
+            if (isset($values[$month])) {
+                $extraBases[$month] = $values[$month];
+            }
+        }
+
+        return [
+            'latest_month' => $latest, 'latest_value' => $values[$latest], 'base_month' => $baseMonth, 'base_value' => $values[$baseMonth],
+            'extra_bases' => $extraBases,
+        ];
     }
 }

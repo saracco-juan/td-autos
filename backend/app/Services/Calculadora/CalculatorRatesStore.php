@@ -25,7 +25,10 @@ final class CalculatorRatesStore
     {
         $previous = $this->latestValid()?->payload ?? [];
         $fuel = $this->attempt('fuel prices', fn () => $this->fuel->fetch());
-        $cpi = $this->attempt('CPI', fn () => $this->cpi->fetch((string) config('calculadora.cpi_base_month')));
+        $cpi = $this->attempt('CPI', fn () => $this->cpi->fetch(
+            (string) config('calculadora.cpi_base_month'),
+            array_values(array_filter([(string) config('calculadora.insurance.cpi_base_month')])),
+        ));
 
         $payload = ['fuel' => $fuel ?? $previous['fuel'] ?? null, 'cpi' => $cpi ?? $previous['cpi'] ?? null];
         // Valid only when at least one source answered; otherwise the attempt is logged and the previous snapshot stays in force.

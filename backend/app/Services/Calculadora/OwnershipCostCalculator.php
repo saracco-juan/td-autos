@@ -17,7 +17,7 @@ final class OwnershipCostCalculator
     ];
 
     /**
-     * @param  array{price_ars: float|int, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int, kilometraje: int, turbo: bool, transmision: string}  $vehicle
+     * @param  array{price_ars: float|int, body_type?: ?string, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int, kilometraje: int, turbo: bool, transmision: string}  $vehicle
      * @param  array<string, mixed>  $rates  config('calculadora')
      * @return array{purchase: array{price: int, transfer: int, total: int}, monthly: array{fuel: ?int, insurance: int, patente: int, maintenance: int, total: int, yearly_total: int, not_estimated: list<string>}, breakdown: array<string, mixed>}
      */
@@ -35,8 +35,8 @@ final class OwnershipCostCalculator
         $fuelInputs = $this->fuelInputs($vehicle, $kmPerMonth, $rates);
         $fuel = $fuelInputs === null ? null
             : $this->ceil($kmPerMonth * $fuelInputs['consumption_l_100km'] / 100 * (float) $fuelInputs['unit_price'], $step);
-        $insuranceRate = (float) $rates['insurance_annual_rate'][$coverage];
-        $insurance = $this->ceil($base * $insuranceRate / 12, $step);
+        $insuranceCalc = $this->insurance($vehicle['body_type'] ?? null, $base, $slug, $province, $coverage, $rates['insurance'], $step);
+        $insurance = $insuranceCalc['amount'];
         $patenteRate = $this->provinceRate($rates['patente_annual_rate'], $slug);
         $patente = $this->ceil($base * $patenteRate / 12, $step);
         $maintenanceInputs = $this->maintenanceInputs($vehicle, $rates, $currentYear);
@@ -56,7 +56,7 @@ final class OwnershipCostCalculator
             ],
             'breakdown' => [
                 'fuel' => $fuelInputs === null ? null : ['km_per_month' => $kmPerMonth] + $fuelInputs,
-                'insurance' => ['base' => $base, 'coverage' => $coverage, 'annual_rate' => $insuranceRate],
+                'insurance' => $insuranceCalc['breakdown'],
                 'patente' => ['base' => $base, 'province' => $provinceName, 'province_known' => $patenteKnown, 'annual_rate' => $patenteRate],
                 'maintenance' => array_diff_key($maintenanceInputs, ['yearly' => true]),
                 'transfer' => [
@@ -71,11 +71,68 @@ final class OwnershipCostCalculator
 
     public function normalizeProvince(string $province): string
     {
-        $text = mb_strtolower(trim($province));
-        $text = strtr($text, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n']);
-        $slug = trim((string) preg_replace('/[^a-z0-9]+/', '_', $text), '_');
+        $slug = $this->slug($province);
 
         return self::PROVINCE_ALIASES[$slug] ?? $slug;
+    }
+
+    private function slug(string $text): string
+    {
+        $text = mb_strtolower(trim($text));
+        $text = strtr($text, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n']);
+
+        return trim((string) preg_replace('/[^a-z0-9]+/', '_', $text), '_');
+    }
+
+    /**
+     * Terceros completo = max(base by body type, price x value rate / 12) x zone factor, rounded up.
+     * Todo riesgo = max(rounded terceros completo x ratio by body type, price x value rate / 12), rounded up.
+     * An unknown body type takes the highest base and ratio; a province outside the zone map takes `default`.
+     *
+     * @param  array<string, mixed>  $insurance  rates['insurance']
+     * @return array{amount: int, breakdown: array<string, mixed>}
+     */
+    private function insurance(?string $bodyName, float $base, string $provinceSlug, string $province, string $coverage, array $insurance, int $step): array
+    {
+        $bodySlug = $this->bodySlug($bodyName);
+        $baseMonthly = (float) ($insurance['tc_base'][$bodySlug] ?? max($insurance['tc_base']));
+        $zoneKnown = $provinceSlug !== 'default' && isset($insurance['zone_factor'][$provinceSlug]);
+        $zone = (float) ($zoneKnown ? $insurance['zone_factor'][$provinceSlug] : $insurance['zone_factor']['default']);
+
+        $tcByValue = $base * (float) $insurance['value_rate_tc'] / 12;
+        $terceros = $this->ceil(max($baseMonthly, $tcByValue) * $zone, $step);
+
+        $trRatio = null;
+        $valueRate = (float) $insurance['value_rate_tc'];
+        $byValue = $tcByValue > $baseMonthly;
+        $amount = $terceros;
+        if ($coverage === 'todo_riesgo') {
+            $trRatio = (float) ($insurance['tr_ratio'][$bodySlug] ?? max($insurance['tr_ratio']));
+            $valueRate = (float) $insurance['value_rate_tr'];
+            $trByValue = $base * $valueRate / 12;
+            $byValue = $trByValue > $terceros * $trRatio;
+            $amount = $this->ceil(max($terceros * $trRatio, $trByValue), $step);
+        }
+
+        return [
+            'amount' => $amount,
+            'breakdown' => [
+                'coverage' => $coverage, 'base' => $base,
+                'body_type' => isset($insurance['tc_base'][$bodySlug]) ? $bodySlug : null,
+                'body_label' => isset($insurance['tc_base'][$bodySlug]) ? trim((string) $bodyName) : null,
+                'base_monthly' => $baseMonthly, 'value_rate' => $valueRate, 'by_value' => $byValue,
+                'zone_factor' => $zone, 'province' => trim($province), 'province_known' => $zoneKnown,
+                'tr_ratio' => $trRatio, 'terceros_completo' => $terceros,
+            ],
+        ];
+    }
+
+    /** "Rural / familiar" and "Rural" are the same body type. */
+    private function bodySlug(?string $name): string
+    {
+        $slug = $this->slug((string) $name);
+
+        return str_starts_with($slug, 'rural') ? 'rural' : $slug;
     }
 
     /** Unknown provinces take the highest rate of the map: the estimate stays a ceiling. */

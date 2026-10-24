@@ -9,7 +9,7 @@
 
 return [
     // Date the rates were last reviewed (shown on the screen as "valores actualizados al ...").
-    'updated_at' => '2026-10-23',
+    'updated_at' => '2026-10-24',
 
     // Month (YYYY-MM) in which the ARS amounts below (maintenance.annual_base, transfer.fixed_costs) are stated.
     // The monthly refresh (calculadora:refresh) scales them by max(1, CPI latest / CPI of this month).
@@ -38,11 +38,58 @@ return [
         'gnc' => 1100,
     ],
 
-    // Fraction of the vehicle value per year: top of the mid-range premiums published by
-    // seguroya.com.ar (2026-06) over a used car of about ARS 20M.
-    'insurance_annual_rate' => [
-        'terceros_completo' => 0.07,
-        'todo_riesgo' => 0.14,
+    // Car insurance, per month, in two coverages.
+    //
+    // Terceros completo (TC) = max(tc_base[body type], price x value_rate_tc / 12) x zone_factor[province].
+    // Todo riesgo (TR)       = max(TC x tr_ratio[body type], price x value_rate_tr / 12).
+    // The ratio multiplies the TC already rounded up, so the screen can explain TR from the TC it shows.
+    // `price` is the ARS price base of the calculator. An unknown body type takes the highest tc_base and tr_ratio;
+    // a province outside zone_factor (or an unknown one) takes `default`.
+    //
+    // Sources (no source publishes a premium by model + year + zone, only ranges from comparators):
+    //  - tc_base and tr_ratio: multicotizadorseguros.com price table, Oct-2026, 2024 units, TOP of each range per body
+    //    type (tr_ratio = TR top / TC top of the same table).
+    //    https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina
+    //  - zone_factor: seguroya.com.ar zone ranges for a mid-size TC (CABA 145k, Córdoba 115k, Rosario 112k, Mendoza 105k),
+    //    expressed against AMBA = 1.0. Provinces without a published range use `default`.
+    //    https://seguroya.com.ar/seguros-de-autos-precios
+    //  - Vehicle age and GNC conversion are NOT modeled: no source quantifies them.
+    //
+    // Yearly review: tc_base (ARS), zone_factor and tr_ratio, together with `updated_at`.
+    'insurance' => [
+        // ARS per month at AMBA prices, stated at `cpi_base_month`. The monthly refresh scales them by
+        // max(1, CPI latest / CPI of that month).
+        'tc_base' => [
+            'hatchback' => 103000,
+            'sedan' => 114000,
+            'rural' => 114000, // "Rural / familiar"
+            'suv' => 108000,
+            'pickup' => 152000,
+            'furgon' => 152000,
+        ],
+        // Fraction of the vehicle price per year: when it exceeds the body base, the price decides.
+        'value_rate_tc' => 0.023,
+        'zone_factor' => [
+            'caba' => 1.00,
+            'buenos_aires' => 1.00,
+            'cordoba' => 0.80,
+            'santa_fe' => 0.78,
+            'mendoza' => 0.73,
+            'default' => 0.80,
+        ],
+        'tr_ratio' => [
+            'hatchback' => 1.8,
+            'sedan' => 2.1,
+            'rural' => 2.1,
+            'suv' => 2.0,
+            'pickup' => 2.35,
+            'furgon' => 2.35,
+        ],
+        // Fraction of the vehicle price per year: the floor of todo riesgo.
+        'value_rate_tr' => 0.06,
+        // Month (YYYY-MM) of the tc_base amounts; independent from the top-level `cpi_base_month`.
+        // Until INDEC publishes it, the CPI factor is 1.
+        'cpi_base_month' => '2026-10',
     ],
 
     'transfer' => [

@@ -5,6 +5,7 @@ namespace Tests\Feature\Calculadora;
 use App\Models\Concesionaria;
 use App\Models\Diagnostico;
 use App\Models\Suscripcion;
+use App\Models\TipoCarroceria;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
@@ -33,7 +34,14 @@ class OwnershipCostsTest extends TestCase
             'rounding' => 1000,
             'km_per_month' => ['menos_500' => 500, '500_1500' => 1500, '1500_3000' => 3000, 'mas_3000' => 4500, 'no_sabe' => 1500],
             'fuel_prices' => ['nafta' => 1000, 'diesel' => 900, 'gnc' => 500],
-            'insurance_annual_rate' => ['terceros_completo' => 0.06, 'todo_riesgo' => 0.12],
+            'insurance' => [
+                'tc_base' => ['hatchback' => 103000, 'sedan' => 114000, 'rural' => 114000, 'suv' => 108000, 'pickup' => 152000, 'furgon' => 152000],
+                'value_rate_tc' => 0.023,
+                'zone_factor' => ['caba' => 1.0, 'buenos_aires' => 1.0, 'cordoba' => 0.8, 'santa_fe' => 0.78, 'mendoza' => 0.73, 'default' => 0.8],
+                'tr_ratio' => ['hatchback' => 1.8, 'sedan' => 2.1, 'rural' => 2.1, 'suv' => 2.0, 'pickup' => 2.35, 'furgon' => 2.35],
+                'value_rate_tr' => 0.06,
+                'cpi_base_month' => '2026-10',
+            ],
             'transfer' => ['dnrpa_rate' => 0.01, 'fixed_costs' => 100000, 'stamp_rate' => ['cordoba' => 0.02, 'caba' => 0.01]],
             'patente_annual_rate' => ['cordoba' => 0.012, 'caba' => 0.01],
             'maintenance' => [
@@ -75,7 +83,7 @@ class OwnershipCostsTest extends TestCase
         Suscripcion::factory()->create(['concesionaria_id' => $dealer->id, 'estado' => 'activa',
             'vigente_hasta' => now()->addMonth()->toDateString()]);
         $vehicle = Vehiculo::factory()->create(array_replace(array_fill_keys(array_keys(VehiculoFields::EQUIPMENT_FIELDS), true), [
-            'tipo_carroceria_id' => 1, 'anio' => 2022, 'kilometraje' => 40000,
+            'tipo_carroceria_id' => TipoCarroceria::where('nombre', 'Sedán')->value('id'), 'anio' => 2022, 'kilometraje' => 40000,
             'precio' => 20000000, 'moneda' => 'ARS', 'combustible' => 'nafta', 'transmision' => 'manual',
             'plazas' => 5, 'motor' => '1.6', 'turbo' => false, 'potencia' => 110, 'potencia_unidad' => 'CV',
             'consumo_urbano' => 8, 'consumo_ruta' => 6,
@@ -103,12 +111,14 @@ class OwnershipCostsTest extends TestCase
                 'inputs' => ['km_per_month' => 1500, 'km_source' => 'diagnostico', 'coverage' => 'terceros_completo'],
                 'purchase' => ['price' => 20000000, 'transfer' => 700000, 'total' => 20700000,
                     'budget' => ['max' => 25000000.0, 'fits' => true, 'difference' => 4300000.0]],
-                'monthly' => ['fuel' => 120000, 'insurance' => 100000, 'patente' => 20000, 'maintenance' => 66000,
-                    'total' => 306000, 'yearly_total' => 3672000, 'not_estimated' => []],
+                'monthly' => ['fuel' => 120000, 'insurance' => 92000, 'patente' => 20000, 'maintenance' => 66000,
+                    'total' => 298000, 'yearly_total' => 3576000, 'not_estimated' => []],
                 'breakdown' => [
                     'fuel' => ['km_per_month' => 1500, 'consumption_l_100km' => 8.0, 'fuel_type' => 'nafta', 'price_fuel_type' => 'nafta',
                         'unit' => 'litro', 'unit_price' => 1000],
-                    'insurance' => ['base' => 20000000.0, 'coverage' => 'terceros_completo', 'annual_rate' => 0.06],
+                    'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000.0, 'body_type' => 'sedan', 'body_label' => 'Sedán',
+                        'base_monthly' => 114000.0, 'value_rate' => 0.023, 'by_value' => false, 'zone_factor' => 0.8, 'province' => 'Córdoba',
+                        'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 92000],
                     'patente' => ['base' => 20000000.0, 'province' => 'Córdoba', 'province_known' => true, 'annual_rate' => 0.012],
                     'maintenance' => ['fuel_type' => 'nafta', 'annual_base' => 600000, 'age_years' => 4, 'age_factor' => 1.2,
                         'km' => 40000, 'km_factor' => 1.1, 'turbo_factor' => null, 'automatic_factor' => null],
@@ -175,7 +185,7 @@ class OwnershipCostsTest extends TestCase
         $this->getJson("/api/vehiculos/{$car->id}/costos?km=3000&cobertura=todo_riesgo")->assertOk()
             ->assertJsonPath('inputs', ['km_per_month' => 3000, 'km_source' => 'usuario', 'coverage' => 'todo_riesgo'])
             ->assertJsonPath('monthly.fuel', 240000)
-            ->assertJsonPath('monthly.insurance', 200000);
+            ->assertJsonPath('monthly.insurance', 194000);
     }
 
     public function test_zero_km_is_valid(): void

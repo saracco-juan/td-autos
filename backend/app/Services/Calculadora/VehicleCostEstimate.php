@@ -30,7 +30,7 @@ final class VehicleCostEstimate
             ->whereKey($vehicleId)
             ->whereIn('id', VehiculoConcesionaria::query()->select('vehiculo_id')
                 ->where('visible', true)->whereIn('concesionaria_id', $this->lifecycle->operativeDealerIds(now())))
-            ->with('propiedad.concesionaria:id,provincia')
+            ->with(['propiedad.concesionaria:id,provincia', 'tipoCarroceria:id,nombre'])
             ->first();
         if ($vehicle === null) {
             return self::NOT_FOUND;
@@ -52,7 +52,7 @@ final class VehicleCostEstimate
         [$kmPerMonth, $source] = $this->km($km, $diagnosis, $rates['km_per_month']);
 
         $result = $this->calculator->calculate([
-            'price_ars' => $priceArs, 'fuel' => $vehicle->combustible,
+            'price_ars' => $priceArs, 'body_type' => $vehicle->tipoCarroceria?->nombre, 'fuel' => $vehicle->combustible,
             'consumo_urbano' => $vehicle->consumo_urbano, 'consumo_ruta' => $vehicle->consumo_ruta,
             'anio' => (int) $vehicle->anio, 'kilometraje' => (int) $vehicle->kilometraje,
             'turbo' => (bool) $vehicle->turbo, 'transmision' => (string) $vehicle->transmision,
