@@ -14,8 +14,9 @@ const breakdown = (changes: Partial<CostBreakdown> = {}): CostBreakdown => ({
   insurance: insurance(),
   patente: { base: 23000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.03, bracket_fixed: null,
     bracket_from: null, annual: 690000 },
-  maintenance: { fuel_type: 'nafta', body_type: 'hatchback', body_label: 'Hatchback', km_per_month: 1500, per_km: 20, age_years: 8,
-    age_factor: 1.2, fuel_factor: 1 },
+  service: { brand: 'Toyota', brand_known: true, model_matched: true, body_type: 'hatchback', body_label: 'Hatchback',
+    km_per_year: 18000, interval_km: 10000, interval_months: 12, services_per_year: 2, price_per_service: 361000, fuel_factor: 1,
+    source_label: 'service oficial Toyota Yaris' },
   transfer: { base: 23000000, dnrpa_rate: 0.015, stamp_rate: 0.03, province: 'Córdoba', province_known: true, fixed_costs: 80000 },
   rounding: 1000,
   ...changes,
@@ -157,38 +158,55 @@ describe('explainConcept', () => {
     }
   })
 
-  it('explains the maintenance per km with the body type, the age and the amount', () => {
-    expect(explainConcept('maintenance', breakdown(), 36000)).toBe(
-      '1.500 km por mes × $ 20 por km para un hatchback (service oficial) × 1,2 por antigüedad (8 años) = $ 36.000 por mes.',
+  it('explains the service with the km rule, the price and where it comes from', () => {
+    expect(explainConcept('service', breakdown(), 722000)).toBe(
+      '18.000 km al año ÷ 10.000 km = 2 services × $ 361.000 (service oficial Toyota Yaris) = $ 722.000 al año.',
     )
   })
 
-  it('omits the age part when its factor is 1', () => {
-    const maintenance = { ...breakdown().maintenance, age_years: 3, age_factor: 1 }
-    const text = explainConcept('maintenance', breakdown({ maintenance }), 30000)
-    expect(text).toBe('1.500 km por mes × $ 20 por km para un hatchback (service oficial) = $ 30.000 por mes.')
-    expect(text).not.toContain('antigüedad')
+  it('says "al menos" when the time rule decides', () => {
+    const service = { ...breakdown().service, km_per_year: 6000, services_per_year: 1 }
+    expect(explainConcept('service', breakdown({ service }), 361000)).toBe(
+      'Al menos 1 service por año × $ 361.000 (service oficial Toyota Yaris) = $ 361.000 al año.',
+    )
+    const twice = { ...service, interval_months: 6, services_per_year: 2 }
+    expect(explainConcept('service', breakdown({ service: twice }), 722000)).toContain('Al menos 2 services por año')
+  })
+
+  it('uses the singular for a single service on the km rule', () => {
+    const service = { ...breakdown().service, km_per_year: 10000, services_per_year: 1 }
+    expect(explainConcept('service', breakdown({ service }), 361000)).toContain('10.000 km al año ÷ 10.000 km = 1 service ×')
   })
 
   it('adds the GNC and electric factors only when they apply', () => {
-    const named = (fuel_type: CostBreakdown['maintenance']['fuel_type'], fuel_factor: number) =>
-      explainConcept('maintenance', breakdown({ maintenance: { ...breakdown().maintenance, fuel_type, fuel_factor } }), 1000)
-    expect(named('gnc', 1.15)).toContain('× 1,2 por antigüedad (8 años) × 1,15 por GNC = $ 1.000 por mes.')
-    expect(named('electrico', 0.5)).toContain('× 0,5 por ser eléctrico')
-    expect(named('nafta', 1)).not.toMatch(/GNC|eléctrico/)
-    expect(named('diesel', 1)).not.toMatch(/diésel/)
+    const named = (fuel_factor: number) =>
+      explainConcept('service', breakdown({ service: { ...breakdown().service, fuel_factor } }), 830000)
+    expect(named(1.15)).toContain('(service oficial Toyota Yaris) × 1,15 por GNC = $ 830.000 al año.')
+    expect(named(0.5)).toContain('× 0,5 por ser eléctrico')
+    expect(named(1)).not.toMatch(/GNC|eléctrico/)
   })
 
-  it('leaves the body type out when it is not in the per-km table and shows decimal amounts per km', () => {
-    const maintenance = { ...breakdown().maintenance, body_type: null, body_label: null, per_km: 39.9 }
-    expect(explainConcept('maintenance', breakdown({ maintenance }), 72000)).toBe(
-      '1.500 km por mes × $ 39,9 por km (service oficial) × 1,2 por antigüedad (8 años) = $ 72.000 por mes.',
+  it('names the body type when the price is a reference value', () => {
+    const service = { ...breakdown().service, brand: null, brand_known: false, model_matched: false,
+      price_per_service: 200000, source_label: 'valor de referencia' }
+    expect(explainConcept('service', breakdown({ service }), 400000)).toBe(
+      '18.000 km al año ÷ 10.000 km = 2 services × $ 200.000 (valor de referencia para un hatchback) = $ 400.000 al año.',
     )
   })
 
-  it('uses the singular for one year of age', () => {
-    const maintenance = { ...breakdown().maintenance, age_years: 1, age_factor: 1.2 }
-    expect(explainConcept('maintenance', breakdown({ maintenance }), 36000)).toContain('por antigüedad (1 año)')
+  it('leaves the body type out of a reference value when it is unknown', () => {
+    const service = { ...breakdown().service, body_type: null, body_label: null, price_per_service: 400000,
+      source_label: 'valor de referencia' }
+    expect(explainConcept('service', breakdown({ service }), 800000)).toContain('× $ 400.000 (valor de referencia) =')
+  })
+
+  it('never mentions maximums, ceilings or rounding in the service text', () => {
+    for (const fuel_factor of [1, 1.15, 0.5]) {
+      for (const source_label of ['service oficial Toyota Yaris', 'valor de referencia']) {
+        const service = { ...breakdown().service, fuel_factor, source_label }
+        expect(explainConcept('service', breakdown({ service }), 722000)).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
+      }
+    }
   })
 
   it('explains the transfer with the registry fee, the stamp tax and the fixed costs', () => {

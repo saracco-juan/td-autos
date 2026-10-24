@@ -1,17 +1,14 @@
 import { formatPrice, groupThousands } from '../inventory/format'
-import type { BodyType, CostBreakdown, FuelType } from './types'
+import type { BodyType, CostBreakdown } from './types'
 
-export type Concept = 'fuel' | 'charging' | 'insurance' | 'patente' | 'maintenance' | 'transfer' | 'price'
+export type Concept = 'fuel' | 'charging' | 'insurance' | 'patente' | 'service' | 'transfer' | 'price'
 
 const FUEL_NAMES: Record<'nafta' | 'diesel' | 'gnc', string> = { nafta: 'nafta', diesel: 'diésel', gnc: 'GNC' }
-// Why the fuel factor applies, in the maintenance text ("× 1,15 por GNC").
-const FUEL_REASON: Record<FuelType, string> = {
-  nafta: 'ser a nafta',
-  diesel: 'ser diésel',
-  gnc: 'GNC',
-  hibrido: 'ser híbrido',
-  electrico: 'ser eléctrico',
-}
+// Why the fuel factor applies, in the service text ("× 1,15 por GNC").
+const FUEL_REASONS: { factor: number; reason: string }[] = [
+  { factor: 1.15, reason: 'GNC' },
+  { factor: 0.5, reason: 'ser eléctrico' },
+]
 
 // Argentine decimals: 3.2 -> "3,2", 8 -> "8". Rounded to two decimals so float noise (0.07 * 100) never shows.
 function decimal(value: number): string {
@@ -58,11 +55,18 @@ function explainPatente(patente: CostBreakdown['patente'], money: string): strin
   return `Alícuota anual de ${percent(patente.rate)}${where ? `${where},` : ''} sobre el valor del auto, ${monthly}`
 }
 
-function explainMaintenance(m: CostBreakdown['maintenance'], money: string): string {
-  const body = m.body_type === null ? '' : ` para ${BODY_PHRASES[m.body_type]}`
-  const age = m.age_factor === 1 ? '' : ` × ${decimal(m.age_factor)} por antigüedad (${m.age_years} ${m.age_years === 1 ? 'año' : 'años'})`
-  const fuel = m.fuel_factor === 1 ? '' : ` × ${decimal(m.fuel_factor)} por ${FUEL_REASON[m.fuel_type]}`
-  return `${groupThousands(m.km_per_month)} km por mes × $ ${decimal(m.per_km)} por km${body} (service oficial)${age}${fuel} = ${money} por mes.`
+function explainService(service: CostBreakdown['service'], money: string): string {
+  const count = `${service.services_per_year} ${service.services_per_year === 1 ? 'service' : 'services'}`
+  // The time rule decides when the km alone would ask for fewer services than the months do.
+  const byTime = service.km_per_year / service.interval_km < 12 / service.interval_months
+  const frequency = byTime
+    ? `Al menos ${service.services_per_year} ${service.services_per_year === 1 ? 'service' : 'services'} por año`
+    : `${groupThousands(service.km_per_year)} km al año ÷ ${groupThousands(service.interval_km)} km = ${count}`
+  const reference = service.source_label.startsWith('valor de referencia')
+  const body = reference && service.body_type !== null ? ` para ${BODY_PHRASES[service.body_type]}` : ''
+  const factor = FUEL_REASONS.find((item) => item.factor === service.fuel_factor)
+  const fuel = factor ? ` × ${decimal(service.fuel_factor)} por ${factor.reason}` : ''
+  return `${frequency} × ${formatPrice(Math.round(service.price_per_service))} (${service.source_label}${body})${fuel} = ${money} al año.`
 }
 
 /**
@@ -91,8 +95,8 @@ export function explainConcept(
       return explainInsurance(breakdown.insurance, money)
     case 'patente':
       return explainPatente(breakdown.patente, money)
-    case 'maintenance':
-      return explainMaintenance(breakdown.maintenance, money)
+    case 'service':
+      return explainService(breakdown.service, money)
     case 'transfer': {
       const t = breakdown.transfer
       const stamp = t.province_known

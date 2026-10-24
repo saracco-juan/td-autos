@@ -59,7 +59,7 @@ function fieldErrorsOf(error: unknown): FieldErrors | null {
 }
 
 function MonthlyCard({ data }: { data: OwnershipCosts }) {
-  const { monthly, breakdown } = data
+  const { monthly, yearly, breakdown } = data
   const info = (name: string, concept: Concept, amount: number | null) =>
     ({ name, text: explainConcept(concept, breakdown, amount) })
   const perMonth = (value: number) => `${formatPrice(value)} por mes`
@@ -76,9 +76,9 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
         />
         <Row label="Seguro" value={perMonth(monthly.insurance)} info={info('Seguro', 'insurance', monthly.insurance)} />
         <Row label="Patente" value={perMonth(monthly.patente)} info={info('Patente', 'patente', monthly.patente)} />
-        <Row label="Mantenimiento" value={perMonth(monthly.maintenance)} info={info('Mantenimiento', 'maintenance', monthly.maintenance)} />
         <Row label="Total por mes" value={formatPrice(monthly.total)} strong />
-        <Row label="Total por año" value={formatPrice(monthly.yearly_total)} strong />
+        <Row label="Service (por año)" value={formatPrice(yearly.service)} info={info('Service', 'service', yearly.service)} />
+        <Row label="Total por año" value={formatPrice(yearly.total)} strong />
       </dl>
       {monthly.not_estimated.includes('fuel') ? (
         <p className={styles.note}>{electric ? 'El total no incluye la carga del auto.' : 'El total no incluye el combustible.'}</p>

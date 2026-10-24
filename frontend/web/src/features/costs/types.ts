@@ -46,17 +46,25 @@ export type CostBreakdown = {
     bracket_from: number | null
     annual: number
   }
-  maintenance: {
-    fuel_type: FuelType
-    // Slug and label of the body type; null when the car's body type is not in the per-km table.
+  service: {
+    // Brand with service data (the config's label); null when the brand is not in the table.
+    brand: string | null
+    brand_known: boolean
+    // True when the price comes from the brand + model; false for brand + body type or the reference value.
+    model_matched: boolean
+    // Slug and label of the body type; null when the car's body type is not in the tables.
     body_type: BodyType | null
     body_label: string | null
-    km_per_month: number
-    // ARS per km of the body type, CPI-indexed.
-    per_km: number
-    age_years: number
-    age_factor: number
+    km_per_year: number
+    interval_km: number
+    interval_months: number
+    services_per_year: number
+    // ARS per service, CPI-indexed.
+    price_per_service: number
+    // 1 for nafta, diésel and híbrido; 1,15 for GNC; 0,5 for eléctrico.
     fuel_factor: number
+    // "service oficial Toyota Yaris", "service oficial Toyota" or "valor de referencia".
+    source_label: string
   }
   transfer: {
     base: number
@@ -93,11 +101,11 @@ export type OwnershipCosts = {
     fuel: number | null
     insurance: number
     patente: number
-    maintenance: number
     total: number
-    yearly_total: number
     not_estimated: string[]
   }
+  // The service is occasional: it only enters the yearly total (monthly total x 12 + service).
+  yearly: { service: number; total: number }
   breakdown: CostBreakdown
   rates_updated_at: string
   exchange_rate: { sell: number; updated_at: string } | null
