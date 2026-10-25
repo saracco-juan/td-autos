@@ -1,4 +1,5 @@
 import type { Combustible, Transmision, Vehiculo } from './types'
+import { EQUIPMENT_FIELDS, MATCHING_FIELDS, matchingValues, type MatchingField } from './matchingFields'
 
 export const PHOTOS_MIN = 7
 export const PHOTOS_MAX = 20
@@ -8,6 +9,7 @@ export type VehicleValues = {
   marca: string
   modelo: string
   version: string
+  acara_version_id: string
   anio: string
   kilometraje: string
   precio: string
@@ -16,7 +18,7 @@ export type VehicleValues = {
   carroceria_id: string
   ubicacion: string
   descripcion: string
-}
+} & Record<MatchingField, string>
 
 export type VehicleFieldName = keyof VehicleValues
 export type VehicleErrorKey = VehicleFieldName | 'fotos'
@@ -36,6 +38,7 @@ export const FIELD_ORDER: VehicleErrorKey[] = [
   'carroceria_id',
   'ubicacion',
   'descripcion',
+  ...MATCHING_FIELDS,
   'fotos',
 ]
 
@@ -54,10 +57,13 @@ export const COMBUSTIBLE_OPTIONS: { value: Combustible; label: string }[] = [
 
 export function emptyValues(): VehicleValues {
   return {
+    ...matchingValues(),
+    potencia_unidad: 'CV',
     patente: '',
     marca: '',
     modelo: '',
     version: '',
+    acara_version_id: '',
     anio: '',
     kilometraje: '',
     precio: '',
@@ -70,11 +76,22 @@ export function emptyValues(): VehicleValues {
 }
 
 export function valuesFromVehicle(vehicle: Vehiculo): VehicleValues {
+  // NIST SP 811: mechanical HP = 745.6999 W; metric CV = 735.4988 W.
+  // Keep the API's integer precision, without guessing a missing source unit.
+  const wattsPerUnit = { CV: 735.4988, HP: 745.6999, kW: 1000 }
+  const power = vehicle.potencia != null && vehicle.potencia_unidad
+    && Object.hasOwn(wattsPerUnit, vehicle.potencia_unidad)
+    ? String(Math.round(vehicle.potencia * (wattsPerUnit[vehicle.potencia_unidad] / wattsPerUnit.CV)))
+    : ''
   return {
+    ...matchingValues(vehicle),
+    potencia: power,
+    potencia_unidad: 'CV',
     patente: vehicle.patente,
     marca: vehicle.marca,
     modelo: vehicle.modelo,
     version: vehicle.version ?? '',
+    acara_version_id: vehicle.acara_version_id ?? '',
     anio: String(vehicle.anio),
     kilometraje: String(vehicle.kilometraje),
     precio: String(vehicle.precio),
@@ -144,6 +161,20 @@ export function validateVehicleForm(values: VehicleValues, photoCount: number, c
   if (values.combustible === '') fail('combustible', 'Elegí el combustible.')
   if (values.carroceria_id === '') fail('carroceria_id', 'Elegí la carrocería.')
 
+  if (!['ARS', 'USD'].includes(values.moneda)) fail('moneda', 'Elegí pesos o dólares.')
+  fail('plazas', numberError(values.plazas, 'las plazas', true, 1, 32767))
+  if (!values.motor.trim() || values.motor.length > 100) fail('motor', 'Indicá el motor (hasta 100 caracteres).')
+  fail('potencia', numberError(values.potencia, 'la potencia', true, 1, 2147483647))
+  if (!['CV', 'HP', 'kW'].includes(values.potencia_unidad)) fail('potencia_unidad', 'Elegí la unidad de potencia.')
+  for (const key of ['consumo_urbano', 'consumo_ruta'] as const) {
+    if (values[key].trim() || ['nafta', 'diesel'].includes(values.combustible)) {
+      fail(key, numberError(values[key], key === 'consumo_urbano' ? 'el consumo urbano' : 'el consumo en ruta', false, 0.01, 9999.99))
+    }
+  }
+  for (const [key, label] of [['turbo', 'Turbo'], ...EQUIPMENT_FIELDS] as const) {
+    if (!['0', '1'].includes(values[key])) fail(key, `Indicá sí o no en ${label}.`)
+  }
+
   if (photoCount < PHOTOS_MIN) fail('fotos', 'Cargá al menos siete fotos.')
   else if (photoCount > PHOTOS_MAX) fail('fotos', `Podés cargar hasta ${PHOTOS_MAX} fotos.`)
 
@@ -162,7 +193,8 @@ export function errorsFromServer(body: unknown): VehicleErrors {
 
   for (const [key, messages] of Object.entries(raw as Record<string, unknown>)) {
     if (!Array.isArray(messages) || messages.length === 0) continue
-    const target: VehicleErrorKey | undefined = /^fotos(?:_eliminar)?(?:\.\d+)?$/.test(key) ? 'fotos' : isErrorKey(key) ? key : undefined
+    const target: VehicleErrorKey | undefined = key === 'acara_version_id' ? 'version' : key === 'potencia_unidad' ? 'potencia'
+      : /^fotos(?:_eliminar)?(?:\.\d+)?$/.test(key) ? 'fotos' : isErrorKey(key) ? key : undefined
     if (!target) continue
     const merged = new Set([...(errors[target] ?? []), ...messages.filter((message): message is string => typeof message === 'string')])
     if (merged.size > 0) errors[target] = [...merged]

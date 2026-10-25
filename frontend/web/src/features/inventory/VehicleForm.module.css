@@ -20,8 +20,25 @@
   align-items: start;
 }
 
+/* Reserve two label lines so wrapped labels do not lower adjacent controls. */
+.fields label {
+  min-block-size: 2lh;
+}
+
 .fullRow {
   grid-column: 1 / -1;
+}
+
+.sectionTitle {
+  grid-column: 1 / -1;
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.actionArea {
+  display: grid;
+  gap: 12px;
+  width: 100%;
 }
 
 @media (max-width: 1000px) {

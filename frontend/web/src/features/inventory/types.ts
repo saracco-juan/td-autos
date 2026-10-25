@@ -1,3 +1,5 @@
+import type { MatchingFacts } from './matchingFields'
+
 export type Transmision = 'manual' | 'automatica'
 export type Combustible = 'nafta' | 'diesel' | 'gnc' | 'hibrido' | 'electrico'
 
@@ -10,20 +12,30 @@ export type Vehiculo = {
   marca: string
   modelo: string
   version: string | null
+  acara_version_id?: string | null
   anio: number
   kilometraje: number
   precio: number
-  moneda: 'ARS'
+  moneda: 'ARS' | 'USD'
   transmision: Transmision
   combustible: Combustible
   carroceria: { id: number; nombre: string } | null
   ubicacion: string
   descripcion: string | null
   fotos: FotoVehiculo[]
-}
+} & Partial<MatchingFacts>
 
 export type VehiculosResponse = { vehiculos: Vehiculo[] }
 export type VehiculoResponse = { vehiculo: Vehiculo }
 
-// What both CSV import endpoints answer: how many vehicles the file creates and how many it updates.
+export type VehicleCatalogEntry = { id: string; marca: string; modelo: string; version: string }
+export type VehicleCatalog = {
+  snapshot_id: string | null
+  source_date: string | null
+  stale: boolean
+  warning: string | null
+  entries: VehicleCatalogEntry[]
+}
+
+// What both XLSX import endpoints answer: how many vehicles the file creates and how many it updates.
 export type ImportCounts = { nuevos: number; actualizaciones: number }

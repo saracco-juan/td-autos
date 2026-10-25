@@ -16,6 +16,30 @@ final class VehiculoFields
 
     public const PATENTE_TAKEN_MESSAGE = 'Esa patente ya está cargada en la plataforma.';
 
+    /** Equipment keys and human-readable labels shared by validation and presentation. */
+    public const EQUIPMENT_FIELDS = [
+        'control_estabilidad' => 'control de estabilidad',
+        'frenos_abs' => 'frenos ABS',
+        'airbags_frontales' => 'airbags frontales para conductor y acompañante',
+        'airbags_laterales' => 'airbags laterales',
+        'airbags_cortina' => 'airbags de cortina',
+        'isofix' => 'anclajes ISOFIX',
+        'frenado_autonomo' => 'frenado autónomo de emergencia',
+        'asistencia_carril' => 'alerta o asistencia de carril',
+        'punto_ciego' => 'alerta de punto ciego',
+        'recordatorio_cinturon' => 'recordatorio de cinturón',
+        'asistencia_velocidad' => 'asistencia de velocidad',
+        'monitoreo_conductor' => 'monitoreo del conductor',
+        'volante_regulable' => 'volante regulable en altura y profundidad',
+        'climatizador_bizona' => 'climatizador bizona',
+        'butacas_calefaccionadas' => 'butacas calefaccionadas',
+        'android_auto_apple_carplay' => 'Android Auto o Apple CarPlay',
+        'sensores_estacionamiento' => 'sensores de estacionamiento',
+        'velocidad_crucero' => 'velocidad crucero',
+        'camara_retroceso' => 'cámara de retroceso',
+        'aire_acondicionado' => 'aire acondicionado o climatizador',
+    ];
+
     /**
      * Text columns: noun phrase used in the messages and maximum length.
      *
@@ -60,7 +84,7 @@ final class VehiculoFields
      * @param  mixed  $plateUniqueRule  Rule that decides whether the plate may be used; none when null.
      * @return array<string, array<int, mixed>>
      */
-    public static function rules(mixed $plateUniqueRule = null): array
+    public static function rules(mixed $plateUniqueRule = null, bool $includeMatchingFacts = false): array
     {
         $rules = [
             'patente' => array_values(array_filter(
@@ -78,6 +102,24 @@ final class VehiculoFields
         foreach (self::TEXT_FIELDS as $field => [, $max]) {
             $presence = in_array($field, self::OPTIONAL_FIELDS, true) ? 'nullable' : 'required';
             $rules[$field] = [$presence, 'string', "max:{$max}"];
+        }
+
+        // Manual/API and CSV publication both require complete declared matching facts.
+        if ($includeMatchingFacts) {
+            $rules += [
+                'moneda' => ['required', Rule::in(VehiculoOptions::MONEDAS)],
+                'plazas' => ['required', 'integer', 'between:1,32767'],
+                'motor' => ['required', 'string', 'max:100'],
+                'turbo' => ['required', 'boolean'],
+                'potencia' => ['required', 'integer', 'between:1,2147483647'],
+                'potencia_unidad' => ['required', Rule::in(VehiculoOptions::POTENCIA_UNIDADES)],
+            ];
+            foreach (['consumo_urbano', 'consumo_ruta'] as $field) {
+                $rules[$field] = ['required_if:combustible,nafta,diesel', 'nullable', 'numeric', 'gt:0', 'decimal:0,2', 'max:9999.99'];
+            }
+            foreach (array_keys(self::EQUIPMENT_FIELDS) as $field) {
+                $rules[$field] = ['required', 'boolean'];
+            }
         }
 
         return $rules;
@@ -118,6 +160,9 @@ final class VehiculoFields
             ...array_intersect_key($validated, array_flip([
                 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio',
                 'transmision', 'combustible', 'ubicacion', 'descripcion',
+                'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
+                'consumo_urbano', 'consumo_ruta',
+                ...array_keys(self::EQUIPMENT_FIELDS),
             ])),
             'tipo_carroceria_id' => $validated['carroceria_id'],
         ];
@@ -152,6 +197,26 @@ final class VehiculoFields
             $messages["{$field}.in"] = "Elegí {$noun} de la lista.";
             $messages["{$field}.integer"] = "Elegí {$noun} de la lista.";
             $messages["{$field}.exists"] = "Elegí {$noun} de la lista.";
+        }
+
+        foreach ([
+            'moneda' => ['Elegí ARS o USD.', ['required', 'in']],
+            'plazas' => ['Indicá una cantidad de plazas entera y positiva.', ['required', 'integer', 'between']],
+            'motor' => ['Indicá el motor (hasta 100 caracteres).', ['required', 'string', 'max']],
+            'turbo' => ['Indicá si el motor tiene turbo.', ['required', 'boolean']],
+            'potencia' => ['Indicá una potencia entera y positiva.', ['required', 'integer', 'between']],
+            'potencia_unidad' => ['Elegí CV, HP o kW para la potencia.', ['required', 'in']],
+            'consumo_urbano' => ['Indicá el consumo urbano en L/100 km: mayor que cero y con hasta dos decimales.', ['required_if', 'numeric', 'gt', 'decimal', 'max']],
+            'consumo_ruta' => ['Indicá el consumo en ruta en L/100 km: mayor que cero y con hasta dos decimales.', ['required_if', 'numeric', 'gt', 'decimal', 'max']],
+        ] as $field => [$message, $rules]) {
+            foreach ($rules as $rule) {
+                $messages["{$field}.{$rule}"] = $message;
+            }
+        }
+
+        foreach (self::EQUIPMENT_FIELDS as $field => $label) {
+            $messages["{$field}.required"] = "Indicá si tiene {$label} (sí o no).";
+            $messages["{$field}.boolean"] = "Indicá si tiene {$label} (sí o no).";
         }
 
         return $messages;

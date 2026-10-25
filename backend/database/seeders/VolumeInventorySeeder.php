@@ -7,6 +7,7 @@ use App\Models\Suscripcion;
 use App\Models\User;
 use App\Support\Patente;
 use App\Support\VehiculoOptions;
+use Database\Seeders\Support\DemoVehicleFacts;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -272,7 +273,9 @@ class VolumeInventorySeeder extends Seeder
             'combustible' => $fuel,
             'transmision' => $transmission,
             'ubicacion' => $town,
-            'descripcion' => "{$brand} {$model} {$version} {$year}. ".VolumeCatalog::DESCRIPTIONS[mt_rand(0, count(VolumeCatalog::DESCRIPTIONS) - 1)],
+            'descripcion' => "{$brand} {$model} {$version} {$year}. ".VolumeCatalog::DESCRIPTIONS[mt_rand(0, count(VolumeCatalog::DESCRIPTIONS) - 1)].' '.DemoVehicleFacts::NOTICE,
+            // No extra random draws: preserve the existing identity, price and plate sequence.
+            ...DemoVehicleFacts::profile($km, $fuel),
         ], $this->plate($year)];
     }
 

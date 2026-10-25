@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../lib/http', () => ({ apiFetch: vi.fn(), apiFetchBlob: vi.fn() }))
 
-import { apiFetch } from '../../lib/http'
+import { apiFetch, apiFetchBlob } from '../../lib/http'
 import {
   buildVehicleFormData,
   confirmImport,
@@ -11,6 +11,7 @@ import {
   fetchBodyTypes,
   fetchVehicle,
   fetchVehicles,
+  fetchInventoryTemplate,
   previewImport,
   updateVehicle,
 } from './api'
@@ -20,6 +21,17 @@ import { emptyValues, type VehicleValues } from './vehicleFields'
 describe('inventory api', () => {
   beforeEach(() => {
     vi.mocked(apiFetch).mockReset()
+    vi.mocked(apiFetchBlob).mockReset()
+  })
+
+  it('downloads the native template through the authenticated Blob transport', async () => {
+    const blob = new Blob(['PK'])
+    vi.mocked(apiFetchBlob).mockResolvedValueOnce(blob)
+    await expect(fetchInventoryTemplate()).resolves.toBe(blob)
+    expect(apiFetchBlob).toHaveBeenCalledWith('/api/concesionaria/vehiculos/importar/plantilla')
+    const error = new Error('unavailable')
+    vi.mocked(apiFetchBlob).mockRejectedValueOnce(error)
+    await expect(fetchInventoryTemplate()).rejects.toBe(error)
   })
 
   it('fetchVehicles GETs the dealer vehicles and returns the list', async () => {
@@ -40,7 +52,7 @@ describe('inventory api', () => {
     ['previewImport', previewImport, '/api/concesionaria/vehiculos/importar/vista-previa'],
     ['confirmImport', confirmImport, '/api/concesionaria/vehiculos/importar'],
   ])('%s POSTs the file in the archivo field and returns the counts', async (_name, send, path) => {
-    const file = new File(['patente;marca'], 'stock.csv', { type: 'text/csv' })
+    const file = new File(['patente;marca'], 'stock.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     vi.mocked(apiFetch).mockResolvedValue({ nuevos: 3, actualizaciones: 1 })
 
     await expect(send(file)).resolves.toEqual({ nuevos: 3, actualizaciones: 1 })
@@ -81,6 +93,7 @@ describe('inventory api', () => {
       const data = buildVehicleFormData({ values, newPhotos: [], removedPhotoIds: [] })
 
       expect(Object.fromEntries(data.entries())).toEqual({
+        ...emptyValues(),
         patente: 'AB123CD',
         marca: 'Toyota',
         modelo: 'Corolla',

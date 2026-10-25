@@ -15,8 +15,8 @@ export function formatKilometers(value: number): string {
   return `${groupThousands(value)} km`
 }
 
-export function formatPrice(value: number): string {
-  return `$ ${groupThousands(value)}`
+export function formatPrice(value: number, currency: Vehiculo['moneda'] = 'ARS'): string {
+  return `${currency === 'USD' ? 'US$' : '$'} ${groupThousands(value)}`
 }
 
 // Second line of a row: Figma shows plate and image count; kilometres, price and location help tell units apart.
@@ -26,7 +26,7 @@ export function vehicleMeta(vehicle: Vehiculo): string {
     vehicle.patente,
     `${count} ${count === 1 ? 'imagen' : 'imágenes'}`,
     formatKilometers(vehicle.kilometraje),
-    formatPrice(vehicle.precio),
+    formatPrice(vehicle.precio, vehicle.moneda),
     vehicle.ubicacion,
   ].join(' · ')
 }

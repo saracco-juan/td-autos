@@ -37,7 +37,7 @@ class UpdateVehiculoFotosTest extends TestCase
      */
     private function update(Vehiculo $vehiculo, array $extra): TestResponse
     {
-        $fields = $this->payload();
+        $fields = $this->payload($vehiculo->only(['marca', 'modelo', 'version']));
         unset($fields['fotos']);
 
         return $this->actingAs($this->dealer->usuario)

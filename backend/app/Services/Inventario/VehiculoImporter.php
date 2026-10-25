@@ -9,7 +9,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 
 /**
  * Writes a valid import plan for a dealer: creates the new vehicles and overwrites the matching
- * ones, replacing all their photos with the CSV URLs. It never opens its own transaction: the
+ * ones, replacing all their photos with the XLSX URLs. It never opens its own transaction: the
  * caller wraps it, so a failure anywhere rolls the whole batch back (RNF12).
  */
 class VehiculoImporter
@@ -25,7 +25,17 @@ class VehiculoImporter
 
         foreach ($plan->actualizaciones() as $row) {
             $vehiculo = Vehiculo::query()->findOrFail($row->vehiculoId);
-            $vehiculo->update($this->attributes($row));
+            $attributes = $this->attributes($row);
+            if (! array_key_exists('acara_version_id', $attributes)) {
+                foreach (['marca', 'modelo', 'version'] as $field) {
+                    if ((string) ($attributes[$field] ?? '') !== (string) $vehiculo->$field) {
+                        // An old import must not retain the reference of a different identity.
+                        $attributes['acara_version_id'] = null;
+                        break;
+                    }
+                }
+            }
+            $vehiculo->update($attributes);
             $replaced = [...$replaced, ...$vehiculo->fotos()->pluck('ubicacion_archivo')->all()];
             $vehiculo->fotos()->delete();
             $this->storePhotos($vehiculo, $row);
@@ -35,7 +45,6 @@ class VehiculoImporter
             $vehiculo = Vehiculo::create([
                 ...$this->attributes($row),
                 'origen' => VehiculoOptions::ORIGEN_CONCESIONARIA,
-                'moneda' => VehiculoOptions::MONEDA,
             ]);
 
             try {
@@ -55,7 +64,7 @@ class VehiculoImporter
     }
 
     /**
-     * Optional columns the CSV left blank are cleared on an overwrite.
+     * Optional columns the XLSX left blank are cleared on an overwrite.
      *
      * @return array<string, mixed>
      */

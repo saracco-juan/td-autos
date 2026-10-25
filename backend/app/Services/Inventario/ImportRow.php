@@ -3,7 +3,7 @@
 namespace App\Services\Inventario;
 
 /**
- * One data row of the CSV after validation: the vehicle columns ready to be written, its photo
+ * One data row of the XLSX after validation: the vehicle columns ready to be written, its photo
  * URLs, and the messages of everything that is wrong with it.
  */
 final class ImportRow

@@ -5,16 +5,15 @@ import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
-import { fetchBodyTypes, fetchVehicle, fetchVehicles } from '../features/inventory/api'
-import { VEHICULOS, vehiculo } from '../features/inventory/fixtures'
+import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api'
+import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api'
 import { dealerDetail, directory, receipt } from '../features/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
-import { searchListings } from '../features/recommendations/api'
-import { searchResponse } from '../features/recommendations/fixtures'
+import { fetchRecommendations } from '../features/recommendations/matching'
 import { fetchTransfer } from '../features/transfer/api'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
@@ -47,6 +46,7 @@ vi.mock('../features/inventory/api', () => ({
   createVehicle: vi.fn(),
   updateVehicle: vi.fn(),
   fetchBodyTypes: vi.fn(),
+  fetchVehicleCatalog: vi.fn(),
   previewImport: vi.fn(),
   confirmImport: vi.fn(),
 }))
@@ -61,7 +61,7 @@ vi.mock('../features/admin/api', () => ({
   rejectReceipt: vi.fn(),
 }))
 
-vi.mock('../features/recommendations/api', () => ({ searchListings: vi.fn() }))
+vi.mock('../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn() }))
 
 vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
@@ -122,8 +122,8 @@ describe('app routes', () => {
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
     vi.mocked(fetchTransfer).mockReset()
-    vi.mocked(searchListings).mockReset()
-    vi.mocked(searchListings).mockResolvedValue(searchResponse())
+    vi.mocked(fetchRecommendations).mockReset()
+    vi.mocked(fetchRecommendations).mockResolvedValue({ status: 'ready', results: [], exchange_rate: null })
     vi.mocked(fetchSubscription).mockReset()
     vi.mocked(fetchSubscription).mockResolvedValue(suscripcion())
     vi.mocked(fetchVehicles).mockReset()
@@ -132,6 +132,7 @@ describe('app routes', () => {
     vi.mocked(fetchVehicle).mockResolvedValue(vehiculo())
     vi.mocked(fetchBodyTypes).mockReset()
     vi.mocked(fetchBodyTypes).mockResolvedValue([{ id: 2, nombre: 'Sedán' }])
+    vi.mocked(fetchVehicleCatalog).mockResolvedValue(VEHICLE_CATALOG)
     vi.mocked(fetchDealerDirectory).mockReset()
     vi.mocked(fetchDealerDirectory).mockResolvedValue(directory())
     vi.mocked(fetchDealer).mockReset()
@@ -275,7 +276,9 @@ describe('app routes', () => {
     const router = renderAt('/recomendaciones')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Mejores opciones para vos' })).toBeInTheDocument()
-    expect(await screen.findByText('Mostrando 3 vehículos')).toBeInTheDocument()
+    expect(await screen.findByText('Mostrando 0 vehículos')).toBeInTheDocument()
+    expect(fetchRecommendations).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/recomendaciones')
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
@@ -753,21 +756,21 @@ describe('app routes', () => {
       expect(screen.getAllByRole('main')).toHaveLength(1)
     })
 
-    it('UH22: an active dealer reaches the CSV import at /concesionaria/inventario/importar inside the shell', async () => {
+    it('UH22: an active dealer reaches the XLSX import at /concesionaria/inventario/importar inside the shell', async () => {
       asDealer('activa')
       const router = renderAt('/concesionaria/inventario/importar')
 
-      expect(await screen.findByRole('heading', { level: 1, name: 'Importar CSV' })).toBeInTheDocument()
+      expect(await screen.findByRole('heading', { level: 1, name: 'Importar XLSX' })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/concesionaria/inventario/importar')
       expect(screen.getAllByRole('main')).toHaveLength(1)
     })
 
-    it('UH22: a pending dealer opening the CSV import is blocked', async () => {
+    it('UH22: a pending dealer opening the XLSX import is blocked', async () => {
       asDealer('pendiente')
       renderAt('/concesionaria/inventario/importar')
 
       expect(await screen.findByRole('alert')).toHaveTextContent('Tu cuenta está pendiente de aprobación.')
-      expect(screen.queryByLabelText('Archivo CSV')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Archivo XLSX')).not.toBeInTheDocument()
     })
 
     it('UH21: an active dealer reaches the edit form at /concesionaria/inventario/:id/editar with the vehicle loaded', async () => {

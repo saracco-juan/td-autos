@@ -53,3 +53,24 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 ## Platforms
 
 - A screen decision applies to web and mobile by default; only layout that exists on one platform (desktop sidebar, bottom tab bar) stays on that platform.
+
+## Catalog-backed inventory inputs (2026-10-24)
+
+- User-approved manual-entry change: replace free make/model/version entry with
+  searchable, dependent native catalog suggestions. An unmatched identity cannot
+  be saved; both client and API validate selection. Keep existing field styling,
+  photo panel and pinned action bar. Version is no longer labelled optional for
+  new entries. Legacy edits retain their identity until explicitly relinked.
+- Figma sync pending approval: High v3 create `2373:8756` and edit `2373:8835`
+  still show text identity fields. Web implementation adds catalog/legacy notices;
+  mobile receives the same identity rule when that form is implemented. No Figma
+  changes or mobile implementation were performed here.
+
+## HU05 matching-only recommendations (2026-10-20)
+
+- Resale evidence (2026-10-22): reuse card2373:7340's existing warnings and expandable reasons for partial compatibility, the ten-point uncertainty deduction, DNRPA window and ACARA reference date. Missing priority is "no disponible", never zero. Preserve the existing layout. Applies to web and mobile; mobile implementation and Figma sync remain pending explicit approval. High v3 has no resale evidence copy; this extends the previously approved matching reasons, not the catalog controls.
+
+- User-approved override: recommendations replace catalog search; no search field, filter sidebar or catalog tab. Backend order is retained, nine cards per page, up to ten results total.
+- Cards show published/equivalent prices, compatibility, dealer, budget/body warnings and expandable grouped facts/motives. The shared quote shows source, sell rate, provider date and stale/unavailable notices. Detailed HU09 sheets and HU08 comparison remain deferred.
+- Figma sync pending approval: High v3 desktop `2373:7328`, mobile `2373:9914` still show search and placeholder match lines. Apply the matching-only/content changes to both; tablet follows web responsive rules. No Figma edits have been made.
+- This supersedes the recommendation search-field rules above. Existing catalog components/tests remain unmounted legacy RF05 code, not another user-facing view.

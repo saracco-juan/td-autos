@@ -81,7 +81,8 @@ export const DIAGNOSIS_STEPS: readonly DiagnosisStep[] = [
     [
       ['1_2', '1 o 2'],
       ['3_4', '3 o 4'],
-      ['5_mas', '5 o más'],
+      ['5', '5'],
+      ['mas_5', 'Más de 5'],
     ],
   ),
   singleChoice(

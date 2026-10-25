@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { VEHICULOS, vehiculo } from './fixtures'
+import { MATCHING_FACTS, VEHICULOS, vehiculo } from './fixtures'
+import { matchingValues } from './matchingFields'
 import {
   emptyValues,
   errorsFromServer,
@@ -11,10 +12,12 @@ import {
 } from './vehicleFields'
 
 const valid: VehicleValues = {
+  ...matchingValues(MATCHING_FACTS),
   patente: 'AB123CD',
   marca: 'Toyota',
   modelo: 'Corolla',
   version: '',
+  acara_version_id: '',
   anio: '2021',
   kilometraje: '60000',
   precio: '18500000',
@@ -34,12 +37,15 @@ describe('normalizePlate', () => {
 })
 
 describe('emptyValues and valuesFromVehicle', () => {
-  it('starts with every field empty', () => {
+  it('starts with empty facts and the fixed CV power unit', () => {
     expect(emptyValues()).toEqual({
+      ...matchingValues(),
+      potencia_unidad: 'CV',
       patente: '',
       marca: '',
       modelo: '',
       version: '',
+      acara_version_id: '',
       anio: '',
       kilometraje: '',
       precio: '',
@@ -73,7 +79,7 @@ describe('validateVehicleForm', () => {
   it('requires every mandatory field with the server wording', () => {
     const errors = validateVehicleForm(emptyValues(), 7, 2026)
 
-    expect(errors).toEqual({
+    expect(errors).toMatchObject({
       patente: ['Indicá la patente.'],
       marca: ['Indicá la marca.'],
       modelo: ['Indicá el modelo.'],

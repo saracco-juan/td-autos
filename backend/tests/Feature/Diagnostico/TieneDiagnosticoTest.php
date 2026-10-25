@@ -59,4 +59,14 @@ class TieneDiagnosticoTest extends TestCase
             ->assertOk()
             ->assertJsonPath('tiene_diagnostico', true);
     }
+
+    public function test_only_pending_passenger_confirmation_changes_existing_row_semantics(): void
+    {
+        $user = User::factory()->create();
+        $row = Diagnostico::create(['usuario_id' => $user->id]);
+        foreach ([[null, true], ['completo', true], ['pendiente_pasajeros', false]] as [$state, $hasDiagnosis]) {
+            $row->update(['estado' => $state]);
+            $this->actingAs($user)->getJson('/api/user')->assertOk()->assertJsonPath('tiene_diagnostico', $hasDiagnosis);
+        }
+    }
 }

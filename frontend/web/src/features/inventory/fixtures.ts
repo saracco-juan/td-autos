@@ -1,7 +1,24 @@
-import type { Vehiculo } from './types'
+import type { Vehiculo, VehicleCatalog } from './types'
+import { EQUIPMENT_FIELDS } from './matchingFields'
+
+export const VEHICLE_CATALOG: VehicleCatalog = {
+  snapshot_id: 'test', source_date: '2026-10-24', stale: false, warning: null,
+  entries: [
+    { id: 'selected-corolla', marca: 'Toyota', modelo: 'Corolla', version: 'XEI' },
+    { id: 'selected-civic', marca: 'Honda', modelo: 'Civic', version: 'EX' },
+  ],
+}
+
+// Synthetic, explicitly declared test facts; never inferred from the example model.
+export const MATCHING_FACTS = {
+  moneda: 'ARS' as const, plazas: 5, motor: '1.8', turbo: false, potencia: 140, potencia_unidad: 'CV' as const,
+  consumo_urbano: 8, consumo_ruta: 6,
+  ...Object.fromEntries(EQUIPMENT_FIELDS.map(([key]) => [key, false])),
+}
 
 export function vehiculo(overrides: Partial<Vehiculo> = {}): Vehiculo {
   return {
+    ...MATCHING_FACTS,
     id: 1,
     patente: 'AB123CD',
     marca: 'Toyota',

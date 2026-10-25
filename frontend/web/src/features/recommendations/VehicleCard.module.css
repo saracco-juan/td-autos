@@ -54,3 +54,13 @@
   color: var(--text-secondary);
   font-size: 11px;
 }
+
+.card details {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.card summary {
+  cursor: pointer;
+  font-weight: 600;
+}

@@ -7,17 +7,19 @@ import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
 import type { BodyType } from '../diagnosis/types'
 import SessionLoading from '../auth/session/SessionLoading'
-import SelectField from '../auth/shared/SelectField'
+import SelectField, { type SelectOption } from '../auth/shared/SelectField'
 import TextAreaField from '../auth/shared/TextAreaField'
 import TextField from '../auth/shared/TextField'
-import { fetchBodyTypes, type VehicleSubmission } from './api'
+import { fetchBodyTypes, fetchVehicleCatalog, type VehicleSubmission } from './api'
+import CatalogField from './CatalogField'
 import { inactiveSubscription, type InactiveSubscription } from './inactiveSubscription'
 import { INVENTORY_PATH } from './inventoryRoutes'
 import PhotoPicker from './PhotoPicker'
 import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
-import type { FotoVehiculo } from './types'
+import type { FotoVehiculo, VehicleCatalog } from './types'
 import { usePhotoDraft } from './usePhotoDraft'
 import VehicleFormPage from './VehicleFormPage'
+import { EQUIPMENT_GROUPS, YES_NO } from './matchingFields'
 import styles from './VehicleForm.module.css'
 import {
   COMBUSTIBLE_OPTIONS,
@@ -34,7 +36,7 @@ import {
 const NETWORK_ERROR = 'No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.'
 const SAVE_ERROR = 'No pudimos guardar el vehículo. Probá de nuevo.'
 
-type CatalogState = 'loading' | { ready: BodyType[] } | { error: ErrorKind }
+type CatalogState = 'loading' | { ready: BodyType[]; identities: VehicleCatalog | null } | { error: ErrorKind }
 
 type Props = {
   title: string
@@ -42,6 +44,7 @@ type Props = {
   initialValues: VehicleValues
   // Photos the vehicle already has (edit); empty on create.
   initialPhotos: FotoVehiculo[]
+  isEditing?: boolean
   submitLabel: string
   // Saves the vehicle. A rejection stays in the form: 422 as field errors, anything else as a message; on success the caller leaves the screen.
   onSubmit: (submission: VehicleSubmission) => Promise<void>
@@ -55,7 +58,7 @@ function focusField(name: VehicleErrorKey) {
 }
 
 // Shared by loading and editing a vehicle (Figma 38:923 / 2119:1841): fields on the left, photos on the right, actions below.
-export default function VehicleForm({ title, subtitle, initialValues, initialPhotos, submitLabel, onSubmit }: Props) {
+export default function VehicleForm({ title, subtitle, initialValues, initialPhotos, isEditing = false, submitLabel, onSubmit }: Props) {
   const formId = useId()
   const [catalog, setCatalog] = useState<CatalogState>('loading')
   const [values, setValues] = useState(initialValues)
@@ -66,9 +69,9 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
   const draft = usePhotoDraft(initialPhotos)
 
   const loadCatalog = useCallback((isCancelled: () => boolean = () => false) => {
-    fetchBodyTypes()
-      .then((bodyTypes) => {
-        if (!isCancelled()) setCatalog({ ready: bodyTypes })
+    Promise.all([fetchBodyTypes(), fetchVehicleCatalog().catch(() => null)])
+      .then(([bodyTypes, identities]) => {
+        if (!isCancelled()) setCatalog({ ready: bodyTypes, identities })
       })
       .catch((error: unknown) => {
         if (!isCancelled()) setCatalog({ error: error instanceof NetworkError ? 'network' : 'server' })
@@ -89,14 +92,27 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
   }
 
   const handleChange = (name: VehicleFieldName) => (value: string) => {
-    setValues((current) => ({ ...current, [name]: value }))
-    setErrors((current) => ({ ...current, [name]: undefined }))
+    const identity = ['marca', 'modelo', 'version'].includes(name)
+    setValues((current) => {
+      const next = { ...current, [name]: value }
+      if (identity) {
+        if (name === 'marca') next.modelo = ''
+        if (name !== 'version') next.version = ''
+        const entries = catalog !== 'loading' && 'ready' in catalog ? catalog.identities?.entries ?? [] : []
+        next.acara_version_id = entries.find((entry) => entry.marca === next.marca && entry.modelo === next.modelo && entry.version === next.version)?.id ?? ''
+      }
+      return next
+    })
+    setErrors((current) => ({ ...current, [name]: undefined, ...(identity ? { modelo: undefined, version: undefined } : {}) }))
   }
 
   const showErrors = (found: VehicleErrors) => {
     setErrors(found)
     const first = firstInvalidField(found)
-    if (first) focusField(first)
+    if (first) {
+      setFormError(`No se guardó el vehículo. ${found[first]?.join(' ')}`)
+      focusField(first)
+    }
     return first !== undefined
   }
 
@@ -104,7 +120,10 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
     event.preventDefault()
     setFormError(undefined)
     setBlocked(undefined)
-    if (showErrors(validateVehicleForm(values, draft.count))) return
+    const found = validateVehicleForm(values, draft.count)
+    const unchanged = isEditing && (['marca', 'modelo', 'version'] as const).every((key) => values[key] === initialValues[key])
+    if (!values.acara_version_id && !unchanged) found.version = ['Elegí la marca, el modelo y la versión del catálogo.']
+    if (showErrors(found)) return
 
     setSubmitting(true)
     try {
@@ -152,31 +171,60 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
   )
 
   const actions = (
-    <div className={barStyles.actions}>
-      <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}>
-        CANCELAR
-      </Link>
-      <button
-        type="submit"
-        form={formId}
-        disabled={submitting}
-        aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
-      >
-        {submitting ? 'GUARDANDO…' : submitLabel}
-      </button>
+    <div className={styles.actionArea}>
+      {formError ? <p role="alert" className={alertStyles.alert}>{formError}</p> : null}
+      <div className={barStyles.actions}>
+        <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}>
+          CANCELAR
+        </Link>
+        <button
+          type="submit"
+          form={formId}
+          disabled={submitting}
+          aria-busy={submitting}
+          className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+        >
+          {submitting ? 'GUARDANDO…' : submitLabel}
+        </button>
+      </div>
     </div>
   )
+
+  const choice = (name: VehicleFieldName, label: string, options: SelectOption[]) => (
+    <SelectField
+      id={fieldId(name)}
+      name={name}
+      label={label}
+      value={values[name]}
+      options={options}
+      errors={errors[name]}
+      onChange={handleChange(name)}
+    />
+  )
+
+  const entries = catalog.identities?.entries ?? []
+  const identity = (name: 'marca' | 'modelo' | 'version', label: string) => {
+    const filtered = entries.filter((entry) => name === 'marca' || (entry.marca === values.marca && (name === 'modelo' || entry.modelo === values.modelo)))
+    return <CatalogField id={fieldId(name)} name={name} label={label} value={values[name]}
+      options={[...new Set(filtered.map((entry) => entry[name]))]} errors={errors[name]} onChange={handleChange(name)} />
+  }
 
   return (
     <VehicleFormPage title={title} subtitle={subtitle} actions={actions}>
       <form id={formId} noValidate onSubmit={(event) => void handleSubmit(event)} className={styles.form}>
         <div className={styles.body}>
           <div className={styles.fields}>
+            <h2 className={styles.sectionTitle}>Datos del vehículo</h2>
+            <div className={styles.fullRow}>
+              <p>Buscá y elegí la marca, el modelo y la versión del catálogo.</p>
+              {!catalog.identities ? <p className={alertStyles.alert}>El catálogo no está disponible. Podés conservar los datos de un vehículo existente, pero no seleccionar otro modelo o versión. <button type="button" className={buttonStyles.button} onClick={retry}>REINTENTAR</button></p> : null}
+              {catalog.identities?.stale ? <p>Usamos el último catálogo disponible. Sus precios pueden estar desactualizados.</p> : null}
+              {isEditing && !initialValues.acara_version_id ? <p>Este vehículo todavía no está vinculado al catálogo. Podés conservar sus datos o elegir una versión para vincularlo.</p> : null}
+            </div>
             {text('patente', 'Patente')}
-            {text('marca', 'Marca')}
-            {text('modelo', 'Modelo')}
-            {text('version', 'Versión (opcional)')}
+            {identity('marca', 'Marca')}
+            {identity('modelo', 'Modelo')}
+            {identity('version', 'Versión')}
             {text('anio', 'Año', 'numeric')}
             {text('kilometraje', 'Kilometraje', 'numeric')}
             {text('precio', 'Precio', 'decimal')}
@@ -218,15 +266,29 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
                 onChange={handleChange('descripcion')}
               />
             </div>
+            <h2 className={styles.sectionTitle}>Especificaciones</h2>
+            {choice('moneda', 'Moneda del precio', [{ value: 'ARS', label: 'Pesos (ARS)' }, { value: 'USD', label: 'Dólares (USD)' }])}
+            {text('plazas', 'Plazas (incluye conductor)', 'numeric')}
+            {text('motor', 'Motor (ej. 1.8)')}
+            {choice('turbo', 'Turbo', YES_NO)}
+            {text('potencia', 'Potencia (CV)', 'numeric')}
+            <h2 className={styles.sectionTitle}>Consumo</h2>
+            <p className={styles.fullRow}>Informá L/100 km. Obligatorio para nafta y diésel; opcional para los demás combustibles.</p>
+            {text('consumo_urbano', 'Consumo urbano (L/100 km)', 'decimal')}
+            {text('consumo_ruta', 'Consumo en ruta (L/100 km)', 'decimal')}
+            <p className={styles.fullRow}>En equipamiento, elegí sí o no en cada dato. Android Auto o Apple CarPlay: sí si tiene al menos uno.</p>
+            {Object.entries(EQUIPMENT_GROUPS).map(([group, fields]) => (
+              <section className={styles.fullRow} key={group} aria-label={group}>
+                <h2 className={styles.sectionTitle}>{group}</h2>
+                <div className={styles.fields}>
+                  {fields.map(([key, label]) => <div key={key}>{choice(key, label, YES_NO)}</div>)}
+                </div>
+              </section>
+            ))}
           </div>
           <PhotoPicker draft={draft} errors={errors.fotos} />
         </div>
         {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
-        {formError ? (
-          <p role="alert" className={alertStyles.alert}>
-            {formError}
-          </p>
-        ) : null}
       </form>
     </VehicleFormPage>
   )

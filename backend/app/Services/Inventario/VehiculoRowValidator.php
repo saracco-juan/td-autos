@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 /**
- * Validates one CSV row with the same rules and messages as the manual vehicle form. The plate
+ * Validates one XLSX row with the same rules and messages as the manual vehicle form. The plate
  * is checked for format only: uniqueness depends on the rest of the batch and on the database,
  * so the planner decides it.
  */
@@ -30,12 +30,13 @@ class VehiculoRowValidator
             [
                 ...$this->nullIfEmpty($data),
                 ...$this->normalizedOptions($data),
+                ...$this->booleanFacts($data),
                 'patente' => $plate === '' ? null : $plate,
                 'carroceria_id' => $this->bodyTypeId($data['carroceria'] ?? ''),
                 'fotos' => $photos,
             ],
             [
-                ...VehiculoFields::rules(),
+                ...VehiculoFields::rules(includeMatchingFacts: true),
                 'fotos' => VehiculoFields::fotosCountRules(),
                 'fotos.*' => ['url:http,https'],
             ],
@@ -77,6 +78,21 @@ class VehiculoRowValidator
             fn (string $value) => $this->normalizeName($value),
             array_filter($options, fn (string $value) => trim($value) !== ''),
         );
+    }
+
+    /** Explicit XLSX answers only: blank or unrecognized is unknown, never false. */
+    private function booleanFacts(array $data): array
+    {
+        $facts = [];
+        foreach (['turbo', ...array_keys(VehiculoFields::EQUIPMENT_FIELDS)] as $field) {
+            $facts[$field] = match ($this->normalizeName($data[$field] ?? '')) {
+                'si' => true,
+                'no' => false,
+                default => null,
+            };
+        }
+
+        return $facts;
     }
 
     /**

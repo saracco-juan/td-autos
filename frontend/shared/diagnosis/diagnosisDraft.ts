@@ -1,5 +1,5 @@
 import { BODY_TYPE_MAX, DIAGNOSIS_STEPS } from './steps'
-import type { BodyType, DiagnosisAnswers, DiagnosisDraft } from './types'
+import type { BodyType, DiagnosisAnswers, DiagnosisDraft, SavedDiagnosis } from './types'
 
 // Shown under the options when the user tries to continue without answering (TC-13).
 export const UNANSWERED_STEP_MESSAGE = 'Elegí una opción para continuar.'
@@ -23,7 +23,7 @@ export function createEmptyDraft(): DiagnosisDraft {
 }
 
 // Pre-fills the questionnaire with the saved answers (re-entry).
-export function draftFromAnswers(answers: DiagnosisAnswers): DiagnosisDraft {
+export function draftFromAnswers(answers: SavedDiagnosis): DiagnosisDraft {
   return { ...answers, carrocerias: [...answers.carrocerias] }
 }
 

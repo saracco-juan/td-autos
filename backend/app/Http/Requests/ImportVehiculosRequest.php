@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * The CSV upload of the inventory import, preview and apply alike (CU-20). What is inside the
+ * The XLSX upload of the inventory import, preview and apply alike (CU-20). What is inside the
  * file is checked by the import services, not here.
  */
 class ImportVehiculosRequest extends FormRequest
@@ -24,7 +24,7 @@ class ImportVehiculosRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'archivo' => ['bail', 'required', 'file', 'extensions:csv,txt', 'max:'.self::MAX_KB],
+            'archivo' => ['bail', 'required', 'file', 'extensions:xlsx', 'max:'.self::MAX_KB],
         ];
     }
 
@@ -34,10 +34,10 @@ class ImportVehiculosRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'archivo.required' => 'Elegí un archivo CSV.',
-            'archivo.file' => 'Elegí un archivo CSV válido.',
+            'archivo.required' => 'Elegí un archivo XLSX.',
+            'archivo.file' => 'Elegí un archivo XLSX válido.',
             'archivo.uploaded' => 'No pudimos subir el archivo. Probá de nuevo.',
-            'archivo.extensions' => 'El archivo tiene que ser un CSV.',
+            'archivo.extensions' => 'El archivo tiene que ser un XLSX.',
             'archivo.max' => 'El archivo puede pesar hasta '.intdiv(self::MAX_KB, 1024).' MB.',
         ];
     }

@@ -85,11 +85,13 @@ class User extends Authenticatable
     }
 
     /**
-     * True once a diagnosis row exists for the user (computed, not stored).
+     * An existing diagnosis counts unless its legacy passenger answer needs confirmation.
      */
     protected function tieneDiagnostico(): Attribute
     {
-        return Attribute::get(fn () => $this->diagnostico()->exists());
+        return Attribute::get(fn () => $this->diagnostico()
+            ->where(fn ($query) => $query->whereNull('estado')->orWhere('estado', '!=', 'pendiente_pasajeros'))
+            ->exists());
     }
 
     /**

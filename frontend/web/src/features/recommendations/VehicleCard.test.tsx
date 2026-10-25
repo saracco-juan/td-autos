@@ -19,7 +19,7 @@ describe('VehicleCard', () => {
 
     expect(screen.getByRole('listitem', { name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
     expect(screen.getByText('$ 28.900.000 · 62.000 km · CABA')).toBeInTheDocument()
-    expect(screen.getByText('Mercado Libre')).toBeInTheDocument()
+    expect(screen.getByText('Portal externo')).toBeInTheDocument()
   })
 
   it('uses the original title when the brand or the model are missing', () => {
@@ -46,7 +46,7 @@ describe('VehicleCard', () => {
 
     expect(screen.getByRole('img', { name: 'Foto de Toyota Corolla XEI 2021' })).toHaveAttribute(
       'src',
-      'https://http2.mlstatic.com/D_NQ_NP_corolla.jpg',
+      'https://example.test/listings/1',
     )
     expect(screen.queryByText('Sin imagen')).not.toBeInTheDocument()
   })
