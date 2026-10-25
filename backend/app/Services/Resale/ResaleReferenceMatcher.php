@@ -9,13 +9,6 @@ final class ResaleReferenceMatcher
 {
     private const TURBO_WORDS = 'tsi|tfsi|thp|tbi|turbo';
 
-    public function resolve(object $car, array $rows): ?array
-    {
-        $matches = $this->candidates($car, $rows, false);
-
-        return count($matches) === 1 ? $matches[0] : null;
-    }
-
     public function candidates(object $car, array $rows, bool $allowGroup = true): array
     {
         $label = $this->text($car->version ?? '');
