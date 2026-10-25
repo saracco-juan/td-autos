@@ -119,6 +119,21 @@ final class VehiculoXlsxReader
                     throw new ImportFileException('No se admiten macros en el archivo.');
                 }
             }
+            // Normalize a private copy only after every original part passes safety checks.
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (str_ends_with($name, '.xml')) {
+                    $original = $zip->getFromIndex($i);
+                    $normalized = SpreadsheetNamespaces::normalize($original);
+                    $size += strlen($normalized) - strlen($original);
+                    if ($size > 20 * 1024 * 1024) {
+                        throw new ImportFileException('El archivo XLSX excede los límites o contiene partes no admitidas.');
+                    }
+                    if ($normalized !== $original && ! $zip->addFromString($name, $normalized)) {
+                        throw new RuntimeException('Could not normalize workbook storage.');
+                    }
+                }
+            }
         } finally {
             $zip->close();
         }

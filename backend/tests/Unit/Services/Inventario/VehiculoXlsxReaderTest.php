@@ -13,6 +13,40 @@ use ZipArchive;
 /** UH22: native XLSX parsing stays separate from vehicle and ownership validation. */
 class VehiculoXlsxReaderTest extends TestCase
 {
+    #[DataProvider('namespacePrefixes')]
+    public function test_reads_equivalent_prefixed_worksheet_elements(string $prefix, bool $allParts): void
+    {
+        $bytes = $this->workbook([['AB123CD', 'FIAT', 'Strada', 'Freedom', 2024, 0], [], ['AC123CD']]);
+        $expected = (new VehiculoXlsxReader)->read($bytes);
+        $path = tempnam(sys_get_temp_dir(), 'xlsx-namespace-test-');
+        try {
+            file_put_contents($path, $bytes);
+            $zip = new ZipArchive;
+            $zip->open($path);
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (! str_ends_with($name, '.xml') || (! $allParts && $name !== 'xl/worksheets/sheet1.xml')) {
+                    continue;
+                }
+                $xml = new \DOMDocument;
+                $xml->loadXML($zip->getFromIndex($i), LIBXML_NONET);
+                foreach ($xml->getElementsByTagNameNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', '*') as $element) {
+                    $element->prefix = $prefix;
+                }
+                $zip->addFromString($name, $xml->saveXML());
+            }
+            $zip->close();
+            $this->assertSame($expected, (new VehiculoXlsxReader)->read(file_get_contents($path)));
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public static function namespacePrefixes(): array
+    {
+        return [['x', false], ['sheet', true]];
+    }
+
     public function test_reads_only_inventory_preserving_zero_blank_and_physical_rows(): void
     {
         $bytes = $this->workbook([['AB123CD', 'FIAT', 'Strada', 'Freedom', 2024, 0], [], ['AC123CD']]);
