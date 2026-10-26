@@ -37,3 +37,8 @@ retained. Consumption uses liters per 100 km only for compatible fuel types; oth
 values disclose that their unit was not provided. Descriptions remain plain text.
 Pure detail types and explanations live in `frontend/shared/vehicles/detail.ts`
 for reuse by native mobile. The existing inventory equipment labels are reused.
+
+The gallery uses the ordered API photos, with a full-size image and keyboard
+accessible thumbnail buttons. Missing or failed images have explicit fallbacks;
+one failed photo does not prevent selecting the remaining ones. It never requests
+stock or placeholder images and does not modify uploaded files.
