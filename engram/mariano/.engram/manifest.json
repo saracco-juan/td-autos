@@ -256,6 +256,14 @@
       "sessions": 1,
       "memories": 2,
       "prompts": 1
+    },
+    {
+      "id": "48b6951d",
+      "created_by": "Compumar",
+      "created_at": "2026-10-26T18:28:48.1155441Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 6
     }
   ]
 }
