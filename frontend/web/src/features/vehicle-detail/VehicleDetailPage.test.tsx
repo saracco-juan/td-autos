@@ -38,6 +38,7 @@ it('HU09 / TC-27 explains missing price, currency, photos and facts', async () =
   expect(await screen.findByText('Precio no disponible.')).toBeInTheDocument()
   expect(screen.getByText('Fotos no disponibles.')).toBeInTheDocument()
   expect(screen.getByText('Descripción no disponible.')).toBeInTheDocument()
+  await userEvent.click(screen.getByRole('tab', { name: 'Motor y consumo' }))
   expect(screen.getByText('Motor').parentElement).toHaveTextContent('No disponible')
 })
 

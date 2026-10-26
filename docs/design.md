@@ -92,6 +92,16 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Expand Figma's one-line specification sample into general, engine/consumption,
   safety and comfort groups with plain-language explanations. Unknown is `No
   disponible`, distinct from explicit `No`. Missing/broken photos have fallbacks.
+- User-approved follow-up: show those four groups as section tabs, with general
+  information selected initially and the dealer description always below the
+  tab panels. Reuse soft segmented controls, allow wrapping at narrow widths,
+  and support arrow keys, Home/End and a single tab stop for the selected tab.
+  Synchronized after passing tests to High v3 desktop `2373:7348` (card
+  `2461:9166`) and mobile `2373:9996` (card `2461:9213`), with editable layers,
+  general information shown initially, and vertically scrollable content.
+  Native mobile implementation remains out of scope. Only the tab/description
+  design is synchronized; unrelated pending synchronization below stays pending.
+  No calculator or API changes are part of this follow-up.
 - `VER FICHA` is the primary recommendation-card action. Retain `CALCULAR COSTOS`
   as a visibly pending shortcut until the teammate's HU10 is integrated, not a
   broken link. Connect the existing inspection; do not fake comparison/reventa.

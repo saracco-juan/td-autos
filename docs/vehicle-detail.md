@@ -30,8 +30,12 @@ exclusion, authentication and excluded external records.
 
 ## Comprehensible specifications
 
-The new specification component groups general facts, engine/consumption, safety,
-comfort and dealer description. Unknown facts say `No disponible`; explicit
+The specification component shows four section tabs: `Información general`
+(selected initially), `Motor y consumo`, `Seguridad` and `Confort`. Only the
+selected section's facts are displayed. Arrow keys cycle through tabs; Home/End
+select the first/last tab, and Tab moves into the selected panel. The dealer
+description always stays below the tabs, outside every panel, to shorten the
+page without hiding the description. Unknown facts say `No disponible`; explicit
 equipment absence says `No`, never inferred from missing data. Numeric zero is
 retained. Consumption uses liters per 100 km only for compatible fuel types; other
 values disclose that their unit was not provided. Descriptions remain plain text.
