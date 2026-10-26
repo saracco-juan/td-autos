@@ -1,0 +1,79 @@
+.controls {
+  flex: none;
+  max-width: 100%;
+}
+
+.panel {
+  width: 96px;
+}
+
+.panel[open] {
+  width: clamp(220px, 24vw, 312px);
+}
+
+.panel summary {
+  list-style: none;
+}
+
+.panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid var(--border-input);
+  outline-offset: 2px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 312px;
+  margin-top: 12px;
+}
+
+.chip {
+  width: auto;
+  height: auto;
+  min-height: 40px;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+@media (max-width: 800px) {
+  .controls,
+  .panel,
+  .panel[open],
+  .chips {
+    width: 100%;
+    max-width: none;
+  }
+}
