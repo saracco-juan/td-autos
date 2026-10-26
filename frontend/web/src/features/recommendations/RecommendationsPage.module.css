@@ -16,6 +16,8 @@
 /* HU07 keeps the existing header/grid and adds the High v3 filter sidebar. */
 .filterPage {
   display: grid;
+  /* The real shell has min-height, not a fixed height: sidebar content must not size the page. */
+  contain: size;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   column-gap: 24px;
