@@ -150,7 +150,8 @@ final class RealDemoInventory
     }
 
     /**
-     * Versions of the curated models that have a price in the covered years. A version id found twice
+     * Versions of the curated models that have a price in the covered years and a real engine match (no
+     * fallback: a guessed engine would put the wrong specs on the car). A version id found twice
      * has two prices, so it is dropped (the catalog collapses them and the import could not tell them apart).
      *
      * @param  list<array<string, mixed>>  $rows
@@ -161,7 +162,8 @@ final class RealDemoInventory
 
         foreach ($rows as $row) {
             $key = self::key($row['make'], $row['model']);
-            if (! isset($this->specs[$key]) || $seen[$row['version_id']] > 1) {
+            if (! isset($this->specs[$key]) || $seen[$row['version_id']] > 1
+                || $this->firstMatch(array_column($this->specs[$key]['engines'], 'match'), $row['version']) === null) {
                 continue;
             }
             $years = [];
@@ -226,14 +228,14 @@ final class RealDemoInventory
 
     /**
      * The first listed engine whose `match` is a substring of the version name (list the most specific
-     * ones first); the first engine otherwise.
+     * ones first). Candidates always have a match.
      *
      * @param  list<array<string, mixed>>  $engines
      * @return array<string, mixed>
      */
     private function engine(array $engines, string $version): array
     {
-        return $engines[$this->firstMatch(array_column($engines, 'match'), $version) ?? 0];
+        return $engines[$this->firstMatch(array_column($engines, 'match'), $version)];
     }
 
     /**

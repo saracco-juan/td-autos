@@ -189,6 +189,32 @@ class RealDemoInventoryTest extends TestCase
         }
     }
 
+    public function test_versions_matching_no_engine_are_excluded_instead_of_falling_back(): void
+    {
+        $models = json_decode(file_get_contents(database_path('seeders/assets/real-demo/models.json')), true);
+        foreach ($models as &$model) {
+            // Ranger keeps only its 2.2 engine; Gol Trend (the only Hatchback) matches nothing at all.
+            $model['engines'] = match ($model['model']) {
+                'Ranger' => array_values(array_filter($model['engines'], fn ($e) => $e['match'] === '2.2')),
+                'Gol Trend' => [[...$model['engines'][0], 'match' => 'no-such-engine']],
+                default => $model['engines'],
+            };
+        }
+        unset($model);
+
+        $vehicles = (new RealDemoInventory((new LocalAcaraCatalogData)->load(), $models))->vehicles(1500);
+
+        $this->assertCount(1500, $vehicles);
+        $ranger = array_filter($vehicles, fn ($v) => $v['modelo'] === 'Ranger');
+        $this->assertNotEmpty($ranger);
+        foreach ($ranger as $vehicle) {
+            $this->assertStringContainsString('2.2', $vehicle['version']);
+        }
+        // A model left without candidates is not drawn, and its body drops out of the mix.
+        $this->assertNotContains('Gol Trend', array_column($vehicles, 'modelo'));
+        $this->assertNotContains('Hatchback', array_column($vehicles, 'carroceria'));
+    }
+
     public function test_driver_assistance_is_off_before_2018(): void
     {
         $old = 0;
