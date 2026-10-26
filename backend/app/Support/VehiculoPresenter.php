@@ -30,6 +30,7 @@ final class VehiculoPresenter
             'marca' => $vehiculo->marca,
             'modelo' => $vehiculo->modelo,
             'version' => $vehiculo->version,
+            'acara_version_id' => $vehiculo->acara_version_id,
             'anio' => $vehiculo->anio,
             'kilometraje' => $vehiculo->kilometraje,
             'precio' => $vehiculo->precio + 0,

@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Bulk load of the signed-in dealer's inventory by CSV (CU-20). The route group already
+ * Bulk load of the signed-in dealer's inventory by XLSX (CU-20). The route group already
  * guarantees an active dealer.
  */
 class ConcesionariaVehiculoImportController extends Controller

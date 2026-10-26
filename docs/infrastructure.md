@@ -52,6 +52,7 @@ Same keys in both services; "value" is the same for both unless it says otherwis
 | `LOG_CHANNEL` | `stderr` (logs in Render's Logs tab) | no |
 | `DB_CONNECTION` | `pgsql` | no |
 | `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION` | `database`, `database`, `sync` | no |
+| Catalog cache (named `catalog` store) | Local files in `storage/framework/cache/catalog`; independent of `CACHE_STORE` | no |
 | `SESSION_SECURE_COOKIE` | `true` | no |
 | `VEHICLE_PHOTOS_DISK`, `RECEIPTS_DISK` | `supabase`, `supabase_private` | no |
 | `MAIL_MAILER`, `MAIL_FROM_NAME` | `gmail`, `TD Autos` (in `render.yaml`) | no |
@@ -112,3 +113,17 @@ Limits: a consumer Gmail account sends up to 500 messages a day and 500 recipien
 - **Vercel**: the request body limit of the `/backend` proxy is not documented; check a 5 MB photo and receipt upload on the first deploy.
 - **Supabase**: free projects pause after a week without activity; restore them from the dashboard. The hourly cron queries the database, which should count as activity; check the dashboard after the first week.
 - **GitHub Actions**: scheduled workflows only run from the default branch (`develop`, so the cron starts once this workflow is merged there) and are disabled after 60 days without repository activity; re-enable them in the Actions tab.
+
+## Fixed catalog deployment boundary
+
+The ACARA catalog is stored permanently in five database tables (four catalog tables
+and one initialization/provenance row). The local catalog cache is disposable: after
+a restart or loss of Render's local files, the backend rebuilds it from those tables,
+without downloading or parsing a PDF. Only warm catalog reads avoid database queries;
+authentication and inventory operations still use the database.
+
+Initial loading is an explicit, one-time operation described in [development.md](development.md#fixed-acara-catalog-hu05hu21).
+Apply migrations and load the selected real PDF only in an authorized environment.
+The PostgreSQL migration enables RLS and denies direct anonymous/authenticated Data
+API access to these tables; Laravel's database owner connection serves the existing
+protected API. No automatic ACARA update job is installed.

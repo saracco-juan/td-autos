@@ -56,7 +56,7 @@ describe('InventoryPage', () => {
       ),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveAttribute('href', '/concesionaria/inventario/nuevo')
-    expect(screen.getByRole('link', { name: 'IMPORTAR CSV' })).toHaveAttribute('href', '/concesionaria/inventario/importar')
+    expect(screen.getByRole('link', { name: 'IMPORTAR XLSX' })).toHaveAttribute('href', '/concesionaria/inventario/importar')
   })
 
   it('S3: does not render SUSCRIPCIÓN, whose screen does not exist yet', async () => {
@@ -77,7 +77,7 @@ describe('InventoryPage', () => {
     expect(screen.getByText(PAUSED_HINT)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
     expect(screen.queryByRole('link', { name: 'CARGAR VEHÍCULO' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'IMPORTAR CSV' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'IMPORTAR XLSX' })).not.toBeInTheDocument()
     expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
   })
@@ -336,7 +336,7 @@ describe('InventoryPage save notice', () => {
       await screen.findByRole('table')
 
       const load = screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })
-      const importCsv = screen.getByRole('link', { name: 'IMPORTAR CSV' })
+      const importCsv = screen.getByRole('link', { name: 'IMPORTAR XLSX' })
       const pager = screen.getByRole('navigation', { name: 'Paginación' })
       expect(load.parentElement).toBe(importCsv.parentElement)
       expect(load.parentElement?.nextElementSibling).toBe(pager.parentElement)

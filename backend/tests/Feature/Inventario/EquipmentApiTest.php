@@ -22,6 +22,7 @@ class EquipmentApiTest extends TestCase
     {
         parent::setUp();
         $this->setUpInteractsWithVehiculos();
+        $this->seedVehicleCatalog();
         TipoCarroceria::query()->firstOrCreate(['nombre' => 'Sedán']);
     }
 

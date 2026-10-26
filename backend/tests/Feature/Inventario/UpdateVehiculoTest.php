@@ -20,6 +20,12 @@ class UpdateVehiculoTest extends TestCase
 
     private const URL = '/api/concesionaria/vehiculos';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seedVehicleCatalog();
+    }
+
     /**
      * The edit form sends every field again; photos are only sent when they change.
      *
@@ -31,7 +37,8 @@ class UpdateVehiculoTest extends TestCase
         $payload = $this->payload([
             'marca' => 'Ford',
             'modelo' => 'Focus',
-            'version' => null,
+            'version' => 'Trend 1.6',
+            'acara_version_id' => $this->catalogId('Ford', 'Focus', 'Trend 1.6'),
             'anio' => 2019,
             'kilometraje' => 80000,
             'precio' => 18000000,
@@ -58,7 +65,7 @@ class UpdateVehiculoTest extends TestCase
             ->assertJsonPath('vehiculo.patente', 'CD456EF')
             ->assertJsonPath('vehiculo.marca', 'Ford')
             ->assertJsonPath('vehiculo.modelo', 'Focus')
-            ->assertJsonPath('vehiculo.version', null)
+            ->assertJsonPath('vehiculo.version', 'Trend 1.6')
             ->assertJsonPath('vehiculo.anio', 2019)
             ->assertJsonPath('vehiculo.kilometraje', 80000)
             ->assertJsonPath('vehiculo.precio', 18000000)

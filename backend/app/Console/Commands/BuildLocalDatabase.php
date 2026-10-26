@@ -2,11 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Catalog\FixedAcaraCatalog;
 use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\LocalDevSeeder;
+use Database\Seeders\Support\LocalAcaraCatalogData;
 use Database\Seeders\VolumeInventorySeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Rebuilds a local SQLite file with every migration and the demo seed. It always targets its own
@@ -19,7 +22,7 @@ class BuildLocalDatabase extends Command
     protected $signature = 'db:local {--path= : SQLite file (default: database/manual.sqlite)}
         {--vehiculos= : Extra dealer vehicles to load on top of the demo seed (default: none)}';
 
-    protected $description = 'Rebuild a local SQLite database with demo data';
+    protected $description = 'Rebuild a local SQLite database with demo data and the fixed ACARA catalog';
 
     public function handle(): int
     {
@@ -33,6 +36,15 @@ class BuildLocalDatabase extends Command
 
         if ($vehicles === null) {
             $this->error('--vehiculos must be a whole number, 0 or more.');
+
+            return self::FAILURE;
+        }
+
+        // Validate the portable source before the existing command replaces any SQLite file.
+        try {
+            $catalogSnapshot = (new LocalAcaraCatalogData)->load();
+        } catch (Throwable $error) {
+            $this->error('Local ACARA catalog unavailable: '.$error->getMessage());
 
             return self::FAILURE;
         }
@@ -65,12 +77,16 @@ class BuildLocalDatabase extends Command
             config(['filesystems.vehicle_photos_disk' => 'public', 'filesystems.receipts_disk' => 'local']);
             DB::purge(self::CONNECTION);
 
-            $this->call('migrate:fresh', [
+            $migrated = $this->call('migrate:fresh', [
                 '--database' => self::CONNECTION,
                 '--seed' => true,
                 '--seeder' => LocalDevSeeder::class,
                 '--force' => true,
             ]);
+            if ($migrated !== self::SUCCESS) {
+                return self::FAILURE;
+            }
+            app(FixedAcaraCatalog::class)->import($catalogSnapshot);
 
             if ($vehicles > 0) {
                 app(VolumeInventorySeeder::class)->withVehicles($vehicles)->setCommand($this)->run();
@@ -84,9 +100,12 @@ class BuildLocalDatabase extends Command
 
         $this->newLine();
         $this->info("Local database ready: {$path}");
+        $this->line('Fixed ACARA catalog loaded ('.count($catalogSnapshot['rows']).' source rows).');
         $this->line('Add to backend/.env to use it:');
         $this->line('  DB_CONNECTION=sqlite');
         $this->line("  DB_DATABASE={$path}");
+        $this->line('  DB_URL=');
+        $this->line('After changing the environment, run `php artisan config:clear`.');
         $this->line('Demo accounts (password: '.$password.'):');
         $this->line('  '.LocalDevSeeder::ADMIN_EMAIL.' (admin)');
         $this->line('  '.LocalDevSeeder::BUYER_EMAIL.' (buyer)');

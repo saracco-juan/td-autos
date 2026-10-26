@@ -1,12 +1,16 @@
-import { apiFetch } from '../../lib/http'
+import { apiFetch, apiFetchBlob } from '../../lib/http'
 import { fetchDiagnosis } from '../diagnosis/api'
 import type { BodyType } from '../diagnosis/types'
-import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse } from './types'
+import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse, VehicleCatalog } from './types'
 import { normalizePlate, type VehicleValues } from './vehicleFields'
 
 export async function fetchVehicles(): Promise<Vehiculo[]> {
   const response = await apiFetch<VehiculosResponse>('/api/concesionaria/vehiculos')
   return response.vehiculos
+}
+
+export function fetchVehicleCatalog(): Promise<VehicleCatalog> {
+  return apiFetch<VehicleCatalog>('/api/concesionaria/vehiculos/catalogo')
 }
 
 // The API answers 204 with no body; a vehicle that is not the dealer's (or is gone) answers 404.
@@ -70,7 +74,11 @@ function sendImport(path: string, file: File): Promise<ImportCounts> {
   return apiFetch<ImportCounts>(path, { method: 'POST', body: data })
 }
 
-// Dry run of the CSV import: validates the whole file and counts what it would do, changing nothing.
+export function fetchInventoryTemplate(): Promise<Blob> {
+  return apiFetchBlob('/api/concesionaria/vehiculos/importar/plantilla')
+}
+
+// Dry run of the XLSX import: validates the whole file and counts what it would do, changing nothing.
 export function previewImport(file: File): Promise<ImportCounts> {
   return sendImport('/api/concesionaria/vehiculos/importar/vista-previa', file)
 }

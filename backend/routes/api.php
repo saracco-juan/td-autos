@@ -8,12 +8,14 @@ use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\InspeccionController;
+use App\Http\Controllers\InventoryXlsxTemplateController;
 use App\Http\Controllers\Mobile\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecomendacionesController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
+use App\Http\Controllers\VehicleCatalogController;
 use App\Http\Controllers\VehiculoCostosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +60,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
+        Route::get('/catalogo', VehicleCatalogController::class);
+        Route::get('/importar/plantilla', InventoryXlsxTemplateController::class);
         Route::post('/importar/vista-previa', [ConcesionariaVehiculoImportController::class, 'preview']);
         Route::post('/importar', [ConcesionariaVehiculoImportController::class, 'import']);
         Route::get('/', [ConcesionariaVehiculoController::class, 'index']);

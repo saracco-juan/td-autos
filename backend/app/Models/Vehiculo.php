@@ -27,6 +27,7 @@ class Vehiculo extends Model
         'marca',
         'modelo',
         'version',
+        'acara_version_id',
         'anio',
         'kilometraje',
         'precio',

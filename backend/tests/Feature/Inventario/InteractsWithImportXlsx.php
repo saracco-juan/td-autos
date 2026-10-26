@@ -3,16 +3,21 @@
 namespace Tests\Feature\Inventario;
 
 use App\Models\TipoCarroceria;
+use avadim\FastExcelWriter\Excel;
 use Illuminate\Http\UploadedFile;
 
 /**
- * Fixtures for the CSV import tests: build a CSV file from row arrays, in any separator,
- * with or without a BOM, and the URL list of a vehicle's photos.
+ * Real XLSX fixtures for the inventory API and a vehicle's public photo URLs.
  */
-trait InteractsWithImportCsv
+trait InteractsWithImportXlsx
 {
+    protected function setUpInteractsWithImportXlsx(): void
+    {
+        $this->seedVehicleCatalog();
+    }
+
     /** @var list<string> */
-    private const CSV_HEADERS = [
+    private const WORKBOOK_HEADERS = [
         'patente', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio',
         'transmision', 'combustible', 'carroceria', 'ubicacion', 'descripcion', 'fotos',
         'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
@@ -31,12 +36,12 @@ trait InteractsWithImportCsv
     }
 
     /**
-     * A valid CSV row keyed by header name.
+     * A valid inventory row keyed by header name.
      *
      * @param  array<string, string>  $overrides
      * @return array<string, string>
      */
-    private function csvRow(array $overrides = []): array
+    private function workbookRow(array $overrides = []): array
     {
         return [
             'patente' => 'AB123CD',
@@ -61,31 +66,30 @@ trait InteractsWithImportCsv
     }
 
     /**
-     * CSV text for the given rows (each keyed by header name).
+     * A native workbook for rows keyed by header name.
      *
      * @param  list<array<string, string>>  $rows
      * @param  list<string>|null  $headers  Header names and order; defaults to the canonical ones.
      */
-    private function csvContent(array $rows, string $separator = ';', bool $bom = false, ?array $headers = null): string
+    private function workbookContent(array $rows, ?array $headers = null): string
     {
-        $headers ??= self::CSV_HEADERS;
-        $lines = [implode($separator, $headers)];
+        $headers ??= self::WORKBOOK_HEADERS;
+        $path = tempnam(sys_get_temp_dir(), 'inventory-api-test-');
+        try {
+            $excel = Excel::create(['Inventario'], ['temp_dir' => sys_get_temp_dir()]);
+            $excel->sheet()->writeRow($headers);
+            foreach ($rows as $row) {
+                $excel->sheet()->writeRow(array_map(fn (string $header) => $row[strtolower(trim($header))] ?? '', $headers));
+            }
+            $excel->save($path);
 
-        foreach ($rows as $row) {
-            $lines[] = implode($separator, array_map(fn (string $header) => $this->csvCell($row[strtolower(trim($header))] ?? '', $separator), $headers));
+            return file_get_contents($path);
+        } finally {
+            unlink($path);
         }
-
-        return ($bom ? "\xEF\xBB\xBF" : '').implode("\r\n", $lines)."\r\n";
     }
 
-    private function csvCell(string $value, string $separator): string
-    {
-        return str_contains($value, $separator) || str_contains($value, '"')
-            ? '"'.str_replace('"', '""', $value).'"'
-            : $value;
-    }
-
-    private function csvFile(string $content, string $name = 'stock.csv'): UploadedFile
+    private function workbookFile(string $content, string $name = 'stock.xlsx'): UploadedFile
     {
         return UploadedFile::fake()->createWithContent($name, $content);
     }

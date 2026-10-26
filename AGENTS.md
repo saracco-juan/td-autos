@@ -42,6 +42,13 @@ Rules:
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
 - Do not discard uncommitted work (`git reset --hard`, `git clean`, `git checkout -- <path>`, `git stash drop`) without explicit confirmation from the developer.
 
+## RDD review preference
+
+- When RDD applies, prefer "Review this change" (option 1).
+- A very small, low-risk change may skip review when the applicable assessment says it is unnecessary; still run proportional checks. Small size alone does not waive security or data risks.
+- Use this preference wherever the runtime supports standing consent. If the native review contract requires explicit consent for each candidate, obtain it rather than treating this preference as a grant or bypassing the contract.
+- Keep RDD mode user-owned; this preference does not authorize publishing, merging, or changing that mode.
+
 ## Shared agent memory (Engram)
 
 Agent memory travels between machines through the repo, one folder per developer: `engram/juan/` and `engram/mariano/`. Each developer writes only to their own folder.

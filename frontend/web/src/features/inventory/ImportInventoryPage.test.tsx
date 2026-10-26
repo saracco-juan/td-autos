@@ -1,13 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
-import { confirmImport, previewImport } from './api'
+import { confirmImport, fetchInventoryTemplate, previewImport } from './api'
 import { inactiveBody } from './fixtures'
 import ImportInventoryPage from './ImportInventoryPage'
 
-vi.mock('./api', () => ({ previewImport: vi.fn(), confirmImport: vi.fn() }))
+vi.mock('./api', () => ({ previewImport: vi.fn(), confirmImport: vi.fn(), fetchInventoryTemplate: vi.fn() }))
 
 type Counts = { nuevos: number; actualizaciones: number }
 
@@ -17,7 +17,7 @@ function Inventory() {
 }
 
 function renderPage() {
-  render(
+  return render(
     <MemoryRouter initialEntries={['/concesionaria/inventario/importar']}>
       <Routes>
         <Route path="/concesionaria/inventario/importar" element={<ImportInventoryPage />} />
@@ -27,8 +27,8 @@ function renderPage() {
   )
 }
 
-const CSV = new File(['patente;marca'], 'stock.csv', { type: 'text/csv' })
-const OTHER = new File(['x'], 'otro.csv', { type: 'text/csv' })
+const XLSX = new File(['patente;marca'], 'stock.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+const OTHER = new File(['x'], 'otro.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
 const ROW_ERRORS = {
   message: 'El archivo tiene errores. No se aplicó ningún cambio.',
   errores: [
@@ -37,7 +37,7 @@ const ROW_ERRORS = {
   ],
 }
 
-const pick = (file: File = CSV) => userEvent.setup().upload(screen.getByLabelText('Archivo CSV'), file)
+const pick = (file: File = XLSX) => userEvent.setup().upload(screen.getByLabelText('Archivo XLSX'), file)
 const confirmButton = () => screen.getByRole('button', { name: /CONFIRMAR IMPORTACIÓN|IMPORTANDO/ })
 const previewHeading = () => screen.queryByRole('heading', { name: 'Vista previa' })
 
@@ -52,14 +52,25 @@ describe('ImportInventoryPage', () => {
   beforeEach(() => {
     vi.mocked(previewImport).mockReset()
     vi.mocked(confirmImport).mockReset()
+    vi.mocked(fetchInventoryTemplate).mockReset()
+    vi.stubGlobal('URL', class extends URL {
+      static createObjectURL = vi.fn(() => 'blob:inventory-template')
+      static revokeObjectURL = vi.fn()
+    })
   })
 
-  it('renders the header, the format card and the actions of Figma 38:1005', () => {
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('renders the header, the format card and the actions of Figma 2373:8817', () => {
     renderPage()
 
     expect(screen.getByRole('link', { name: 'Volver al inventario' })).toHaveAttribute('href', '/concesionaria/inventario')
     expect(screen.getByText('INVENTARIO')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1, name: 'Importar CSV' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Importar XLSX' })).toBeInTheDocument()
     expect(screen.getByText('Subí un archivo para cargar o actualizar varios vehículos a la vez.')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Formato del archivo' })).toBeInTheDocument()
     expect(screen.getByText(/Cada fila necesita patente, marca, modelo, año y al menos 7 URLs de imágenes públicas/)).toBeInTheDocument()
@@ -67,10 +78,11 @@ describe('ImportInventoryPage', () => {
     expect(screen.getByText(/CV, HP o kW/)).toBeInTheDocument()
     expect(screen.getByText(/L\/100 km/)).toBeInTheDocument()
     expect(screen.getByText(/Vacío no significa no/)).toBeInTheDocument()
-    expect(screen.getByText(/datos ficticios/)).toBeInTheDocument()
+    expect(screen.getByText(/hoja Inventario/)).toBeInTheDocument()
+    expect(screen.getByText(/valida todas las filas/)).toBeInTheDocument()
     expect(screen.getByText('Ningún archivo seleccionado')).toBeInTheDocument()
     expect(screen.getByText('SELECCIONAR ARCHIVO')).toBeInTheDocument()
-    expect(screen.getByLabelText('Archivo CSV')).toHaveAttribute('accept', '.csv,text/csv')
+    expect(screen.getByLabelText('Archivo XLSX')).toHaveAttribute('accept', '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     expect(screen.getByRole('link', { name: 'VOLVER AL INVENTARIO' })).toHaveAttribute('href', '/concesionaria/inventario')
     expect(confirmButton()).toBeDisabled()
     expect(previewHeading()).not.toBeInTheDocument()
@@ -89,12 +101,58 @@ describe('ImportInventoryPage', () => {
     expect(screen.queryByText('No pudimos procesar el archivo. Probá de nuevo.')).not.toBeInTheDocument()
   })
 
-  it('offers the CSV template as a download in the format card', () => {
-    renderPage()
+  it('downloads the authenticated XLSX once and releases its URL on unmount', async () => {
+    const blob = new Blob(['PK'])
+    let resolve!: (blob: Blob) => void
+    vi.mocked(fetchInventoryTemplate).mockReturnValue(new Promise(done => { resolve = done }))
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      expect(this.download).toBe('plantilla-inventario.xlsx')
+      expect(this.href).toBe('blob:inventory-template')
+    })
+    const page = renderPage()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+    expect(screen.getByRole('button', { name: 'DESCARGANDO…' })).toBeDisabled()
+    resolve(blob)
+    await waitFor(() => expect(click).toHaveBeenCalledOnce())
+    expect(fetchInventoryTemplate).toHaveBeenCalledOnce()
+    expect(URL.createObjectURL).toHaveBeenCalledWith(blob)
+    expect(previewImport).not.toHaveBeenCalled()
+    expect(confirmImport).not.toHaveBeenCalled()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(2))
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
+    page.unmount()
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(2)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:inventory-template')
+  })
 
-    const template = screen.getByRole('link', { name: 'DESCARGAR PLANTILLA' })
-    expect(template).toHaveAttribute('href', '/plantilla-inventario.csv')
-    expect(template).toHaveAttribute('download', 'plantilla-inventario.csv')
+  it('does not download a template if the page unmounts before the response', async () => {
+    let resolve!: (blob: Blob) => void
+    vi.mocked(fetchInventoryTemplate).mockReturnValue(new Promise(done => { resolve = done }))
+    const page = renderPage()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+    page.unmount()
+    await act(async () => resolve(new Blob(['PK'])))
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
+  })
+
+  it.each([new NetworkError(new Error('offline')), new HttpError(503, {}), new HttpError(403, inactiveBody())])(
+    'shows a download failure and allows retry without enabling import', async error => {
+      vi.mocked(fetchInventoryTemplate).mockRejectedValue(error)
+      renderPage()
+      await userEvent.setup().click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+      expect(await screen.findByRole('alert')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' })).toBeEnabled()
+      expect(confirmButton()).toBeDisabled()
+      expect(URL.createObjectURL).not.toHaveBeenCalled()
+    },
+  )
+
+  it('does not accept a CSV file through the XLSX picker', async () => {
+    renderPage()
+    await pick(new File(['patente;marca'], 'stock.csv', { type: 'text/csv' }))
+    expect(previewImport).not.toHaveBeenCalled()
+    expect(confirmButton()).toBeDisabled()
   })
 
   it('previews the file as soon as it is picked, with a loader on the preview card only', async () => {
@@ -104,8 +162,8 @@ describe('ImportInventoryPage', () => {
 
     await pick()
 
-    expect(previewImport).toHaveBeenCalledWith(CSV)
-    expect(screen.getByText('stock.csv')).toBeInTheDocument()
+    expect(previewImport).toHaveBeenCalledWith(XLSX)
+    expect(screen.getByText('stock.xlsx')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Cargando')
     expect(confirmButton()).toBeDisabled()
 
@@ -173,7 +231,7 @@ describe('ImportInventoryPage', () => {
 
     await screen.findByRole('alert')
     expect(previewHeading()).not.toBeInTheDocument()
-    expect(screen.getByText('otro.csv')).toBeInTheDocument()
+    expect(screen.getByText('otro.xlsx')).toBeInTheDocument()
     expect(confirmButton()).toBeDisabled()
   })
 
@@ -198,10 +256,10 @@ describe('ImportInventoryPage', () => {
 
     await userEvent.setup().click(confirmButton())
 
-    expect(confirmImport).toHaveBeenCalledWith(CSV)
+    expect(confirmImport).toHaveBeenCalledWith(XLSX)
     expect(confirmButton()).toBeDisabled()
     expect(confirmButton()).toHaveAttribute('aria-busy', 'true')
-    expect(screen.getByLabelText('Archivo CSV')).toBeDisabled()
+    expect(screen.getByLabelText('Archivo XLSX')).toBeDisabled()
 
     resolve({ nuevos: 3, actualizaciones: 1 })
 
@@ -233,7 +291,7 @@ describe('ImportInventoryPage', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
     expect(previewHeading()).not.toBeInTheDocument()
     expect(confirmButton()).toBeDisabled()
-    expect(screen.getByRole('heading', { level: 1, name: 'Importar CSV' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Importar XLSX' })).toBeInTheDocument()
   })
 
   it('a network failure at confirm keeps the preview so the dealer can retry', async () => {

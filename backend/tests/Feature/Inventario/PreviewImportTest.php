@@ -15,12 +15,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * UH22 (RF21, RF23, RF24, RF25, CU-20): the dry run of the CSV import. It validates the whole
+ * UH22 (RF21, RF23, RF24, RF25, CU-20): the dry run of the XLSX import. It validates the whole
  * batch, counts new and updated vehicles and lists every error, without writing anything.
  */
 class PreviewImportTest extends TestCase
 {
-    use InteractsWithImportCsv;
+    use InteractsWithImportXlsx;
     use InteractsWithVehiculos;
     use RefreshDatabase;
 
@@ -34,9 +34,9 @@ class PreviewImportTest extends TestCase
     /**
      * @param  list<array<string, string>>  $rows
      */
-    private function previewRows(User $user, array $rows, string $separator = ';'): TestResponse
+    private function previewRows(User $user, array $rows): TestResponse
     {
-        return $this->preview($user, $this->csvFile($this->csvContent($rows, $separator)));
+        return $this->preview($user, $this->workbookFile($this->workbookContent($rows)));
     }
 
     /**
@@ -58,9 +58,9 @@ class PreviewImportTest extends TestCase
         $photos = FotoVehiculo::query()->count();
 
         $this->previewRows($user, [
-            $this->csvRow(['patente' => 'xy-987-zw']),
-            $this->csvRow(['patente' => 'AB123CD']),
-            $this->csvRow(['patente' => 'ABC123']),
+            $this->workbookRow(['patente' => 'xy-987-zw']),
+            $this->workbookRow(['patente' => 'AB123CD']),
+            $this->workbookRow(['patente' => 'ABC123']),
         ])->assertOk()->assertExactJson(['nuevos' => 2, 'actualizaciones' => 1]);
 
         $this->assertSame($vehicles, Vehiculo::query()->count());
@@ -69,65 +69,70 @@ class PreviewImportTest extends TestCase
     }
 
     /**
-     * @return array<string, array{string, bool}>
+     * @return array<string, array{string}>
      */
     public static function formats(): array
     {
         return [
-            'semicolon' => [';', false],
-            'comma' => [',', false],
-            'semicolon with BOM' => [';', true],
-            'comma with BOM' => [',', true],
+            'CSV' => ['stock.csv'],
+            'text' => ['stock.txt'],
+            'renamed CSV' => ['stock.xlsx'],
         ];
     }
 
     #[DataProvider('formats')]
-    public function test_reads_both_separators_with_or_without_bom(string $separator, bool $bom): void
+    public function test_rejects_csv_including_text_renamed_as_xlsx(string $filename): void
     {
-        $content = $this->csvContent([$this->csvRow(), $this->csvRow(['patente' => 'ABC123'])], $separator, $bom);
-
-        $this->preview($this->dealer(), $this->csvFile($content))
-            ->assertOk()->assertExactJson(['nuevos' => 2, 'actualizaciones' => 0]);
+        $user = $this->dealer();
+        foreach (['/vista-previa', ''] as $suffix) {
+            $this->actingAs($user)->postJson('/api/concesionaria/vehiculos/importar'.$suffix, [
+                'archivo' => $this->workbookFile("patente;marca\r\nAB123CD;Toyota", $filename),
+            ])->assertUnprocessable()->assertJsonValidationErrors('archivo');
+        }
+        $this->assertDatabaseCount('vehiculo', 0);
     }
 
     public function test_headers_may_come_in_any_order_and_case_and_optional_columns_may_be_absent(): void
     {
-        $headers = ['FOTOS', ' Carroceria ', 'Patente', 'precio', 'KILOMETRAJE', 'anio', 'combustible', 'transmision', 'marca', 'modelo', 'ubicacion'];
-        $headers = [...$headers, ...array_slice(self::CSV_HEADERS, 13)];
-        $content = $this->csvContent([$this->csvRow()], ';', false, $headers);
+        $headers = ['FOTOS', ' Carroceria ', 'Patente', 'precio', 'KILOMETRAJE', 'anio', 'combustible', 'transmision', 'marca', 'modelo', 'version', 'ubicacion'];
+        $headers = [...$headers, ...array_slice(self::WORKBOOK_HEADERS, 13)];
+        $content = $this->workbookContent([$this->workbookRow()], $headers);
 
-        $this->preview($this->dealer(), $this->csvFile($content))
+        $this->preview($this->dealer(), $this->workbookFile($content))
             ->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
     }
 
     public function test_optional_cells_may_be_empty_and_the_body_type_ignores_case_and_accents(): void
     {
         $this->previewRows($this->dealer(), [
-            $this->csvRow(['version' => '', 'descripcion' => '', 'carroceria' => 'SEDAN']),
+            $this->workbookRow(['descripcion' => '', 'carroceria' => 'SEDAN']),
         ])->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
     }
 
-    public function test_the_web_template_is_a_valid_file(): void
+    public function test_the_downloaded_empty_template_requires_inventory_rows(): void
     {
-        $template = file_get_contents(base_path('../frontend/web/public/plantilla-inventario.csv'));
+        $this->seedVehicleCatalog();
+        $user = $this->dealer();
+        $template = $this->actingAs($user)->get('/api/concesionaria/vehiculos/importar/plantilla')->assertOk()->getContent();
 
-        $this->preview($this->dealer(), $this->csvFile($template, 'plantilla-inventario.csv'))
-            ->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
+        $this->preview($user, $this->workbookFile($template))
+            ->assertUnprocessable()->assertJsonPath('errors.archivo', ['El archivo no tiene filas para importar.']);
+        $this->assertDatabaseCount('vehiculo', 0);
     }
 
     public function test_transmission_and_fuel_ignore_case_and_accents(): void
     {
         $this->previewRows($this->dealer(), [
-            $this->csvRow(['transmision' => 'Automática', 'combustible' => 'NAFTA']),
-            $this->csvRow(['patente' => 'ABC123', 'transmision' => ' manual ', 'combustible' => 'Híbrido']),
+            $this->workbookRow(['transmision' => 'Automática', 'combustible' => 'NAFTA']),
+            $this->workbookRow(['patente' => 'ABC123', 'transmision' => ' manual ', 'combustible' => 'Híbrido']),
         ])->assertOk()->assertExactJson(['nuevos' => 2, 'actualizaciones' => 0]);
     }
 
     public function test_tc59_fewer_than_seven_photo_urls_reject_the_batch(): void
     {
         $errors = $this->errorsOf($this->previewRows($this->dealer(), [
-            $this->csvRow(),
-            $this->csvRow(['patente' => 'ABC123', 'fotos' => $this->photoCell(6)]),
+            $this->workbookRow(),
+            $this->workbookRow(['patente' => 'ABC123', 'fotos' => $this->photoCell(6)]),
         ]));
 
         $this->assertSame([['fila' => 3, 'patente' => 'ABC123', 'mensajes' => ['Cargá al menos siete fotos.']]], $errors);
@@ -135,7 +140,7 @@ class PreviewImportTest extends TestCase
 
     public function test_more_than_twenty_photo_urls_reject_the_batch(): void
     {
-        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->csvRow(['fotos' => $this->photoCell(21)])]));
+        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->workbookRow(['fotos' => $this->photoCell(21)])]));
 
         $this->assertSame(['Podés cargar hasta 20 fotos.'], $errors[0]['mensajes']);
     }
@@ -144,7 +149,7 @@ class PreviewImportTest extends TestCase
     {
         $cell = ' '.str_replace('|', ' | ', $this->photoCell(7)).' || ';
 
-        $this->previewRows($this->dealer(), [$this->csvRow(['fotos' => $cell])])
+        $this->previewRows($this->dealer(), [$this->workbookRow(['fotos' => $cell])])
             ->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 0]);
     }
 
@@ -152,7 +157,7 @@ class PreviewImportTest extends TestCase
     {
         $cell = $this->photoCell(6).'|ftp://cdn.example.com/7.jpg|javascript:alert(1)';
 
-        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->csvRow(['fotos' => $cell])]));
+        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->workbookRow(['fotos' => $cell])]));
 
         $this->assertSame([
             'La foto 7 no es una URL válida: tiene que empezar con http:// o https://.',
@@ -162,7 +167,7 @@ class PreviewImportTest extends TestCase
 
     public function test_an_empty_photo_cell_asks_for_the_photos(): void
     {
-        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->csvRow(['fotos' => ''])]));
+        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->workbookRow(['fotos' => ''])]));
 
         $this->assertSame(['Cargá al menos siete fotos.'], $errors[0]['mensajes']);
     }
@@ -170,9 +175,9 @@ class PreviewImportTest extends TestCase
     public function test_tc60_a_plate_repeated_in_the_file_is_an_error_on_every_repeated_row(): void
     {
         $errors = $this->errorsOf($this->previewRows($this->dealer(), [
-            $this->csvRow(['patente' => 'ab 123 cd']),
-            $this->csvRow(['patente' => 'ABC123']),
-            $this->csvRow(['patente' => 'AB-123-CD']),
+            $this->workbookRow(['patente' => 'ab 123 cd']),
+            $this->workbookRow(['patente' => 'ABC123']),
+            $this->workbookRow(['patente' => 'AB-123-CD']),
         ]));
 
         $message = 'La patente AB123CD está repetida en el archivo.';
@@ -187,7 +192,7 @@ class PreviewImportTest extends TestCase
         $other = Concesionaria::factory()->active()->create(['nombre' => 'Autos del Sur']);
         $this->vehicleOf($other, 7, 'AB123CD');
 
-        $response = $this->previewRows($this->dealer(), [$this->csvRow()]);
+        $response = $this->previewRows($this->dealer(), [$this->workbookRow()]);
 
         $errors = $this->errorsOf($response);
         $this->assertSame([['fila' => 2, 'patente' => 'AB123CD', 'mensajes' => ['Esa patente ya está cargada en la plataforma.']]], $errors);
@@ -222,7 +227,7 @@ class PreviewImportTest extends TestCase
     #[DataProvider('invalidFields')]
     public function test_field_rules_are_the_ones_of_the_manual_form(array $override, string $message): void
     {
-        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->csvRow($override)]));
+        $errors = $this->errorsOf($this->previewRows($this->dealer(), [$this->workbookRow($override)]));
 
         $this->assertSame(2, $errors[0]['fila']);
         $this->assertContains($message, $errors[0]['mensajes']);
@@ -230,15 +235,15 @@ class PreviewImportTest extends TestCase
 
     public function test_every_error_is_listed_ordered_by_physical_row(): void
     {
-        $content = $this->csvContent([
-            $this->csvRow(['anio' => '1900', 'transmision' => 'cvt']),
-            $this->csvRow(['patente' => 'ABC123']),
-            $this->csvRow(['patente' => 'DEF456', 'fotos' => $this->photoCell(2)]),
+        $content = $this->workbookContent([
+            $this->workbookRow(['anio' => '1900', 'transmision' => 'cvt']),
+            $this->workbookRow(['patente' => 'ABC123']),
+            [],
+            [],
+            $this->workbookRow(['patente' => 'DEF456', 'fotos' => $this->photoCell(2)]),
         ]);
-        $lines = explode("\r\n", $content);
-        array_splice($lines, 3, 0, ['', ';;;;;;;;;;;;']);
 
-        $errors = $this->errorsOf($this->preview($this->dealer(), $this->csvFile(implode("\r\n", $lines))));
+        $errors = $this->errorsOf($this->preview($this->dealer(), $this->workbookFile($content)));
 
         $this->assertSame([
             ['fila' => 2, 'patente' => 'AB123CD', 'mensajes' => ['Revisá el año: está fuera del rango permitido.', 'Elegí la transmisión de la lista.']],
@@ -251,60 +256,59 @@ class PreviewImportTest extends TestCase
         $user = $this->dealer();
         $this->vehicleOf($user->concesionaria, 7, 'AB123CD');
 
-        $this->previewRows($user, [$this->csvRow()])
+        $this->previewRows($user, [$this->workbookRow()])
             ->assertOk()->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
     }
 
     /**
-     * @return array<string, array{string, string}>
+     * @return array<string, array{?array, ?array, string}>
      */
     public static function unreadableFiles(): array
     {
-        $header = implode(';', self::CSV_HEADERS);
-
         return [
-            'empty' => ['', 'El archivo está vacío.'],
-            'header only' => [$header."\r\n", 'El archivo no tiene filas para importar.'],
-            'missing headers' => ["patente;marca\r\nAB123CD;Toyota\r\n", 'Faltan las columnas obligatorias: modelo, anio, kilometraje, precio, transmision, combustible, carroceria, ubicacion, fotos, '.implode(', ', array_slice(self::CSV_HEADERS, 13)).'. Descargá la plantilla actualizada.'],
+            'empty' => [null, null, 'Elegí un archivo XLSX válido de hasta 2 MB.'],
+            'header only' => [[], null, 'El archivo no tiene filas para importar.'],
+            'missing headers' => [[['patente' => 'AB123CD', 'marca' => 'Toyota']], ['patente', 'marca'], 'Faltan columnas obligatorias o hay columnas repetidas. Descargá la plantilla actualizada.'],
         ];
     }
 
     #[DataProvider('unreadableFiles')]
-    public function test_file_level_errors_use_the_standard_validation_shape(string $content, string $message): void
+    public function test_file_level_errors_use_the_standard_validation_shape(?array $rows, ?array $headers, string $message): void
     {
-        $this->preview($this->dealer(), $this->csvFile($content))
+        $content = $rows === null ? '' : $this->workbookContent($rows, $headers);
+        $this->preview($this->dealer(), $this->workbookFile($content))
             ->assertUnprocessable()
             ->assertJsonPath('errors.archivo', [$message]);
     }
 
     public function test_more_than_five_hundred_rows_are_rejected(): void
     {
-        $rows = array_map(fn (int $n) => $this->csvRow(['patente' => 'AB'.str_pad((string) $n, 3, '0', STR_PAD_LEFT).'CD']), range(1, 501));
+        $rows = array_map(fn (int $n) => $this->workbookRow(['patente' => 'AB'.str_pad((string) $n, 3, '0', STR_PAD_LEFT).'CD']), range(1, 501));
 
-        $this->preview($this->dealer(), $this->csvFile($this->csvContent($rows)))
+        $this->preview($this->dealer(), $this->workbookFile($this->workbookContent($rows)))
             ->assertUnprocessable()
             ->assertJsonPath('errors.archivo', ['El archivo supera el máximo de 500 filas.']);
     }
 
     public function test_exactly_five_hundred_rows_are_accepted(): void
     {
-        $rows = array_map(fn (int $n) => $this->csvRow(['patente' => 'AB'.str_pad((string) $n, 3, '0', STR_PAD_LEFT).'CD']), range(1, 500));
+        $rows = array_map(fn (int $n) => $this->workbookRow(['patente' => 'AB'.str_pad((string) $n, 3, '0', STR_PAD_LEFT).'CD']), range(1, 500));
 
-        $this->preview($this->dealer(), $this->csvFile($this->csvContent($rows)))
+        $this->preview($this->dealer(), $this->workbookFile($this->workbookContent($rows)))
             ->assertOk()->assertExactJson(['nuevos' => 500, 'actualizaciones' => 0]);
     }
 
-    public function test_the_file_must_be_present_a_csv_and_at_most_two_megabytes(): void
+    public function test_the_file_must_be_present_an_xlsx_and_at_most_two_megabytes(): void
     {
         $user = $this->dealer();
 
         $this->actingAs($user)->post(self::URL, [], ['Accept' => 'application/json'])
-            ->assertUnprocessable()->assertJsonPath('errors.archivo', ['Elegí un archivo CSV.']);
+            ->assertUnprocessable()->assertJsonPath('errors.archivo', ['Elegí un archivo XLSX.']);
 
         $this->preview($user, UploadedFile::fake()->create('stock.pdf', 10, 'application/pdf'))
-            ->assertUnprocessable()->assertJsonPath('errors.archivo', ['El archivo tiene que ser un CSV.']);
+            ->assertUnprocessable()->assertJsonPath('errors.archivo', ['El archivo tiene que ser un XLSX.']);
 
-        $this->preview($user, UploadedFile::fake()->createWithContent('stock.csv', str_repeat('a', 2049 * 1024)))
+        $this->preview($user, UploadedFile::fake()->createWithContent('stock.xlsx', str_repeat('a', 2049 * 1024)))
             ->assertUnprocessable()->assertJsonPath('errors.archivo', ['El archivo puede pesar hasta 2 MB.']);
     }
 
@@ -312,14 +316,14 @@ class PreviewImportTest extends TestCase
     {
         $user = Concesionaria::factory()->create()->usuario;
 
-        $this->previewRows($user, [$this->csvRow()])
+        $this->previewRows($user, [$this->workbookRow()])
             ->assertForbidden()
             ->assertExactJson(['message' => EnsureDealerIsActive::MESSAGE_PENDING]);
     }
 
     public function test_buyer_is_forbidden(): void
     {
-        $this->previewRows(User::factory()->create()->fresh(), [$this->csvRow()])->assertForbidden();
+        $this->previewRows(User::factory()->create()->fresh(), [$this->workbookRow()])->assertForbidden();
     }
 
     public function test_guest_is_unauthenticated(): void

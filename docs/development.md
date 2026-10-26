@@ -2,6 +2,101 @@
 
 Technical setup beyond the basics: local environments, tunnels, scripts and maintenance commands. [`getting-started.md`](getting-started.md) stays the source for installing and running each part; deployed environments are in [`infrastructure.md`](infrastructure.md). Add new technical notes here.
 
+## Repair the ten HU05 resale demo listings
+
+`ResaleDemoRepairSeeder` is an **opt-in local SQLite repair**, not a migration or an inventory import.
+It corrects the ten synthetic listings inspected on 2026-10-22. It never creates or deletes cars,
+changes their year/price/owner/photos, or modifies the CSV/form contract. Missing fixtures are skipped;
+ambiguous, non-demo or unexpected matches abort and roll back the entire repair. Rerunning is a no-op.
+General volume seeds remain synthetic; this repair is not an authoritative vehicle specification service.
+
+Before running it, back up the configured local SQLite database using SQLite's backup API (not a
+live file copy). From the repository root, with Python available, choose a **new** backup filename:
+
+```python
+import pathlib, sqlite3
+source = pathlib.Path("backend/database/manual.sqlite").resolve()
+backup = source.with_name("manual.before-resale-repair.sqlite")
+with backup.open("xb"):
+    pass  # Refuse to overwrite an existing backup.
+with sqlite3.connect(source.as_uri() + "?mode=ro", uri=True) as src:
+    with sqlite3.connect(backup) as dst:
+        src.backup(dst)
+        assert dst.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+```
+
+Then, from `backend`, using the local SQLite configuration:
+
+```bash
+php artisan db:seed --class=ResaleDemoRepairSeeder
+php vendor/bin/phpunit tests/Feature/ResaleDemoRepairTest.php
+```
+
+Identity references are the ACARA 2026-10-19 catalog: Cactus Feel Pack AT (p.53), Pulse Drive CVT
+(p.69), Civic EXS 1.8 AT / EX-L 2.0 CVT and HR-V EX-L 1.8 CVT (pp.99–100), Versa Advance AT
+(p.144), 408 Allure Pack THP Tiptronic (p.153), Corolla XEI 1.8 CVT (p.187), Virtus Highline
+Tiptronic (p.221). Descriptions, consumption, equipment and images still explicitly represent demo
+data, not real offers. No year or missing price is changed to manufacture a three-year estimate.
+
+For a manual check, start the API and web as in `getting-started.md`, open the demo buyer's
+recommendations and expand vehicle attributes. Titles and engine/power/turbo must agree with the
+selected demo variants. Existing photos and prices must remain unchanged. This repair alone does
+not itself add tolerant catalog matching.
+
+### Resale reference matching
+
+The scorer resolves references locally within the same normalized make/model. Exact labels retain
+priority; otherwise engine, transmission, stated power/generation and the listing year constrain
+trim-token matching. Word order, technical catalog annotations and automatic/Tiptronic labels do
+not require changing the listing. A single long token may differ by at most two edits only when
+no strict candidate exists; ambiguous candidates abstain unless they meet the compatible-group rules below. Trim modifiers such as
+Pack, Plus, Bitono and Cuero remain significant. This is conservative lookup, not vehicle validation.
+
+Turbo words (`turbo`, `TSI`, `TFSI`, `THP`, `TBI`) use one shared vocabulary for technical
+recognition and removal from trim tokens. Thus `Core 1.4 Turbo MT` and `1.4T MT Core`
+can identify the same version without changing the listing, in both exact and related-family
+lookup. Explicit turbo, engine, power and gearbox contradictions still reject the reference;
+real trim modifiers remain significant. This rule is independent of vehicle make/model.
+
+The response includes the selected `resale.reference` even when its three-year endpoint is absent.
+DNRPA family activity is independent of price-reference availability; diesel/GTI groups stay separate.
+A complete resale score still requires both activity and retention. Prices must come from one
+version/generation and currency: missing years are never stitched from another row.
+Thus finding a catalog model does not guarantee a complete resale estimate. Inventory and CSV
+contracts are unchanged, and recommendation requests never persist corrected labels.
+
+### Annualized depreciation estimates
+
+For an identified reference curve with at least two finite positive model-year prices, each
+adjacent available-year interval contributes `log(older_price / newer_price) / year_gap`.
+The median of these log-retention rates estimates annual retention; gaps need not equal three.
+All valid year points on that one curve contribute, irrespective of their input order. The
+three-year matching component remains comparable across cars: `100 * exp(3 * median_rate)`,
+capped at 100 only for scoring. Raw appreciation and annual depreciation remain visible.
+
+The API's additive `resale.estimate` records the method, used years, interval count, source identity,
+annual rate and modeled horizon. `comparison` remains an observed endpoint comparison, or null
+when the exact pair is absent; legacy `compare()` and `threeYearScore()` contracts are unchanged.
+These same-date model-year references estimate age-related differences, not observed historical
+price changes. A single valid year is insufficient; the listing's exact year need not have a price.
+
+### Compatible version groups
+
+Catalog slash-separated names are alternatives, not words a dealer must reproduce together.
+Explicit technical conflicts still reject a candidate. Available listing-year evidence takes
+precedence across matching tiers, preventing an old exact label from hiding a supported generation.
+Otherwise other available years may support an estimate. Engine suffixes and numbered gearboxes
+are interpreted with shared technical rules, not per-make or per-model aliases.
+
+An unresolved set may be estimated only if every pair shares make/model, currency and parsed
+engine/power/gearbox/body/door/fuel/special identity, has overlapping positive year prices, and
+differs by at most **5% in every overlapping year**. This initial conservative tolerance is global;
+it is not a claim that all such cars are identical. Pairwise checks prevent transitive price chains.
+Each reference/version's rate is computed on its own curve; only rates are aggregated. The UI reports
+the candidate count and retention range, without claiming an exact version. No source prices are
+stitched or rewritten. Raw projections may exceed 100%; only the ranking component is capped.
+No form, CSV, catalog refresh or inventory repair is involved.
+
 ## Google sign-in from a phone (development only)
 
 The phone cannot reach the PC's `localhost`, and Google does not accept a LAN IP as a redirect URI. In development the backend is exposed through a Cloudflare quick tunnel so the phone can finish the OAuth flow, while the web keeps using `localhost`.
@@ -477,6 +572,79 @@ Run the isolated frontend checks with
 `npm run test -- src/features/recommendations/MatchingRecommendationsPage.test.tsx src/features/recommendations/matching.test.ts`
 from `frontend/web`. These tests fake API data and never change the local inventory.
 
+## HU21/HU22: shared inventory identity catalog
+
+`GET /api/concesionaria/vehiculos/catalogo` exposes the cached ACARA identities to
+authenticated, approved dealers using the existing active-subscription guard.
+It returns `snapshot_id`, `source_date`, `stale`, `warning` and sorted `entries`
+containing `id`, `marca`, `modelo` and `version`. An unavailable snapshot returns
+HTTP 503 with `acara_unavailable`; a stale snapshot remains available with
+`acara_stale`. This read does not refresh or parse a PDF.
+
+`App\Services\Inventario\VehicleCatalog` is the shared projection for the planned
+form selectors and XLSX template. It retains versions without year prices and
+deduplicates identical identities only; it never merges their price curves.
+Conflicting labels under the same ID are excluded rather than selecting the first.
+IDs are source-label hashes, not permanent IDs across source renames. The catalog
+projection does not modify the price snapshot or vehicle records. The existing
+dealer guard still performs its normal subscription lifecycle synchronization.
+
+To smoke-test, start the backend and web app as described in `getting-started.md`,
+sign in as an active dealer, and run this in the web app's browser console:
+
+```js
+const response = await fetch('http://localhost:8000/api/concesionaria/vehiculos/catalogo', {
+  credentials: 'include', headers: { Accept: 'application/json' },
+});
+console.log(response.status, await response.json());
+```
+
+Expect 200 and catalog entries when the permanent catalog is loaded, or 503 with the
+explicit unavailable state otherwise. An unauthenticated request returns 401;
+a non-dealer or unapproved dealer returns 403. No new UI is wired in this step.
+
+## Catalog-linked manual inventory entry
+
+Manual vehicle creation now requires `acara_version_id` and the exact
+`marca`/`modelo`/`version` tuple returned by the dealer catalog endpoint. The web
+form supplies searchable native suggestions in that order and clears dependent
+selections when the parent changes. Free text outside the catalog cannot be
+submitted as a new identity; the API independently validates the tuple.
+
+The nullable `vehiculo.acara_version_id` migration adds no automatic backfill.
+Apply the normal migrations from the setup guide in the intended environment
+before serving this API version; these changes have only been migrated in test
+databases, not the live inventory. Existing vehicles may retain their unchanged
+identity while editing other fields, even when the catalog is unavailable.
+Changing identity requires a catalog selection. Omitting the ID on an unchanged
+edit preserves the stored reference rather than silently unlinking it.
+
+The resale scorer resolves linked vehicles by that exact source ID; a disappeared
+or duplicate ID produces no price reference, never an approximate substitute.
+Unlinked legacy vehicles retain the previous matching path. Year-price coverage,
+retention formulas and DNRPA activity remain independent and unchanged. Selecting
+a catalog version does not verify the dealer's other technical declarations or
+guarantee that depreciation can be estimated. IDs remain label hashes and may
+change if the source renames a version.
+
+Manual smoke test after starting the API/web app as in `getting-started.md`:
+
+1. Sign in as an active dealer and open **CARGAR VEHÍCULO**. Search for a make,
+   then a model, then a version. Each list contains only its applicable options.
+2. Change the make: the model/version clear. Enter an unknown version and submit:
+   the form explains that a catalog selection is required and saves nothing.
+3. Choose a valid identity, complete the other fields and add seven photos in a
+   disposable test environment. Save: the dealer inventory receives the vehicle
+   and its catalog ID. A missing ACARA price for the chosen year does not block
+   this identity selection or invent a price.
+4. Edit an unlinked legacy vehicle without changing its identity: unrelated edits
+   remain allowed. The notice explains how to link it explicitly.
+
+XLSX template/import replacement is a separate pending unit; CSV has not yet been
+removed by this manual-entry unit. Until that replacement, an import preserves a
+link only when its identity labels stay unchanged; changing them clears the old
+link instead of retaining a reference to a different vehicle version.
+
 ## HU05 stage 13b: ACARA PDF reader
 
 `App\Services\Resale\AcaraPriceReader::read($pdfBytes)` normalizes the official
@@ -511,44 +679,24 @@ decoded stream; these are **not** a total memory/time sandbox. Before scheduled
 ingestion, run in a bounded background worker and validate deployment resources;
 do not expose arbitrary PDF uploads or execute this in recommendation requests.
 
-## HU05 stage 13b2: automatic ACARA acquisition
+## Fixed ACARA catalog (HU05/HU21)
 
-`AcaraPriceSource` downloads the fixed [ACARA PDF endpoint](https://api.acara.org.ar/api/v1/prices/download-vehicule-processed-pdf?file=acara_precios.pdf),
-passes its bytes to the reader, then atomically replaces one complete last-valid
-snapshot in the configured persistent Laravel cache. No inventory or ranking is
-changed. Duplicate version labels remain separate rows; consumers must not assume
-their `version_id` is unique or choose conflicting prices arbitrarily.
+The fixed catalog is loaded once into permanent tables and served through a local,
+disposable cache. See [setup, storage and cache behavior](fixed-catalog.md) for the
+explicit local-PDF import, failure cases and maintenance boundaries.
 
-`current()` reads local data only, with `snapshot`, `stale` and `warning` fields.
-`refresh()` claims at most one attempt every 14 days across callers, including
-failures. HTTP errors, redirects, invalid/future/backdated PDFs and extraction
-errors leave the previous snapshot unchanged. Missing data yields
-`acara_unavailable`; a retrieval older than 14 days yields `acara_stale`.
-Snapshots carry ACARA's source date, byte hash, URL and distinct `fetched_at` time.
+`AcaraPriceSource::current()` preserves its `snapshot/stale/warning` envelope,
+source date, hash, URL and `fetched_at` (the one-time import time). The existing
+14-day age warning remains: fixed prices are not presented as current market data.
+Missing prices remain null and conflicting source curves remain distinct.
 
-Use the existing database/file/Redis cache, never array/null outside tests.
-Cache clearing/eviction loses both fallback and throttle; this is not a historical
-valuation archive. No new schema, credentials, `.env` edits or dependencies are needed.
-HTTPS verification stays enabled; Windows conditionally uses native CA trust.
-Downloads use a temporary-file sink, 25 MiB transfer/actual-size guards, 20/60-second
-connect/total timeouts, no redirects, automatic decompression or immediate retries.
+`acara:refresh` and its automatic schedule are removed. DNRPA and subscription
+schedules are unchanged. Requests never download or parse the PDF.
+Offline source/API/schedule checks: `php artisan test --filter=FixedAcaraSourceTest`.
+The catalog endpoint remains usable after local cache loss once the tables are loaded.
 
-The Laravel scheduler checks daily in a separate PHP process capped at 512 MiB
-and 120 seconds of PHP execution, without overlap. Its 14-day claim prevents daily
-downloads. The host must already run Laravel's scheduler; this change installs no
-OS task. Parsing is never triggered by a recommendation request or arbitrary upload.
-
-Manual PowerShell check (writes source cache only, not inventory):
-```powershell
-cd D:\DaVinci\TESIS\td-autos\backend
-php -d memory_limit=512M -d max_execution_time=120 artisan acara:refresh
-php -d memory_limit=512M -d max_execution_time=120 artisan acara:refresh
-php artisan schedule:list
-```
-Expect `ACARA: ready (N rows).`, exit 0, and the same cached row count on the
-second call without another download. An unavailable/stale warning exits 1 and
-retains prior data. The schedule lists the daily ACARA check and existing hourly
-subscriptions task. Offline regression tests: `php artisan test --filter=AcaraPriceSourceTest`.
+Thesis documentation updates remain pending in Engram
+(`documentation/thesis-catalog-xlsx-pending`); these are implementation notes only.
 
 ## DNRPA monthly activity reader (HU05, first stage 13c slice)
 
@@ -664,7 +812,7 @@ Readers see the snapshot and check date in one query. A superseded attempt canno
 The daily 01:00 scheduler runs in a separate 512 MiB / 600-second PHP process with
 a 15-minute overlap guard. The durable database claim also covers manual callers.
 No host cron is installed here. Before operational use, apply the additive migration
-and initialize ACARA with `php artisan acara:refresh`; a missing local catalog fails
+and initialize ACARA with `php artisan catalog:import-acara <local-pdf>`; a missing catalog fails
 safely. Tests use isolated SQLite; existing inventory and remote Supabase are untouched.
 Recommendation integration remains the next stage.
 
@@ -690,6 +838,17 @@ Una demo moderada se reconstruye con `php artisan db:local --vehiculos=100`: dej
 HU05 suma las transferencias DNRPA de seis meses cerrados por grupo identificado de marca/modelo. El puntaje continuo es `100 * log(1 + transferencias) / log(1 + máximo del período)`: el mayor volumen recibe 100 y los demás valores crecen con rendimientos decrecientes, sin bandas por percentiles. Los empates conservan el mismo puntaje.
 
 La búsqueda actual muestra vehículos elegibles de concesionarias; la integración de Mercado Libre fue retirada. Los registros históricos de publicaciones externas se conservan, pero ya no se consultan ni se actualizan. La lectura de reventa recalcula el puntaje desde los conteos guardados; no modifica el historial ni descarga nuevamente las fuentes. Con 37.988 y 1.666 transferencias, los puntajes son 100 y aproximadamente 70,4. Es un índice relativo de actividad, no una probabilidad de venta. La prioridad de reventa mantiene 50% de actividad DNRPA y 50% de retención ACARA.
+
+### Approximate related model families
+
+Exact-family version candidates always win. With none, a whole-token model-name extension
+may supply an approximate reference only within the same make and one unique family.
+Engine, CV power, transmission, body/door evidence, trim alias and listing-year price must agree;
+missing or competing evidence abstains. Existing fuel, turbo, generation and gearbox guards apply.
+This is inference, not proof of model identity: the API/UI expose both family labels and explicitly
+mark the retention reference approximate. DNRPA activity remains independently tied to the published
+model family; no transfers are reassigned to the inferred ACARA family. No observed listing
+comparison is claimed. No model-specific aliases, ingestion changes or cross-family curve stitching.
 
 ## Calculator monthly refresh (HU10)
 

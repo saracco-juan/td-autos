@@ -54,6 +54,18 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - A screen decision applies to web and mobile by default; only layout that exists on one platform (desktop sidebar, bottom tab bar) stays on that platform.
 
+## Catalog-backed inventory inputs (2026-10-24)
+
+- User-approved manual-entry change: replace free make/model/version entry with
+  searchable, dependent native catalog suggestions. An unmatched identity cannot
+  be saved; both client and API validate selection. Keep existing field styling,
+  photo panel and pinned action bar. Version is no longer labelled optional for
+  new entries. Legacy edits retain their identity until explicitly relinked.
+- Figma sync pending approval: High v3 create `2373:8756` and edit `2373:8835`
+  still show text identity fields. Web implementation adds catalog/legacy notices;
+  mobile receives the same identity rule when that form is implemented. No Figma
+  changes or mobile implementation were performed here.
+
 ## HU05 matching-only recommendations (2026-10-20)
 
 - Resale evidence (2026-10-22): reuse card2373:7340's existing warnings and expandable reasons for partial compatibility, the ten-point uncertainty deduction, DNRPA window and ACARA reference date. Missing priority is "no disponible", never zero. Preserve the existing layout. Applies to web and mobile; mobile implementation and Figma sync remain pending explicit approval. High v3 has no resale evidence copy; this extends the previously approved matching reasons, not the catalog controls.

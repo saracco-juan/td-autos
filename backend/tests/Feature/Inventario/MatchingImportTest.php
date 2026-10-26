@@ -3,8 +3,8 @@
 namespace Tests\Feature\Inventario;
 
 use App\Models\Vehiculo;
-use App\Services\Inventario\VehiculoCsvReader;
 use App\Support\VehiculoFields;
+use avadim\FastExcelReader\Excel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -12,7 +12,7 @@ use Tests\TestCase;
 /** UH-5 S3: complete declared facts through the existing preview/confirm contract. */
 class MatchingImportTest extends TestCase
 {
-    use InteractsWithImportCsv;
+    use InteractsWithImportXlsx;
     use InteractsWithVehiculos;
     use RefreshDatabase;
 
@@ -22,19 +22,19 @@ class MatchingImportTest extends TestCase
     {
         $user = $this->dealer();
         $existing = $this->vehicleOf($user->concesionaria, 7, 'ABC123');
-        $row = $this->csvRow(['moneda' => 'USD', 'turbo' => ' Sí ', 'potencia_unidad' => 'HP', 'consumo_urbano' => '8.50', 'consumo_ruta' => '6.20']);
+        $row = $this->workbookRow(['moneda' => 'USD', 'turbo' => ' Sí ', 'potencia_unidad' => 'HP', 'consumo_urbano' => '8.50', 'consumo_ruta' => '6.20']);
         foreach (self::EQUIPMENT_FIELDS as $index => $field) {
             $row[$field] = $index % 2 === 0 ? 'SÍ' : 'No';
         }
         $rows = [$row, [...$row, 'patente' => 'ABC123']];
         $before = $existing->fresh()->getAttributes();
         $this->actingAs($user)->postJson(self::URL.'/vista-previa', [
-            'archivo' => $this->csvFile($this->csvContent($rows)),
+            'archivo' => $this->workbookFile($this->workbookContent($rows)),
         ])->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 1]);
         $this->assertSame($before, $existing->fresh()->getAttributes());
         $this->assertDatabaseCount('vehiculo', 1);
 
-        $this->postJson(self::URL, ['archivo' => $this->csvFile($this->csvContent($rows))])
+        $this->postJson(self::URL, ['archivo' => $this->workbookFile($this->workbookContent($rows))])
             ->assertOk()->assertExactJson(['nuevos' => 1, 'actualizaciones' => 1]);
         foreach (Vehiculo::all() as $vehicle) {
             foreach (['moneda', 'plazas', 'motor', 'potencia', 'potencia_unidad', 'consumo_urbano', 'consumo_ruta'] as $field) {
@@ -71,9 +71,9 @@ class MatchingImportTest extends TestCase
         $user = $this->dealer();
         $existing = $this->vehicleOf($user->concesionaria, 7, 'ABC123');
         $before = $existing->fresh()->getAttributes();
-        $response = $this->actingAs($user)->postJson(self::URL.$suffix, ['archivo' => $this->csvFile($this->csvContent([
-            $this->csvRow(),
-            $this->csvRow(['patente' => 'ABC123', $field => $value]),
+        $response = $this->actingAs($user)->postJson(self::URL.$suffix, ['archivo' => $this->workbookFile($this->workbookContent([
+            $this->workbookRow(),
+            $this->workbookRow(['patente' => 'ABC123', $field => $value]),
         ]))])->assertUnprocessable()->assertJsonPath('errores.0.fila', 3);
         $messages = VehiculoFields::messages();
         $expected = $messages["$field.required"] ?? $messages["$field.required_if"];
@@ -85,9 +85,9 @@ class MatchingImportTest extends TestCase
 
     public function test_old_template_requires_download_instead_of_invented_facts(): void
     {
-        $headers = array_slice(self::CSV_HEADERS, 0, 13);
+        $headers = array_slice(self::WORKBOOK_HEADERS, 0, 13);
         $this->actingAs($this->dealer())->postJson(self::URL.'/vista-previa', [
-            'archivo' => $this->csvFile($this->csvContent([$this->csvRow()], headers: $headers)),
+            'archivo' => $this->workbookFile($this->workbookContent([$this->workbookRow()], headers: $headers)),
         ])->assertUnprocessable()->assertJsonValidationErrors('archivo')
             ->assertJsonPath('message', fn (string $message) => str_ends_with($message, 'Descargá la plantilla actualizada.'));
         $this->assertDatabaseCount('vehiculo', 0);
@@ -98,17 +98,21 @@ class MatchingImportTest extends TestCase
         $user = $this->dealer();
         $existing = $this->vehicleOf($user->concesionaria, 7, 'ABC123');
         $existing->update(['consumo_urbano' => 9, 'consumo_ruta' => 7]);
-        $row = $this->csvRow(['patente' => 'ABC123', 'combustible' => 'gnc', 'consumo_urbano' => '', 'consumo_ruta' => '']);
-        $this->actingAs($user)->postJson(self::URL, ['archivo' => $this->csvFile($this->csvContent([$row]))])->assertOk();
+        $row = $this->workbookRow(['patente' => 'ABC123', 'combustible' => 'gnc', 'consumo_urbano' => '', 'consumo_ruta' => '']);
+        $this->actingAs($user)->postJson(self::URL, ['archivo' => $this->workbookFile($this->workbookContent([$row]))])->assertOk();
         $this->assertNull($existing->fresh()->consumo_urbano);
         $this->assertNull($existing->fresh()->consumo_ruta);
     }
 
     public function test_template_declares_every_matching_column(): void
     {
-        $rows = (new VehiculoCsvReader)->read(file_get_contents(base_path('../frontend/web/public/plantilla-inventario.csv')));
-        foreach (self::CSV_HEADERS as $field) {
-            $this->assertArrayHasKey($field, $rows[0]['data']);
+        $this->seedVehicleCatalog();
+        $template = $this->actingAs($this->dealer())->get(self::URL.'/plantilla')->assertOk()->getContent();
+        $file = $this->workbookFile($template);
+        $headers = null;
+        foreach (Excel::openXlsx($file->getRealPath())->sheet('Inventario')->nextRow() as $cells) {
+            $headers ??= array_values($cells);
         }
+        $this->assertSame(self::WORKBOOK_HEADERS, $headers);
     }
 }

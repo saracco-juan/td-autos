@@ -12,6 +12,7 @@ export type Vehiculo = {
   marca: string
   modelo: string
   version: string | null
+  acara_version_id?: string | null
   anio: number
   kilometraje: number
   precio: number
@@ -27,5 +28,14 @@ export type Vehiculo = {
 export type VehiculosResponse = { vehiculos: Vehiculo[] }
 export type VehiculoResponse = { vehiculo: Vehiculo }
 
-// What both CSV import endpoints answer: how many vehicles the file creates and how many it updates.
+export type VehicleCatalogEntry = { id: string; marca: string; modelo: string; version: string }
+export type VehicleCatalog = {
+  snapshot_id: string | null
+  source_date: string | null
+  stale: boolean
+  warning: string | null
+  entries: VehicleCatalogEntry[]
+}
+
+// What both XLSX import endpoints answer: how many vehicles the file creates and how many it updates.
 export type ImportCounts = { nuevos: number; actualizaciones: number }

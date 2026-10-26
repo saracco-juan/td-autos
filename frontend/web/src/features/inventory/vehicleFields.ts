@@ -9,6 +9,7 @@ export type VehicleValues = {
   marca: string
   modelo: string
   version: string
+  acara_version_id: string
   anio: string
   kilometraje: string
   precio: string
@@ -62,6 +63,7 @@ export function emptyValues(): VehicleValues {
     marca: '',
     modelo: '',
     version: '',
+    acara_version_id: '',
     anio: '',
     kilometraje: '',
     precio: '',
@@ -89,6 +91,7 @@ export function valuesFromVehicle(vehicle: Vehiculo): VehicleValues {
     marca: vehicle.marca,
     modelo: vehicle.modelo,
     version: vehicle.version ?? '',
+    acara_version_id: vehicle.acara_version_id ?? '',
     anio: String(vehicle.anio),
     kilometraje: String(vehicle.kilometraje),
     precio: String(vehicle.precio),
@@ -190,7 +193,7 @@ export function errorsFromServer(body: unknown): VehicleErrors {
 
   for (const [key, messages] of Object.entries(raw as Record<string, unknown>)) {
     if (!Array.isArray(messages) || messages.length === 0) continue
-    const target: VehicleErrorKey | undefined = key === 'potencia_unidad' ? 'potencia'
+    const target: VehicleErrorKey | undefined = key === 'acara_version_id' ? 'version' : key === 'potencia_unidad' ? 'potencia'
       : /^fotos(?:_eliminar)?(?:\.\d+)?$/.test(key) ? 'fotos' : isErrorKey(key) ? key : undefined
     if (!target) continue
     const merged = new Set([...(errors[target] ?? []), ...messages.filter((message): message is string => typeof message === 'string')])
