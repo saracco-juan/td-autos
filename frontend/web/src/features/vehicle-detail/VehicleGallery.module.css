@@ -5,7 +5,7 @@
 .cover {
   display: block;
   width: 100%;
-  height: clamp(200px, 30vw, 400px);
+  height: clamp(200px, 24vw, 300px);
   border: 1px solid var(--border-default);
   background: var(--surface-raised);
   object-fit: contain;

@@ -53,3 +53,10 @@ network/server errors offer retry. Changing IDs clears the previous detail.
 
 The calculator control is visibly unavailable until the teammate integrates
 HU10; there is no dead costs link and no calculator implementation here.
+
+`VER FICHA` is the primary recommendation-card action. Its history state carries
+only the displayed compatibility factors and the local recommendations/filter URL.
+The detail always fetches current vehicle facts; recommendation context never
+replaces an unavailable response. Compatibility is labelled as the entry snapshot,
+not a new calculation. Direct entry does not invent a profile match. Invalid or
+mismatched context is ignored. The back link restores applied filters.

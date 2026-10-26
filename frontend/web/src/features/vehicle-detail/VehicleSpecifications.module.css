@@ -18,6 +18,17 @@
   font-size: 15px;
 }
 
+.card p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.card small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .rows {
   margin: 0;
 }

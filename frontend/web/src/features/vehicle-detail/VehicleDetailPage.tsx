@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehicle'
+import { specificationGroups } from '@shared/vehicles/detail'
 import buttonStyles from '../../components/button.module.css'
 import screenStyles from '../../components/screen.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
@@ -8,10 +9,13 @@ import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { formatPrice } from '../inventory/format'
 import { fetchVehicleDetail } from './api'
+import { readDetailContext, type DetailContext } from './navigation'
 import type { VehicleDetailResponse } from './types'
 import VehicleCostShortcut from './VehicleCostShortcut'
 import VehicleGallery from './VehicleGallery'
 import VehicleSpecifications from './VehicleSpecifications'
+import VehicleCompatibility from './VehicleCompatibility'
+import backIcon from './back.svg'
 import styles from './VehicleDetailPage.module.css'
 
 type View = { status: 'loading' | 'unavailable' }
@@ -20,10 +24,12 @@ type View = { status: 'loading' | 'unavailable' }
 
 export default function VehicleDetailPage() {
   const { id } = useParams()
-  return <DetailScreen key={id} id={parseVehicleId(id)} />
+  const { state } = useLocation()
+  const vehicleId = parseVehicleId(id)
+  return <DetailScreen key={id} id={vehicleId} context={readDetailContext(state, vehicleId)} />
 }
 
-function DetailScreen({ id }: { id: number | null }) {
+function DetailScreen({ id, context }: { id: number | null; context: DetailContext | null }) {
   const [view, setView] = useState<View>({ status: id === null ? 'unavailable' : 'loading' })
   const [attempt, setAttempt] = useState(0)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -43,9 +49,15 @@ function DetailScreen({ id }: { id: number | null }) {
 
   const data = view.status === 'ready' ? view.response : null
   const title = data ? vehicleTitle(data.vehicle) : ''
+  const subtitle = data ? specificationGroups(data.vehicle)[0].rows
+    .filter(({ label }) => ['Kilometraje', 'Ubicación', 'Transmisión', 'Combustible'].includes(label))
+    .map(({ label, value }) => `${label}: ${value}`).join(' · ') : ''
   return (
     <div className={styles.page}>
-      <Link className={styles.back} to="/recomendaciones">Volver a recomendados</Link>
+      <Link className={styles.back} to={context?.returnTo ?? '/recomendaciones'}>
+        <span className={styles.backIcon}><img src={backIcon} alt="" /></span>
+        Volver a recomendados
+      </Link>
       {view.status === 'loading' ? <SessionLoading /> : null}
       {view.status === 'unavailable' ? (
         <section role="status">
@@ -62,19 +74,22 @@ function DetailScreen({ id }: { id: number | null }) {
           <header>
             <p className={screenStyles.eyebrow}>FICHA TÉCNICA</p>
             <h1 ref={heading} tabIndex={-1} className={screenStyles.title}>{title}</h1>
-            <p className={styles.muted}>{data.vehicle.ubicacion || 'Ubicación no disponible.'}</p>
+            <p className={styles.muted}>{subtitle}</p>
           </header>
           <div className={styles.body}>
             <div className={styles.gallery}><VehicleGallery photos={data.vehicle.fotos} title={title} /></div>
-            <aside className={styles.summary} aria-label="Resumen de la publicación">
-              <p className={styles.price}>{data.vehicle.precio === null || data.vehicle.moneda === null
-                ? 'Precio no disponible.' : formatPrice(data.vehicle.precio, data.vehicle.moneda)}</p>
-              <p className={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</p>
-              <VehicleCostShortcut />
-              <Link to={`/vehiculos/${id}/inspeccion`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
-                CHECKLIST DE INSPECCIÓN
-              </Link>
-            </aside>
+            <div className={styles.sidebar}>
+              <aside className={styles.summary} aria-label="Resumen de la publicación">
+                <p className={styles.price}>{data.vehicle.precio === null || data.vehicle.moneda === null
+                  ? 'Precio no disponible.' : formatPrice(data.vehicle.precio, data.vehicle.moneda)}</p>
+                <p className={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</p>
+                <VehicleCostShortcut />
+                <Link to={`/vehiculos/${id}/inspeccion`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+                  CHECKLIST DE INSPECCIÓN
+                </Link>
+              </aside>
+              <VehicleCompatibility context={context} />
+            </div>
             <div className={styles.specifications}><VehicleSpecifications vehicle={data.vehicle} /></div>
           </div>
         </>
