@@ -23,11 +23,14 @@ class RealDemoInventoryTest extends TestCase
 
     private const COUNT = 300;
 
+    /** The provisional four-model data the rule tests were written against. */
+    private const FIXTURE = __DIR__.'/../../Fixtures/real-demo/models.json';
+
     private static ?array $snapshot = null;
 
     private function inventory(): RealDemoInventory
     {
-        return new RealDemoInventory(self::$snapshot ??= (new LocalAcaraCatalogData)->load());
+        return RealDemoInventory::fromFile(self::FIXTURE, self::$snapshot ??= (new LocalAcaraCatalogData)->load());
     }
 
     /**
@@ -169,7 +172,7 @@ class RealDemoInventoryTest extends TestCase
 
     public function test_a_shorter_match_listed_first_beats_a_longer_one_listed_later(): void
     {
-        $models = json_decode(file_get_contents(database_path('seeders/assets/real-demo/models.json')), true);
+        $models = json_decode(file_get_contents(self::FIXTURE), true);
         foreach ($models as &$model) {
             if ($model['model'] === 'Ranger') {
                 // "3.0" first: the generic engine must now win over "3.0 V6", and "xl" (any case) over "XLS".
@@ -191,7 +194,7 @@ class RealDemoInventoryTest extends TestCase
 
     public function test_versions_matching_no_engine_are_excluded_instead_of_falling_back(): void
     {
-        $models = json_decode(file_get_contents(database_path('seeders/assets/real-demo/models.json')), true);
+        $models = json_decode(file_get_contents(self::FIXTURE), true);
         foreach ($models as &$model) {
             // Ranger keeps only its 2.2 engine; Gol Trend (the only Hatchback) matches nothing at all.
             $model['engines'] = match ($model['model']) {
@@ -230,7 +233,7 @@ class RealDemoInventoryTest extends TestCase
         $this->assertGreaterThan(0, $old);
     }
 
-    public function test_provisional_data_only_yields_the_bodies_it_has(): void
+    public function test_fixture_data_only_yields_the_bodies_it_has(): void
     {
         $bodies = array_unique(array_column($this->inventory()->vehicles(self::COUNT), 'carroceria'));
         sort($bodies);
@@ -282,7 +285,7 @@ class RealDemoInventoryTest extends TestCase
 
     public function test_a_model_with_fewer_than_seven_photos_fails_loudly_naming_it(): void
     {
-        $models = json_decode(file_get_contents(database_path('seeders/assets/real-demo/models.json')), true);
+        $models = json_decode(file_get_contents(self::FIXTURE), true);
         $models[0]['photos'] = array_slice($models[0]['photos'], 0, 6);
 
         $this->expectException(RuntimeException::class);

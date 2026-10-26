@@ -1,0 +1,777 @@
+[
+    {
+        "make": "TOYOTA",
+        "model": "Corolla",
+        "body": "Sedán",
+        "seats": 5,
+        "engines": [
+            {
+                "match": "Hybrid",
+                "motor": "1.8 híbrido",
+                "fuel": "hibrido",
+                "turbo": false,
+                "power_cv": 98,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.0",
+                "fuel": "nafta",
+                "turbo": false,
+                "power_cv": 170,
+                "consumo_urbano": 9.1,
+                "consumo_ruta": 6,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "1.8",
+                "fuel": "nafta",
+                "turbo": false,
+                "power_cv": 140,
+                "consumo_urbano": 9,
+                "consumo_ruta": 6.2,
+                "estimated": true,
+                "source": "provisional"
+            }
+        ],
+        "trims": [
+            {
+                "match": [
+                    "XLI"
+                ],
+                "tier": "base"
+            },
+            {
+                "match": [
+                    "XEI"
+                ],
+                "tier": "mid"
+            },
+            {
+                "match": [
+                    "SEG",
+                    "SE-G",
+                    "GR-S",
+                    "XRS"
+                ],
+                "tier": "top"
+            }
+        ],
+        "equipment": {
+            "base": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": false,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": false,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": false,
+                "sensores_estacionamiento": false,
+                "velocidad_crucero": false,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "mid": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": true,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "top": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": true,
+                "isofix": true,
+                "frenado_autonomo": true,
+                "asistencia_carril": true,
+                "punto_ciego": true,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": true,
+                "monitoreo_conductor": true,
+                "volante_regulable": true,
+                "climatizador_bizona": true,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": true,
+                "aire_acondicionado": true
+            }
+        },
+        "photos": [
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_1.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_1.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_2.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_2.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_3.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_3.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_4.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_4.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_5.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_5.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_6.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_6.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_7.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_7.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Toyota_Corolla_8.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_8.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            }
+        ],
+        "sources": [
+            "provisional: replace with the researched data (T2, T3)"
+        ]
+    },
+    {
+        "make": "VOLKSWAGEN",
+        "model": "Gol Trend",
+        "body": "Hatchback",
+        "seats": 5,
+        "engines": [
+            {
+                "match": "1.6",
+                "fuel": "nafta",
+                "turbo": false,
+                "power_cv": 101,
+                "consumo_urbano": 9.8,
+                "consumo_ruta": 6.4,
+                "estimated": true,
+                "source": "provisional"
+            }
+        ],
+        "trims": [
+            {
+                "match": [
+                    "Serie",
+                    "Base",
+                    "Startline",
+                    "Trendline"
+                ],
+                "tier": "base"
+            },
+            {
+                "match": [
+                    "Comfortline",
+                    "Connect",
+                    "Pack II"
+                ],
+                "tier": "mid"
+            },
+            {
+                "match": [
+                    "Highline",
+                    "Sportline"
+                ],
+                "tier": "top"
+            }
+        ],
+        "equipment": {
+            "base": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": false,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": false,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": false,
+                "sensores_estacionamiento": false,
+                "velocidad_crucero": false,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "mid": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": true,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "top": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": true,
+                "isofix": true,
+                "frenado_autonomo": true,
+                "asistencia_carril": true,
+                "punto_ciego": true,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": true,
+                "monitoreo_conductor": true,
+                "volante_regulable": true,
+                "climatizador_bizona": true,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": true,
+                "aire_acondicionado": true
+            }
+        },
+        "photos": [
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_1.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_1.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_2.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_2.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_3.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_3.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_4.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_4.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_5.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_5.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_6.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_6.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_7.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_7.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Volkswagen_Gol_Trend_8.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Volkswagen_Gol_Trend_8.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            }
+        ],
+        "sources": [
+            "provisional: replace with the researched data (T2, T3)"
+        ]
+    },
+    {
+        "make": "FORD",
+        "model": "Ranger",
+        "body": "Pickup",
+        "seats": 5,
+        "engines": [
+            {
+                "match": "Raptor 2.0",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 213,
+                "consumo_urbano": 11.3,
+                "consumo_ruta": 8.1,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "Raptor 3.0",
+                "fuel": "nafta",
+                "turbo": true,
+                "power_cv": 397,
+                "consumo_urbano": 15.5,
+                "consumo_ruta": 10.5,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "3.0 V6",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 250,
+                "consumo_urbano": 12.2,
+                "consumo_ruta": 8.6,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.0BT",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 210,
+                "consumo_urbano": 10.6,
+                "consumo_ruta": 7.8,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.0T",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 170,
+                "consumo_urbano": 10,
+                "consumo_ruta": 7.5,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.2",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 125,
+                "consumo_urbano": 9.8,
+                "consumo_ruta": 7.4,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.3",
+                "fuel": "nafta",
+                "turbo": false,
+                "power_cv": 148,
+                "consumo_urbano": 12.5,
+                "consumo_ruta": 8.5,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.5",
+                "fuel": "nafta",
+                "turbo": false,
+                "power_cv": 166,
+                "consumo_urbano": 12,
+                "consumo_ruta": 8.2,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "3.0",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 163,
+                "consumo_urbano": 11,
+                "consumo_ruta": 7.9,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "3.2",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 200,
+                "consumo_urbano": 11,
+                "consumo_ruta": 8,
+                "estimated": true,
+                "source": "provisional"
+            }
+        ],
+        "trims": [
+            {
+                "match": [
+                    "Limited",
+                    "LTD",
+                    "FX4",
+                    "Super Duty",
+                    "Raptor"
+                ],
+                "tier": "top"
+            },
+            {
+                "match": [
+                    "XLS",
+                    "XLT"
+                ],
+                "tier": "mid"
+            },
+            {
+                "match": [
+                    "XL",
+                    "F- Truck",
+                    "Black"
+                ],
+                "tier": "base"
+            }
+        ],
+        "equipment": {
+            "base": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": false,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": false,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": false,
+                "sensores_estacionamiento": false,
+                "velocidad_crucero": false,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "mid": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": true,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "top": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": true,
+                "isofix": true,
+                "frenado_autonomo": true,
+                "asistencia_carril": true,
+                "punto_ciego": true,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": true,
+                "monitoreo_conductor": true,
+                "volante_regulable": true,
+                "climatizador_bizona": true,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": true,
+                "aire_acondicionado": true
+            }
+        },
+        "photos": [
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_1.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_1.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_2.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_2.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_3.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_3.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_4.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_4.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_5.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_5.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_6.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_6.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_7.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_7.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Ford_Ranger_8.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Ford_Ranger_8.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            }
+        ],
+        "sources": [
+            "provisional: replace with the researched data (T2, T3)"
+        ]
+    },
+    {
+        "make": "FIAT",
+        "model": "Cronos",
+        "body": "Sedán",
+        "seats": 5,
+        "engines": [
+            {
+                "match": "1.3",
+                "fuel": "nafta",
+                "turbo": false,
+                "power_cv": 99,
+                "consumo_urbano": 9.4,
+                "consumo_ruta": 6.3,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "1.8",
+                "fuel": "nafta",
+                "turbo": false,
+                "power_cv": 130,
+                "consumo_urbano": 10.2,
+                "consumo_ruta": 6.9,
+                "estimated": true,
+                "source": "provisional"
+            }
+        ],
+        "trims": [
+            {
+                "match": [
+                    "Like",
+                    "Stile",
+                    "Attractive"
+                ],
+                "tier": "base"
+            },
+            {
+                "match": [
+                    "Drive"
+                ],
+                "tier": "mid"
+            },
+            {
+                "match": [
+                    "Precision",
+                    "Presicion",
+                    "Centenario"
+                ],
+                "tier": "top"
+            }
+        ],
+        "equipment": {
+            "base": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": false,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": false,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": false,
+                "sensores_estacionamiento": false,
+                "velocidad_crucero": false,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "mid": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": false,
+                "isofix": true,
+                "frenado_autonomo": false,
+                "asistencia_carril": false,
+                "punto_ciego": false,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": false,
+                "monitoreo_conductor": false,
+                "volante_regulable": true,
+                "climatizador_bizona": false,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": false,
+                "aire_acondicionado": true
+            },
+            "top": {
+                "control_estabilidad": true,
+                "frenos_abs": true,
+                "airbags_frontales": true,
+                "airbags_laterales": true,
+                "airbags_cortina": true,
+                "isofix": true,
+                "frenado_autonomo": true,
+                "asistencia_carril": true,
+                "punto_ciego": true,
+                "recordatorio_cinturon": true,
+                "asistencia_velocidad": true,
+                "monitoreo_conductor": true,
+                "volante_regulable": true,
+                "climatizador_bizona": true,
+                "butacas_calefaccionadas": false,
+                "android_auto_apple_carplay": true,
+                "sensores_estacionamiento": true,
+                "velocidad_crucero": true,
+                "camara_retroceso": true,
+                "aire_acondicionado": true
+            }
+        },
+        "photos": [
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_1.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_1.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_2.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_2.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_3.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_3.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_4.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_4.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_5.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_5.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_6.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_6.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_7.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_7.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            },
+            {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/placeholder/Fiat_Cronos_8.jpg",
+                "page": "https://commons.wikimedia.org/wiki/File:Fiat_Cronos_8.jpg",
+                "author": "PROVISIONAL",
+                "license": "CC BY-SA 4.0"
+            }
+        ],
+        "sources": [
+            "provisional: replace with the researched data (T2, T3)"
+        ]
+    }
+]

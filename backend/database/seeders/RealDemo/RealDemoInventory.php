@@ -85,6 +85,16 @@ final class RealDemoInventory
     }
 
     /**
+     * An inventory built from another data file (the tests use a small fixture).
+     *
+     * @param  array<string, mixed>|null  $snapshot
+     */
+    public static function fromFile(string $path, ?array $snapshot = null): self
+    {
+        return new self($snapshot, json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR));
+    }
+
+    /**
      * The same vehicles for the same seed: first the local load, then the XLSX export.
      *
      * @return list<array<string, mixed>>
