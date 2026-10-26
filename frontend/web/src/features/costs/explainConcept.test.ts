@@ -12,7 +12,7 @@ const insurance = (changes: Partial<CostBreakdown['insurance']> = {}): CostBreak
 const breakdown = (changes: Partial<CostBreakdown> = {}): CostBreakdown => ({
   fuel: { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'nafta', price_fuel_type: 'nafta', unit: 'litro', unit_price: 2125 },
   insurance: insurance(),
-  patente: { base: 23000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.03, bracket_fixed: null,
+  patente: { base_source: 'listing' as const, base: 23000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.03, bracket_fixed: null,
     bracket_from: null, annual: 690000 },
   service: { brand: 'Toyota', brand_known: true, model_matched: true, body_type: 'hatchback', body_label: 'Hatchback',
     km_per_year: 18000, interval_km: 10000, interval_months: 12, services_per_year: 2, price_per_service: 361000, fuel_factor: 1,
@@ -111,7 +111,7 @@ describe('explainConcept', () => {
   })
 
   it('explains the patente scale with the bracket fixed amount, the rate and the excess', () => {
-    const patente = { base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
+    const patente = { base_source: 'listing' as const, base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
       bracket_fixed: 233000, bracket_from: 18700000, annual: 290000 }
     expect(explainConcept('patente', breakdown({ patente }), 25000)).toBe(
       'Patente en Buenos Aires: sobre el valor del auto ($ 20.600.000) corresponde $ 233.000 + 3% de lo que supera $ 18.700.000 = $ 290.000 al año, dividido 12 meses = $ 25.000 por mes.',
@@ -119,7 +119,7 @@ describe('explainConcept', () => {
   })
 
   it('explains the first bracket of the scale as a plain share of the value', () => {
-    const patente = { base: 10000000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.01,
+    const patente = { base_source: 'listing' as const, base: 10000000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.01,
       bracket_fixed: 0, bracket_from: 0, annual: 100000 }
     expect(explainConcept('patente', breakdown({ patente }), 9000)).toBe(
       'Patente en Buenos Aires: 1% del valor del auto ($ 10.000.000) = $ 100.000 al año, dividido 12 meses = $ 9.000 por mes.',
@@ -127,7 +127,7 @@ describe('explainConcept', () => {
   })
 
   it('explains the whole-value bracket rate in Argentine format', () => {
-    const patente = { base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const, rate: 0.025,
+    const patente = { base_source: 'listing' as const, base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const, rate: 0.025,
       bracket_fixed: null, bracket_from: null, annual: 500000 }
     expect(explainConcept('patente', breakdown({ patente }), 42000)).toBe(
       'Patente en Córdoba: 2,5% anual del valor del auto, dividido 12 meses = $ 42.000 por mes.',
@@ -135,7 +135,7 @@ describe('explainConcept', () => {
   })
 
   it('explains a flat patente with the provincial rate', () => {
-    const patente = { base: 23000000, province: 'Mendoza', province_known: true, method: 'flat' as const, rate: 0.03,
+    const patente = { base_source: 'listing' as const, base: 23000000, province: 'Mendoza', province_known: true, method: 'flat' as const, rate: 0.03,
       bracket_fixed: null, bracket_from: null, annual: 690000 }
     expect(explainConcept('patente', breakdown({ patente }), 58000)).toBe(
       'Alícuota anual de 3% en Mendoza, sobre el valor del auto, dividido 12 meses = $ 58.000 por mes.',
@@ -143,17 +143,45 @@ describe('explainConcept', () => {
   })
 
   it('omits the province name when it was not recognized', () => {
-    const patente = { base: 23000000, province: 'Atlántida', province_known: false, method: 'flat' as const, rate: 0.035,
+    const patente = { base_source: 'listing' as const, base: 23000000, province: 'Atlántida', province_known: false, method: 'flat' as const, rate: 0.035,
       bracket_fixed: null, bracket_from: null, annual: 805000 }
     expect(explainConcept('patente', breakdown({ patente }), 68000)).toBe(
       'Alícuota anual de 3,5% sobre el valor del auto, dividido 12 meses = $ 68.000 por mes.',
     )
   })
 
+  it('says the ACARA reference value of the version when the patente uses it', () => {
+    const acara = { base_source: 'acara' as const, reference_year: 2022, reference_currency: 'USD' as const }
+    const scale = { ...acara, base: 30000000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
+      bracket_fixed: 233000, bracket_from: 18700000, annual: 566000 }
+    expect(explainConcept('patente', breakdown({ patente: scale }), 47000)).toBe(
+      'Patente en Buenos Aires: sobre el valor de referencia ACARA de esta versión ($ 30.000.000) corresponde $ 233.000 + 3% de lo que supera $ 18.700.000 = $ 566.000 al año, dividido 12 meses = $ 47.000 por mes.',
+    )
+    const plain = { ...scale, rate: 0.01, bracket_fixed: 0, bracket_from: 0, annual: 300000 }
+    expect(explainConcept('patente', breakdown({ patente: plain }), 25000)).toBe(
+      'Patente en Buenos Aires: 1% del valor de referencia ACARA de esta versión ($ 30.000.000) = $ 300.000 al año, dividido 12 meses = $ 25.000 por mes.',
+    )
+    const cordoba = { ...acara, base: 30000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const, rate: 0.03,
+      bracket_fixed: null, bracket_from: null, annual: 900000 }
+    expect(explainConcept('patente', breakdown({ patente: cordoba }), 75000)).toBe(
+      'Patente en Córdoba: 3% anual del valor de referencia ACARA de esta versión ($ 30.000.000), dividido 12 meses = $ 75.000 por mes.',
+    )
+    const flat = { ...cordoba, province: 'Mendoza', method: 'flat' as const, rate: 0.03 }
+    expect(explainConcept('patente', breakdown({ patente: flat }), 75000)).toBe(
+      'Alícuota anual de 3% en Mendoza, sobre el valor de referencia ACARA de esta versión ($ 30.000.000), dividido 12 meses = $ 75.000 por mes.',
+    )
+  })
+
+  it('keeps the listing wording when the patente uses the listing price', () => {
+    const cordoba = { base_source: 'listing' as const, base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const,
+      rate: 0.025, bracket_fixed: null, bracket_from: null, annual: 500000 }
+    expect(explainConcept('patente', breakdown({ patente: cordoba }), 42000)).not.toMatch(/ACARA/)
+  })
+
   it('never mentions maximums or rounding in the patente text', () => {
-    const scale = { base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
+    const scale = { base_source: 'listing' as const, base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
       bracket_fixed: 233000, bracket_from: 18700000, annual: 290000 }
-    for (const patente of [scale, breakdown().patente]) {
+    for (const patente of [scale, { ...scale, base_source: 'acara' as const }, breakdown().patente]) {
       expect(explainConcept('patente', breakdown({ patente }), 25000)).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
     }
   })

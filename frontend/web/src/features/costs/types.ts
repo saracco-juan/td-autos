@@ -35,6 +35,11 @@ export type CostBreakdown = {
   }
   patente: {
     base: number
+    // acara: the base is the ACARA catalog value of the linked version; listing: the published price.
+    base_source: 'acara' | 'listing'
+    // Only with the acara source: the model year and the currency the catalog quotes.
+    reference_year?: number
+    reference_currency?: 'ARS' | 'USD'
     province: string
     province_known: boolean
     // scale: fixed + rate over the excess of the bracket; bracket_rate: one rate over the whole value; flat: one rate.

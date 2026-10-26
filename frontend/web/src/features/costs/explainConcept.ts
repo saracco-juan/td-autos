@@ -42,17 +42,20 @@ function explainInsurance(insurance: CostBreakdown['insurance'], money: string):
 function explainPatente(patente: CostBreakdown['patente'], money: string): string {
   const where = patente.province_known ? ` en ${patente.province}` : ''
   const monthly = `dividido 12 meses = ${money} por mes.`
+  // The ACARA reference value of the version replaces "valor del auto" when the patente is charged on it.
+  const value = patente.base_source === 'acara' ? 'valor de referencia ACARA de esta versión' : 'valor del auto'
+  const valueWithBase = `${value} (${formatPrice(patente.base)})`
   if (patente.method === 'scale') {
     const annual = `${formatPrice(patente.annual)} al año`
     if (!patente.bracket_fixed) {
-      return `Patente${where}: ${percent(patente.rate)} del valor del auto (${formatPrice(patente.base)}) = ${annual}, ${monthly}`
+      return `Patente${where}: ${percent(patente.rate)} del ${valueWithBase} = ${annual}, ${monthly}`
     }
-    return `Patente${where}: sobre el valor del auto (${formatPrice(patente.base)}) corresponde ${formatPrice(patente.bracket_fixed)} + ${percent(patente.rate)} de lo que supera ${formatPrice(patente.bracket_from ?? 0)} = ${annual}, ${monthly}`
+    return `Patente${where}: sobre el ${valueWithBase} corresponde ${formatPrice(patente.bracket_fixed)} + ${percent(patente.rate)} de lo que supera ${formatPrice(patente.bracket_from ?? 0)} = ${annual}, ${monthly}`
   }
   if (patente.method === 'bracket_rate') {
-    return `Patente${where}: ${percent(patente.rate)} anual del valor del auto, ${monthly}`
+    return `Patente${where}: ${percent(patente.rate)} anual del ${patente.base_source === 'acara' ? `${valueWithBase},` : `${value},`} ${monthly}`
   }
-  return `Alícuota anual de ${percent(patente.rate)}${where ? `${where},` : ''} sobre el valor del auto, ${monthly}`
+  return `Alícuota anual de ${percent(patente.rate)}${where ? `${where},` : ''} sobre el ${patente.base_source === 'acara' ? `${valueWithBase},` : `${value},`} ${monthly}`
 }
 
 function explainService(service: CostBreakdown['service'], money: string): string {

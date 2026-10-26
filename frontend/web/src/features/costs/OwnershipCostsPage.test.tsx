@@ -20,7 +20,7 @@ const costs = (): OwnershipCosts => ({
     insurance: { coverage: 'terceros_completo', base: 20000000, body_type: 'sedan', body_label: 'Sedán', base_monthly: 114000,
       value_rate: 0.023, by_value: false, zone_factor: 0.8, province: 'Córdoba', province_known: true, tr_ratio: null,
       terceros_completo: 92000 },
-    patente: { base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.025, bracket_fixed: null,
+    patente: { base_source: 'listing', base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.025, bracket_fixed: null,
       bracket_from: null, annual: 500000 },
     service: { brand: 'Toyota', brand_known: true, model_matched: true, body_type: 'sedan', body_label: 'Sedán',
       km_per_year: 18000, interval_km: 10000, interval_months: 12, services_per_year: 2, price_per_service: 486000, fuel_factor: 1,
