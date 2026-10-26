@@ -288,6 +288,14 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "ff5fb0ad",
+      "created_by": "Compumar",
+      "created_at": "2026-10-26T21:37:34.0213934Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
     }
   ]
 }
