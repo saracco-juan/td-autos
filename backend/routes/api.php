@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteControll
 use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\BusquedaController;
+use App\Http\Controllers\BuyerVehicleDetailController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
 use App\Http\Controllers\DiagnosticoController;
@@ -43,6 +44,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/recomendaciones', [RecomendacionesController::class, 'index']);
 
+    Route::get('/vehiculos/{id}', BuyerVehicleDetailController::class)->whereNumber('id');
     Route::get('/vehiculos/{id}/costos', [VehiculoCostosController::class, 'show']);
 
     Route::get('/vehiculos/{vehiculo}/inspeccion', [InspeccionController::class, 'show']);

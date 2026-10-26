@@ -272,6 +272,30 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 1
+    },
+    {
+      "id": "0325be56",
+      "created_by": "Compumar",
+      "created_at": "2026-10-26T21:21:53.0308681Z",
+      "sessions": 2,
+      "memories": 43,
+      "prompts": 20
+    },
+    {
+      "id": "a72ebff3",
+      "created_by": "Compumar",
+      "created_at": "2026-10-26T21:27:11.6120246Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "ff5fb0ad",
+      "created_by": "Compumar",
+      "created_at": "2026-10-26T21:37:34.0213934Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
     }
   ]
 }

@@ -83,3 +83,34 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Empty filtered results retain controls/chips and a clear action, without suggesting a diagnosis change. Existing loading, failure and incomplete-diagnosis states remain intact.
 - Keep size containment scoped to the HU07 page: the shared shell has a minimum height, not a fixed height. Opening the sidebar with applied chips must not push its footer below the viewport; the sidebar and results scroll internally.
 - Figma sync approved on 2026-10-26, pending editing access: High v3 rejected writes in read-only mode; no canvas changes were applied. Follow-up is recorded on Trello card78. Retain the four controls but remove catalog search; show applied chips, ARS units, filtering of matching results and the dedicated empty state. Web uses a collapsible desktop sidebar and stacked mobile-width controls with internal scroll (at most 45dvh); native mobile remains pending HU07-MOBILE. Do not add HU09 detail or HU08 comparison screens in this story.
+
+## HU09 dealer vehicle detail (2026-10-26)
+
+- Follow High v3 desktop `2373:7348` and mobile `2373:9996`: gallery and grouped
+  specifications on the left, price/dealer/actions and compatibility on the right;
+  stack gallery, summary and specifications below 800px. Reuse the application shell.
+- Expand Figma's one-line specification sample into general, engine/consumption,
+  safety and comfort groups with plain-language explanations. Unknown is `No
+  disponible`, distinct from explicit `No`. Missing/broken photos have fallbacks.
+- User-approved follow-up: show those four groups as section tabs, with general
+  information selected initially and the dealer description always below the
+  tab panels. Reuse soft segmented controls, allow wrapping at narrow widths,
+  and support arrow keys, Home/End and a single tab stop for the selected tab.
+  Synchronized after passing tests to High v3 desktop `2373:7348` (card
+  `2461:9166`) and mobile `2373:9996` (card `2461:9213`), with editable layers,
+  general information shown initially, and vertically scrollable content.
+  Native mobile implementation remains out of scope. Only the tab/description
+  design is synchronized; unrelated pending synchronization below stays pending.
+  No calculator-internal or API changes are part of the tab follow-up.
+- `VER FICHA` is the primary recommendation-card action. `CALCULAR COSTOS`
+  opens the teammate's HU10 route, now integrated in develop, from both the card
+  and detail. Preserve HU10 internals. Connect the existing inspection; do not
+  fake comparison/reventa.
+- Compatibility is the recommendation-entry snapshot, never a substitute for
+  current vehicle facts/availability. Direct entry does not invent a score.
+- User-confirmed external acquisition retirement supersedes portal-origin detail
+  assumptions; no original-publication action is shown for dealer inventory.
+- Figma synchronization pending approval: expanded facts, unknown/unavailable
+  states, restricted actions, compatibility provenance and filter-preserving back
+  navigation. Semantics apply to both platform designs; native mobile HU09 remains
+  unimplemented. No Figma writes or external thesis/test-source edits performed.
