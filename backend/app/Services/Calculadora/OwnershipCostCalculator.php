@@ -17,7 +17,10 @@ final class OwnershipCostCalculator
     ];
 
     /**
-     * @param  array{price_ars: float|int, marca?: ?string, modelo?: ?string, body_type?: ?string, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int}  $vehicle
+     * `patente_base` (with `patente_base_source` 'acara' and its reference year and currency) replaces the price as the
+     * base of the patente only; it defaults to `price_ars`.
+     *
+     * @param  array{price_ars: float|int, marca?: ?string, modelo?: ?string, body_type?: ?string, fuel: string, consumo_urbano: mixed, consumo_ruta: mixed, anio: int, patente_base?: float|int, patente_base_source?: string, patente_reference_year?: int, patente_reference_currency?: string}  $vehicle
      * @param  array<string, mixed>  $rates  config('calculadora')
      * @return array{purchase: array{price: int, transfer: int, total: int}, monthly: array{fuel: ?int, insurance: int, patente: int, total: int, not_estimated: list<string>}, yearly: array{service: int, total: int}, breakdown: array<string, mixed>}
      */
@@ -37,7 +40,8 @@ final class OwnershipCostCalculator
             : $this->ceil($kmPerMonth * $fuelInputs['consumption_l_100km'] / 100 * (float) $fuelInputs['unit_price'], $step);
         $insuranceCalc = $this->insurance($vehicle['body_type'] ?? null, $base, $slug, $province, $coverage, $rates['insurance'], $step);
         $insurance = $insuranceCalc['amount'];
-        $patenteCalc = $this->patente($base, $slug, trim($province), $rates['patente']);
+        // Only the patente may use another base (the ACARA reference value); everything else keeps the listing price.
+        $patenteCalc = $this->patente((float) ($vehicle['patente_base'] ?? $base), $slug, trim($province), $rates['patente'], $vehicle);
         $patente = $this->ceil($patenteCalc['annual'] / 12, $step);
         $serviceCalc = $this->service($vehicle, $kmPerMonth, $rates['service']);
         $service = $this->ceil($serviceCalc['yearly'], $step);
@@ -132,11 +136,14 @@ final class OwnershipCostCalculator
      * belongs to the bracket that ends there. A province outside the three maps takes the highest flat rate.
      *
      * @param  array<string, mixed>  $patente  rates['patente']
-     * @return array{base: float, province: string, province_known: bool, method: string, rate: float, bracket_fixed: ?float, bracket_from: ?float, annual: float}
+     * @return array{base: float, base_source: string, reference_year?: int, reference_currency?: string, province: string, province_known: bool, method: string, rate: float, bracket_fixed: ?float, bracket_from: ?float, annual: float}
      */
-    private function patente(float $base, string $slug, string $province, array $patente): array
+    private function patente(float $base, string $slug, string $province, array $patente, array $vehicle): array
     {
-        $result = ['base' => $base, 'province' => $province, 'province_known' => true, 'bracket_fixed' => null, 'bracket_from' => null];
+        $acara = ($vehicle['patente_base_source'] ?? 'listing') === 'acara';
+        $result = ['base' => $base, 'base_source' => $acara ? 'acara' : 'listing']
+            + ($acara ? ['reference_year' => (int) $vehicle['patente_reference_year'], 'reference_currency' => (string) $vehicle['patente_reference_currency']] : [])
+            + ['province' => $province, 'province_known' => true, 'bracket_fixed' => null, 'bracket_from' => null];
 
         if (isset($patente['scale'][$slug])) {
             $from = 0.0;

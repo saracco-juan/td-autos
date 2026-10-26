@@ -917,12 +917,14 @@ Review it once a year, together with `updated_at` and `insurance.cpi_base_month`
 
 ### Patente model
 
-The `patente` block of `config/calculadora.php` replaces the old flat rate per province. The base is the ARS price of the vehicle, a stand-in for the fiscal valuation (the developer's own car implies a valuation close to market). Monthly patente = annual / 12, rounded up to the step. Each province has one scheme:
+The `patente` block of `config/calculadora.php` replaces the old flat rate per province. Monthly patente = annual / 12, rounded up to the step. Each province has one scheme:
 
 - `scale` (Buenos Aires; CABA as an approximation because AGIP's brackets were not found): progressive. Each bracket is `{up_to, fixed, rate}` and the annual tax is `fixed + rate x (price - previous up_to)`. A price equal to a limit stays in the bracket that ends there.
 - `bracket_rate` (Córdoba): one rate over the WHOLE price, chosen by the bracket the price falls in.
 - `flat_rate` (every other province): one rate over the price. A province outside the three maps takes the highest flat rate.
 - CPI: `up_to` and `fixed` are ARS amounts and are multiplied by `max(1, CPI latest / CPI of patente.cpi_base_month)` (`2026-02`); rates are never indexed.
+- Base: the fixed ACARA catalog price (`FixedAcaraCatalog::priceFor`) of the vehicle's linked version (`acara_version_id`) for its model year, the value the provinces use as fiscal base. A USD catalog price is converted with the DolarApi sell quote that the estimate already uses. When there is no link, no usable price for that year (missing, null or not above zero), an empty catalog, or a USD price with no quote, the base is the listing price in ARS (a stand-in for the fiscal valuation). Only the patente changes: insurance, transfer and the budget comparison keep the listing price. `VehicleCostEstimate` passes `patente_base` to the pure `OwnershipCostCalculator`, which defaults it to the price.
+- `breakdown.patente` reports `base` (the base used), `base_source` (`acara` or `listing`) and, only for `acara`, `reference_year` and `reference_currency` (the currency the catalog quotes). The cost tooltip says "valor de referencia ACARA de esta versión" when the source is `acara`.
 - Worked example (calibration case): a hatchback priced 20.600.000 in Buenos Aires falls in the 18.700.000-26.100.000 bracket: 233.000 + 3% x 1.900.000 = 290.000 a year, 24.167 a month, rounded up to 25.000.
 
 Review it once a year, together with `updated_at` and `patente.cpi_base_month`:

@@ -127,7 +127,7 @@ class OwnershipCostCalculatorTest extends TestCase
             'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000, 'body_type' => 'hatchback', 'body_label' => 'Hatchback',
                 'base_monthly' => 103000, 'value_rate' => 0.023, 'by_value' => false, 'zone_factor' => 0.8, 'province' => 'Córdoba',
                 'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 83000],
-            'patente' => ['base' => 20000000, 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
+            'patente' => ['base' => 20000000, 'base_source' => 'listing', 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
                 'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000],
             'service' => ['brand' => null, 'brand_known' => false, 'model_matched' => false, 'body_type' => 'hatchback', 'body_label' => 'Hatchback',
                 'km_per_year' => 18000, 'interval_km' => 10000, 'interval_months' => 12, 'services_per_year' => 2,
@@ -545,13 +545,39 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(50000, $this->estimate(province: 'Nowhere')['monthly']['patente']);
     }
 
+    public function test_the_patente_uses_the_acara_base_while_insurance_and_transfer_keep_the_listing_price(): void
+    {
+        // Córdoba: up to 20.000.000 pays 2,5%, above it 3%. The ACARA base 30.000.000 pays 900.000 a year = 75.000 a month.
+        $listing = $this->estimate();
+        $r = $this->estimate(['patente_base' => 30000000, 'patente_base_source' => 'acara', 'patente_reference_year' => 2022, 'patente_reference_currency' => 'USD']);
+
+        $this->assertSame(75000, $r['monthly']['patente']);
+        $this->assertEquals(['base' => 30000000, 'base_source' => 'acara', 'reference_year' => 2022, 'reference_currency' => 'USD',
+            'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.03,
+            'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 900000], $r['breakdown']['patente']);
+        $this->assertSame($listing['monthly']['insurance'], $r['monthly']['insurance']);
+        $this->assertEquals($listing['breakdown']['insurance'], $r['breakdown']['insurance']);
+        $this->assertSame($listing['purchase'], $r['purchase']);
+        $this->assertEquals($listing['breakdown']['transfer'], $r['breakdown']['transfer']);
+    }
+
+    public function test_without_a_patente_base_the_listing_price_is_used(): void
+    {
+        $r = $this->estimate();
+
+        $this->assertSame('listing', $r['breakdown']['patente']['base_source']);
+        $this->assertArrayNotHasKey('reference_year', $r['breakdown']['patente']);
+        $this->assertArrayNotHasKey('reference_currency', $r['breakdown']['patente']);
+        $this->assertSame(20000000.0, (float) $r['breakdown']['patente']['base']);
+    }
+
     public function test_a_flat_province_pays_its_rate_over_the_price(): void
     {
         // Santa Fe 0,023: 20.000.000 x 0,023 / 12 = 38.333,3 -> 39.000
         $r = $this->estimate(province: 'Santa Fe');
 
         $this->assertSame(39000, $r['monthly']['patente']);
-        $this->assertEquals(['base' => 20000000, 'province' => 'Santa Fe', 'province_known' => true, 'method' => 'flat', 'rate' => 0.023,
+        $this->assertEquals(['base' => 20000000, 'base_source' => 'listing', 'province' => 'Santa Fe', 'province_known' => true, 'method' => 'flat', 'rate' => 0.023,
             'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 460000], $r['breakdown']['patente']);
     }
 

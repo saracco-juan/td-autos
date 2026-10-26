@@ -9,6 +9,7 @@ use App\Models\TipoCarroceria;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
+use App\Services\Catalog\FixedAcaraCatalog;
 use App\Support\VehiculoFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
@@ -24,7 +25,7 @@ class OwnershipCostsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['cache.default' => 'array']);
+        config(['cache.default' => 'array', 'cache.stores.catalog' => ['driver' => 'array']]);
         Cache::flush();
         Http::preventStrayRequests();
         $this->travelTo(Carbon::parse('2026-10-20T12:00:00Z'));
@@ -77,6 +78,14 @@ class OwnershipCostsTest extends TestCase
         Http::fake(['https://dolarapi.com/v1/dolares/oficial' => $sell === null
             ? Http::response([], 500)
             : Http::response(['moneda' => 'USD', 'casa' => 'oficial', 'venta' => $sell, 'fechaActualizacion' => '2026-10-20T12:00:00Z'])]);
+    }
+
+    /** @param array<int, ?string> $values price by model year */
+    private function catalog(string $currency, array $values): void
+    {
+        app(FixedAcaraCatalog::class)->import(['source_date' => '2026-10-19', 'sha256' => hash('sha256', 'costs'), 'snapshot_id' => 'costs-1',
+            'rows' => [['make' => 'Renault', 'model' => 'Logan', 'version' => 'Life', 'version_id' => 'acara:costs', 'currency' => $currency,
+                'page' => 1, 'zero_km_price' => null, 'values' => $values]]]);
     }
 
     private function buyer(array $changes = [], bool $withDiagnosis = true): User
@@ -134,7 +143,7 @@ class OwnershipCostsTest extends TestCase
                     'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000.0, 'body_type' => 'sedan', 'body_label' => 'Sedán',
                         'base_monthly' => 114000.0, 'value_rate' => 0.023, 'by_value' => false, 'zone_factor' => 0.8, 'province' => 'Córdoba',
                         'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 92000],
-                    'patente' => ['base' => 20000000.0, 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
+                    'patente' => ['base' => 20000000.0, 'base_source' => 'listing', 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
                         'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000.0],
                     'service' => ['brand' => null, 'brand_known' => false, 'model_matched' => false, 'body_type' => 'sedan', 'body_label' => 'Sedán',
                         'km_per_year' => 18000, 'interval_km' => 10000, 'interval_months' => 12, 'services_per_year' => 2,
@@ -146,6 +155,88 @@ class OwnershipCostsTest extends TestCase
                 'rates_updated_at' => '2026-10-01',
                 'exchange_rate' => null,
             ]);
+    }
+
+    public function test_a_linked_vehicle_pays_the_patente_on_the_acara_price_of_its_year(): void
+    {
+        $this->catalog('ARS', [2022 => '30000000']);
+        $this->buyer();
+        $car = $this->car(['acara_version_id' => 'acara:costs']);
+
+        // Patente: 30.000.000 x 3% / 12 = 75.000. Insurance and transfer keep the listing price (20.000.000).
+        $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
+            ->assertJsonPath('monthly.patente', 75000)
+            ->assertJsonPath('monthly.insurance', 92000)
+            ->assertJsonPath('purchase.transfer', 700000)
+            ->assertJsonPath('breakdown.insurance.base', 20000000)
+            ->assertJsonPath('breakdown.transfer.base', 20000000)
+            ->assertJsonPath('breakdown.patente.base', 30000000)
+            ->assertJsonPath('breakdown.patente.base_source', 'acara')
+            ->assertJsonPath('breakdown.patente.reference_year', 2022)
+            ->assertJsonPath('breakdown.patente.reference_currency', 'ARS');
+    }
+
+    public function test_an_acara_price_in_usd_is_converted_with_the_sell_rate(): void
+    {
+        $this->fakeRate(1200);
+        $this->catalog('USD', [2022 => '25000']);
+        $this->buyer();
+        $car = $this->car(['acara_version_id' => 'acara:costs']);
+
+        // 25.000 x 1.200 = 30.000.000 -> 75.000 a month. The listing stays in ARS, so no exchange rate is shown.
+        $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
+            ->assertJsonPath('monthly.patente', 75000)
+            ->assertJsonPath('breakdown.patente.base', 30000000)
+            ->assertJsonPath('breakdown.patente.base_source', 'acara')
+            ->assertJsonPath('breakdown.patente.reference_currency', 'USD')
+            ->assertJsonPath('breakdown.insurance.base', 20000000)
+            ->assertJsonPath('exchange_rate', null);
+    }
+
+    public function test_a_linked_vehicle_without_a_price_for_its_year_uses_the_listing_price(): void
+    {
+        $this->catalog('ARS', [2021 => '30000000', 2022 => null]);
+        $this->buyer();
+        $car = $this->car(['acara_version_id' => 'acara:costs']);
+
+        $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
+            ->assertJsonPath('monthly.patente', 42000)
+            ->assertJsonPath('breakdown.patente.base', 20000000)
+            ->assertJsonPath('breakdown.patente.base_source', 'listing')
+            ->assertJsonMissingPath('breakdown.patente.reference_year');
+    }
+
+    public function test_an_unlinked_vehicle_uses_the_listing_price(): void
+    {
+        $this->catalog('ARS', [2022 => '30000000']);
+        $this->buyer();
+        $car = $this->car();
+
+        $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
+            ->assertJsonPath('monthly.patente', 42000)
+            ->assertJsonPath('breakdown.patente.base_source', 'listing');
+    }
+
+    public function test_an_acara_price_in_usd_without_a_rate_falls_back_to_the_listing_price(): void
+    {
+        $this->fakeRate(null);
+        $this->catalog('USD', [2022 => '25000']);
+        $this->buyer();
+        $car = $this->car(['acara_version_id' => 'acara:costs']);
+
+        $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
+            ->assertJsonPath('monthly.patente', 42000)
+            ->assertJsonPath('breakdown.patente.base', 20000000)
+            ->assertJsonPath('breakdown.patente.base_source', 'listing');
+    }
+
+    public function test_an_empty_catalog_uses_the_listing_price(): void
+    {
+        $this->buyer();
+        $car = $this->car(['acara_version_id' => 'acara:costs']);
+
+        $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
+            ->assertJsonPath('breakdown.patente.base_source', 'listing');
     }
 
     public function test_the_yearly_service_uses_the_brand_and_model_of_the_vehicle(): void
