@@ -225,36 +225,34 @@ final class RealDemoInventory
     }
 
     /**
-     * The engine whose `match` is the longest substring of the version name; the first one otherwise.
+     * The first listed engine whose `match` is a substring of the version name (list the most specific
+     * ones first); the first engine otherwise.
      *
      * @param  list<array<string, mixed>>  $engines
      * @return array<string, mixed>
      */
     private function engine(array $engines, string $version): array
     {
-        return $engines[$this->longestMatch(array_column($engines, 'match'), $version) ?? 0];
+        return $engines[$this->firstMatch(array_column($engines, 'match'), $version) ?? 0];
     }
 
     /**
-     * Index of the entry with the longest case-insensitive substring found in the text, or null.
+     * Index of the first entry with a case-insensitive substring found in the text, or null.
      * Each entry is a string or a list of strings.
      *
      * @param  list<string|list<string>>  $entries
      */
-    private function longestMatch(array $entries, string $text): ?int
+    private function firstMatch(array $entries, string $text): ?int
     {
-        $best = null;
-        $length = 0;
         foreach ($entries as $index => $needles) {
             foreach ((array) $needles as $needle) {
-                if (strlen($needle) > $length && stripos($text, $needle) !== false) {
-                    $best = $index;
-                    $length = strlen($needle);
+                if (stripos($text, $needle) !== false) {
+                    return $index;
                 }
             }
         }
 
-        return $best;
+        return null;
     }
 
     /**
@@ -277,7 +275,7 @@ final class RealDemoInventory
      */
     private function equipment(array $spec, string $version, int $year): array
     {
-        $trim = $this->longestMatch(array_column($spec['trims'], 'match'), $version);
+        $trim = $this->firstMatch(array_column($spec['trims'], 'match'), $version);
         $wanted = $trim === null ? 0 : (int) array_search($spec['trims'][$trim]['tier'], self::TIERS, true);
         $equipment = $this->nearestTier($spec['equipment'], $wanted);
 

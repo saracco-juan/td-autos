@@ -136,7 +136,7 @@ class RealDemoInventoryTest extends TestCase
         }
     }
 
-    public function test_the_engine_and_trim_with_the_longest_match_win(): void
+    public function test_the_first_listed_engine_and_trim_match_wins(): void
     {
         $byVersion = [];
         foreach ($this->inventory()->vehicles(2000) as $vehicle) {
@@ -154,7 +154,8 @@ class RealDemoInventoryTest extends TestCase
         $this->assertNotEmpty($v6);
         foreach ($v6 as $vehicle) {
             $this->assertSame(250, $vehicle['potencia']);
-            // XLS is a mid trim even though "XL" (base) also matches.
+            // The V6 engine is listed before "3.0", and XLS before "XL" (a base trim that also matches).
+            $this->assertSame(12.2, $vehicle['consumo_urbano']);
             $this->assertTrue($vehicle['volante_regulable']);
             $this->assertFalse($vehicle['punto_ciego']);
         }
@@ -163,6 +164,28 @@ class RealDemoInventoryTest extends TestCase
         $this->assertNotEmpty($limited);
         foreach ($limited as $vehicle) {
             $this->assertTrue($vehicle['camara_retroceso']);
+        }
+    }
+
+    public function test_a_shorter_match_listed_first_beats_a_longer_one_listed_later(): void
+    {
+        $models = json_decode(file_get_contents(database_path('seeders/assets/real-demo/models.json')), true);
+        foreach ($models as &$model) {
+            if ($model['model'] === 'Ranger') {
+                // "3.0" first: the generic engine must now win over "3.0 V6", and "xl" (any case) over "XLS".
+                usort($model['engines'], fn ($a, $b) => [$b['match'] === '3.0'] <=> [$a['match'] === '3.0']);
+                $model['trims'] = [['match' => ['xl'], 'tier' => 'base'], ['match' => ['XLS'], 'tier' => 'top']];
+            }
+        }
+        unset($model);
+
+        $vehicles = (new RealDemoInventory((new LocalAcaraCatalogData)->load(), $models))->vehicles(2000);
+        $v6 = array_values(array_filter($vehicles, fn ($v) => str_starts_with($v['version'], '3.0 V6 XLS')));
+
+        $this->assertNotEmpty($v6);
+        foreach ($v6 as $vehicle) {
+            $this->assertEquals(11.0, $vehicle['consumo_urbano']);
+            $this->assertFalse($vehicle['camara_retroceso']);
         }
     }
 

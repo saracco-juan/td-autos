@@ -6,6 +6,15 @@
         "seats": 5,
         "engines": [
             {
+                "match": "Hybrid",
+                "motor": "1.8 híbrido",
+                "fuel": "hibrido",
+                "turbo": false,
+                "power_cv": 98,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
                 "match": "2.0",
                 "fuel": "nafta",
                 "turbo": false,
@@ -22,15 +31,6 @@
                 "power_cv": 140,
                 "consumo_urbano": 9,
                 "consumo_ruta": 6.2,
-                "estimated": true,
-                "source": "provisional"
-            },
-            {
-                "match": "Hybrid",
-                "motor": "1.8 híbrido",
-                "fuel": "hibrido",
-                "turbo": false,
-                "power_cv": 98,
                 "estimated": true,
                 "source": "provisional"
             }
@@ -352,6 +352,56 @@
         "seats": 5,
         "engines": [
             {
+                "match": "Raptor 2.0",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 213,
+                "consumo_urbano": 11.3,
+                "consumo_ruta": 8.1,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "Raptor 3.0",
+                "fuel": "nafta",
+                "turbo": true,
+                "power_cv": 397,
+                "consumo_urbano": 15.5,
+                "consumo_ruta": 10.5,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "3.0 V6",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 250,
+                "consumo_urbano": 12.2,
+                "consumo_ruta": 8.6,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.0BT",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 210,
+                "consumo_urbano": 10.6,
+                "consumo_ruta": 7.8,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
+                "match": "2.0T",
+                "fuel": "diesel",
+                "turbo": true,
+                "power_cv": 170,
+                "consumo_urbano": 10,
+                "consumo_ruta": 7.5,
+                "estimated": true,
+                "source": "provisional"
+            },
+            {
                 "match": "2.2",
                 "fuel": "diesel",
                 "turbo": true,
@@ -392,16 +442,6 @@
                 "source": "provisional"
             },
             {
-                "match": "3.0 V6",
-                "fuel": "diesel",
-                "turbo": true,
-                "power_cv": 250,
-                "consumo_urbano": 12.2,
-                "consumo_ruta": 8.6,
-                "estimated": true,
-                "source": "provisional"
-            },
-            {
                 "match": "3.2",
                 "fuel": "diesel",
                 "turbo": true,
@@ -410,56 +450,18 @@
                 "consumo_ruta": 8,
                 "estimated": true,
                 "source": "provisional"
-            },
-            {
-                "match": "2.0T",
-                "fuel": "diesel",
-                "turbo": true,
-                "power_cv": 170,
-                "consumo_urbano": 10,
-                "consumo_ruta": 7.5,
-                "estimated": true,
-                "source": "provisional"
-            },
-            {
-                "match": "2.0BT",
-                "fuel": "diesel",
-                "turbo": true,
-                "power_cv": 210,
-                "consumo_urbano": 10.6,
-                "consumo_ruta": 7.8,
-                "estimated": true,
-                "source": "provisional"
-            },
-            {
-                "match": "Raptor 2.0",
-                "fuel": "diesel",
-                "turbo": true,
-                "power_cv": 213,
-                "consumo_urbano": 11.3,
-                "consumo_ruta": 8.1,
-                "estimated": true,
-                "source": "provisional"
-            },
-            {
-                "match": "Raptor 3.0",
-                "fuel": "nafta",
-                "turbo": true,
-                "power_cv": 397,
-                "consumo_urbano": 15.5,
-                "consumo_ruta": 10.5,
-                "estimated": true,
-                "source": "provisional"
             }
         ],
         "trims": [
             {
                 "match": [
-                    "XL",
-                    "F- Truck",
-                    "Black"
+                    "Limited",
+                    "LTD",
+                    "FX4",
+                    "Super Duty",
+                    "Raptor"
                 ],
-                "tier": "base"
+                "tier": "top"
             },
             {
                 "match": [
@@ -470,13 +472,11 @@
             },
             {
                 "match": [
-                    "Limited",
-                    "LTD",
-                    "FX4",
-                    "Super Duty",
-                    "Raptor"
+                    "XL",
+                    "F- Truck",
+                    "Black"
                 ],
-                "tier": "top"
+                "tier": "base"
             }
         ],
         "equipment": {
