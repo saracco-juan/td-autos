@@ -11,6 +11,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan migrate --force
+# One-time load of the bundled fixed ACARA catalog; a no-op once any catalog exists. A failure only leaves the
+# catalog empty (inventory entry answers 503), so it must not stop the API from starting.
+php artisan catalog:load-bundled || echo "catalog:load-bundled failed; the catalog stays empty."
 
 # The artisan commands ran as root; Apache serves as www-data.
 chown -R www-data:www-data storage bootstrap/cache
