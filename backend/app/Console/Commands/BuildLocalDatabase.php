@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\Catalog\FixedAcaraCatalog;
 use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\LocalDevSeeder;
+use Database\Seeders\RealDemo\RealDemoLoader;
 use Database\Seeders\Support\LocalAcaraCatalogData;
 use Database\Seeders\VolumeInventorySeeder;
 use Illuminate\Console\Command;
@@ -20,7 +21,8 @@ class BuildLocalDatabase extends Command
     private const CONNECTION = 'local_dev';
 
     protected $signature = 'db:local {--path= : SQLite file (default: database/manual.sqlite)}
-        {--vehiculos= : Extra dealer vehicles to load on top of the demo seed (default: none)}';
+        {--vehiculos= : Extra dealer vehicles to load on top of the demo seed (default: none)}
+        {--reales= : Realistic vehicles from real ACARA versions for 10 demo dealers (default: none)}';
 
     protected $description = 'Rebuild a local SQLite database with demo data and the fixed ACARA catalog';
 
@@ -32,10 +34,11 @@ class BuildLocalDatabase extends Command
             return self::FAILURE;
         }
 
-        $vehicles = $this->vehiclesOption();
+        $vehicles = $this->amountOption('vehiculos');
+        $real = $this->amountOption('reales');
 
-        if ($vehicles === null) {
-            $this->error('--vehiculos must be a whole number, 0 or more.');
+        if ($vehicles === null || $real === null) {
+            $this->error('--'.($vehicles === null ? 'vehiculos' : 'reales').' must be a whole number, 0 or more.');
 
             return self::FAILURE;
         }
@@ -88,6 +91,11 @@ class BuildLocalDatabase extends Command
             }
             app(FixedAcaraCatalog::class)->import($catalogSnapshot);
 
+            // Before the volume seeder: it reads the plates already in the database.
+            if ($real > 0) {
+                app(RealDemoLoader::class)->load($real, $this);
+            }
+
             if ($vehicles > 0) {
                 app(VolumeInventorySeeder::class)->withVehicles($vehicles)->setCommand($this)->run();
             }
@@ -111,9 +119,13 @@ class BuildLocalDatabase extends Command
         $this->line('  '.LocalDevSeeder::BUYER_EMAIL.' (buyer)');
         $this->line('  *@demo.tdautos.test (dealers: sur, rosario, cuyo, norte, capital, pampa, litoral)');
 
+        if ($real > 0) {
+            $this->line('  *@'.RealDemoLoader::EMAIL_DOMAIN.' (10 active dealers with the realistic inventory)');
+        }
+
         if ($vehicles > 0) {
             $this->line('  concesionariaNN@'.VolumeInventorySeeder::EMAIL_DOMAIN.' (active dealers with the volume inventory, NN = 01 to '.VolumeInventorySeeder::DEALERS.')');
-            $this->line('Vehicle photos are files on the public disk: run `php artisan storage:link` once so they load.');
+            $this->line('Volume vehicle photos are files on the public disk: run `php artisan storage:link` once so they load.');
         }
 
         return self::SUCCESS;
@@ -122,9 +134,9 @@ class BuildLocalDatabase extends Command
     /**
      * The amount asked for, 0 when the option is absent, or null when it is not a whole number >= 0.
      */
-    private function vehiclesOption(): ?int
+    private function amountOption(string $name): ?int
     {
-        $value = $this->option('vehiculos');
+        $value = $this->option($name);
 
         if ($value === null) {
             return 0;
