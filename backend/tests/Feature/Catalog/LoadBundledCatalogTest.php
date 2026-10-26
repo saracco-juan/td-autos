@@ -33,6 +33,20 @@ class LoadBundledCatalogTest extends TestCase
         $this->assertNotNull(app(FixedAcaraCatalog::class)->current());
     }
 
+    public function test_the_bundled_catalog_loads_with_batched_inserts(): void
+    {
+        // Each round trip to the deployed database costs tens of milliseconds: one insert per version or per
+        // hundred prices made the first container start take minutes.
+        DB::enableQueryLog();
+        $this->artisan('catalog:load-bundled')->assertSuccessful();
+        $inserts = collect(DB::getQueryLog())->filter(fn (array $query) => str_starts_with(strtolower(ltrim($query['query'])), 'insert'));
+
+        $this->assertLessThan(400, $inserts->count());
+        $rows = collect((new LocalAcaraCatalogData)->load()['rows']);
+        $this->assertSame($rows->pluck('version_id')->unique()->count(), DB::table('catalog_versions')->count());
+        $this->assertSame($rows->sum(fn (array $row) => 1 + count($row['values'])), DB::table('catalog_prices')->count());
+    }
+
     public function test_a_second_run_changes_nothing(): void
     {
         $this->artisan('catalog:load-bundled')->assertSuccessful();
