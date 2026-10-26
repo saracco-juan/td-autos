@@ -159,6 +159,27 @@ Demo accounts (password `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@d
 
 For volume testing, `php artisan db:local --vehiculos=10000` adds about 50 active dealers with a current subscription (`concesionaria01@volumen.tdautos.test` to `concesionaria50@volumen.tdautos.test`, same password) and spreads the requested number of vehicles among them, unevenly and always with the same data: real Argentine-market models and body types, prices and mileage that match the year, unique plates and 7 photos per vehicle. The photos are 7 numbered images written to the `public` disk (`backend/storage/app/public/vehiculos/volumen`); run `php artisan storage:link` once so they show. Without the option the database stays as before. SQLite only: it does not work on Supabase.
 
+### Realistic inventory (`--reales`)
+
+`php artisan db:local --reales=800` adds 10 active dealers in 6 provinces (`<slug>@reales.tdautos.test`, same password) and N vehicles built from real data, always the same for the same N:
+
+- Make, model, version and price come from the fixed ACARA catalog: the price is the ACARA value of the model year ±10%, in the catalog's currency. About 84% keep their `acara_version_id`; the rest keep the text only, to exercise the unlinked paths (approximate resale reference).
+- Seats, consumption, power and equipment come from `backend/database/seeders/assets/real-demo/models.json` (67 best-selling models). Equipment per trim comes from the Autocosmos Argentina version pages, consumption from the Inmetro PBEV tables (Brazil, homologated) or published road tests, and power from the ACARA version name; each engine keeps its `source`, and the few estimates are flagged `estimated`. Catalog versions whose engine is not in the file are left out.
+- Photos are 7 Wikimedia Commons URLs per vehicle (free licenses). Credits are in `real-demo/CREDITS.md`; regenerate them with `php artisan demo:reales-creditos` after editing the data file.
+
+To load the same inventory into develop, which has no shell:
+
+1. Create the 10 dealers in the develop database from your machine. Without `--confirm` it only prints the target and what it would create; existing dealers are skipped:
+   ```powershell
+   $env:DB_CONNECTION = "pgsql"; $env:DB_URL = "<session pooler URI of td-autos-dev>"
+   php artisan demo:reales-concesionarias --confirm
+   Remove-Item Env:DB_CONNECTION, Env:DB_URL
+   ```
+2. `php artisan demo:reales-xlsx --cantidad=800` writes one XLSX per dealer and `dealers.csv` to `backend/storage/app/demo-reales` (linked vehicles only, since the import always links by exact catalog match).
+3. Sign in as each dealer and import its file from Inventario → Importar XLSX.
+
+With 5,000 vehicles, `GET /api/recomendaciones` takes 11–13 s locally: `DealershipRanker::hasValidFacts` runs the Laravel validator on every vehicle on every request (about 9.5 s of it). With 800 vehicles it takes about 2 s.
+
 ## Code shared by web and mobile (`frontend/shared/`)
 
 Pure TypeScript used by both apps, today the diagnosis model (`diagnosis/`: types, questions, draft rules). It must not import React, React Native or any npm package: neither app installs dependencies for that folder.
