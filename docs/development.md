@@ -178,7 +178,7 @@ To load the same inventory into develop, which has no shell:
 2. `php artisan demo:reales-xlsx --cantidad=800` writes one XLSX per dealer and `dealers.csv` to `backend/storage/app/demo-reales` (linked vehicles only, since the import always links by exact catalog match).
 3. Sign in as each dealer and import its file from Inventario → Importar XLSX.
 
-With 5,000 vehicles, `GET /api/recomendaciones` takes 11–13 s locally: `DealershipRanker::hasValidFacts` runs the Laravel validator on every vehicle on every request (about 9.5 s of it). With 800 vehicles it takes about 2 s.
+To measure the recommendations with volume, build a separate database with `php artisan db:local --path=<new file> --reales=5000`. Locally, `GET /api/recomendaciones` takes 1.7–4.7 s with 5,000 vehicles (12–15 s before the ranker stopped running the Laravel validator per vehicle, PR #48); most of what is left is scoring and resale.
 
 ## Code shared by web and mobile (`frontend/shared/`)
 
