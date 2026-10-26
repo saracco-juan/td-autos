@@ -21,10 +21,13 @@ class PublicAppUrlTest extends TestCase
 
     public function test_local_http_app_url_leaves_urls_to_the_request(): void
     {
-        config(['app.url' => 'http://localhost:8000']);
+        // A host the request never uses: if the provider forced the APP_URL, it would show up in the URL.
+        // The request root comes from the local environment (APP_URL in .env), so compare against it.
+        config(['app.url' => 'http://app-url.test:9000']);
         $this->app->getProvider(AppServiceProvider::class)->boot();
 
-        $this->assertSame('http://localhost/up', url('/up'));
+        $this->assertSame(request()->getSchemeAndHttpHost().'/up', url('/up'));
+        $this->assertStringNotContainsString('app-url.test', url('/up'));
     }
 
     public function test_forwarded_https_from_a_proxy_is_trusted(): void

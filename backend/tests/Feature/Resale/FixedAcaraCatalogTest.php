@@ -167,6 +167,27 @@ class FixedAcaraCatalogTest extends TestCase
         $this->assertSame($snapshot['sha256'], DB::table('catalog_import')->value('sha256'));
     }
 
+    public function test_it_answers_the_price_of_a_version_for_a_model_year(): void
+    {
+        $catalog = app(FixedAcaraCatalog::class);
+        $this->assertNull($catalog->priceFor('acara:v', 2022));
+        $catalog->import($this->row(['2022' => '1500.50', '2021' => null, '2020' => '0']));
+
+        $this->assertSame(['amount' => 1500.5, 'currency' => 'USD'], $catalog->priceFor('acara:v', 2022));
+        $this->assertNull($catalog->priceFor('acara:v', 2021));
+        $this->assertNull($catalog->priceFor('acara:v', 2020));
+        $this->assertNull($catalog->priceFor('acara:v', 2019));
+        $this->assertNull($catalog->priceFor('acara:other', 2022));
+    }
+
+    /** @param array<int|string, ?string> $values */
+    private function row(array $values): array
+    {
+        return ['source_date' => '2026-10-19', 'sha256' => hash('sha256', 'price'), 'snapshot_id' => 'price-1',
+            'rows' => [['make' => 'M', 'model' => 'X', 'version' => 'V', 'version_id' => 'acara:v', 'currency' => 'USD',
+                'page' => 1, 'zero_km_price' => null, 'values' => $values]]];
+    }
+
     private function snapshot(string $date = '19/10/2026'): array
     {
         return app(AcaraPriceReader::class)->read(AcaraPdf::make($date));

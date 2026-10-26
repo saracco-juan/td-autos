@@ -47,6 +47,27 @@ final class FixedAcaraCatalog
         return $snapshot;
     }
 
+    /**
+     * Catalog price of one version for one model year, read from the same snapshot as `current()`. Null when the
+     * catalog is empty, the version is unknown or duplicated, or the year has no usable (null or non-positive) price.
+     *
+     * @return array{amount: float, currency: string}|null
+     */
+    public function priceFor(string $versionId, int $year): ?array
+    {
+        $rows = array_values(array_filter($this->current()['rows'] ?? [], fn (array $row) => $row['version_id'] === $versionId));
+        // Duplicated references are not resolved by picking the first one (same rule as the resale scorer).
+        if (count($rows) !== 1) {
+            return null;
+        }
+        $amount = $rows[0]['values'][$year] ?? null;
+        if ($amount === null || (float) $amount <= 0) {
+            return null;
+        }
+
+        return ['amount' => (float) $amount, 'currency' => (string) $rows[0]['currency']];
+    }
+
     /** Receives the existing reader's validated snapshot; never replaces fixed data. */
     public function import(array $snapshot): bool
     {
