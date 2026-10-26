@@ -61,7 +61,7 @@ it('paginates the backend top ten as nine plus one without sorting or requesting
   expect(cards()).toHaveLength(1)
   expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 1 2021')
   expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
-  expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+  expect(screen.queryByText('Mostrar')).not.toBeInTheDocument()
   expect(apiFetch).toHaveBeenCalledTimes(1)
 })
 
