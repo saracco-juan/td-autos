@@ -5,9 +5,8 @@ namespace App\Services\Matching;
 use App\Models\Diagnostico;
 use App\Models\Vehiculo;
 use App\Support\DiagnosticoOptions;
-use App\Support\VehiculoFields;
+use App\Support\VehiculoMatchingFacts;
 use App\Support\VehiculoOptions;
-use Illuminate\Support\Facades\Validator;
 
 /** Deterministic ranking only: the caller supplies current inventory, operative dealers and one quote. */
 final class DealershipRanker
@@ -58,14 +57,10 @@ final class DealershipRanker
 
     private function hasValidFacts(Vehiculo $vehicle, int $year): bool
     {
-        // Reuse publication rules on raw attributes so invalid values cannot be hidden by model casts.
+        // Same publication rules on raw attributes, so casts cannot hide invalid values; the pure check
+        // gives the verdict of the validator without building one per vehicle on every request.
         // Plate uniqueness and body existence are persistence concerns, already enforced on publication.
-        $rules = VehiculoFields::rules(includeMatchingFacts: true);
-        unset($rules['patente']);
-        $rules['carroceria_id'] = ['required', 'integer', 'min:1'];
-        $rules['anio'] = ['required', 'integer', 'between:1950,'.($year + 1)];
-
-        return Validator::make($vehicle->getAttributes() + ['carroceria_id' => $vehicle->tipo_carroceria_id], $rules)->passes();
+        return VehiculoMatchingFacts::valid($vehicle->getAttributes() + ['carroceria_id' => $vehicle->tipo_carroceria_id], $year);
     }
 
     private function score(Vehiculo $vehicle, Diagnostico $diagnosis, array $bodyIds, int $year, ?float $rate, ?array $resale): ?array
