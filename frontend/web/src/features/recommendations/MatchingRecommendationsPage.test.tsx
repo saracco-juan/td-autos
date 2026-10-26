@@ -164,6 +164,12 @@ it('keeps a USD publication distinct from its ARS equivalent and shows its actua
   expect(screen.getByRole('img')).toHaveAttribute('src', '/demo/corolla.webp')
 })
 
+it('links each card to the cost estimate of its vehicle', async () => {
+  renderPage()
+  const card = await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
+  expect(within(card).getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/1/costos')
+})
+
 it('identifies inferred model families as approximate rather than exact', async () => {
   vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(),
     resale: { activity_score: 80, retention_score: 75, source_date: '2026-10-19',

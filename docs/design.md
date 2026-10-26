@@ -101,10 +101,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   general information shown initially, and vertically scrollable content.
   Native mobile implementation remains out of scope. Only the tab/description
   design is synchronized; unrelated pending synchronization below stays pending.
-  No calculator or API changes are part of this follow-up.
-- `VER FICHA` is the primary recommendation-card action. Retain `CALCULAR COSTOS`
-  as a visibly pending shortcut until the teammate's HU10 is integrated, not a
-  broken link. Connect the existing inspection; do not fake comparison/reventa.
+  No calculator-internal or API changes are part of the tab follow-up.
+- `VER FICHA` is the primary recommendation-card action. `CALCULAR COSTOS`
+  opens the teammate's HU10 route, now integrated in develop, from both the card
+  and detail. Preserve HU10 internals. Connect the existing inspection; do not
+  fake comparison/reventa.
 - Compatibility is the recommendation-entry snapshot, never a substitute for
   current vehicle facts/availability. Direct entry does not invent a score.
 - User-confirmed external acquisition retirement supersedes portal-origin detail

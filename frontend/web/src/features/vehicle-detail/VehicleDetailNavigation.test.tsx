@@ -38,19 +38,19 @@ beforeEach(() => {
     : { vehicle: { ...vehicle, precio: 30000000 }, dealer: recommendation.dealer })
 })
 
-it('HU09 keeps VER FICHA primary, the costs shortcut pending, current facts and filters on return', async () => {
+it('HU09 keeps VER FICHA primary, the existing costs shortcut, current facts and filters on return', async () => {
   mount()
   await userEvent.click(await screen.findByRole('link', { name: 'VER FICHA' }))
   expect(await screen.findByRole('heading', { name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
   expect(screen.getByText('$ 30.000.000')).toBeInTheDocument()
   expect(screen.getByText('88,5% de compatibilidad')).toBeInTheDocument()
   expect(screen.getByText('Prioridad principal: no disponible')).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'CALCULAR COSTOS' })).toBeDisabled()
+  expect(screen.getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/7/costos')
   const back = screen.getByRole('link', { name: 'Volver a recomendados' })
   expect(back).toHaveAttribute('href', context.returnTo)
   await userEvent.click(back)
   expect(await screen.findByRole('link', { name: 'VER FICHA' })).toHaveAttribute('href', '/vehiculos/7')
-  expect(screen.getByRole('button', { name: 'CALCULAR COSTOS' })).toBeDisabled()
+  expect(screen.getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/7/costos')
   expect(screen.getByLabelText('Ruta actual')).toHaveTextContent(context.returnTo)
   expect(screen.getByText('Mostrando 1 vehículo')).toBeInTheDocument()
 })

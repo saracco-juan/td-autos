@@ -1,13 +1,11 @@
+import { Link } from 'react-router'
 import buttonStyles from '../../components/button.module.css'
 
-// HU10 owns the costs route. Do not ship a link to a screen that is not integrated yet.
-export default function VehicleCostShortcut() {
+// HU10 owns the integrated calculator; this is only its entry point from the detail.
+export default function VehicleCostShortcut({ vehicleId }: { vehicleId: number }) {
   return (
-    <div>
-      <button type="button" className={`${buttonStyles.button} ${buttonStyles.secondary}`} disabled>
-        CALCULAR COSTOS
-      </button>
-      <small>La calculadora estará disponible próximamente.</small>
-    </div>
+    <Link to={`/vehiculos/${vehicleId}/costos`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+      CALCULAR COSTOS
+    </Link>
   )
 }

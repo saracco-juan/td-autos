@@ -5,7 +5,6 @@ import buttonStyles from '../../components/button.module.css'
 import { formatKilometers, formatPrice } from '../inventory/format'
 import { EQUIPMENT_GROUPS } from '../inventory/matchingFields'
 import type { Recommendation } from './matching'
-import VehicleCostShortcut from '../vehicle-detail/VehicleCostShortcut'
 import styles from './VehicleCard.module.css'
 
 const displayScore = (value: number) => value.toLocaleString('es-AR', { maximumFractionDigits: 1 })
@@ -39,7 +38,6 @@ export default function MatchingVehicleCard({ result }: { result: Recommendation
           factors: components, returnTo: `${location.pathname}${location.search}` } }}>
         VER FICHA
       </Link>
-      <VehicleCostShortcut />
       {result.warnings.includes('budget_exceeded') ? (
         <p className={alertStyles.warning}>Supera tu presupuesto en {displayScore(result.budget_excess_percent)}%.</p>
       ) : null}
@@ -50,6 +48,9 @@ export default function MatchingVehicleCard({ result }: { result: Recommendation
         <p className={alertStyles.warning}>Sin estimación de reventa: compatibilidad parcial sobre los factores conocidos, con descuento de 10 puntos por falta de datos, no por mala reventa.</p>
       ) : null}
       {result.warnings.includes('resale_stale') ? <p className={alertStyles.warning}>Reventa calculada con la última evidencia disponible; actualización pendiente.</p> : null}
+      <Link to={`/vehiculos/${result.listing_id}/costos`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+        CALCULAR COSTOS
+      </Link>
       <details className={styles.meta}>
         <summary>Ver atributos y motivos</summary>
         <p>Uso: {displayScore(components.usage)} · Carrocería: {displayScore(components.body)} · Prioridad: {components.priority === null ? 'no disponible' : displayScore(components.priority)} · Confort: {displayScore(components.comfort)} (sobre 100).</p>

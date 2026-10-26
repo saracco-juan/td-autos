@@ -26,8 +26,7 @@ it('HU09 / TC-26 loads current detail and connects only existing functionality',
   expect(screen.getByText(/Autos del Sur/)).toBeInTheDocument()
   expect(screen.getByRole('img', { name: 'Foto 1 de Toyota Corolla XEI 2021' })).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'CHECKLIST DE INSPECCIÓN' })).toHaveAttribute('href', '/vehiculos/7/inspeccion')
-  expect(screen.getByRole('button', { name: 'CALCULAR COSTOS' })).toBeDisabled()
-  expect(screen.queryByRole('link', { name: 'CALCULAR COSTOS' })).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/7/costos')
   expect(screen.queryByText('COMPARAR')).not.toBeInTheDocument()
 })
 

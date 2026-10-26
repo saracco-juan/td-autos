@@ -83,7 +83,7 @@ function DetailScreen({ id, context }: { id: number | null; context: DetailConte
                 <p className={styles.price}>{data.vehicle.precio === null || data.vehicle.moneda === null
                   ? 'Precio no disponible.' : formatPrice(data.vehicle.precio, data.vehicle.moneda)}</p>
                 <p className={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</p>
-                <VehicleCostShortcut />
+                <VehicleCostShortcut vehicleId={data.vehicle.id} />
                 <Link to={`/vehiculos/${id}/inspeccion`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
                   CHECKLIST DE INSPECCIÓN
                 </Link>

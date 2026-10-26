@@ -57,8 +57,9 @@ gallery, public facts, price, dealer and working inspection link. Unknown data
 has explicit notices. A hidden/missing listing shows unavailable without facts;
 network/server errors offer retry. Changing IDs clears the previous detail.
 
-The calculator control is visibly unavailable until the teammate integrates
-HU10; there is no dead costs link and no calculator implementation here.
+The calculator shortcut opens the existing HU10 route `/vehiculos/<id>/costos`.
+The publication integration preserves the teammate's calculator implementation
+and recommendation-card link; HU09 only adds its detail-screen entry point.
 
 `VER FICHA` is the primary recommendation-card action. Its history state carries
 only the displayed compatibility factors and the local recommendations/filter URL.

@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Services\Calculadora;
+
+/**
+ * The calculator rates in force: config('calculadora') overridden by the latest valid refresh snapshot.
+ * Fuel: the dealer's province, then the national value, then the config. ARS amounts (transfer fixed
+ * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases, the patente bracket limits and fixed amounts
+ * and the service prices are scaled the same way from their own base month (`insurance.cpi_base_month`,
+ * `patente.cpi_base_month`, and `cpi_base_month` of each `service.brands.*` and of `service.fallback`). Percentages
+ * and service intervals are never touched. `updated_at` is the older of the config review date and the fuel price date.
+ */
+final class EffectiveRates
+{
+    public function __construct(private readonly CalculatorRatesStore $store) {}
+
+    /** @return array<string, mixed> The rates input of OwnershipCostCalculator, with flat fuel prices for the province. */
+    public function forProvince(string $provinceSlug): array
+    {
+        $rates = (array) config('calculadora');
+        $snapshot = $this->store->latestValid();
+        if ($snapshot === null) {
+            return $rates;
+        }
+        $payload = (array) $snapshot->payload;
+
+        foreach ((array) ($rates['fuel_prices'] ?? []) as $type => $configured) {
+            $rates['fuel_prices'][$type] = $payload['fuel']['provinces'][$provinceSlug][$type]
+                ?? $payload['fuel']['national'][$type] ?? $configured;
+        }
+
+        $cpi = $payload['cpi'] ?? null;
+        $factor = $this->cpiFactor($cpi, (string) ($rates['cpi_base_month'] ?? ''));
+        if ($factor > 1) {
+            $rates['transfer']['fixed_costs'] = (int) round($rates['transfer']['fixed_costs'] * $factor);
+        }
+        $insuranceFactor = $this->cpiFactor($cpi, (string) ($rates['insurance']['cpi_base_month'] ?? ''));
+        if ($insuranceFactor > 1) {
+            $rates['insurance']['tc_base'] = array_map(fn ($amount) => (int) round($amount * $insuranceFactor), $rates['insurance']['tc_base']);
+        }
+        foreach ((array) ($rates['service']['brands'] ?? []) as $key => $brand) {
+            $rates['service']['brands'][$key] = $this->indexServicePrices($brand, $this->cpiFactor($cpi, (string) ($brand['cpi_base_month'] ?? '')));
+        }
+        if (isset($rates['service']['fallback'])) {
+            $rates['service']['fallback'] = $this->indexServicePrices($rates['service']['fallback'], $this->cpiFactor($cpi, (string) ($rates['service']['fallback']['cpi_base_month'] ?? '')));
+        }
+        $patenteFactor = $this->cpiFactor($cpi, (string) ($rates['patente']['cpi_base_month'] ?? ''));
+        if ($patenteFactor > 1) {
+            foreach (['scale', 'bracket_rate'] as $scheme) {
+                foreach ((array) ($rates['patente'][$scheme] ?? []) as $province => $brackets) {
+                    $rates['patente'][$scheme][$province] = array_map(fn (array $bracket) => $this->indexBracket($bracket, $patenteFactor), $brackets);
+                }
+            }
+        }
+        // The screen shows one date: the older of the hand review (percentages, scales, service prices) and the fuel
+        // prices in force, so it never claims a freshness that part of the rates does not have.
+        $fuelDate = $payload['fuel']['source_date'] ?? null;
+        if (is_string($fuelDate) && $fuelDate < (string) $rates['updated_at']) {
+            $rates['updated_at'] = $fuelDate;
+        }
+
+        return $rates;
+    }
+
+    /**
+     * A brand (or the fallback): its prices per model and per body type are ARS and get indexed; intervals never do.
+     *
+     * @param  array<string, mixed>  $source
+     * @return array<string, mixed>
+     */
+    private function indexServicePrices(array $source, float $factor): array
+    {
+        if ($factor > 1) {
+            foreach (['models', 'body'] as $key) {
+                if (isset($source[$key])) {
+                    $source[$key] = array_map(fn ($amount) => (int) round($amount * $factor), $source[$key]);
+                }
+            }
+        }
+
+        return $source;
+    }
+
+    /** Patente bracket: the limit and the fixed amount are ARS and get indexed; the rate never does. */
+    private function indexBracket(array $bracket, float $factor): array
+    {
+        foreach (['up_to', 'fixed'] as $key) {
+            if (isset($bracket[$key])) {
+                $bracket[$key] = (int) round($bracket[$key] * $factor);
+            }
+        }
+
+        return $bracket;
+    }
+
+    /**
+     * The index of `$baseMonth` is the snapshot's main base or one of its extra bases (snapshots stored before the
+     * extra bases existed simply have none). A month the snapshot does not know cannot index anything until the
+     * next refresh.
+     */
+    private function cpiFactor(?array $cpi, string $baseMonth): float
+    {
+        $baseValue = match (true) {
+            $cpi === null || $baseMonth === '' => 0.0,
+            ($cpi['base_month'] ?? null) === $baseMonth => (float) ($cpi['base_value'] ?? 0),
+            default => (float) ($cpi['extra_bases'][$baseMonth] ?? 0),
+        };
+        if ($baseValue <= 0) {
+            return 1.0;
+        }
+
+        return max(1.0, (float) $cpi['latest_value'] / $baseValue);
+    }
+}
