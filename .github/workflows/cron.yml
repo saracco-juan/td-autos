@@ -1,7 +1,8 @@
 name: Cron
 
-# Render free has no cron: this workflow triggers the hourly subscription lifecycle
-# (`suscripciones:procesar`) through the API's protected endpoint, once per environment.
+# Render free has no cron: this workflow triggers, through the API's protected endpoints and once
+# per environment, the hourly subscription lifecycle (`suscripciones:procesar`) and the daily DNRPA
+# refresh (`dnrpa:refresh`, 01:05 Argentina). A manual run triggers both.
 # Configure in GitHub (Settings -> Secrets and variables -> Actions):
 #   variables PROD_API_URL / DEV_API_URL  Render service URLs, e.g. https://td-autos-api.onrender.com
 #   secrets   CRON_SECRET_PROD / CRON_SECRET_DEV  the CRON_SECRET of each Render service
@@ -11,6 +12,7 @@ name: Cron
 on:
   schedule:
     - cron: '0 * * * *'
+    - cron: '5 4 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -22,6 +24,7 @@ permissions: {}
 jobs:
   subscriptions:
     name: Subscriptions (${{ matrix.environment }})
+    if: github.event.schedule != '5 4 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -52,3 +55,43 @@ jobs:
             -H "Accept: application/json" \
             "${API_URL%/}/internal/cron/subscriptions"
           echo
+
+  dnrpa:
+    name: DNRPA refresh (${{ matrix.environment }})
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '5 4 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: production
+            url_var: PROD_API_URL
+            secret: CRON_SECRET_PROD
+          - environment: development
+            url_var: DEV_API_URL
+            secret: CRON_SECRET_DEV
+    steps:
+      - name: Start the DNRPA refresh
+        env:
+          API_URL: ${{ vars[matrix.url_var] }}
+          CRON_SECRET: ${{ secrets[matrix.secret] }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::${{ matrix.url_var }} or ${{ matrix.secret }} is not configured; skipping ${{ matrix.environment }}."
+            exit 0
+          fi
+          # Answers 202 at once; the refresh keeps running on the API. {"started":false} means one is already running.
+          # 404 means the endpoint is not deployed in that environment yet (or CRON_SECRET is unset there).
+          status=$(curl --silent --show-error --output body.json --write-out '%{http_code}' \
+            --max-time 120 --retry 2 --retry-delay 20 --retry-all-errors \
+            -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Accept: application/json" \
+            "${API_URL%/}/internal/cron/dnrpa")
+          cat body.json; echo
+          if [ "$status" = "404" ]; then
+            echo "::notice::The DNRPA endpoint is not available in ${{ matrix.environment }}; skipping."
+            exit 0
+          fi
+          [ "$status" = "202" ]
