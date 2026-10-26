@@ -179,6 +179,7 @@ Hosting, environments, secrets and the one-time setup of each service live in [`
 | Administrator account | `php artisan admin:create` | Creates an admin user. |
 | Duplication on new code | `node scripts/check-duplication.mjs [--base origin/develop] [--max 3]` | From the repo root. Runs jscpd (100 tokens, 10 lines, Sonar's CPD defaults) over `sonar.sources`, keeps the clones that touch lines changed against the merge base (uncommitted and untracked files included) and fails over the limit. CI runs it on every PR. jscpd wants Node 22; Node 20 only warns. |
 | Subscription lifecycle | `php artisan suscripciones:procesar` | Inactivates subscriptions past grace, hides their vehicles, deletes those past retention. |
+| DNRPA activity refresh | `php -d memory_limit=512M artisan dnrpa:refresh` | Downloads the DNRPA transfers and refreshes the resale activity (checks every 14 days). Needs the PHP zip extension. On Render the "Cron" workflow starts it daily through `POST /internal/cron/dnrpa`. |
 | Engram manifest merge driver | `git config merge.engram-manifest.driver "node scripts/engram-merge-manifest.mjs %O %A %B"` | Once per clone. Merges `engram/*/.engram/manifest.json` as the union of chunks (`.gitattributes`). GitHub does not run it: if `develop` gained engram commits, merge `origin/develop` into the branch locally before merging the PR. |
 | Engram import / export | `engram sync --import` / `engram sync --project td-autos` | Run from `engram/<name>/` (see `AGENTS.md`). |
 
