@@ -42,3 +42,14 @@ The gallery uses the ordered API photos, with a full-size image and keyboard
 accessible thumbnail buttons. Missing or failed images have explicit fallbacks;
 one failed photo does not prevent selecting the remaining ones. It never requests
 stock or placeholder images and does not modify uploaded files.
+
+## Open the detail screen
+
+Start backend and web as described in `getting-started.md`, sign in as a buyer,
+and open `/vehiculos/<id>` for a currently visible dealer vehicle. Expect its
+gallery, public facts, price, dealer and working inspection link. Unknown data
+has explicit notices. A hidden/missing listing shows unavailable without facts;
+network/server errors offer retry. Changing IDs clears the previous detail.
+
+The calculator control is visibly unavailable until the teammate integrates
+HU10; there is no dead costs link and no calculator implementation here.

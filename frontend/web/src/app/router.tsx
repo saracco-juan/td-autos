@@ -25,6 +25,7 @@ import ProfilePage from '../features/profile/ProfilePage'
 import RecommendationsPage from '../features/recommendations/MatchingRecommendationsPage'
 import SubscriptionPage from '../features/subscription/SubscriptionPage'
 import TransferPage from '../features/transfer/TransferPage'
+import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
 
@@ -51,6 +52,7 @@ export const routes: RouteObject[] = [
                 children: [
                   { path: '/', element: <HomeRoute /> },
                   { path: '/diagnostico', element: <DiagnosisPage /> },
+                  { path: '/vehiculos/:id', element: <VehicleDetailPage /> },
                   { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
                   { path: '/recomendaciones', element: <RecommendationsPage /> },
                   { path: '/transferencia', element: <TransferPage /> },
