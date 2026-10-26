@@ -15,10 +15,11 @@ RUN composer dump-autoload --no-dev --optimize --no-scripts --no-interaction
 
 FROM php:8.2-apache
 
-# pdo_pgsql/pgsql for Supabase; every other extension the lock file needs ships with the image.
+# pdo_pgsql/pgsql for Supabase; zip for ZipArchive (XLSX template/import and the DNRPA download).
+# Every other extension the lock file needs ships with the image.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev \
-    && docker-php-ext-install pdo_pgsql pgsql opcache \
+    && apt-get install -y --no-install-recommends libpq-dev libzip-dev \
+    && docker-php-ext-install pdo_pgsql pgsql opcache zip \
     && apt-get purge -y --auto-remove \
     && rm -rf /var/lib/apt/lists/*
 
