@@ -2,15 +2,10 @@
 
 namespace Database\Seeders\RealDemo;
 
-use App\Models\Concesionaria;
-use App\Models\Suscripcion;
-use App\Models\User;
 use App\Support\VehiculoFields;
 use App\Support\VehiculoOptions;
-use Database\Seeders\DemoDealersSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
 /**
@@ -20,7 +15,7 @@ use RuntimeException;
  */
 final class RealDemoLoader
 {
-    public const EMAIL_DOMAIN = 'reales.tdautos.test';
+    public const EMAIL_DOMAIN = RealDemoDealers::EMAIL_DOMAIN;
 
     private const CHUNK = 500;
 
@@ -31,7 +26,7 @@ final class RealDemoLoader
         'consumo_urbano', 'consumo_ruta',
     ];
 
-    public function __construct(private readonly RealDemoInventory $inventory) {}
+    public function __construct(private readonly RealDemoInventory $inventory, private readonly RealDemoDealers $dealers) {}
 
     /**
      * @return array{dealers: int, vehicles: int, unlinked: int}
@@ -41,7 +36,7 @@ final class RealDemoLoader
         $vehicles = $this->inventory->vehicles($count);
         $this->assertPlatesAreFree($vehicles);
 
-        $dealers = $this->createDealers();
+        $dealers = array_map(fn (array $dealer) => $dealer['id'], $this->dealers->create());
         $this->createVehicles($vehicles, $dealers);
 
         $unlinked = count(array_filter($vehicles, fn (array $vehicle) => ! $vehicle['linked']));
@@ -62,57 +57,6 @@ final class RealDemoLoader
         if ($taken->isNotEmpty()) {
             throw new RuntimeException('Plate already loaded in the local database: '.$taken->first().'. Start from an empty database.');
         }
-    }
-
-    /**
-     * Active dealers with a current subscription, so the inventory endpoints let them in.
-     *
-     * @return array<string, int> dealer id by slug
-     */
-    private function createDealers(): array
-    {
-        // One hash for every account: hashing ten times would only slow the load down.
-        $password = Hash::make(DemoDealersSeeder::DEMO_PASSWORD);
-        $now = now();
-        $ids = [];
-
-        DB::transaction(function () use (&$ids, $password, $now) {
-            foreach (RealDemoInventory::DEALERS as $index => $dealer) {
-                $userId = DB::table('users')->insertGetId([
-                    'name' => 'Responsable',
-                    'apellido' => $dealer['nombre'],
-                    'email' => $dealer['slug'].'@'.self::EMAIL_DOMAIN,
-                    'email_verified_at' => $now,
-                    'password' => $password,
-                    'rol' => User::ROL_CONCESIONARIA,
-                    'activo' => true,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-
-                $ids[$dealer['slug']] = DB::table('concesionaria')->insertGetId([
-                    'usuario_id' => $userId,
-                    'nombre' => $dealer['nombre'],
-                    'responsable_dni' => (string) (30000000 + 111111 * ($index + 1)),
-                    'telefono_publico' => $dealer['telefono'],
-                    'telefono_responsable' => $dealer['telefono'],
-                    'direccion' => $dealer['direccion'],
-                    'localidad' => $dealer['localidad'],
-                    'provincia' => $dealer['provincia'],
-                    'estado_alta' => Concesionaria::ESTADO_ACTIVA,
-                    'creada_en' => $now,
-                ]);
-
-                DB::table('suscripcion')->insert([
-                    'concesionaria_id' => $ids[$dealer['slug']],
-                    'estado' => Suscripcion::ESTADO_ACTIVA,
-                    'vigente_desde' => $now->toDateString(),
-                    'vigente_hasta' => $now->copy()->addYear()->toDateString(),
-                ]);
-            }
-        });
-
-        return $ids;
     }
 
     /**
