@@ -66,7 +66,8 @@ function clones() {
       'npx',
       ['-y', JSCPD, '--min-tokens', '100', '--min-lines', '10', '--ignore', IGNORE.join(','),
         '--reporters', 'json', '--output', output, '--silent', ...SOURCES],
-      { stdio: ['ignore', 'ignore', 'inherit'] },
+      // Windows only finds npx (npx.cmd) through a shell.
+      { stdio: ['ignore', 'ignore', 'inherit'], shell: process.platform === 'win32' },
     )
     return JSON.parse(readFileSync(join(output, 'jscpd-report.json'), 'utf8')).duplicates
   } finally {
