@@ -27,3 +27,13 @@ Run `php artisan test --filter=BuyerVehicleDetailTest` in `backend/`.
 The tests use in-memory SQLite, forbid provider acquisition and cover full and
 incomplete detail, withdrawal, subscription/approval boundaries, private-field
 exclusion, authentication and excluded external records.
+
+## Comprehensible specifications
+
+The new specification component groups general facts, engine/consumption, safety,
+comfort and dealer description. Unknown facts say `No disponible`; explicit
+equipment absence says `No`, never inferred from missing data. Numeric zero is
+retained. Consumption uses liters per 100 km only for compatible fuel types; other
+values disclose that their unit was not provided. Descriptions remain plain text.
+Pure detail types and explanations live in `frontend/shared/vehicles/detail.ts`
+for reuse by native mobile. The existing inventory equipment labels are reused.
