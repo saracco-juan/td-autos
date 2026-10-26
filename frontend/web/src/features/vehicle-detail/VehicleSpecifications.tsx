@@ -1,4 +1,5 @@
 import { equipmentValue, specificationGroups } from '@shared/vehicles/detail'
+import { EQUIPMENT_EXPLANATIONS } from '@shared/vehicles/equipment'
 import { EQUIPMENT_GROUPS } from '../inventory/matchingFields'
 import type { BuyerVehicle } from './types'
 import styles from './VehicleSpecifications.module.css'
@@ -26,7 +27,8 @@ export default function VehicleSpecifications({ vehicle }: { vehicle: BuyerVehic
           <dl className={styles.rows}>
             {fields.map(([key, label]) => (
               <div className={styles.row} key={key}>
-                <dt>{label}</dt><dd>{equipmentValue(vehicle[key])}</dd>
+                <dt>{label}<small>{EQUIPMENT_EXPLANATIONS[key]}</small></dt>
+                <dd>{equipmentValue(vehicle[key])}</dd>
               </div>
             ))}
           </dl>

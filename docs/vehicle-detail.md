@@ -37,6 +37,8 @@ retained. Consumption uses liters per 100 km only for compatible fuel types; oth
 values disclose that their unit was not provided. Descriptions remain plain text.
 Pure detail types and explanations live in `frontend/shared/vehicles/detail.ts`
 for reuse by native mobile. The existing inventory equipment labels are reused.
+The shared equipment glossary also explains acronyms such as ABS and ISOFIX;
+the explanation never implies that unknown equipment is actually present.
 
 The gallery uses the ordered API photos, with a full-size image and keyboard
 accessible thumbnail buttons. Missing or failed images have explicit fallbacks;

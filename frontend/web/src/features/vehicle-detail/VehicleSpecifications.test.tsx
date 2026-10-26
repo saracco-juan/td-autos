@@ -28,3 +28,11 @@ it('explains a missing description instead of hiding its section', () => {
   render(<VehicleSpecifications vehicle={{ ...vehicle, descripcion: null }} />)
   expect(screen.getByText('Descripción no disponible.')).toBeInTheDocument()
 })
+
+it('RF08 explains equipment acronyms without claiming unknown equipment is present', () => {
+  render(<VehicleSpecifications vehicle={vehicle} />)
+  expect(screen.getByText('Ayuda a evitar que las ruedas se bloqueen al frenar.')).toBeInTheDocument()
+  expect(screen.getByText('Anclajes para sujetar sillas infantiles compatibles.')).toBeInTheDocument()
+  expect(screen.getByText('Permite regular por separado la temperatura de dos zonas.')).toBeInTheDocument()
+  expect(screen.getByText('Anclajes ISOFIX').closest('div')).toHaveTextContent('No disponible')
+})
