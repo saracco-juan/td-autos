@@ -124,7 +124,7 @@ authentication and inventory operations still use the database.
 
 Initial loading is a one-time operation described in [development.md](development.md#fixed-acara-catalog-hu05hu21).
 Render's free plan has no shell to run `catalog:import-acara` with a PDF, so the container start
-(`docker/start.sh`) runs `php artisan catalog:load-bundled` after the migrations: when the database has
+(`docker/start.sh`) runs `php artisan catalog:load-bundled` in the background, as `www-data`, after the migrations (so Apache binds the port at once and a slow first load cannot fail Render's port scan): when the database has
 no catalog it loads the bundled fixed snapshot (`database/seeders/assets/acara-2026-10-19.json.gz`, the
 same data `db:local` uses); when any catalog is already loaded it changes nothing. A failure is logged and
 the API still starts, with the catalog endpoint answering 503 until the next start.
