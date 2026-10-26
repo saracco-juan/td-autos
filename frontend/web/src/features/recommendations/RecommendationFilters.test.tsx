@@ -23,6 +23,7 @@ it('HU07 keeps edits as drafts until APPLY and shows removable applied chips', a
   await user.click(screen.getByRole('button', { name: 'APLICAR' }))
   expect(changed).toHaveBeenLastCalledWith({ maxPrice: 20000000, minYear: 2020,
     maxKilometers: 60000, transmission: 'automatica' })
+  expect(screen.getByText('FILTROS').closest('details')).not.toHaveAttribute('open')
   expect(screen.getByRole('button', { name: 'Quitar Desde 2020' })).toBeVisible()
   await user.click(screen.getByRole('button', { name: 'Quitar Desde 2020' }))
   expect(changed).toHaveBeenLastCalledWith({ maxPrice: 20000000, minYear: undefined,

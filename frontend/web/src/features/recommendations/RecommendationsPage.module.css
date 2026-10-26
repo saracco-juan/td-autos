@@ -13,6 +13,44 @@
   padding-top: 16px;
 }
 
+/* HU07 keeps the existing header/grid and adds the High v3 filter sidebar. */
+.filterPage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  column-gap: 24px;
+}
+
+.filterPage > .headerRow {
+  grid-column: 1 / -1;
+}
+
+.filterPage > .results {
+  grid-column: 2;
+  min-width: 0;
+  min-height: 0;
+}
+
+.filterPage > aside {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.filterPage .filteredFrame[data-fill] {
+  min-height: 0;
+}
+
+@media (max-width: 800px) {
+  .filterPage {
+    display: flex;
+  }
+
+  .filterPage > aside {
+    max-height: 45dvh;
+  }
+}
+
 /* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right; the search box goes under them. */
 .headerRow {
   display: flex;

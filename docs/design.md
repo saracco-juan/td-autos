@@ -70,7 +70,15 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - Resale evidence (2026-10-22): reuse card2373:7340's existing warnings and expandable reasons for partial compatibility, the ten-point uncertainty deduction, DNRPA window and ACARA reference date. Missing priority is "no disponible", never zero. Preserve the existing layout. Applies to web and mobile; mobile implementation and Figma sync remain pending explicit approval. High v3 has no resale evidence copy; this extends the previously approved matching reasons, not the catalog controls.
 
-- User-approved override: recommendations replace catalog search; no search field, filter sidebar or catalog tab. Backend order is retained, nine cards per page, up to ten results total.
+- User-approved override: recommendations replace catalog search; no search field or catalog tab. HU07 adds the filters specified below. Backend order is retained, nine cards per page, up to ten results total.
 - Cards show published/equivalent prices, compatibility, dealer, budget/body warnings and expandable grouped facts/motives. The shared quote shows source, sell rate, provider date and stale/unavailable notices. Detailed HU09 sheets and HU08 comparison remain deferred.
 - Figma sync pending approval: High v3 desktop `2373:7328`, mobile `2373:9914` still show search and placeholder match lines. Apply the matching-only/content changes to both; tablet follows web responsive rules. No Figma edits have been made.
 - This supersedes the recommendation search-field rules above. Existing catalog components/tests remain unmounted legacy RF05 code, not another user-facing view.
+
+## HU07 recommendation filters (2026-10-26)
+
+- Refine only the complete top-ten set returned by profile matching, before pagination; never change scores, order, diagnosis or the API's candidate selection.
+- High v3 desktop `2373:7641` / `2373:7662`: maximum ARS price, year from, maximum kilometers and transmission. Compare `price_ars` from the same response/quote shown on cards, including stale-quote behavior. Blank fields impose no restriction; bounds are inclusive; unknown values fail only their active criterion. Active criteria intersect.
+- Draft fields take effect with APPLY, which collapses the panel and returns keyboard focus to its toggle; removing an applied chip or CLEAR takes effect immediately, resets drafts to the remaining applied values and returns to page one. Keep applied filters in the route query so navigation/back restores them; do not store buyer preferences globally.
+- Empty filtered results retain controls/chips and a clear action, without suggesting a diagnosis change. Existing loading, failure and incomplete-diagnosis states remain intact.
+- Figma sync pending approval: retain the four controls but remove catalog search; show applied chips, ARS units, filtering of matching results and the dedicated empty state. Web uses a collapsible desktop sidebar and stacked mobile-width controls with internal scroll (at most 45dvh); native mobile remains pending HU07-MOBILE. Do not add HU09 detail or HU08 comparison screens in this story.

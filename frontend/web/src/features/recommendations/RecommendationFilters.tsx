@@ -30,6 +30,11 @@ export default function RecommendationFilters({ value, onChange }: Props) {
             return raw === '' ? undefined : Number(raw)
           }
           const transmission = data.get('transmission')
+          const panel = event.currentTarget.closest('details')
+          if (panel) {
+            panel.open = false
+            panel.querySelector('summary')?.focus()
+          }
           onChange({ maxPrice: number('maxPrice'), minYear: number('minYear'),
             maxKilometers: number('maxKilometers'),
             transmission: transmission === 'manual' || transmission === 'automatica' ? transmission : undefined })

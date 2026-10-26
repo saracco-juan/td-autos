@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import { filterRecommendations } from '@shared/recommendations/filters'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
@@ -12,6 +13,8 @@ import SessionLoading from '../auth/session/SessionLoading'
 import { formatPrice } from '../inventory/format'
 import { fetchRecommendations, type RecommendationsResponse } from './matching'
 import MatchingVehicleCard from './MatchingVehicleCard'
+import RecommendationFilters from './RecommendationFilters'
+import { useRecommendationFilters } from './useRecommendationFilters'
 import styles from './RecommendationsPage.module.css'
 
 type View =
@@ -25,11 +28,12 @@ const MESSAGES = {
   ready: 'No encontramos vehículos que coincidan con tu diagnóstico.',
 }
 
-// High v3 2373:7328, with the explicitly approved matching-only override (DESIGN.md).
+// High v3 2373:7641; HU07 refines the existing matching results, not a separate catalog.
 export default function MatchingRecommendationsPage() {
   const [view, setView] = useState<View>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
   const [page, setPage] = useState(1)
+  const { filters, applyFilters } = useRecommendationFilters()
   useEffect(() => {
     let active = true
     fetchRecommendations()
@@ -43,11 +47,12 @@ export default function MatchingRecommendationsPage() {
   }, [attempt])
 
   const response = view.status === 'ready' ? view.response : null
-  const results = response?.results ?? []
+  const results = filterRecommendations(response?.results ?? [], filters)
+  const hasFilters = Object.keys(filters).length > 0
   const exchange = response?.exchange_rate
   const quote = exchange?.quote
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${styles.filterPage}`}>
       <div className={styles.headerRow}>
         <div className={styles.header}>
           <p className={screenStyles.eyebrow}>AUTOS RECOMENDADOS</p>
@@ -60,6 +65,12 @@ export default function MatchingRecommendationsPage() {
           AJUSTAR DIAGNÓSTICO
         </Link>
       </div>
+      {response?.status === 'ready' ? (
+        <RecommendationFilters value={filters} onChange={(next) => {
+          applyFilters(next)
+          setPage(1)
+        }} />
+      ) : null}
       <section className={styles.results} aria-label="Resultados">
         {view.status === 'loading' ? <SessionLoading /> : null}
         {view.status === 'error' ? (
@@ -83,13 +94,16 @@ export default function MatchingRecommendationsPage() {
         ) : null}
         {response && results.length === 0 ? (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle}>{MESSAGES[response.status]}</p>
-            <p className={styles.emptyHint}>Ajustá el diagnóstico para buscar otras opciones.</p>
+            <p className={styles.emptyTitle} role="status">{hasFilters && response.status === 'ready'
+              ? 'No encontramos vehículos que cumplan estos filtros.' : MESSAGES[response.status]}</p>
+            <p className={styles.emptyHint}>{hasFilters && response.status === 'ready'
+              ? 'Quitá o limpiá los filtros para volver a ver tus recomendaciones.'
+              : 'Ajustá el diagnóstico para buscar otras opciones.'}</p>
           </div>
         ) : null}
         {results.length > 0 ? (
           <>
-            <ScrollArea key={page} label="Recomendaciones" fill viewportClassName={styles.gridArea}>
+            <ScrollArea key={page} label="Recomendaciones" fill className={styles.filteredFrame} viewportClassName={styles.gridArea}>
               <ul className={styles.grid} aria-label="Recomendaciones">
                 {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
                   <MatchingVehicleCard key={result.listing_id} result={result} />
