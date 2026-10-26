@@ -159,11 +159,20 @@ class VehiculoMatchingFactsEquivalenceTest extends TestCase
 
     public function test_the_check_is_cheap_enough_to_run_for_every_vehicle(): void
     {
+        // Compared with the validator on the same machine: an absolute limit in ms fails on a slow CI runner.
         $row = $this->baseRow();
-        $start = hrtime(true);
-        for ($i = 0; $i < 5000; $i++) {
-            VehiculoMatchingFacts::valid($row, self::YEAR);
-        }
-        $this->assertLessThan(500, (hrtime(true) - $start) / 1e6, '5,000 checks should take well under 500 ms (the validator needs about 10 s).');
+        VehiculoMatchingFacts::valid($row, self::YEAR);
+        $time = function (callable $check): float {
+            $start = hrtime(true);
+            for ($i = 0; $i < 300; $i++) {
+                $check();
+            }
+
+            return hrtime(true) - $start;
+        };
+        $pure = $time(fn () => VehiculoMatchingFacts::valid($row, self::YEAR));
+        $validator = $time(fn () => $this->validatorVerdict($row, self::YEAR));
+
+        $this->assertLessThan($validator / 10, $pure, 'The check should be at least 10 times faster than the validator (locally it is about 50 times).');
     }
 }
