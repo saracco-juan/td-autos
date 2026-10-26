@@ -82,26 +82,41 @@ final class FixedAcaraCatalog
                 }
                 throw new RuntimeException('The fixed ACARA catalog is already loaded; replacement is not supported.');
             }
-            $brands = $models = $versions = $prices = [];
+            // Batched inserts, in first-appearance order: a deployed database is a network round trip away, and one
+            // insert per brand, model or version made the first container start take minutes.
+            $brandNames = array_values(array_unique(array_column($snapshot['rows'], 'make')));
+            foreach (array_chunk($brandNames, 500) as $chunk) {
+                DB::table('catalog_brands')->insert(array_map(fn (string $name) => ['name' => $name], $chunk));
+            }
+            $brands = DB::table('catalog_brands')->pluck('id', 'name')->all();
+
+            $models = [];
+            foreach ($snapshot['rows'] as $row) {
+                $models[json_encode([$brands[$row['make']], $row['model']], JSON_THROW_ON_ERROR)] ??= ['brand_id' => $brands[$row['make']], 'name' => $row['model']];
+            }
+            foreach (array_chunk(array_values($models), 500) as $chunk) {
+                DB::table('catalog_models')->insert($chunk);
+            }
+            $modelIds = [];
+            foreach (DB::table('catalog_models')->get(['id', 'brand_id', 'name']) as $model) {
+                $modelIds[json_encode([(int) $model->brand_id, $model->name], JSON_THROW_ON_ERROR)] = $model->id;
+            }
+
+            $versions = $prices = [];
             foreach ($snapshot['rows'] as $index => $row) {
-                $brand = $brands[$row['make']] ??= DB::table('catalog_brands')->insertGetId(['name' => $row['make']]);
-                $modelKey = json_encode([$brand, $row['model']], JSON_THROW_ON_ERROR);
-                $model = $models[$modelKey] ??= DB::table('catalog_models')->insertGetId(['brand_id' => $brand, 'name' => $row['model']]);
-                if (! isset($versions[$row['version_id']])) {
-                    DB::table('catalog_versions')->insert(['id' => $row['version_id'], 'model_id' => $model, 'name' => $row['version']]);
-                    $versions[$row['version_id']] = true;
-                }
+                $versions[$row['version_id']] ??= ['id' => $row['version_id'],
+                    'model_id' => $modelIds[json_encode([$brands[$row['make']], $row['model']], JSON_THROW_ON_ERROR)], 'name' => $row['version']];
                 foreach (['0km' => $row['zero_km_price']] + $row['values'] as $year => $amount) {
                     $prices[] = ['version_id' => $row['version_id'], 'source_row' => $index,
                         'source_page' => $row['page'], 'year' => (string) $year, 'currency' => $row['currency'], 'amount' => $amount];
-                    if (count($prices) === 100) {
-                        DB::table('catalog_prices')->insert($prices);
-                        $prices = [];
-                    }
                 }
             }
-            if ($prices) {
-                DB::table('catalog_prices')->insert($prices);
+            foreach (array_chunk(array_values($versions), 500) as $chunk) {
+                DB::table('catalog_versions')->insert($chunk);
+            }
+            // 7 columns x 1.000 rows stays far below PostgreSQL's 65.535 bound parameters per statement.
+            foreach (array_chunk($prices, 1000) as $chunk) {
+                DB::table('catalog_prices')->insert($chunk);
             }
 
             return true;

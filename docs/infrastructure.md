@@ -33,7 +33,7 @@ The names above are the planned ones; the real ones appear once the accounts exi
 3. **Vercel**: Add New → Project, import this repo, Root Directory `frontend/web` (framework Vite; build command and rewrites come from `vercel.json`). Keep "Include files outside the root directory in the Build Step" enabled: the web imports `frontend/shared`. Project name `td-autos` gives the planned production host. Production branch: `main` (Settings → Environments). No environment variables are needed: the build bakes `VITE_API_URL=/backend`.
 4. **Google Cloud Console** → Google Auth Platform → Clients → the Web client: add `https://td-autos.vercel.app/backend/auth/google/callback` and `https://td-autos-git-develop-<scope>.vercel.app/backend/auth/google/callback` to the authorized redirect URIs, and both hosts (without path) to the authorized JavaScript origins. Keep the localhost entries.
 5. **Mail**: Gmail API from a dedicated account, see [Mail](#mail) below.
-6. **GitHub** → Settings → Secrets and variables → Actions: variables `PROD_API_URL` / `DEV_API_URL` (the Render URLs, `https://td-autos-api.onrender.com`), secrets `CRON_SECRET_PROD` / `CRON_SECRET_DEV` (the `CRON_SECRET` of each Render service, `openssl rand -hex 32`). Run the "Cron" workflow once by hand (Actions → Cron → Run workflow) to check both environments answer `200`.
+6. **GitHub** → Settings → Secrets and variables → Actions: variables `PROD_API_URL` / `DEV_API_URL` (the Render URLs, `https://td-autos-api.onrender.com`), secrets `CRON_SECRET_PROD` / `CRON_SECRET_DEV` (the `CRON_SECRET` of each Render service, `openssl rand -hex 32`). Run the "Cron" workflow once by hand (Actions → Cron → Run workflow) to check both environments answer `200` for subscriptions and `202` for the DNRPA refresh.
 7. **First administrator**: Render free has no Shell and no one-off jobs, so run the command locally against the environment's database. The session pooler is IPv4, so it works from home:
    ```bash
    cd backend
@@ -122,8 +122,12 @@ a restart or loss of Render's local files, the backend rebuilds it from those ta
 without downloading or parsing a PDF. Only warm catalog reads avoid database queries;
 authentication and inventory operations still use the database.
 
-Initial loading is an explicit, one-time operation described in [development.md](development.md#fixed-acara-catalog-hu05hu21).
-Apply migrations and load the selected real PDF only in an authorized environment.
+Initial loading is a one-time operation described in [development.md](development.md#fixed-acara-catalog-hu05hu21).
+Render's free plan has no shell to run `catalog:import-acara` with a PDF, so the container start
+(`docker/start.sh`) runs `php artisan catalog:load-bundled` in the background, as `www-data`, after the migrations (so Apache binds the port at once and a slow first load cannot fail Render's port scan): when the database has
+no catalog it loads the bundled fixed snapshot (`database/seeders/assets/acara-2026-10-19.json.gz`, the
+same data `db:local` uses); when any catalog is already loaded it changes nothing. A failure is logged and
+the API still starts, with the catalog endpoint answering 503 until the next start.
 The PostgreSQL migration enables RLS and denies direct anonymous/authenticated Data
 API access to these tables; Laravel's database owner connection serves the existing
 protected API. No automatic ACARA update job is installed.

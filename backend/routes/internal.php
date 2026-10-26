@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Internal\CalculatorCronController;
 use App\Http\Controllers\Internal\CalculatorReviewCronController;
+use App\Http\Controllers\Internal\DnrpaCronController;
 use App\Http\Controllers\Internal\SubscriptionCronController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,3 +22,7 @@ Route::post('/cron/calculadora', CalculatorCronController::class)
 Route::post('/cron/calculadora-revision', CalculatorReviewCronController::class)
     ->middleware('throttle:10,1')
     ->name('internal.cron.calculadora-revision');
+
+Route::post('/cron/dnrpa', DnrpaCronController::class)
+    ->middleware('throttle:10,1')
+    ->name('internal.cron.dnrpa');

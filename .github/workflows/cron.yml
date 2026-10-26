@@ -1,10 +1,10 @@
 name: Cron
 
-# Render free has no cron: this workflow triggers the hourly subscription lifecycle
-# (`suscripciones:procesar`) and, on the 1st of each month at 04:00 Argentina time, the calculator
-# refresh (`calculadora:refresh`: fuel prices and CPI) and, on January 1 at 05:00 Argentina time, the yearly review of the
-# hand-reviewed calculator values (`calculadora:review`, which opens a GitHub issue) through the API's protected endpoints,
-# once per environment.
+# Render free has no cron: this workflow triggers, through the API's protected endpoints and once per environment,
+# the hourly subscription lifecycle (`suscripciones:procesar`), the daily DNRPA refresh (`dnrpa:refresh`, 01:05
+# Argentina time), the calculator refresh on the 1st of each month at 04:00 Argentina time (`calculadora:refresh`:
+# fuel prices and CPI) and, on January 1 at 05:00 Argentina time, the yearly review of the hand-reviewed calculator
+# values (`calculadora:review`, which opens a GitHub issue). A manual run triggers all of them.
 # Configure in GitHub (Settings -> Secrets and variables -> Actions):
 #   variables PROD_API_URL / DEV_API_URL  Render service URLs, e.g. https://td-autos-api.onrender.com
 #   secrets   CRON_SECRET_PROD / CRON_SECRET_DEV  the CRON_SECRET of each Render service
@@ -14,6 +14,7 @@ name: Cron
 on:
   schedule:
     - cron: '0 * * * *'
+    - cron: '5 4 * * *'
     - cron: '0 7 1 * *'
     - cron: '0 8 1 1 *'
   workflow_dispatch:
@@ -27,7 +28,7 @@ permissions: {}
 jobs:
   subscriptions:
     name: Subscriptions (${{ matrix.environment }})
-    if: github.event.schedule != '0 7 1 * *' && github.event.schedule != '0 8 1 1 *'
+    if: github.event.schedule != '5 4 * * *' && github.event.schedule != '0 7 1 * *' && github.event.schedule != '0 8 1 1 *'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -59,6 +60,46 @@ jobs:
             "${API_URL%/}/internal/cron/subscriptions"
           echo
 
+  dnrpa:
+    name: DNRPA refresh (${{ matrix.environment }})
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '5 4 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: production
+            url_var: PROD_API_URL
+            secret: CRON_SECRET_PROD
+          - environment: development
+            url_var: DEV_API_URL
+            secret: CRON_SECRET_DEV
+    steps:
+      - name: Start the DNRPA refresh
+        env:
+          API_URL: ${{ vars[matrix.url_var] }}
+          CRON_SECRET: ${{ secrets[matrix.secret] }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::${{ matrix.url_var }} or ${{ matrix.secret }} is not configured; skipping ${{ matrix.environment }}."
+            exit 0
+          fi
+          # Answers 202 at once; the refresh keeps running on the API. {"started":false} means one is already running.
+          # 404 means the endpoint is not deployed in that environment yet (or CRON_SECRET is unset there).
+          status=$(curl --silent --show-error --output body.json --write-out '%{http_code}' \
+            --max-time 120 --retry 2 --retry-delay 20 --retry-all-errors \
+            -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Accept: application/json" \
+            "${API_URL%/}/internal/cron/dnrpa")
+          cat body.json; echo
+          if [ "$status" = "404" ]; then
+            echo "::notice::The DNRPA endpoint is not available in ${{ matrix.environment }}; skipping."
+            exit 0
+          fi
+          [ "$status" = "202" ]
+
   calculator:
     name: Calculator refresh (${{ matrix.environment }})
     if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 7 1 * *'
@@ -85,7 +126,12 @@ jobs:
             exit 0
           fi
           # Downloads a ~9 MB CSV on a service that may be asleep: long timeout, no retry (the endpoint is idempotent but slow).
-          curl --silent --show-error --fail-with-body             --max-time 300             -X POST             -H "Authorization: Bearer $CRON_SECRET"             -H "Accept: application/json"             "${API_URL%/}/internal/cron/calculadora"
+          curl --silent --show-error --fail-with-body \
+            --max-time 300 \
+            -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Accept: application/json" \
+            "${API_URL%/}/internal/cron/calculadora"
           echo
 
   calculator-review:

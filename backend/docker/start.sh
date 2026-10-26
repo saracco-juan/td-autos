@@ -15,4 +15,10 @@ php artisan migrate --force
 # The artisan commands ran as root; Apache serves as www-data.
 chown -R www-data:www-data storage bootstrap/cache
 
+# One-time load of the bundled fixed ACARA catalog; a no-op once any catalog exists. It runs in the background,
+# as www-data (it may write logs and cache files), so Apache binds the port at once: a first load against a remote
+# database must not hold the start past Render's port scan. It commits in one transaction, so readers see no
+# partial catalog (the endpoint answers 503 until it ends), and a start cut short simply retries on the next one.
+su -s /bin/sh www-data -c "php artisan catalog:load-bundled || echo 'catalog:load-bundled failed; the catalog stays empty.'" &
+
 exec apache2-foreground
