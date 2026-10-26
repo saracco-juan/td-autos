@@ -176,7 +176,14 @@ To load the same inventory into develop, which has no shell:
    Remove-Item Env:DB_CONNECTION, Env:DB_URL
    ```
 2. `php artisan demo:reales-xlsx --cantidad=800` writes one XLSX per dealer and `dealers.csv` to `backend/storage/app/demo-reales` (linked vehicles only, since the import always links by exact catalog match).
-3. Sign in as each dealer and import its file from Inventario → Importar XLSX.
+3. Import the files as each dealer, through the same preview and apply code as the web import. Without `--confirm` it is a dry run that prints the target and the new / updated / error counts per dealer; a file with errors is skipped whole. It is safe to run twice: rows match by plate, so the second run only updates.
+   ```powershell
+   $env:DB_CONNECTION = "pgsql"; $env:DB_URL = "<session pooler URI of td-autos-dev>"
+   php artisan demo:reales-importar            # dry run
+   php artisan demo:reales-importar --confirm
+   Remove-Item Env:DB_CONNECTION, Env:DB_URL
+   ```
+   Signing in as each dealer and importing its file from Inventario → Importar XLSX does the same by hand.
 
 To measure the recommendations with volume, build a separate database with `php artisan db:local --path=<new file> --reales=5000`. Locally, `GET /api/recomendaciones` takes 1.7–4.7 s with 5,000 vehicles (12–15 s before the ranker stopped running the Laravel validator per vehicle, PR #48); most of what is left is scoring and resale.
 
