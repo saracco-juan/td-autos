@@ -683,7 +683,10 @@ do not expose arbitrary PDF uploads or execute this in recommendation requests.
 
 The fixed catalog is loaded once into permanent tables and served through a local,
 disposable cache. See [setup, storage and cache behavior](fixed-catalog.md) for the
-explicit local-PDF import, failure cases and maintenance boundaries.
+explicit local-PDF import, failure cases and maintenance boundaries. Deployed environments load the
+bundled snapshot on container start with `php artisan catalog:load-bundled` (a no-op once any catalog is
+loaded; see [infrastructure.md](infrastructure.md#fixed-catalog-deployment-boundary)). Tests:
+`php artisan test --filter=LoadBundledCatalogTest`.
 
 `AcaraPriceSource::current()` preserves its `snapshot/stale/warning` envelope,
 source date, hash, URL and `fetched_at` (the one-time import time). The existing
