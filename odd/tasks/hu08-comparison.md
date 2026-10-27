@@ -14,7 +14,7 @@ Integration: `feature/uh-8-comparacion-vehiculos`; strategy: local feature-branc
 
 ## Tasks
 - T1 | S2-S5,S7 | inline (understood pure shared selection rules, no writer trigger) | verified | child `feature/uh-8-comparacion-1-selection`; missing-module RED, 27 focused/regression tests GREEN; lint/build pass; commit recorded next.
-- T2 | S2,S6,S8 | inline (one presentation behavior, no independent parallel writer unit) | pending | child `feature/uh-8-comparacion-2-table`; costs and factual comparison with component tests.
+- T2 | S2,S6,S8 | inline (one presentation behavior, no independent parallel writer unit) | verified | child `feature/uh-8-comparacion-2-table`; missing-module RED then component/fact tests GREEN, lint/build pass; commit recorded next.
 - T3 | S1-S8 | inline (navigation/selection and current-data integration depend on T1/T2) | pending | child `feature/uh-8-comparacion-3-web`; TC public UI tests; split coherently if >400.
 - T4 | S1-S8 | inline checks; long suite delegated per action | pending | final full checks, responsive QA, local integration fast-forward, Figma approval handoff.
 
@@ -24,3 +24,5 @@ Integration: `feature/uh-8-comparacion-vehiculos`; strategy: local feature-branc
 - L3: Branch starts from cached `origin/develop` d91f2e3, which contains merged HU09 and HU10. Stale local develop was not used. Dirty `frontend/mobile/package-lock.json` preserved. RDD mode on globally. No fetch/publish, no DB or credentials.
 - L4: Shared URL selection keeps only IDs, preserving recommendation filters; live recommendations and vehicle detail remain authoritative, costs come from existing `fetchCosts` with diagnostic/default inputs. No persisted buyer state or calculator modifications.
 - L5: T1 observed RED (missing selection module after sandbox EPERM) then 27 shared selection/filter tests GREEN; web lint/build passed with existing PostCSS/chunk warnings. Risk: none (new isolated helpers). Runtime boundary N/A until web wiring; rollback is the comparison helper/tests only. No existing helper was changed; no differential behavior to test in this unit.
+- L6: T1 commit `9ed2de4` (72 authored lines); native assess medium, review_due=false, under_budget. Review boundary remains d91f2e3. Local child1 remains isolated; no RDD review/consent required.
+- L7: T2 adds an aligned table using existing specificationGroups, equipmentValue, equipment definitions, price/date formatters and calculator totals unchanged. Missing-module RED observed, 6 component/shared-fact tests GREEN (corrected three overly broad test queries); lint/build pass. Photo failure and partial estimates are explicit. Risk: none, new isolated presentation. No runtime route yet; rollback is the new table/styles/tests. Design differs from Figma only for the required detailed specs/factors/costs and controls; no Figma edit without approval.
