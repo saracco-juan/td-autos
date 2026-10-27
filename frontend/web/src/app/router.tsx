@@ -23,6 +23,7 @@ import InventoryPage from '../features/inventory/InventoryPage'
 import NewVehiclePage from '../features/inventory/NewVehiclePage'
 import ProfilePage from '../features/profile/ProfilePage'
 import OwnershipCostsPage from '../features/costs/OwnershipCostsPage'
+import ComparisonPage from '../features/comparison/ComparisonPage'
 import RecommendationsPage from '../features/recommendations/MatchingRecommendationsPage'
 import SubscriptionPage from '../features/subscription/SubscriptionPage'
 import TransferPage from '../features/transfer/TransferPage'
@@ -56,6 +57,7 @@ export const routes: RouteObject[] = [
                   { path: '/vehiculos/:id', element: <VehicleDetailPage /> },
                   { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
                   { path: '/recomendaciones', element: <RecommendationsPage /> },
+                  { path: '/comparar', element: <ComparisonPage /> },
                   { path: '/vehiculos/:id/costos', element: <OwnershipCostsPage /> },
                   { path: '/transferencia', element: <TransferPage /> },
                   { path: '/perfil', element: <ProfilePage /> },

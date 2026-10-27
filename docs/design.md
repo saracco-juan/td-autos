@@ -71,7 +71,7 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Resale evidence (2026-10-22): reuse card2373:7340's existing warnings and expandable reasons for partial compatibility, the ten-point uncertainty deduction, DNRPA window and ACARA reference date. Missing priority is "no disponible", never zero. Preserve the existing layout. Applies to web and mobile; mobile implementation and Figma sync remain pending explicit approval. High v3 has no resale evidence copy; this extends the previously approved matching reasons, not the catalog controls.
 
 - User-approved override: recommendations replace catalog search; no search field or catalog tab. HU07 adds the filters specified below. Backend order is retained, nine cards per page, up to ten results total.
-- Cards show published/equivalent prices, compatibility, dealer, budget/body warnings and expandable grouped facts/motives. The shared quote shows source, sell rate, provider date and stale/unavailable notices. Detailed HU09 sheets and HU08 comparison remain deferred.
+- Cards show published/equivalent prices, compatibility, dealer, budget/body warnings and expandable grouped facts/motives. The shared quote shows source, sell rate, provider date and stale/unavailable notices. HU09 detail and HU08 comparison are described in their sections below.
 - Figma sync pending approval: High v3 desktop `2373:7328`, mobile `2373:9914` still show search and placeholder match lines. Apply the matching-only/content changes to both; tablet follows web responsive rules. No Figma edits have been made.
 - This supersedes the recommendation search-field rules above. Existing catalog components/tests remain unmounted legacy RF05 code, not another user-facing view.
 
@@ -114,3 +114,10 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   states, restricted actions, compatibility provenance and filter-preserving back
   navigation. Semantics apply to both platform designs; native mobile HU09 remains
   unimplemented. No Figma writes or external thesis/test-source edits performed.
+
+## HU08 vehicle comparison (2026-10-27)
+
+- Follow High v3 desktop `2373:7368` / mobile `2373:10014`: two parallel vehicle columns, photos, title, source and aligned facts. Use a semantic table in its own horizontal/vertical scroll viewport, never horizontal page scroll. Reuse the app shell and existing back icon. No static vehicle images: listings supply them, missing/broken photos have an explicit fallback.
+- Extend the sample with complete grouped technical facts, equipment, diagnosis compatibility factors and costs. Advantages mean compatibility reasons, not an absolute winner or promised satisfaction. Unknown is distinct from false. Preserve budget/body and missing/stale resale warnings.
+- `/comparar?compare=<id>,<id>` requires two distinct current recommendations. Fetch live public details and the existing calculator GET with diagnostic/default inputs for each; never duplicate cost formulas, call ArgAutos or silently substitute zero on failure. Show ARS totals, partial/excluded costs, mileage, coverage and rates date; link to the full calculator.
+- Figma synchronization pending explicit approval: selection/removal controls, exact-two/incomplete/replacement/error states, technical/equipment rows, diagnosis factors and calculator summaries are missing from both frames. Apply these design decisions to web and mobile; native mobile implementation stays out of scope. No Figma writes have been performed.

@@ -1,0 +1,21 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.page p {
+  color: var(--text-secondary);
+}
+
+.ready {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  outline: none;
+}
