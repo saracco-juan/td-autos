@@ -889,7 +889,7 @@ comparison is claimed. No model-specific aliases, ingestion changes or cross-fam
 | Value | Source | How it is used |
 | --- | --- | --- |
 | Fuel prices per province (nafta, diesel, GNC) | Secretaría de Energía, CKAN package `precios-en-surtidor`, resource "Precios vigentes en surtidor - Resolución 314/2016" (CSV, ~9 MB, streamed; the resource URL is resolved from the package, never hardcoded) | 90th percentile of the daytime (`Diurno`) price per product and province, ignoring zero prices. The dealer's province wins, then the national 90th percentile, then `fuel_prices` in the config |
-| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance bases (`insurance.tc_base`), the patente bracket limits, fixed amounts and minimums (`patente.scale`, `patente.bracket_rate`, `patente.rules.*.minimum`; never their rates) and the service prices (`service.brands.*.models` and `.body`, `service.fallback.body`; never the intervals) use their own months, `insurance.cpi_base_month`, `patente.cpi_base_month` (or `patente.province_cpi_base_month` for CABA and Mendoza) and the `cpi_base_month` of each service brand and of `service.fallback`, with the same floor at 1. The snapshot keeps each of those months' index in `cpi.extra_bases` and the refresh fetches every base month in use; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
+| CPI | INDEC IPC nivel general nacional (`148.3_INIVELNAL_DICI_M_26`, datos.gob.ar series API) | ARS amounts (`transfer.fixed_costs`) are multiplied by `max(1, CPI latest / CPI of cpi_base_month)`. The insurance floor (`insurance.tc_floor`; never the rates), the patente bracket limits, fixed amounts and minimums (`patente.scale`, `patente.bracket_rate`, `patente.rules.*.minimum`; never their rates) and the service prices (`service.brands.*.models` and `.body`, `service.fallback.body`; never the intervals) use their own months, `insurance.cpi_base_month`, `patente.cpi_base_month` (or `patente.province_cpi_base_month` for CABA and Mendoza) and the `cpi_base_month` of each service brand and of `service.fallback`, with the same floor at 1. The snapshot keeps each of those months' index in `cpi.extra_bases` and the refresh fetches every base month in use; while INDEC has not published it, it is left out and the factor is 1. Snapshots without `extra_bases` stay readable |
 
 `rates_updated_at` in the costs response is the older of the config `updated_at` (hand review of percentages, scales and service prices) and the fuel price date of the latest valid snapshot; without a snapshot it is the config `updated_at`.
 
@@ -931,21 +931,21 @@ By hand, once a year (nothing publishes them and they apply to the price): the p
 
 ### Insurance model
 
-The `insurance` block of `config/calculadora.php` replaces the old flat rate over the price (premiums barely scale with value: a pickup costs about 1.5 times a small hatchback, not 4 times):
+The `insurance` block of `config/calculadora.php` is a CENTRAL estimate (the service, fuel and transfer are still a ceiling): a monthly floor plus a fraction of the price, the way the survey cars behave (a premium grows with the value of the car, but not proportionally).
 
-- Terceros completo per month = `max(tc_base[body type], price x value_rate_tc / 12) x zone_factor[province]`.
-- Todo riesgo per month = `max(TC x tr_ratio[body type], price x value_rate_tr / 12)`, where TC is the terceros completo already rounded up to the step, so the tooltip can explain it from the figure on the screen.
-- The body type comes from `vehiculo.tipo_carroceria_id` -> `tipo_carroceria.nombre`; "Rural / familiar" maps to `rural`. An unknown or missing body type takes the highest base and ratio. A province outside `zone_factor` (or unknown) takes `zone_factor.default`.
-- Not modeled for lack of data: vehicle age and GNC conversion.
+- Terceros completo (TC) per month = `ceil_step((tc_floor + tc_value_rate x price) x zone_factor[province])`. `tc_floor` is ARS at AMBA prices (46,000 at 2026-10) and `tc_value_rate` is a fraction of the price per MONTH (0.0037, 4.4% a year).
+- Todo riesgo con franquicia (TR) per month = `ceil_step(TC x tr_ratio)` with a single `tr_ratio` (1.5), where TC is the terceros completo already rounded up to the step, so the tooltip can explain it from the figure on the screen.
+- A province outside `zone_factor` (or unknown) takes `zone_factor.default` (0.70). Misiones, for instance, is not listed.
+- Not modeled: the body type and the age of the car (the price already carries both), and GNC conversion. The body type of the vehicle no longer reaches the insurance.
+- `tc_floor` and `tc_value_rate` were fitted on the 6 AMBA terceros-completo points of the validation survey (Oct 2026); they are the only fitted values. Reference cases: Yaris, Buenos Aires, price 20,641,300 -> TC 123,000; Taos, CABA, price 38,985,600 -> TC 191,000 and TR 287,000; Etios, Misiones, price 14,021,500 -> TC 69,000. `tests/Feature/Calculadora/InsuranceConfigTest.php` checks them against the real config.
 
 Review it once a year, together with `updated_at` and `insurance.cpi_base_month`:
 
 | Value | Source | What to do |
 | --- | --- | --- |
-| `tc_base` (ARS per month, AMBA) | multicotizadorseguros.com price table, top of each body-type range for recent units (https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina) | Read the new table, update the six bases and set `insurance.cpi_base_month` to the month of the table |
-| `tr_ratio` | Same table: todo riesgo top / terceros completo top for each body type | Recompute the six ratios |
-| `zone_factor` | seguroya.com.ar mid-size terceros completo ranges per city (https://seguroya.com.ar/seguros-de-autos-precios), against AMBA = 1.0 | Recompute the factors and add provinces that publish a range; the rest keep `default` |
-| `value_rate_tc`, `value_rate_tr` | Judgment: the yearly fraction of the price at which the price overtakes the body base | Change only if expensive cars start to look wrong |
+| `tc_floor` (ARS per month, AMBA) and `tc_value_rate` | Re-fit on a fresh survey of terceros completo quotes in AMBA (the Oct 2026 survey is the first); ranges in multicotizadorseguros.com (https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina) and hacecuentas (2.5-3.5% of the value a year, unverified) for the order of magnitude | Re-fit the pair on the new quotes and set `insurance.cpi_base_month` to the month of the survey. The monthly refresh indexes only `tc_floor`; `tc_value_rate` is never indexed |
+| `tr_ratio` | multicotizadorseguros.com TR and TC ranges by class; cuantomecuesta.com (a deductible lowers TR 20-35%) | Recompute the single ratio |
+| `zone_factor` | seguroya.com.ar mid-size terceros completo ranges per city (https://seguroya.com.ar/seguros-de-autos-precios) and cuantomecuesta.com (interior 0.60-0.75 of AMBA), against AMBA = 1.0 | Recompute the factors and add provinces that publish a range; the rest keep `default` |
 
 ### Patente model
 
@@ -982,7 +982,7 @@ The `service` block of `config/calculadora.php` replaces the old monthly mainten
 
 - Service per year = `services per year x price per service x fuel factor`, rounded up to the step.
 - Services per year = `ceil(max(km per year / interval_km, 12 / interval_months))`. The km per month is the same one fuel uses (diagnostico answer, default, or the user's input), so changing the km on the screen changes both; with no km at all the time rule still asks for one service a year.
-- Price per service (ARS, the average over one service cycle), looked up in this order: brand + model (`brands.<brand>.models`), then brand + body type (`brands.<brand>.body`), then `fallback.body`. An unknown or missing body type takes the highest fallback value; the body type maps like the insurance one ("Rural / familiar" is `rural`).
+- Price per service (ARS, the average over one service cycle), looked up in this order: brand + model (`brands.<brand>.models`), then brand + body type (`brands.<brand>.body`), then `fallback.body`. An unknown or missing body type takes the highest fallback value; "Rural / familiar" maps to `rural`.
 - Brand: matched on `vehiculo.marca` by its key or an alias (`vw` for Volkswagen), ignoring case and accents. Model: the longest configured model that appears as whole words in `vehiculo.modelo` ("Gol Trend" is `gol`, "Corolla Cross" is `corolla cross` and never `corolla`, "Golf" is never `gol`). `model_overrides` changes the interval of one model (the Amarok is every 10.000 km, the rest of Volkswagen every 15.000).
 - Brands with data: Toyota (10.000 km, 12 months unconfirmed, base 2026-08), Volkswagen (15.000 km, base 2025-12), Fiat and Peugeot (10.000 km, base 2025-09). Fiat pickups and furgones, and every Peugeot body but the hatchback, use the fallback. BMW has no Argentine price or interval published, so it uses the fallback too. The `fallback` (10.000 km, 12 months, base 2025-09) is the old per-km value x 10.000.
 - `fuel_factor`: nafta, diesel and hibrido 1.0; GNC 1.15 and electrico 0.5 are estimates without a source. An unknown fuel takes the highest factor. The service price does not depend on age.
