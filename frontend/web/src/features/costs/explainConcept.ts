@@ -39,23 +39,54 @@ function explainInsurance(insurance: CostBreakdown['insurance'], money: string):
   return `Terceros completo${body ? ` para ${body}` : ''}: ${formatPrice(Math.round(insurance.base_monthly))} por mes de referencia, ${zone} = ${money} por mes. Sale de cotizaciones publicadas en octubre de 2026.`
 }
 
+// Why this rate applies, when the rate depends on the age or the body type of the vehicle.
+function patenteQualifier(patente: CostBreakdown['patente']): string {
+  if (patente.method === 'age_rate' && patente.age_band) {
+    const { from_age: from, to_age: to } = patente.age_band
+    if (to === null) return `, por ser un auto de más de ${from - 1} años`
+    return from === 0 ? `, por ser un auto de hasta ${to} años` : `, por ser un auto de más de ${from - 1} y hasta ${to} años`
+  }
+  if (patente.method === 'body_rate') return patente.body_kind === 'utility' ? ', por ser una pickup o un SUV' : ', por ser un auto'
+  return ''
+}
+
+// What the surcharge, the cap and the minimum do to the tax of the scheme; empty when none of them changes it.
+function patenteAdjustments(patente: CostBreakdown['patente']): string {
+  const capped = patente.cap_applied && patente.cap_rate !== null
+  const raised = patente.minimum_applied && patente.minimum !== null
+  if (patente.surcharge <= 0 && !capped && !raised) return ''
+  let text = ` = ${formatPrice(Math.round(patente.subtotal))}`
+  if (patente.surcharge > 0) {
+    text += `, más ${percent(patente.surcharge)} de recargo = ${formatPrice(Math.round(patente.subtotal * (1 + patente.surcharge)))}`
+  }
+  if (capped) text += `, pero el tope es ${percent(patente.cap_rate ?? 0)} del valor`
+  if (raised) text += `, pero el mínimo es ${formatPrice(patente.minimum ?? 0)}`
+  return capped || raised ? `${text}: ${formatPrice(Math.round(patente.annual))} al año` : `${text} al año`
+}
+
 function explainPatente(patente: CostBreakdown['patente'], money: string): string {
   const where = patente.province_known ? ` en ${patente.province}` : ''
   const monthly = `dividido 12 meses = ${money} por mes.`
+  if (patente.exempt) {
+    return `Patente${where}: el auto tiene ${patente.age} años y desde los ${patente.exempt_from_age} años no se paga patente = ${money} por mes.`
+  }
   // The ACARA reference value of the version replaces "valor del auto" when the patente is charged on it.
   const value = patente.base_source === 'acara' ? 'valor de referencia ACARA de esta versión' : 'valor del auto'
   const valueWithBase = `${value} (${formatPrice(patente.base)})`
+  const adjustments = patenteAdjustments(patente)
   if (patente.method === 'scale') {
-    const annual = `${formatPrice(patente.annual)} al año`
+    const annual = adjustments || ` = ${formatPrice(patente.annual)} al año`
     if (!patente.bracket_fixed) {
-      return `Patente${where}: ${percent(patente.rate)} del ${valueWithBase} = ${annual}, ${monthly}`
+      return `Patente${where}: ${percent(patente.rate)} del ${valueWithBase}${annual}, ${monthly}`
     }
-    return `Patente${where}: sobre el ${valueWithBase} corresponde ${formatPrice(patente.bracket_fixed)} + ${percent(patente.rate)} de lo que supera ${formatPrice(patente.bracket_from ?? 0)} = ${annual}, ${monthly}`
+    return `Patente${where}: sobre el ${valueWithBase} corresponde ${formatPrice(patente.bracket_fixed)} + ${percent(patente.rate)} de lo que supera ${formatPrice(patente.bracket_from ?? 0)}${annual}, ${monthly}`
   }
-  if (patente.method === 'bracket_rate') {
-    return `Patente${where}: ${percent(patente.rate)} anual del ${patente.base_source === 'acara' ? `${valueWithBase},` : `${value},`} ${monthly}`
+  const wholeValue = patente.base_source === 'acara' ? valueWithBase : value
+  if (patente.method === 'flat') {
+    return `Alícuota anual de ${percent(patente.rate)}${where ? `${where},` : ''} sobre el ${wholeValue}${adjustments}, ${monthly}`
   }
-  return `Alícuota anual de ${percent(patente.rate)}${where ? `${where},` : ''} sobre el ${patente.base_source === 'acara' ? `${valueWithBase},` : `${value},`} ${monthly}`
+  // bracket_rate, age_rate and body_rate: one rate over the whole value.
+  return `Patente${where}: ${percent(patente.rate)} anual del ${wholeValue}${patenteQualifier(patente)}${adjustments}, ${monthly}`
 }
 
 function explainService(service: CostBreakdown['service'], money: string): string {
