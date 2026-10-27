@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it } from 'vitest'
 import Tabs from './Tabs'
+import { useState } from 'react'
 
 const items = [{ id: 'general', label: 'General' }, { id: 'engine', label: 'Engine' }]
 const mount = () => render(<Tabs label="Example sections" items={items}>
@@ -36,4 +37,20 @@ it('keeps IDs unique across independent uses without vehicle-specific content', 
   mount()
   const panels = screen.getAllByRole('tabpanel')
   expect(panels[0].id).not.toBe(panels[1].id)
+})
+
+it('supports synchronized controlled instances without moving focus to the other tablist', async () => {
+  function Example() {
+    const [value, setValue] = useState('general')
+    return <>{['First', 'Second'].map((label) => <Tabs key={label} label={label} items={items}
+      value={value} onValueChange={setValue}>{(id) => <p>{label} {id}</p>}</Tabs>)}</>
+  }
+  render(<Example />)
+  const engine = screen.getAllByRole('tab', { name: 'Engine' })
+  await userEvent.click(engine[1])
+  expect(screen.getAllByRole('tab', { name: 'Engine', selected: true })).toHaveLength(2)
+  expect(engine[1]).toHaveFocus()
+  await userEvent.keyboard('{Home}')
+  expect(screen.getAllByRole('tab', { name: 'General', selected: true })).toHaveLength(2)
+  expect(screen.getAllByRole('tabpanel', { name: 'General' })).toHaveLength(2)
 })
