@@ -3,64 +3,110 @@
   min-height: 0;
   flex: 1;
   overflow: auto;
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 12px rgb(26 20 15 / 10%);
+  padding: 0 6px 12px;
   scrollbar-gutter: stable;
 }
 
-.table {
-  width: 100%;
-  min-width: 42rem;
-  table-layout: fixed;
-  border-collapse: collapse;
-  background: var(--surface-default);
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(18rem, 1fr));
+  column-gap: 32px;
+  min-width: 38rem;
+  padding-top: 1px;
   font-size: 13px;
 }
 
-.table th,
-.table td {
+.card {
+  display: grid;
+  grid-template-rows: subgrid;
+  min-width: 0;
+  overflow: clip;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-default);
+  box-shadow: 0 6px 12px rgb(26 20 15 / 10%);
+}
+
+.intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+}
+
+.intro h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.intro .remove {
+  width: auto;
+  height: 32px;
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+
+.group {
+  margin: 0;
   padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface-raised);
+}
+
+.facts {
+  display: grid;
+  grid-template-rows: subgrid;
+  margin: 0;
+}
+
+.fact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border-default);
-  border-right: 1px solid var(--border-default);
-  text-align: left;
-  vertical-align: top;
   overflow-wrap: anywhere;
 }
 
-.table thead th:first-child {
-  width: 24%;
-}
-
-.table tbody th {
-  font-weight: 500;
+.fact dt {
   color: var(--text-secondary);
+  flex: 1;
 }
 
-.table h2 {
-  font-size: 16px;
-  margin: 12px 0;
-}
-
-.table small {
-  display: block;
-  font-weight: 400;
-  margin-top: 6px;
-}
-
-.table .group th {
-  background: var(--surface-raised);
-  color: var(--text-primary);
-  font-weight: 600;
+.fact dd {
+  margin: 0;
+  max-width: 55%;
+  text-align: right;
 }
 
 .photo {
   width: 100%;
-  height: clamp(8rem, 15vw, 12rem);
+  height: 160px;
   object-fit: cover;
   display: grid;
   place-items: center;
   background: var(--surface-raised);
   color: var(--text-secondary);
-  font-weight: 400;
+}
+
+.footer {
+  padding: 16px;
+}
+
+.notes {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.notes summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.notes p {
+  margin: 8px 0 0;
 }

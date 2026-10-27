@@ -10,10 +10,12 @@ Start the backend and web app as described in [getting started](getting-started.
 | --- | --- | --- |
 | TC-23 | Select two recommendation cards, then COMPARAR. | Two aligned vehicle columns show specs, compatibility reasons and ARS purchase/monthly/yearly costs. Compare with each VER CÁLCULO COMPLETO link using the same defaults. |
 | TC-24 | Select two cards, then attempt a third. | An exact-two notice appears; the original two stay selected. |
-| TC-76 | Press COMPARAR with zero or one selection; also open `/comparar` directly. | Selection correction is requested and no comparison table is shown. |
-| TC-25 | In the comparison, QUITAR one vehicle, return to recommendations and select a replacement. | The table disappears, the other ID and filters remain, and the replacement completes a new pair. |
+| TC-76 | Press COMPARAR with zero or one selection; also open `/comparar` directly. | Selection correction is requested and no comparison cards is shown. |
+| TC-25 | In the comparison, QUITAR one vehicle, return to recommendations and select a replacement. | The cards disappear, the other ID and filters remain, and the replacement completes a new pair. |
 
 At 1280×800, 768×1024 and 375×812, the page must not scroll horizontally; the comparison viewport itself can scroll to retain the two columns. Keyboard users can focus that viewport and scroll it. Check broken/missing images and unavailable costs: no invented prices or zero substitutes.
+
+The comparison uses two separate named vehicle cards, matching High v3 photos, spacing and label/value alignment. Selection actions are compact, not full-width stacked buttons. Expand “Sobre la comparación y los costos” for estimate caveats; fact explanations remain available through their information buttons. Detailed facts and the existing calculator totals are retained below the overview.
 
 ## Data boundaries
 
