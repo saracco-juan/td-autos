@@ -2,9 +2,13 @@
 
 // Rates of the ownership cost calculator (HU10 / RF09), reviewed on `updated_at`.
 //
-// Every rate is the UPPER end of its range: the calculator is a ceiling, never a promise.
-// No primary source (DNRPA, ARBA, AGIP, YPF) was reachable on the review date; the values come from
-// secondary sources (news, public calculators, dealer price lists), taking the max across them.
+// The PATENTE and the INSURANCE are CENTRAL estimates (UH-10). The patente follows the 2026 rule of each jurisdiction and,
+// where a province has no rule here, takes the median flat rate; the insurance is a floor plus a rate over the price,
+// fitted on the validation survey. The other concepts (service, fuel, transfer) are still the UPPER end of their range,
+// a ceiling, until their own tasks move them to a central estimate.
+// No primary source was reachable for the ceiling values; they come from secondary sources (news, public calculators,
+// dealer price lists), taking the max across them. The patente rules of CABA, Mendoza, Misiones and Santa Fe come from
+// the official 2026 laws and tariffs (see `patente` below).
 // Update the values and `updated_at` together, by commit.
 
 return [
@@ -12,7 +16,7 @@ return [
     'updated_at' => '2026-10-24',
 
     // Month (YYYY-MM) in which the ARS amounts below (transfer.fixed_costs) are stated.
-    // insurance, patente and each service brand (and the service fallback) state their ARS amounts at their own `cpi_base_month`.
+    // The insurance floor, patente and each service brand (and the service fallback) state their ARS amounts at their own `cpi_base_month`.
     // The monthly refresh (calculadora:refresh) scales them by max(1, CPI latest / CPI of this month).
     // Move it forward together with those amounts when they are reviewed by hand.
     'cpi_base_month' => '2026-08',
@@ -39,57 +43,44 @@ return [
         'gnc' => 1100,
     ],
 
-    // Car insurance, per month, in two coverages.
+    // Car insurance, per month, in two coverages. A CENTRAL estimate (UH-10), not a ceiling.
     //
-    // Terceros completo (TC) = max(tc_base[body type], price x value_rate_tc / 12) x zone_factor[province].
-    // Todo riesgo (TR)       = max(TC x tr_ratio[body type], price x value_rate_tr / 12).
-    // The ratio multiplies the TC already rounded up, so the screen can explain TR from the TC it shows.
-    // `price` is the ARS price base of the calculator. An unknown body type takes the highest tc_base and tr_ratio;
-    // a province outside zone_factor (or an unknown one) takes `default`.
+    // Terceros completo (TC) = ceil_step((tc_floor + tc_value_rate x price) x zone_factor[province]).
+    // Todo riesgo (TR)       = ceil_step(TC x tr_ratio).
+    // `price` is the ARS price base of the calculator. The ratio multiplies the TC already rounded up, so the screen can
+    // explain TR from the TC it shows. A province outside zone_factor (or an unknown one) takes `default`.
+    // The body type and the age of the car are NOT modeled: the price already carries the class and the age.
     //
-    // Sources (no source publishes a premium by model + year + zone, only ranges from comparators):
-    //  - tc_base and tr_ratio: multicotizadorseguros.com price table, Oct-2026, 2024 units, TOP of each range per body
-    //    type (tr_ratio = TR top / TC top of the same table).
+    // Fit: `tc_floor` and `tc_value_rate` were fitted on the 6 AMBA terceros-completo points of the validation survey
+    // (Oct 2026). They are the only fitted parameters; the sources below give ranges, not a premium by model + year + zone.
+    //
+    // Sources:
+    //  - tr_ratio: multicotizadorseguros.com price table (TR and TC ranges by class, 2024 units) and cuantomecuesta.com
+    //    (a deductible lowers TR 20-35%): a TR with franquicia is about 1.5 x TC.
     //    https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina
-    //  - zone_factor: seguroya.com.ar zone ranges for a mid-size TC (CABA 145k, Córdoba 115k, Rosario 112k, Mendoza 105k),
-    //    expressed against AMBA = 1.0. Provinces without a published range use `default`.
+    //  - zone_factor: seguroya.com.ar zone ranges for a mid-size TC (CABA, Cordoba, Rosario, Mendoza) and cuantomecuesta.com
+    //    (interior 0.60-0.75 of AMBA), against AMBA = 1.0. Provinces without a published range use `default`.
     //    https://seguroya.com.ar/seguros-de-autos-precios
-    //  - Vehicle age and GNC conversion are NOT modeled: no source quantifies them.
+    //  - Order of magnitude of the value rate: hacecuentas, 2.5-3.5% of the value a year (unverified).
     //
-    // Yearly review: tc_base (ARS), zone_factor and tr_ratio, together with `updated_at`.
+    // Yearly review: tc_floor (ARS), tc_value_rate, tr_ratio and zone_factor, together with `updated_at`.
     'insurance' => [
-        // ARS per month at AMBA prices, stated at `cpi_base_month`. The monthly refresh scales them by
-        // max(1, CPI latest / CPI of that month).
-        'tc_base' => [
-            'hatchback' => 103000,
-            'sedan' => 114000,
-            'rural' => 114000, // "Rural / familiar"
-            'suv' => 108000,
-            'pickup' => 152000,
-            'furgon' => 152000,
-        ],
-        // Fraction of the vehicle price per year: when it exceeds the body base, the price decides.
-        'value_rate_tc' => 0.023,
+        // ARS per month at AMBA prices, stated at `cpi_base_month`. The monthly refresh scales it by
+        // max(1, CPI latest / CPI of that month). It is the only ARS amount of the insurance: the rates are never indexed.
+        'tc_floor' => 46000,
+        // Fraction of the vehicle price per MONTH added to the floor (0.37% a month = 4.4% a year).
+        'tc_value_rate' => 0.0037,
+        // Todo riesgo con franquicia as a multiple of the rounded terceros completo.
+        'tr_ratio' => 1.5,
         'zone_factor' => [
             'caba' => 1.00,
             'buenos_aires' => 1.00,
             'cordoba' => 0.80,
-            'santa_fe' => 0.78,
-            'mendoza' => 0.73,
-            'default' => 0.80,
+            'santa_fe' => 0.80,
+            'mendoza' => 0.72,
+            'default' => 0.70,
         ],
-        'tr_ratio' => [
-            'hatchback' => 1.8,
-            'sedan' => 2.1,
-            'rural' => 2.1,
-            'suv' => 2.0,
-            'pickup' => 2.35,
-            'furgon' => 2.35,
-        ],
-        // Fraction of the vehicle price per year: the floor of todo riesgo. 5.3% puts an $80M Hilux
-        // at the top of the published todo riesgo range (352k a month).
-        'value_rate_tr' => 0.053,
-        // Month (YYYY-MM) of the tc_base amounts; independent from the top-level `cpi_base_month`.
+        // Month (YYYY-MM) of the tc_floor amount; independent from the top-level `cpi_base_month`.
         // Until INDEC publishes it, the CPI factor is 1.
         'cpi_base_month' => '2026-10',
     ],
@@ -111,27 +102,69 @@ return [
         ],
     ],
 
-    // Annual vehicle tax (patente), by normalized province. Three schemes, in this order of precedence:
-    //  - `scale`: progressive scale over the ARS price. Each bracket is {up_to, fixed, rate} and the tax is
-    //    fixed + rate x (price - previous up_to); the last bracket has up_to null. A price equal to a limit belongs
-    //    to the bracket that ends there.
-    //  - `bracket_rate`: one rate for the WHOLE price, chosen by the bracket {up_to, rate} the price falls in.
-    //  - `flat_rate`: one rate over the price. A province outside the three maps takes the highest flat rate.
-    // Monthly patente = annual / 12. The price stands in for the fiscal valuation.
+    // Annual vehicle tax (patente), by normalized province: a CENTRAL estimate of the nominal annual tax (no early-payment
+    // or good-standing discounts), divided by 12 and rounded up. The base is the ACARA value of the version when known,
+    // otherwise the listing price. Age = current year - model year (never negative).
     //
-    // Sources:
-    //  - Buenos Aires: ARBA 2026 scale, Infobae 2026-02-12.
+    // Rate scheme of each province, the first that applies:
+    //  - `scale`: progressive scale. Each bracket is {up_to, fixed, rate}: tax = fixed + rate x (value - previous up_to);
+    //    the last bracket has up_to null. A value equal to a limit belongs to the bracket that ends there.
+    //  - `bracket_rate`: one rate for the WHOLE value, chosen by the bracket {up_to, rate} the value falls in.
+    //  - `body_rate[utility]`: one rate for pickups and SUVs (`utility_bodies`); an unknown body type is NOT a utility.
+    //  - `age_rate`: one rate for the WHOLE value, chosen by the age: bands {up_to_age, rate}, an age equal to up_to_age
+    //    belongs to that band; the last band has up_to_age null (it also covers the oldest cars).
+    //  - `body_rate[car]`: one rate for every other body type.
+    //  - `flat_rate`: one rate over the value. A province outside every map takes the MEDIAN flat rate (central estimate).
+    // `utility_bodies` uses the body slugs of the calculator: pickup and SUV count as utility; furgón, rural, sedán and
+    // hatchback are cars (a furgón is cargo, but no source gives it its own rate).
+    //
+    // `rules[province]` adjusts the tax of the scheme, in this order:
+    //  - `exempt_from_age`: a vehicle of that age or older pays nothing. "Older than 20 years" is written 21.
+    //  - `surcharge`: fraction added on top of the tax (0.10 = +10%).
+    //  - `cap`: maximum tax as a fraction of the value, applied after the surcharge.
+    //  - `minimum`: minimum tax per year in ARS, applied last.
+    //
+    // Sources (2026):
+    //  - CABA: Ley 6927 art. 50 (scale, +10% surcharge, 6% cap, minimum 13,300, exempt from 25 years). Pickups use the
+    //    general scale, as UADE does, not the 2.30% cargo line.
+    //    https://documentosboletinoficial.buenosaires.gob.ar/publico/PL-LEY-LCABA-LCBA-6927-25-ANX.pdf
+    //    Exemptions: https://www.ambito.com/economia/patentes-2026-que-vehiculos-estan-exentos-caba-y-cuales-empiezan-pagar-n6239557
+    //  - Buenos Aires: ARBA 2026 scale, Infobae 2026-02-12. Exempt from 25 years (the municipality collects the vehicles
+    //    of 10 to 24 years with the provincial calculation, so they keep paying it here).
     //    https://www.infobae.com/economia/2026/02/12/confirmado-a-partir-de-marzo-las-patentes-bonaerenses-comenzaran-a-pagarse-todos-los-meses/
-    //  - CABA: the same ARBA scale, as an APPROXIMATION: AGIP's brackets were not found.
-    //  - Córdoba: hacecuentas.com 2026 (unofficial calculator).
+    //    https://www.infozona.com.ar/?p=389634
+    //  - Mendoza: Ley Impositiva 2026, one rate over the whole value by bracket.
+    //    https://atm.mendoza.gov.ar/wp-content/uploads/2025/12/Ley-Impositiva-2026.pdf
+    //  - Misiones: Ley XXII N 25 (2% cars, 0.8% utility vehicles, cars exempt when older than 20 years) and RG 29/2025.
+    //    Only pickups are taken as utility vehicles: the survey shows an SUV paying the car rate.
+    //    https://digestomisiones.gob.ar/archivospdf/1688643175_Ley%20XXII%20-%20N%2025.pdf
+    //    https://atmisiones.gob.ar/wp-content/uploads/2026/02/RG-29-2025-y-RG-Hacienda-1505-2025.pdf
+    //  - Santa Fe: Ley impositiva anual, patente unica sobre vehiculos (arts. 55 a 58): cars by age (up to 5 years 2.3%,
+    //    over 5 to 10 2.0%, over 10 1.8%), pickups and SUVs 2.0%. The fixed amount that the law sets for cars of more
+    //    than 15 years was not found: they keep the last band.
+    //    https://www.santafe.gov.ar/index.php/web/content/download/135407/669723/file/07%20LIA%20Patente%20%C3%9Anica%20sobre%20Veh%C3%ADculos%20(Art%C3%ADculos%2055%20a%2058).pdf
+    //  - Córdoba: hacecuentas.com 2026 (unofficial calculator). The 2026 brackets were NOT found and these values are about
+    //    2x the effective rates: Córdoba is the least reliable patente of this file.
     //    https://hacecuentas.com/calculadora-patente-auto-cordoba-2026-valuacion-fiscal-cuotas
-    //  - Flat rates: top of each scale (servidos.ar 2026-09, Infobae/UADE 2026-05-20).
+    //  - Flat rates: UADE 2026 (https://uade.edu.ar/media/ibydidl3/uade-costo-patentes-de-automoviles.pdf); Entre Rios,
+    //    San Luis and La Pampa at the middle of the effective range; Chaco, Santa Cruz and Santiago del Estero have no
+    //    data and keep their previous value. Neuquen exempt from 20 years (secondary source).
     //
-    // Yearly review: the scales and flat rates, together with `cpi_base_month` and `updated_at`.
+    // CPI: the ARS amounts (bracket limits, fixed amounts and `minimum`) are scaled by the monthly refresh, never the
+    // rates, percentages or ages. See `cpi_base_month` and `province_cpi_base_month`.
+    //
+    // Yearly review: the schemes, rules and flat rates, together with the base months and `updated_at`.
     'patente' => [
-        // Month (YYYY-MM) of the bracket limits and fixed amounts (ARBA scale: Feb-2026). The monthly refresh scales
-        // them by max(1, CPI latest / CPI of that month); the rates are never indexed.
+        // Month (YYYY-MM) of the ARS amounts of the provinces that do not appear in `province_cpi_base_month`
+        // (ARBA scale: Feb-2026). The monthly refresh scales them by max(1, CPI latest / CPI of that month).
         'cpi_base_month' => '2026-02',
+        // Provinces whose law states the amounts at another month: CABA (Ley 6927) and Mendoza (Ley Impositiva 2026) apply
+        // from January 2026, so their amounts are indexed from 2026-01.
+        'province_cpi_base_month' => [
+            'caba' => '2026-01',
+            'mendoza' => '2026-01',
+        ],
+        'utility_bodies' => ['pickup', 'suv'],
         'scale' => [
             'buenos_aires' => [
                 ['up_to' => 14100000, 'fixed' => 0, 'rate' => 0.01],
@@ -140,16 +173,19 @@ return [
                 ['up_to' => 53900000, 'fixed' => 455000, 'rate' => 0.04],
                 ['up_to' => null, 'fixed' => 1567000, 'rate' => 0.045],
             ],
-            // Approximation: ARBA's scale until AGIP's brackets are found.
+            // Ley 6927 art. 50, before the 10% surcharge.
             'caba' => [
-                ['up_to' => 14100000, 'fixed' => 0, 'rate' => 0.01],
-                ['up_to' => 18700000, 'fixed' => 141000, 'rate' => 0.02],
-                ['up_to' => 26100000, 'fixed' => 233000, 'rate' => 0.03],
-                ['up_to' => 53900000, 'fixed' => 455000, 'rate' => 0.04],
-                ['up_to' => null, 'fixed' => 1567000, 'rate' => 0.045],
+                ['up_to' => 7460000, 'fixed' => 0, 'rate' => 0.016],
+                ['up_to' => 17155000, 'fixed' => 119350, 'rate' => 0.04],
+                ['up_to' => 26850000, 'fixed' => 507150, 'rate' => 0.045],
+                ['up_to' => 36550000, 'fixed' => 943500, 'rate' => 0.055],
+                ['up_to' => 50350000, 'fixed' => 1477000, 'rate' => 0.065],
+                ['up_to' => 73100000, 'fixed' => 2374000, 'rate' => 0.07],
+                ['up_to' => null, 'fixed' => 3965000, 'rate' => 0.08],
             ],
         ],
         'bracket_rate' => [
+            // 2026 brackets not found: these values are about 2x the effective rates (see the sources above).
             'cordoba' => [
                 ['up_to' => 5000000, 'rate' => 0.015],
                 ['up_to' => 10000000, 'rate' => 0.02],
@@ -158,14 +194,45 @@ return [
                 ['up_to' => 100000000, 'rate' => 0.0375],
                 ['up_to' => null, 'rate' => 0.045],
             ],
+            'mendoza' => [
+                ['up_to' => 7100000, 'rate' => 0.015],
+                ['up_to' => 14200000, 'rate' => 0.016],
+                ['up_to' => 23700000, 'rate' => 0.017],
+                ['up_to' => 35500000, 'rate' => 0.018],
+                ['up_to' => 47300000, 'rate' => 0.02],
+                ['up_to' => 59100000, 'rate' => 0.0225],
+                ['up_to' => 87500000, 'rate' => 0.025],
+                ['up_to' => null, 'rate' => 0.03],
+            ],
+        ],
+        // Cars by age (Santa Fe): up to 5 years, over 5 up to 10, over 10.
+        'age_rate' => [
+            'santa_fe' => [
+                ['up_to_age' => 5, 'rate' => 0.023],
+                ['up_to_age' => 10, 'rate' => 0.02],
+                ['up_to_age' => null, 'rate' => 0.018],
+            ],
+        ],
+        // Rate by body type: `utility` for the utility bodies, `car` for the rest (Misiones). Santa Fe only sets the
+        // utility rate: its cars go by age. A province's `utility_bodies` replaces the general list: in Misiones only
+        // pickups pay the utility rate (validation survey, 2026-10: a 2018 SUV pays about 2% of its value).
+        'body_rate' => [
+            'misiones' => ['car' => 0.02, 'utility' => 0.008, 'utility_bodies' => ['pickup']],
+            'santa_fe' => ['utility' => 0.02],
+        ],
+        'rules' => [
+            'caba' => ['surcharge' => 0.10, 'cap' => 0.06, 'minimum' => 13300, 'exempt_from_age' => 25],
+            'buenos_aires' => ['exempt_from_age' => 25],
+            'misiones' => ['exempt_from_age' => 21], // older than 20 years
+            'neuquen' => ['exempt_from_age' => 20],
         ],
         'flat_rate' => [
-            'catamarca' => 0.016, 'chaco' => 0.022,
-            'chubut' => 0.027, 'corrientes' => 0.02, 'entre_rios' => 0.0333,
-            'formosa' => 0.012, 'jujuy' => 0.015, 'la_pampa' => 0.02, 'la_rioja' => 0.015,
-            'mendoza' => 0.03, 'misiones' => 0.018, 'neuquen' => 0.02, 'rio_negro' => 0.035,
-            'salta' => 0.025, 'san_juan' => 0.015, 'san_luis' => 0.035, 'santa_cruz' => 0.028,
-            'santa_fe' => 0.023, 'santiago_del_estero' => 0.018, 'tierra_del_fuego' => 0.03,
+            'catamarca' => 0.02, 'chaco' => 0.022,
+            'chubut' => 0.027, 'corrientes' => 0.025, 'entre_rios' => 0.034,
+            'formosa' => 0.02, 'jujuy' => 0.02, 'la_pampa' => 0.025, 'la_rioja' => 0.025,
+            'neuquen' => 0.02, 'rio_negro' => 0.035,
+            'salta' => 0.02, 'san_juan' => 0.02, 'san_luis' => 0.036, 'santa_cruz' => 0.028,
+            'santiago_del_estero' => 0.018, 'tierra_del_fuego' => 0.025,
             'tucuman' => 0.02,
         ],
     ],
@@ -315,9 +382,29 @@ return [
             'patente_scale' => [
                 'label' => 'Escalas de patente (Buenos Aires y CABA)',
                 'config_path' => 'patente.scale',
-                'reviewed_at' => '2026-10-24',
+                'reviewed_at' => '2026-10-26',
                 'sources' => [
                     'https://www.infobae.com/economia/2026/02/12/confirmado-a-partir-de-marzo-las-patentes-bonaerenses-comenzaran-a-pagarse-todos-los-meses/',
+                    'https://documentosboletinoficial.buenosaires.gob.ar/publico/PL-LEY-LCABA-LCBA-6927-25-ANX.pdf',
+                ],
+            ],
+            'patente_rules' => [
+                'label' => 'Recargo, tope, mínimo y exención por antigüedad de la patente',
+                'config_path' => 'patente.rules',
+                'reviewed_at' => '2026-10-26',
+                'sources' => [
+                    'https://documentosboletinoficial.buenosaires.gob.ar/publico/PL-LEY-LCABA-LCBA-6927-25-ANX.pdf',
+                    'https://www.ambito.com/economia/patentes-2026-que-vehiculos-estan-exentos-caba-y-cuales-empiezan-pagar-n6239557',
+                    'https://www.infozona.com.ar/?p=389634',
+                    'https://digestomisiones.gob.ar/archivospdf/1688643175_Ley%20XXII%20-%20N%2025.pdf',
+                ],
+            ],
+            'patente_mendoza' => [
+                'label' => 'Tramos de patente de Mendoza',
+                'config_path' => 'patente.bracket_rate.mendoza',
+                'reviewed_at' => '2026-10-26',
+                'sources' => [
+                    'https://atm.mendoza.gov.ar/wp-content/uploads/2025/12/Ley-Impositiva-2026.pdf',
                 ],
             ],
             'patente_cordoba' => [
@@ -328,11 +415,23 @@ return [
                     'https://hacecuentas.com/calculadora-patente-auto-cordoba-2026-valuacion-fiscal-cuotas',
                 ],
             ],
+            'patente_by_age_and_body' => [
+                'label' => 'Patente por antigüedad y carrocería (Santa Fe y Misiones)',
+                'config_path' => 'patente.age_rate',
+                'reviewed_at' => '2026-10-26',
+                'sources' => [
+                    'https://www.santafe.gov.ar/index.php/web/content/download/135407/669723/file/07%20LIA%20Patente%20%C3%9Anica%20sobre%20Veh%C3%ADculos%20(Art%C3%ADculos%2055%20a%2058).pdf',
+                    'https://digestomisiones.gob.ar/archivospdf/1688643175_Ley%20XXII%20-%20N%2025.pdf',
+                    'https://atmisiones.gob.ar/wp-content/uploads/2026/02/RG-29-2025-y-RG-Hacienda-1505-2025.pdf',
+                ],
+            ],
             'patente_flat' => [
                 'label' => 'Alícuotas de patente (otras provincias)',
                 'config_path' => 'patente.flat_rate',
-                'reviewed_at' => '2026-10-24',
-                'sources' => [],
+                'reviewed_at' => '2026-10-26',
+                'sources' => [
+                    'https://uade.edu.ar/media/ibydidl3/uade-costo-patentes-de-automoviles.pdf',
+                ],
             ],
             'stamp_duty' => [
                 'label' => 'Sellado de transferencia por provincia',
@@ -346,20 +445,22 @@ return [
                 'reviewed_at' => '2026-10-23',
                 'sources' => [],
             ],
-            'insurance_bases' => [
-                'label' => 'Bases, ratios y tasas sobre el valor del seguro',
-                'config_path' => 'insurance.tc_base',
-                'reviewed_at' => '2026-10-24',
+            'insurance_model' => [
+                'label' => 'Piso, tasa sobre el valor y relación todo riesgo del seguro',
+                'config_path' => 'insurance.tc_floor',
+                'reviewed_at' => '2026-10-27',
                 'sources' => [
                     'https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina',
+                    'https://hacecuentas.com',
                 ],
             ],
             'insurance_zones' => [
                 'label' => 'Factores de zona del seguro',
                 'config_path' => 'insurance.zone_factor',
-                'reviewed_at' => '2026-10-24',
+                'reviewed_at' => '2026-10-27',
                 'sources' => [
                     'https://seguroya.com.ar/seguros-de-autos-precios',
+                    'https://cuantomecuesta.com',
                 ],
             ],
             'service_toyota' => [

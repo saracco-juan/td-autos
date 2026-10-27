@@ -59,6 +59,10 @@ final class CalculatorRatesStore
         $months = array_map(fn (string $key) => (string) config($key), [
             'calculadora.insurance.cpi_base_month', 'calculadora.patente.cpi_base_month', 'calculadora.service.fallback.cpi_base_month',
         ]);
+        // Provinces that state their patente amounts at another month than `patente.cpi_base_month` (CABA, Mendoza).
+        foreach ((array) config('calculadora.patente.province_cpi_base_month', []) as $month) {
+            $months[] = (string) $month;
+        }
         foreach ((array) config('calculadora.service.brands', []) as $brand) {
             $months[] = (string) ($brand['cpi_base_month'] ?? '');
         }

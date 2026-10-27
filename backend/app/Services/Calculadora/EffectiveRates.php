@@ -5,10 +5,10 @@ namespace App\Services\Calculadora;
 /**
  * The calculator rates in force: config('calculadora') overridden by the latest valid refresh snapshot.
  * Fuel: the dealer's province, then the national value, then the config. ARS amounts (transfer fixed
- * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases, the patente bracket limits and fixed amounts
- * and the service prices are scaled the same way from their own base month (`insurance.cpi_base_month`,
- * `patente.cpi_base_month`, and `cpi_base_month` of each `service.brands.*` and of `service.fallback`). Percentages
- * and service intervals are never touched. `updated_at` is the older of the config review date and the fuel price date.
+ * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance floor (`insurance.tc_floor`, the only ARS amount of
+ * the insurance), the patente bracket limits, fixed amounts and minimums and the service prices are scaled the same
+ * way from their own base month (`insurance.cpi_base_month`, `patente.cpi_base_month`, and `cpi_base_month` of each
+ * `service.brands.*` and of `service.fallback`). Percentages, ratios, zone factors and service intervals are never touched. `updated_at` is the older of the config review date and the fuel price date.
  */
 final class EffectiveRates
 {
@@ -36,7 +36,7 @@ final class EffectiveRates
         }
         $insuranceFactor = $this->cpiFactor($cpi, (string) ($rates['insurance']['cpi_base_month'] ?? ''));
         if ($insuranceFactor > 1) {
-            $rates['insurance']['tc_base'] = array_map(fn ($amount) => (int) round($amount * $insuranceFactor), $rates['insurance']['tc_base']);
+            $rates['insurance']['tc_floor'] = (int) round($rates['insurance']['tc_floor'] * $insuranceFactor);
         }
         foreach ((array) ($rates['service']['brands'] ?? []) as $key => $brand) {
             $rates['service']['brands'][$key] = $this->indexServicePrices($brand, $this->cpiFactor($cpi, (string) ($brand['cpi_base_month'] ?? '')));
@@ -44,14 +44,7 @@ final class EffectiveRates
         if (isset($rates['service']['fallback'])) {
             $rates['service']['fallback'] = $this->indexServicePrices($rates['service']['fallback'], $this->cpiFactor($cpi, (string) ($rates['service']['fallback']['cpi_base_month'] ?? '')));
         }
-        $patenteFactor = $this->cpiFactor($cpi, (string) ($rates['patente']['cpi_base_month'] ?? ''));
-        if ($patenteFactor > 1) {
-            foreach (['scale', 'bracket_rate'] as $scheme) {
-                foreach ((array) ($rates['patente'][$scheme] ?? []) as $province => $brackets) {
-                    $rates['patente'][$scheme][$province] = array_map(fn (array $bracket) => $this->indexBracket($bracket, $patenteFactor), $brackets);
-                }
-            }
-        }
+        $rates['patente'] = $this->indexPatente((array) ($rates['patente'] ?? []), $cpi);
         // The screen shows one date: the older of the hand review (percentages, scales, service prices) and the fuel
         // prices in force, so it never claims a freshness that part of the rates does not have.
         $fuelDate = $payload['fuel']['source_date'] ?? null;
@@ -79,6 +72,37 @@ final class EffectiveRates
         }
 
         return $source;
+    }
+
+    /**
+     * The patente ARS amounts (bracket limits and fixed amounts of `scale` and `bracket_rate`, and the `minimum` of each
+     * province's rules) are indexed from `patente.cpi_base_month`, or from `province_cpi_base_month[province]` when that
+     * province states its scale at another month. Rates, percentages, ages and age bands are never touched.
+     *
+     * @param  array<string, mixed>  $patente
+     * @return array<string, mixed>
+     */
+    private function indexPatente(array $patente, ?array $cpi): array
+    {
+        $default = (string) ($patente['cpi_base_month'] ?? '');
+        $factorOf = fn (string $province) => $this->cpiFactor($cpi, (string) ($patente['province_cpi_base_month'][$province] ?? $default));
+
+        foreach (['scale', 'bracket_rate'] as $scheme) {
+            foreach ((array) ($patente[$scheme] ?? []) as $province => $brackets) {
+                $factor = $factorOf((string) $province);
+                if ($factor > 1) {
+                    $patente[$scheme][$province] = array_map(fn (array $bracket) => $this->indexBracket($bracket, $factor), $brackets);
+                }
+            }
+        }
+        foreach ((array) ($patente['rules'] ?? []) as $province => $rule) {
+            $factor = $factorOf((string) $province);
+            if ($factor > 1 && isset($rule['minimum'])) {
+                $patente['rules'][$province]['minimum'] = (int) round($rule['minimum'] * $factor);
+            }
+        }
+
+        return $patente;
     }
 
     /** Patente bracket: the limit and the fixed amount are ARS and get indexed; the rate never does. */

@@ -17,6 +17,17 @@ class OwnershipCostCalculatorTest extends TestCase
         ['up_to' => null, 'fixed' => 1567000, 'rate' => 0.045],
     ];
 
+    /** CABA 2026 scale (Ley 6927 art. 50): tax = fixed + rate x (price - previous limit), before the surcharge. */
+    private const CABA = [
+        ['up_to' => 7460000, 'fixed' => 0, 'rate' => 0.016],
+        ['up_to' => 17155000, 'fixed' => 119350, 'rate' => 0.04],
+        ['up_to' => 26850000, 'fixed' => 507150, 'rate' => 0.045],
+        ['up_to' => 36550000, 'fixed' => 943500, 'rate' => 0.055],
+        ['up_to' => 50350000, 'fixed' => 1477000, 'rate' => 0.065],
+        ['up_to' => 73100000, 'fixed' => 2374000, 'rate' => 0.07],
+        ['up_to' => null, 'fixed' => 3965000, 'rate' => 0.08],
+    ];
+
     /** Rates owned by the test: results never depend on config/calculadora.php. */
     private function rates(array $changes = []): array
     {
@@ -25,11 +36,10 @@ class OwnershipCostCalculatorTest extends TestCase
             'rounding' => 1000,
             'fuel_prices' => ['nafta' => 1000, 'diesel' => 900, 'gnc' => 500],
             'insurance' => [
-                'tc_base' => ['hatchback' => 103000, 'sedan' => 114000, 'rural' => 114000, 'suv' => 108000, 'pickup' => 152000, 'furgon' => 152000],
-                'value_rate_tc' => 0.023,
-                'zone_factor' => ['caba' => 1.0, 'buenos_aires' => 1.0, 'cordoba' => 0.8, 'santa_fe' => 0.78, 'mendoza' => 0.73, 'default' => 0.8],
-                'tr_ratio' => ['hatchback' => 1.8, 'sedan' => 2.1, 'rural' => 2.1, 'suv' => 2.0, 'pickup' => 2.35, 'furgon' => 2.35],
-                'value_rate_tr' => 0.06,
+                'tc_floor' => 46000,
+                'tc_value_rate' => 0.0037,
+                'tr_ratio' => 1.5,
+                'zone_factor' => ['caba' => 1.0, 'buenos_aires' => 1.0, 'cordoba' => 0.8, 'santa_fe' => 0.8, 'mendoza' => 0.72, 'default' => 0.7],
                 'cpi_base_month' => '2026-10',
             ],
             'transfer' => [
@@ -41,15 +51,31 @@ class OwnershipCostCalculatorTest extends TestCase
                 'cpi_base_month' => '2026-02',
                 'scale' => [
                     'buenos_aires' => self::ARBA,
-                    'caba' => self::ARBA,
+                    'caba' => self::CABA,
                 ],
                 'bracket_rate' => [
                     'cordoba' => [
                         ['up_to' => 5000000, 'rate' => 0.015], ['up_to' => 10000000, 'rate' => 0.02], ['up_to' => 20000000, 'rate' => 0.025],
                         ['up_to' => 50000000, 'rate' => 0.03], ['up_to' => 100000000, 'rate' => 0.0375], ['up_to' => null, 'rate' => 0.045],
                     ],
+                    'mendoza' => [
+                        ['up_to' => 7100000, 'rate' => 0.015], ['up_to' => 14200000, 'rate' => 0.016], ['up_to' => null, 'rate' => 0.03],
+                    ],
                 ],
-                'flat_rate' => ['mendoza' => 0.03, 'santa_fe' => 0.023, 'misiones' => 0.018],
+                'age_rate' => [
+                    'santa_fe' => [['up_to_age' => 5, 'rate' => 0.023], ['up_to_age' => 10, 'rate' => 0.02], ['up_to_age' => null, 'rate' => 0.018]],
+                ],
+                'body_rate' => [
+                    'misiones' => ['car' => 0.02, 'utility' => 0.008, 'utility_bodies' => ['pickup']],
+                    'santa_fe' => ['utility' => 0.02],
+                ],
+                'utility_bodies' => ['pickup', 'suv'],
+                'rules' => [
+                    'caba' => ['surcharge' => 0.10, 'cap' => 0.06, 'minimum' => 13300, 'exempt_from_age' => 25],
+                    'buenos_aires' => ['exempt_from_age' => 25],
+                    'misiones' => ['exempt_from_age' => 21],
+                ],
+                'flat_rate' => ['catamarca' => 0.02, 'chubut' => 0.027, 'rio_negro' => 0.035],
             ],
             'service' => [
                 'fuel_factor' => ['nafta' => 1.0, 'diesel' => 1.0, 'hibrido' => 1.0, 'gnc' => 1.15, 'electrico' => 0.5],
@@ -87,6 +113,13 @@ class OwnershipCostCalculatorTest extends TestCase
         ], $changes);
     }
 
+    /** The patente breakdown keys that stay neutral unless a rule fills them. */
+    private function neutralPatente(array $changes = []): array
+    {
+        return $changes + ['age' => 4, 'age_band' => null, 'body_kind' => null, 'subtotal' => 0.0, 'surcharge' => 0.0, 'cap_rate' => null,
+            'cap_applied' => false, 'minimum' => null, 'minimum_applied' => false, 'exempt' => false, 'exempt_from_age' => null];
+    }
+
     private function estimate(array $vehicle = [], string $province = 'Córdoba', int $km = 1500, string $coverage = 'terceros_completo', array $rates = []): array
     {
         return (new OwnershipCostCalculator)->calculate($this->vehicle($vehicle), $province, $km, $coverage, $this->rates($rates), 2026);
@@ -98,11 +131,11 @@ class OwnershipCostCalculatorTest extends TestCase
      *
      * purchase.transfer = 20.000.000 x (0,01 + 0,02) + 100.000 = 700.000; total = 20.700.000
      * fuel        = 1.500 x max(8, 6) / 100 x 1.000 = 120.000
-     * insurance   = max(103.000 (hatchback base), 20.000.000 x 0,023 / 12 = 38.333) x 0,8 (Córdoba) = 82.400 -> 83.000
+     * insurance   = (46.000 floor + 20.000.000 x 0,0037 = 74.000) x 0,8 (Córdoba) = 96.000 -> 96.000
      * patente     = 20.000.000 x 0,025 (Córdoba, up to 20.000.000, whole value) / 12 = 41.667 -> 42.000
-     * monthly total = 120.000 + 83.000 + 42.000 = 245.000 (the service is not monthly)
+     * monthly total = 120.000 + 96.000 + 42.000 = 258.000 (the service is not monthly)
      * service     = ceil(max(18.000 km / 10.000 km, 12 / 12 months)) = 2 services x 200.000 (fallback hatchback) x 1,0 = 400.000 per year
-     * yearly total = 245.000 x 12 + 400.000 = 3.340.000
+     * yearly total = 258.000 x 12 + 400.000 = 3.496.000
      */
     public function test_reference_case(): void
     {
@@ -110,12 +143,12 @@ class OwnershipCostCalculatorTest extends TestCase
 
         $this->assertSame(['price' => 20000000, 'transfer' => 700000, 'total' => 20700000], $r['purchase']);
         $this->assertSame(120000, $r['monthly']['fuel']);
-        $this->assertSame(83000, $r['monthly']['insurance']);
+        $this->assertSame(96000, $r['monthly']['insurance']);
         $this->assertSame(42000, $r['monthly']['patente']);
         $this->assertArrayNotHasKey('maintenance', $r['monthly']);
         $this->assertArrayNotHasKey('yearly_total', $r['monthly']);
-        $this->assertSame(245000, $r['monthly']['total']);
-        $this->assertSame(['service' => 400000, 'total' => 3340000], $r['yearly']);
+        $this->assertSame(258000, $r['monthly']['total']);
+        $this->assertSame(['service' => 400000, 'total' => 3496000], $r['yearly']);
         $this->assertSame([], $r['monthly']['not_estimated']);
     }
 
@@ -124,11 +157,10 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertEquals([
             'fuel' => ['km_per_month' => 1500, 'consumption_l_100km' => 8.0, 'fuel_type' => 'nafta', 'price_fuel_type' => 'nafta',
                 'unit' => 'litro', 'unit_price' => 1000],
-            'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000, 'body_type' => 'hatchback', 'body_label' => 'Hatchback',
-                'base_monthly' => 103000, 'value_rate' => 0.023, 'by_value' => false, 'zone_factor' => 0.8, 'province' => 'Córdoba',
-                'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 83000],
-            'patente' => ['base' => 20000000, 'base_source' => 'listing', 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
-                'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000],
+            'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000, 'floor' => 46000, 'value_rate' => 0.0037,
+                'zone_factor' => 0.8, 'province' => 'Córdoba', 'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 96000],
+            'patente' => $this->neutralPatente(['base' => 20000000, 'base_source' => 'listing', 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
+                'bracket_fixed' => null, 'bracket_from' => null, 'subtotal' => 500000, 'annual' => 500000]),
             'service' => ['brand' => null, 'brand_known' => false, 'model_matched' => false, 'body_type' => 'hatchback', 'body_label' => 'Hatchback',
                 'km_per_year' => 18000, 'interval_km' => 10000, 'interval_months' => 12, 'services_per_year' => 2,
                 'price_per_service' => 200000, 'fuel_factor' => 1.0, 'source_label' => 'valor de referencia'],
@@ -151,8 +183,9 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertFalse($b['transfer']['province_known']);
         $this->assertSame('Atlantida', $b['patente']['province']);
         $this->assertSame('flat', $b['patente']['method']);
-        $this->assertEquals(0.03, $b['patente']['rate']);
-        $this->assertEquals(600000, $b['patente']['annual']);
+        // Central estimate: the median of the three configured flat rates, not the highest.
+        $this->assertEquals(0.027, $b['patente']['rate']);
+        $this->assertEquals(540000, $b['patente']['annual']);
         $this->assertEquals(0.03, $b['transfer']['stamp_rate']);
     }
 
@@ -188,124 +221,97 @@ class OwnershipCostCalculatorTest extends TestCase
         $this->assertSame(20001000, $r['purchase']['price']);
         $this->assertSame(701000, $r['purchase']['transfer']);
         $this->assertSame(20702000, $r['purchase']['total']);
-        // fuel 120.048 -> 121.000; insurance 82.400 -> 83.000; patente 50.000,0025 (3% bracket just over 20.000.000) -> 51.000
+        // fuel 120.048 -> 121.000; insurance (46.000 + 74.000,0037) x 0,8 = 96.000,003 -> 97.000; patente 50.000,0025 (3% bracket just over 20.000.000) -> 51.000
         $this->assertSame(121000, $r['monthly']['fuel']);
-        $this->assertSame(83000, $r['monthly']['insurance']);
+        $this->assertSame(97000, $r['monthly']['insurance']);
         $this->assertSame(51000, $r['monthly']['patente']);
-        $this->assertSame(121000 + 83000 + 51000, $r['monthly']['total']);
+        $this->assertSame(121000 + 97000 + 51000, $r['monthly']['total']);
         $this->assertSame($r['monthly']['total'] * 12 + $r['yearly']['service'], $r['yearly']['total']);
     }
 
-    public function test_todo_riesgo_uses_its_own_insurance_rate(): void
+    public function test_todo_riesgo_is_the_rounded_terceros_completo_times_the_ratio(): void
     {
-        // TC 83.000 (rounded) x 1,8 = 149.400 -> 150.000; the value floor is 20.000.000 x 0,06 / 12 = 100.000
-        $this->assertSame(150000, $this->estimate(coverage: 'todo_riesgo')['monthly']['insurance']);
+        // TC 96.000 (Córdoba) x 1,5 = 144.000.
+        $this->assertSame(144000, $this->estimate(coverage: 'todo_riesgo')['monthly']['insurance']);
     }
 
-    /** @return array<string, array{0: string, 1: int, 2: string, 3: int}> body, price, province, expected terceros completo */
+    /** @return array<string, array{0: int, 1: string, 2: int}> price, province, expected terceros completo */
     public static function terceros(): array
     {
         return [
-            // Etios hatchback 18.870.000 in Buenos Aires: value floor 36.173 < base 103.000.
-            'base wins over the value floor' => ['Hatchback', 18870000, 'Buenos Aires', 103000],
-            // Hilux pickup 80.000.000: 80.000.000 x 0,023 / 12 = 153.333,3 > base 152.000 -> 154.000.
-            'value floor wins over the base' => ['Pickup', 80000000, 'Buenos Aires', 154000],
-            'every base: sedan' => ['Sedán', 1000000, 'CABA', 114000],
-            'every base: rural' => ['Rural / familiar', 1000000, 'CABA', 114000],
-            'every base: suv' => ['SUV', 1000000, 'CABA', 108000],
-            'every base: furgon' => ['Furgón', 1000000, 'CABA', 152000],
-            'unknown body type takes the highest base' => ['Camión', 1000000, 'CABA', 152000],
-            'empty body type takes the highest base' => ['', 1000000, 'CABA', 152000],
-            'zone cordoba' => ['Sedán', 1000000, 'Córdoba', 92000],
-            'zone santa fe' => ['Sedán', 1000000, 'Santa Fe', 89000],
-            'zone mendoza' => ['Sedán', 1000000, 'Mendoza', 84000],
-            'zone caba spelled out' => ['Sedán', 1000000, 'Ciudad Autónoma de Buenos Aires', 114000],
-            'unlisted province takes the default zone' => ['Sedán', 1000000, 'Salta', 92000],
-            'unknown province takes the default zone' => ['Sedán', 1000000, 'Atlantida', 92000],
-            'empty province takes the default zone' => ['Sedán', 1000000, '', 92000],
-            // The zone factor multiplies whichever of the two wins: 153.333,3 x 0,8 = 122.666,7.
-            'zone applies to the value floor too' => ['Pickup', 80000000, 'Córdoba', 123000],
+            // Survey Yaris, PBA: 46.000 + 20.641.300 x 0,0037 = 122.372,8 -> 123.000.
+            'yaris in buenos aires' => [20641300, 'Buenos Aires', 123000],
+            // Survey Taos, CABA: 46.000 + 38.985.600 x 0,0037 = 190.246,7 -> 191.000.
+            'taos in caba' => [38985600, 'CABA', 191000],
+            // Survey Etios, Misiones: (46.000 + 14.021.500 x 0,0037 = 97.879,6) x 0,70 = 68.515,7 -> 69.000.
+            'etios in misiones takes the default zone' => [14021500, 'Misiones', 69000],
+            'the floor alone for a free car' => [0, 'CABA', 46000],
+            // 46.000 + 10.000.000 x 0,0037 = 83.000 before the zone.
+            'zone cordoba' => [10000000, 'Córdoba', 67000],
+            'zone santa fe' => [10000000, 'Santa Fe', 67000],
+            'zone mendoza' => [10000000, 'Mendoza', 60000],
+            'zone caba spelled out' => [10000000, 'Ciudad Autónoma de Buenos Aires', 83000],
+            'unknown province takes the default zone' => [10000000, 'Atlantida', 59000],
+            'empty province takes the default zone' => [10000000, '', 59000],
         ];
     }
 
     #[DataProvider('terceros')]
-    public function test_terceros_completo_is_the_base_or_the_value_floor_times_the_zone(string $body, int $price, string $province, int $expected): void
+    public function test_terceros_completo_is_the_floor_plus_the_value_rate_times_the_zone(int $price, string $province, int $expected): void
     {
-        $r = $this->estimate(['body_type' => $body, 'price_ars' => $price], $province);
+        $r = $this->estimate(['price_ars' => $price], $province);
 
         $this->assertSame($expected, $r['monthly']['insurance']);
     }
 
-    public function test_a_missing_body_type_takes_the_highest_base(): void
+    public function test_the_body_type_does_not_change_the_insurance(): void
     {
-        $r = $this->estimate(['body_type' => null, 'price_ars' => 1000000], 'CABA');
+        $amounts = array_map(
+            fn (?string $body) => $this->estimate(['body_type' => $body, 'price_ars' => 20641300], 'Buenos Aires')['monthly']['insurance'],
+            ['Hatchback', 'Sedán', 'SUV', 'Pickup', 'Furgón', 'Camión', '', null],
+        );
 
-        $this->assertSame(152000, $r['monthly']['insurance']);
-        $this->assertNull($r['breakdown']['insurance']['body_type']);
-        $this->assertNull($r['breakdown']['insurance']['body_label']);
+        $this->assertSame([123000], array_values(array_unique($amounts)));
     }
 
-    #[DataProvider('todoRiesgo')]
-    public function test_todo_riesgo_is_terceros_times_the_ratio_or_the_value_floor(string $body, int $price, string $province, int $expected): void
+    public function test_todo_riesgo_is_terceros_completo_times_the_ratio(): void
     {
-        $r = $this->estimate(['body_type' => $body, 'price_ars' => $price], $province, coverage: 'todo_riesgo');
-
-        $this->assertSame($expected, $r['monthly']['insurance']);
-    }
-
-    /** @return array<string, array{0: string, 1: int, 2: string, 3: int}> */
-    public static function todoRiesgo(): array
-    {
-        return [
-            // Etios: TC 103.000 x 1,8 = 185.400 -> 186.000; value floor 18.870.000 x 0,06 / 12 = 94.350.
-            'ratio wins over the value floor' => ['Hatchback', 18870000, 'Buenos Aires', 186000],
-            // Hilux: TC 154.000 x 2,35 = 361.900; value floor 80.000.000 x 0,06 / 12 = 400.000.
-            'value floor wins over the ratio' => ['Pickup', 80000000, 'Buenos Aires', 400000],
-            'sedan ratio' => ['Sedán', 1000000, 'CABA', 240000],
-            'rural ratio' => ['Rural / familiar', 1000000, 'CABA', 240000],
-            'suv ratio' => ['SUV', 1000000, 'CABA', 216000],
-            'pickup ratio' => ['Pickup', 1000000, 'CABA', 358000],
-            'furgon ratio' => ['Furgón', 1000000, 'CABA', 358000],
-            'unknown body type takes the highest base and ratio' => ['Camión', 1000000, 'CABA', 358000],
-            // The zone is already inside the terceros completo the ratio multiplies: 91.200 -> 92.000 x 2,1 = 193.200.
-            'zone flows through the ratio' => ['Sedán', 1000000, 'Córdoba', 194000],
-        ];
+        // Survey Taos, CABA: TC 191.000 x 1,5 = 286.500 -> 287.000.
+        $taos = $this->estimate(['price_ars' => 38985600], 'CABA', coverage: 'todo_riesgo');
+        $this->assertSame(287000, $taos['monthly']['insurance']);
+        $this->assertSame(191000, $taos['breakdown']['insurance']['terceros_completo']);
+        // Yaris, PBA: TC 123.000 x 1,5 = 184.500 -> 185.000.
+        $this->assertSame(185000, $this->estimate(['price_ars' => 20641300], 'Buenos Aires', coverage: 'todo_riesgo')['monthly']['insurance']);
     }
 
     public function test_the_todo_riesgo_ratio_multiplies_the_rounded_terceros_completo(): void
     {
-        // Hatchback in Córdoba: TC 103.000 x 0,8 = 82.400, shown as 83.000. The ratio applies to the shown 83.000
-        // (149.400 -> 150.000), not to 82.400 (148.320 -> 149.000), so the screen explains itself.
-        $r = $this->estimate(['body_type' => 'Hatchback', 'price_ars' => 10000000], 'Córdoba', coverage: 'todo_riesgo');
+        // Price 10.000.000 in Córdoba: TC 83.000 x 0,8 = 66.400, shown as 67.000. The ratio applies to the shown 67.000
+        // (100.500 -> 101.000), not to 66.400 (99.600 -> 100.000), so the screen explains itself.
+        $r = $this->estimate(['price_ars' => 10000000], 'Córdoba', coverage: 'todo_riesgo');
 
-        $this->assertSame(150000, $r['monthly']['insurance']);
-        $this->assertSame(83000, $r['breakdown']['insurance']['terceros_completo']);
+        $this->assertSame(101000, $r['monthly']['insurance']);
+        $this->assertSame(67000, $r['breakdown']['insurance']['terceros_completo']);
     }
 
-    public function test_insurance_breakdown_for_a_value_floor_terceros_completo(): void
+    public function test_insurance_breakdown_for_terceros_completo(): void
     {
-        $b = $this->estimate(['body_type' => 'Pickup', 'price_ars' => 80000000], 'Buenos Aires')['breakdown']['insurance'];
+        $b = $this->estimate(['price_ars' => 14021500], 'Misiones')['breakdown']['insurance'];
 
         $this->assertEquals([
-            'coverage' => 'terceros_completo', 'base' => 80000000, 'body_type' => 'pickup', 'body_label' => 'Pickup',
-            'base_monthly' => 152000, 'value_rate' => 0.023, 'by_value' => true, 'zone_factor' => 1.0, 'province' => 'Buenos Aires',
-            'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 154000,
+            'coverage' => 'terceros_completo', 'base' => 14021500, 'floor' => 46000, 'value_rate' => 0.0037, 'zone_factor' => 0.7,
+            'province' => 'Misiones', 'province_known' => false, 'tr_ratio' => null, 'terceros_completo' => 69000,
         ], $b);
     }
 
     public function test_insurance_breakdown_for_todo_riesgo(): void
     {
-        $b = $this->estimate(['body_type' => 'Pickup', 'price_ars' => 80000000], 'Buenos Aires', coverage: 'todo_riesgo')['breakdown']['insurance'];
+        $b = $this->estimate(['price_ars' => 38985600], 'CABA', coverage: 'todo_riesgo')['breakdown']['insurance'];
 
         $this->assertEquals([
-            'coverage' => 'todo_riesgo', 'base' => 80000000, 'body_type' => 'pickup', 'body_label' => 'Pickup',
-            'base_monthly' => 152000, 'value_rate' => 0.06, 'by_value' => true, 'zone_factor' => 1.0, 'province' => 'Buenos Aires',
-            'province_known' => true, 'tr_ratio' => 2.35, 'terceros_completo' => 154000,
+            'coverage' => 'todo_riesgo', 'base' => 38985600, 'floor' => 46000, 'value_rate' => 0.0037, 'zone_factor' => 1.0,
+            'province' => 'CABA', 'province_known' => true, 'tr_ratio' => 1.5, 'terceros_completo' => 191000,
         ], $b);
-
-        $ratio = $this->estimate(['body_type' => 'Hatchback', 'price_ars' => 18870000], 'Buenos Aires', coverage: 'todo_riesgo')['breakdown']['insurance'];
-        $this->assertFalse($ratio['by_value']);
-        $this->assertEquals(1.8, $ratio['tr_ratio']);
     }
 
     public function test_insurance_breakdown_flags_an_unlisted_province_and_uses_the_default_zone_factor(): void
@@ -314,16 +320,16 @@ class OwnershipCostCalculatorTest extends TestCase
 
         $this->assertFalse($b['province_known']);
         $this->assertSame('Atlantida', $b['province']);
-        $this->assertEquals(0.8, $b['zone_factor']);
+        $this->assertEquals(0.7, $b['zone_factor']);
     }
 
-    public function test_the_indexed_bases_come_from_the_rates_it_receives(): void
+    public function test_the_indexed_floor_comes_from_the_rates_it_receives(): void
     {
-        // EffectiveRates scales tc_base; the calculator only reads it: 113.300 x 0,8 = 90.640 -> 91.000.
-        $r = $this->estimate(rates: ['insurance' => ['tc_base' => ['hatchback' => 113300]]]);
+        // EffectiveRates scales tc_floor; the calculator only reads it: (48.300 + 74.000) x 0,8 = 97.840 -> 98.000.
+        $r = $this->estimate(rates: ['insurance' => ['tc_floor' => 48300]]);
 
-        $this->assertSame(91000, $r['monthly']['insurance']);
-        $this->assertEquals(113300, $r['breakdown']['insurance']['base_monthly']);
+        $this->assertSame(98000, $r['monthly']['insurance']);
+        $this->assertEquals(48300, $r['breakdown']['insurance']['floor']);
     }
 
     public function test_diesel_uses_diesel_price_and_hybrid_uses_nafta_price(): void
@@ -363,7 +369,7 @@ class OwnershipCostCalculatorTest extends TestCase
 
         $this->assertNull($r['monthly']['fuel']);
         $this->assertSame(['fuel'], $r['monthly']['not_estimated']);
-        $this->assertSame(125000, $r['monthly']['total']);
+        $this->assertSame(138000, $r['monthly']['total']);
     }
 
     /** @return array<string, mixed> the `service` breakdown of an estimate */
@@ -539,10 +545,21 @@ class OwnershipCostCalculatorTest extends TestCase
         ];
     }
 
-    public function test_unknown_province_takes_the_highest_flat_patente_rate(): void
+    public function test_unknown_province_takes_the_median_flat_patente_rate(): void
     {
-        // highest flat rate 0,03 -> 20.000.000 x 0,03 / 12 = 50.000
-        $this->assertSame(50000, $this->estimate(province: 'Nowhere')['monthly']['patente']);
+        // flat rates 0,02 / 0,027 / 0,035 -> median 0,027 -> 20.000.000 x 0,027 / 12 = 45.000
+        $this->assertSame(45000, $this->estimate(province: 'Nowhere')['monthly']['patente']);
+    }
+
+    public function test_the_median_of_an_even_number_of_flat_rates_is_the_mean_of_the_two_middle_ones(): void
+    {
+        // Sorted 0,02 / 0,02 / 0,03 / 0,04 -> (0,02 + 0,03) / 2 = 0,025.
+        $rates = $this->rates();
+        $rates['patente']['flat_rate'] = ['rio_negro' => 0.04, 'catamarca' => 0.02, 'chubut' => 0.03, 'neuquen' => 0.02];
+
+        $r = (new OwnershipCostCalculator)->calculate($this->vehicle(), 'Nowhere', 1500, 'terceros_completo', $rates, 2026);
+
+        $this->assertEquals(0.025, $r['breakdown']['patente']['rate']);
     }
 
     public function test_the_patente_uses_the_acara_base_while_insurance_and_transfer_keep_the_listing_price(): void
@@ -552,9 +569,9 @@ class OwnershipCostCalculatorTest extends TestCase
         $r = $this->estimate(['patente_base' => 30000000, 'patente_base_source' => 'acara', 'patente_reference_year' => 2022, 'patente_reference_currency' => 'USD']);
 
         $this->assertSame(75000, $r['monthly']['patente']);
-        $this->assertEquals(['base' => 30000000, 'base_source' => 'acara', 'reference_year' => 2022, 'reference_currency' => 'USD',
+        $this->assertEquals($this->neutralPatente(['base' => 30000000, 'base_source' => 'acara', 'reference_year' => 2022, 'reference_currency' => 'USD',
             'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.03,
-            'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 900000], $r['breakdown']['patente']);
+            'bracket_fixed' => null, 'bracket_from' => null, 'subtotal' => 900000, 'annual' => 900000]), $r['breakdown']['patente']);
         $this->assertSame($listing['monthly']['insurance'], $r['monthly']['insurance']);
         $this->assertEquals($listing['breakdown']['insurance'], $r['breakdown']['insurance']);
         $this->assertSame($listing['purchase'], $r['purchase']);
@@ -573,12 +590,12 @@ class OwnershipCostCalculatorTest extends TestCase
 
     public function test_a_flat_province_pays_its_rate_over_the_price(): void
     {
-        // Santa Fe 0,023: 20.000.000 x 0,023 / 12 = 38.333,3 -> 39.000
-        $r = $this->estimate(province: 'Santa Fe');
+        // Chubut 0,027: 20.000.000 x 0,027 / 12 = 45.000
+        $r = $this->estimate(province: 'Chubut');
 
-        $this->assertSame(39000, $r['monthly']['patente']);
-        $this->assertEquals(['base' => 20000000, 'base_source' => 'listing', 'province' => 'Santa Fe', 'province_known' => true, 'method' => 'flat', 'rate' => 0.023,
-            'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 460000], $r['breakdown']['patente']);
+        $this->assertSame(45000, $r['monthly']['patente']);
+        $this->assertEquals($this->neutralPatente(['base' => 20000000, 'base_source' => 'listing', 'province' => 'Chubut', 'province_known' => true, 'method' => 'flat', 'rate' => 0.027,
+            'bracket_fixed' => null, 'bracket_from' => null, 'subtotal' => 540000, 'annual' => 540000]), $r['breakdown']['patente']);
     }
 
     /** @return array<string, array{0: int, 1: int, 2: int, 3: int}> price, expected annual, bracket fixed, bracket from */
@@ -615,12 +632,209 @@ class OwnershipCostCalculatorTest extends TestCase
         return (int) (ceil(round($amount / 1000, 6)) * 1000);
     }
 
-    public function test_caba_uses_the_same_scale_as_buenos_aires(): void
+    /**
+     * CABA reference case (Ley 6927): 2022 car worth 38.985.600 in 2026.
+     * Scale: 1.477.000 + 6,5% x (38.985.600 - 36.550.000) = 1.635.314; +10% surcharge = 1.798.845,4 a year;
+     * the 6% cap (2.339.136) is not reached and neither is the minimum; monthly = 149.903,8 -> 150.000.
+     */
+    public function test_caba_reference_case_applies_the_surcharge(): void
     {
-        $caba = $this->estimate(['price_ars' => 20600000], 'CABA')['breakdown']['patente'];
+        $r = $this->estimate(['price_ars' => 38985600, 'anio' => 2022], 'CABA');
+        $p = $r['breakdown']['patente'];
 
-        $this->assertSame('scale', $caba['method']);
-        $this->assertEquals(290000, $caba['annual']);
+        $this->assertSame('scale', $p['method']);
+        $this->assertEqualsWithDelta(1635314.0, $p['subtotal'], 0.01);
+        $this->assertEquals(0.10, $p['surcharge']);
+        $this->assertEqualsWithDelta(1798845.4, $p['annual'], 0.01);
+        $this->assertEquals(0.06, $p['cap_rate']);
+        $this->assertFalse($p['cap_applied']);
+        $this->assertFalse($p['minimum_applied']);
+        $this->assertFalse($p['exempt']);
+        $this->assertSame(150000, $r['monthly']['patente']);
+    }
+
+    public function test_caba_caps_the_tax_at_six_percent_of_the_value(): void
+    {
+        // 100.000.000: 3.965.000 + 8% x 26.900.000 = 6.117.000; +10% = 6.728.700 > cap 6.000.000.
+        $r = $this->estimate(['price_ars' => 100000000], 'CABA');
+        $p = $r['breakdown']['patente'];
+
+        $this->assertEqualsWithDelta(6117000.0, $p['subtotal'], 0.01);
+        $this->assertTrue($p['cap_applied']);
+        $this->assertEquals(6000000, $p['annual']);
+        $this->assertSame(500000, $r['monthly']['patente']);
+    }
+
+    public function test_caba_charges_the_annual_minimum_on_a_cheap_vehicle(): void
+    {
+        // 500.000: 1,6% = 8.000; +10% = 8.800 < minimum 13.300 -> 13.300 a year = 1.108,3 a month -> 2.000.
+        $r = $this->estimate(['price_ars' => 500000], 'CABA');
+        $p = $r['breakdown']['patente'];
+
+        $this->assertTrue($p['minimum_applied']);
+        $this->assertEquals(13300, $p['minimum']);
+        $this->assertEquals(13300, $p['annual']);
+        $this->assertSame(2000, $r['monthly']['patente']);
+    }
+
+    /** @return array<string, array{0: int, 1: bool}> model year (current year 2026), exempt */
+    public static function cabaAges(): array
+    {
+        return [
+            'a 1999 car is 27 years old' => [1999, true],
+            'exactly 25 years old is exempt' => [2001, true],
+            '24 years old pays' => [2002, false],
+        ];
+    }
+
+    #[DataProvider('cabaAges')]
+    public function test_caba_exempts_vehicles_from_25_years_of_age(int $year, bool $exempt): void
+    {
+        $r = $this->estimate(['price_ars' => 20000000, 'anio' => $year], 'CABA');
+        $p = $r['breakdown']['patente'];
+
+        $this->assertSame($exempt, $p['exempt']);
+        $this->assertSame(25, $p['exempt_from_age']);
+        $this->assertSame(2026 - $year, $p['age']);
+        if ($exempt) {
+            $this->assertSame(0, $r['monthly']['patente']);
+            $this->assertEquals(0, $p['annual']);
+            $this->assertSame('exempt', $p['method']);
+        } else {
+            $this->assertGreaterThan(0, $r['monthly']['patente']);
+            $this->assertSame('scale', $p['method']);
+        }
+    }
+
+    public function test_buenos_aires_exempts_from_25_years_but_keeps_the_scale_below(): void
+    {
+        $this->assertSame(0, $this->estimate(['anio' => 2001], 'Buenos Aires')['monthly']['patente']);
+        $old = $this->estimate(['price_ars' => 20600000, 'anio' => 2002], 'Buenos Aires');
+        $this->assertEquals(290000, $old['breakdown']['patente']['annual']);
+        $this->assertFalse($old['breakdown']['patente']['exempt']);
+        $this->assertEquals(0.0, $old['breakdown']['patente']['surcharge']);
+    }
+
+    public function test_a_future_model_year_counts_as_age_zero(): void
+    {
+        $this->assertSame(0, $this->estimate(['anio' => 2027], 'CABA')['breakdown']['patente']['age']);
+    }
+
+    /** Misiones reference case: car worth 14.021.500, model year 2014: 2% = 280.430 a year = 23.369,2 a month -> 24.000. */
+    public function test_misiones_charges_cars_two_percent(): void
+    {
+        $r = $this->estimate(['price_ars' => 14021500, 'anio' => 2014, 'body_type' => 'Sedán'], 'Misiones');
+        $p = $r['breakdown']['patente'];
+
+        $this->assertSame('body_rate', $p['method']);
+        $this->assertSame('car', $p['body_kind']);
+        $this->assertEquals(0.02, $p['rate']);
+        $this->assertEqualsWithDelta(280430.0, $p['annual'], 0.01);
+        $this->assertSame(24000, $r['monthly']['patente']);
+    }
+
+    /** @return array<string, array{0: ?string, 1: string, 2: float}> body type, kind, rate */
+    public static function misionesBodies(): array
+    {
+        return [
+            'pickup' => ['Pickup', 'utility', 0.008],
+            'suv is a car' => ['SUV', 'car', 0.02],
+            'rural is a car' => ['Rural / familiar', 'car', 0.02],
+            'hatchback' => ['Hatchback', 'car', 0.02],
+            'furgon is a car' => ['Furgón', 'car', 0.02],
+            'unknown body type is a car' => [null, 'car', 0.02],
+        ];
+    }
+
+    #[DataProvider('misionesBodies')]
+    public function test_misiones_charges_only_pickups_less(?string $body, string $kind, float $rate): void
+    {
+        $p = $this->estimate(['body_type' => $body, 'price_ars' => 20000000], 'Misiones')['breakdown']['patente'];
+
+        $this->assertSame($kind, $p['body_kind']);
+        $this->assertEquals($rate, $p['rate']);
+        $this->assertEqualsWithDelta(20000000 * $rate, $p['annual'], 0.01);
+    }
+
+    public function test_misiones_exempts_cars_older_than_20_years(): void
+    {
+        $paying = $this->estimate(['anio' => 2006], 'Misiones');
+        $exempt = $this->estimate(['anio' => 2005], 'Misiones');
+
+        $this->assertFalse($paying['breakdown']['patente']['exempt']);
+        $this->assertTrue($exempt['breakdown']['patente']['exempt']);
+        $this->assertSame(21, $exempt['breakdown']['patente']['exempt_from_age']);
+        $this->assertSame(0, $exempt['monthly']['patente']);
+    }
+
+    /** @return array<string, array{0: int, 1: float, 2: int, 3: ?int}> model year, rate, band from age, band to age */
+    public static function santaFeAges(): array
+    {
+        return [
+            'new' => [2026, 0.023, 0, 5],
+            'five years old' => [2021, 0.023, 0, 5],
+            'six years old' => [2020, 0.02, 6, 10],
+            'ten years old' => [2016, 0.02, 6, 10],
+            'eleven years old' => [2015, 0.018, 11, null],
+            'very old keeps the last band' => [1990, 0.018, 11, null],
+        ];
+    }
+
+    #[DataProvider('santaFeAges')]
+    public function test_santa_fe_rate_depends_on_the_age_of_a_car(int $year, float $rate, int $from, ?int $to): void
+    {
+        $r = $this->estimate(['anio' => $year, 'price_ars' => 20000000, 'body_type' => 'Sedán'], 'Santa Fe');
+        $p = $r['breakdown']['patente'];
+
+        $this->assertSame('age_rate', $p['method']);
+        $this->assertEquals($rate, $p['rate']);
+        $this->assertSame(['from_age' => $from, 'to_age' => $to], $p['age_band']);
+        $this->assertNull($p['body_kind']);
+        $this->assertSame($this->ceilTo(20000000 * $rate / 12), $r['monthly']['patente']);
+    }
+
+    public function test_santa_fe_pickups_and_suvs_pay_two_percent_at_any_age(): void
+    {
+        foreach (['Pickup', 'SUV'] as $body) {
+            foreach ([2025, 2005] as $year) {
+                $p = $this->estimate(['body_type' => $body, 'anio' => $year], 'Santa Fe')['breakdown']['patente'];
+
+                $this->assertSame('body_rate', $p['method']);
+                $this->assertSame('utility', $p['body_kind']);
+                $this->assertEquals(0.02, $p['rate']);
+                $this->assertNull($p['age_band']);
+            }
+        }
+    }
+
+    public function test_mendoza_applies_one_rate_over_the_whole_value_by_bracket(): void
+    {
+        $low = $this->estimate(['price_ars' => 7100000], 'Mendoza');
+        $this->assertSame('bracket_rate', $low['breakdown']['patente']['method']);
+        $this->assertEquals(0.015, $low['breakdown']['patente']['rate']);
+        $this->assertEquals(0.016, $this->estimate(['price_ars' => 7100001], 'Mendoza')['breakdown']['patente']['rate']);
+        $this->assertEquals(0.03, $this->estimate(['price_ars' => 90000000], 'Mendoza')['breakdown']['patente']['rate']);
+    }
+
+    public function test_provinces_without_rules_report_neutral_flags(): void
+    {
+        $p = $this->estimate(province: 'Chubut')['breakdown']['patente'];
+
+        $this->assertFalse($p['exempt']);
+        $this->assertNull($p['exempt_from_age']);
+        $this->assertNull($p['cap_rate']);
+        $this->assertNull($p['minimum']);
+        $this->assertEquals(0.0, $p['surcharge']);
+    }
+
+    public function test_the_minimum_comes_from_the_rates_it_receives(): void
+    {
+        // The refresh indexes the minimum (an ARS amount); the calculator just reads it.
+        $rates = $this->rates();
+        $rates['patente']['rules']['caba']['minimum'] = 20000;
+        $r = (new OwnershipCostCalculator)->calculate($this->vehicle(['price_ars' => 500000]), 'CABA', 1500, 'terceros_completo', $rates, 2026);
+
+        $this->assertEquals(20000, $r['breakdown']['patente']['annual']);
     }
 
     /**

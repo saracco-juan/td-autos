@@ -2,17 +2,22 @@ import { describe, expect, it } from 'vitest'
 import { explainConcept } from './explainConcept'
 import type { CostBreakdown } from './types'
 
+// The patente fields that stay neutral unless a rule fills them (the API always sends them).
+const NEUTRAL = {
+  age: 4, age_band: null, body_kind: null, subtotal: 0, surcharge: 0, cap_rate: null, cap_applied: false, minimum: null, minimum_applied: false,
+  exempt: false, exempt_from_age: null,
+}
+
 const insurance = (changes: Partial<CostBreakdown['insurance']> = {}): CostBreakdown['insurance'] => ({
-  coverage: 'terceros_completo', base: 23000000, body_type: 'hatchback', body_label: 'Hatchback', base_monthly: 103000,
-  value_rate: 0.023, by_value: false, zone_factor: 0.8, province: 'Córdoba', province_known: true, tr_ratio: null,
-  terceros_completo: 83000,
+  coverage: 'terceros_completo', base: 20641300, floor: 46000, value_rate: 0.0037, zone_factor: 1, province: 'Buenos Aires',
+  province_known: true, tr_ratio: null, terceros_completo: 123000,
   ...changes,
 })
 
 const breakdown = (changes: Partial<CostBreakdown> = {}): CostBreakdown => ({
   fuel: { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'nafta', price_fuel_type: 'nafta', unit: 'litro', unit_price: 2125 },
   insurance: insurance(),
-  patente: { base_source: 'listing' as const, base: 23000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.03, bracket_fixed: null,
+  patente: { ...NEUTRAL, base_source: 'listing' as const, base: 23000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.03, bracket_fixed: null,
     bracket_from: null, annual: 690000 },
   service: { brand: 'Toyota', brand_known: true, model_matched: true, body_type: 'hatchback', body_label: 'Hatchback',
     km_per_year: 18000, interval_km: 10000, interval_months: 12, services_per_year: 2, price_per_service: 361000, fuel_factor: 1,
@@ -53,65 +58,44 @@ describe('explainConcept', () => {
     expect(text).toBe('No tenemos datos de consumo de este auto, así que no podemos estimar el combustible.')
   })
 
-  it('explains terceros completo with the body base and the zone', () => {
-    expect(explainConcept('insurance', breakdown(), 83000)).toBe(
-      'Terceros completo para un hatchback: $ 103.000 por mes de referencia, × 0,8 por la zona (Córdoba) = $ 83.000 por mes. Sale de cotizaciones publicadas en octubre de 2026.',
+  it('explains terceros completo as the floor plus a monthly share of the value, with no zone when it is 1', () => {
+    expect(explainConcept('insurance', breakdown(), 123000)).toBe(
+      'Terceros completo: $ 46.000 + 0,37% mensual del valor del auto ($ 76.373) = $ 123.000 por mes.',
     )
   })
 
-  it('names each body type with its article', () => {
-    const tip = (body_type: CostBreakdown['insurance']['body_type']) =>
-      explainConcept('insurance', breakdown({ insurance: insurance({ body_type }) }), 83000)
-    expect(tip('sedan')).toContain('para un sedán')
-    expect(tip('rural')).toContain('para una rural')
-    expect(tip('suv')).toContain('para un SUV')
-    expect(tip('pickup')).toContain('para una pickup')
-    expect(tip('furgon')).toContain('para un furgón')
-  })
-
-  it('explains terceros completo by the value of the car when the value decides', () => {
-    const value = insurance({ body_type: 'pickup', body_label: 'Pickup', base: 80000000, by_value: true, zone_factor: 1,
-      province: 'Buenos Aires', terceros_completo: 154000 })
-    expect(explainConcept('insurance', breakdown({ insurance: value }), 154000)).toBe(
-      'Terceros completo: 2,3% anual del valor del auto, dividido 12 meses, × 1 por la zona (Buenos Aires) = $ 154.000 por mes.',
+  it('applies the zone factor to the sum and names the province when it is known', () => {
+    const cordoba = insurance({ base: 10000000, zone_factor: 0.8, province: 'Córdoba', terceros_completo: 67000 })
+    expect(explainConcept('insurance', breakdown({ insurance: cordoba }), 67000)).toBe(
+      'Terceros completo: ($ 46.000 + 0,37% mensual del valor del auto, $ 37.000) × 0,8 por la zona (Córdoba) = $ 67.000 por mes.',
     )
   })
 
-  it('omits the body type and the province when they were not recognized', () => {
-    const unknown = insurance({ body_type: null, body_label: null, province_known: false, province: 'Atlántida' })
-    expect(explainConcept('insurance', breakdown({ insurance: unknown }), 83000)).toBe(
-      'Terceros completo: $ 103.000 por mes de referencia, × 0,8 por la zona = $ 83.000 por mes. Sale de cotizaciones publicadas en octubre de 2026.',
+  it('omits the province when it is not in the zone table', () => {
+    const misiones = insurance({ base: 14021500, zone_factor: 0.7, province: 'Misiones', province_known: false, terceros_completo: 69000 })
+    expect(explainConcept('insurance', breakdown({ insurance: misiones }), 69000)).toBe(
+      'Terceros completo: ($ 46.000 + 0,37% mensual del valor del auto, $ 51.880) × 0,7 por la zona = $ 69.000 por mes.',
     )
   })
 
-  it('explains todo riesgo as terceros completo times the ratio of the body type', () => {
-    const tr = insurance({ coverage: 'todo_riesgo', body_type: 'pickup', body_label: 'Pickup', tr_ratio: 2.35, value_rate: 0.06,
-      terceros_completo: 154000 })
-    expect(explainConcept('insurance', breakdown({ insurance: tr }), 362000)).toBe(
-      'Todo riesgo: terceros completo ($ 154.000) × 2,35 para una pickup = $ 362.000 por mes.',
-    )
-  })
-
-  it('explains todo riesgo by the value of the car when the value decides', () => {
-    const tr = insurance({ coverage: 'todo_riesgo', body_type: 'pickup', body_label: 'Pickup', tr_ratio: 2.35, value_rate: 0.06,
-      by_value: true, base: 80000000, terceros_completo: 154000 })
-    expect(explainConcept('insurance', breakdown({ insurance: tr }), 400000)).toBe(
-      'Todo riesgo: 6% anual del valor del auto, dividido 12 meses = $ 400.000 por mes.',
+  it('explains todo riesgo as terceros completo times the ratio', () => {
+    const tr = insurance({ coverage: 'todo_riesgo', base: 38985600, tr_ratio: 1.5, terceros_completo: 191000 })
+    expect(explainConcept('insurance', breakdown({ insurance: tr }), 287000)).toBe(
+      'Todo riesgo: terceros completo ($ 191.000) × 1,5 = $ 287.000 por mes.',
     )
   })
 
   it('never reveals a ceiling or a rounding in the insurance text', () => {
     const texts = [
-      explainConcept('insurance', breakdown(), 83000),
-      explainConcept('insurance', breakdown({ insurance: insurance({ by_value: true }) }), 83000),
-      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.8 }) }), 150000),
-      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.8, by_value: true }) }), 150000),
+      explainConcept('insurance', breakdown(), 123000),
+      explainConcept('insurance', breakdown({ insurance: insurance({ zone_factor: 0.7, province_known: false }) }), 86000),
+      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.5 }) }), 185000),
     ]
-    for (const text of texts) expect(text).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
+    for (const text of texts) expect(text).not.toMatch(/máxim|más alt|hasta|redonde|techo|cuerpo|carrocer/i)
   })
 
   it('explains the patente scale with the bracket fixed amount, the rate and the excess', () => {
-    const patente = { base_source: 'listing' as const, base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
       bracket_fixed: 233000, bracket_from: 18700000, annual: 290000 }
     expect(explainConcept('patente', breakdown({ patente }), 25000)).toBe(
       'Patente en Buenos Aires: sobre el valor del auto ($ 20.600.000) corresponde $ 233.000 + 3% de lo que supera $ 18.700.000 = $ 290.000 al año, dividido 12 meses = $ 25.000 por mes.',
@@ -119,7 +103,7 @@ describe('explainConcept', () => {
   })
 
   it('explains the first bracket of the scale as a plain share of the value', () => {
-    const patente = { base_source: 'listing' as const, base: 10000000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.01,
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 10000000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.01,
       bracket_fixed: 0, bracket_from: 0, annual: 100000 }
     expect(explainConcept('patente', breakdown({ patente }), 9000)).toBe(
       'Patente en Buenos Aires: 1% del valor del auto ($ 10.000.000) = $ 100.000 al año, dividido 12 meses = $ 9.000 por mes.',
@@ -127,7 +111,7 @@ describe('explainConcept', () => {
   })
 
   it('explains the whole-value bracket rate in Argentine format', () => {
-    const patente = { base_source: 'listing' as const, base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const, rate: 0.025,
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const, rate: 0.025,
       bracket_fixed: null, bracket_from: null, annual: 500000 }
     expect(explainConcept('patente', breakdown({ patente }), 42000)).toBe(
       'Patente en Córdoba: 2,5% anual del valor del auto, dividido 12 meses = $ 42.000 por mes.',
@@ -135,7 +119,7 @@ describe('explainConcept', () => {
   })
 
   it('explains a flat patente with the provincial rate', () => {
-    const patente = { base_source: 'listing' as const, base: 23000000, province: 'Mendoza', province_known: true, method: 'flat' as const, rate: 0.03,
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 23000000, province: 'Mendoza', province_known: true, method: 'flat' as const, rate: 0.03,
       bracket_fixed: null, bracket_from: null, annual: 690000 }
     expect(explainConcept('patente', breakdown({ patente }), 58000)).toBe(
       'Alícuota anual de 3% en Mendoza, sobre el valor del auto, dividido 12 meses = $ 58.000 por mes.',
@@ -143,7 +127,7 @@ describe('explainConcept', () => {
   })
 
   it('omits the province name when it was not recognized', () => {
-    const patente = { base_source: 'listing' as const, base: 23000000, province: 'Atlántida', province_known: false, method: 'flat' as const, rate: 0.035,
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 23000000, province: 'Atlántida', province_known: false, method: 'flat' as const, rate: 0.035,
       bracket_fixed: null, bracket_from: null, annual: 805000 }
     expect(explainConcept('patente', breakdown({ patente }), 68000)).toBe(
       'Alícuota anual de 3,5% sobre el valor del auto, dividido 12 meses = $ 68.000 por mes.',
@@ -151,7 +135,7 @@ describe('explainConcept', () => {
   })
 
   it('says the ACARA reference value of the version when the patente uses it', () => {
-    const acara = { base_source: 'acara' as const, reference_year: 2022, reference_currency: 'USD' as const }
+    const acara = { ...NEUTRAL, base_source: 'acara' as const, reference_year: 2022, reference_currency: 'USD' as const }
     const scale = { ...acara, base: 30000000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
       bracket_fixed: 233000, bracket_from: 18700000, annual: 566000 }
     expect(explainConcept('patente', breakdown({ patente: scale }), 47000)).toBe(
@@ -172,14 +156,85 @@ describe('explainConcept', () => {
     )
   })
 
+  it('explains that an old enough vehicle pays no patente', () => {
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 5000000, province: 'CABA', province_known: true, method: 'exempt' as const, rate: 0,
+      bracket_fixed: null, bracket_from: null, age: 27, exempt: true, exempt_from_age: 25, annual: 0 }
+    expect(explainConcept('patente', breakdown({ patente }), 0)).toBe(
+      'Patente en CABA: el auto tiene 27 años y desde los 25 años no se paga patente = $ 0 por mes.',
+    )
+  })
+
+  it('explains the surcharge of the scale', () => {
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 38985600, province: 'CABA', province_known: true, method: 'scale' as const, rate: 0.065,
+      bracket_fixed: 1477000, bracket_from: 36550000, subtotal: 1635314, surcharge: 0.1, cap_rate: 0.06, minimum: 13300, annual: 1798845.4 }
+    expect(explainConcept('patente', breakdown({ patente }), 150000)).toBe(
+      'Patente en CABA: sobre el valor del auto ($ 38.985.600) corresponde $ 1.477.000 + 6,5% de lo que supera $ 36.550.000 = $ 1.635.314, más 10% de recargo = $ 1.798.845 al año, dividido 12 meses = $ 150.000 por mes.',
+    )
+  })
+
+  it('explains the cap as a share of the value', () => {
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 100000000, province: 'CABA', province_known: true, method: 'scale' as const, rate: 0.08,
+      bracket_fixed: 3965000, bracket_from: 73100000, subtotal: 6117000, surcharge: 0.1, cap_rate: 0.06, cap_applied: true, minimum: 13300, annual: 6000000 }
+    expect(explainConcept('patente', breakdown({ patente }), 500000)).toBe(
+      'Patente en CABA: sobre el valor del auto ($ 100.000.000) corresponde $ 3.965.000 + 8% de lo que supera $ 73.100.000 = $ 6.117.000, más 10% de recargo = $ 6.728.700, pero el tope es 6% del valor: $ 6.000.000 al año, dividido 12 meses = $ 500.000 por mes.',
+    )
+  })
+
+  it('explains the annual minimum', () => {
+    const patente = { ...NEUTRAL, base_source: 'listing' as const, base: 500000, province: 'CABA', province_known: true, method: 'scale' as const, rate: 0.016,
+      bracket_fixed: 0, bracket_from: 0, subtotal: 8000, surcharge: 0.1, cap_rate: 0.06, minimum: 13300, minimum_applied: true, annual: 13300 }
+    expect(explainConcept('patente', breakdown({ patente }), 2000)).toBe(
+      'Patente en CABA: 1,6% del valor del auto ($ 500.000) = $ 8.000, más 10% de recargo = $ 8.800, pero el mínimo es $ 13.300: $ 13.300 al año, dividido 12 meses = $ 2.000 por mes.',
+    )
+  })
+
+  it('explains the rate by age band of the car', () => {
+    const base = { ...NEUTRAL, base_source: 'listing' as const, base: 20000000, province: 'Santa Fe', province_known: true, method: 'age_rate' as const,
+      bracket_fixed: null, bracket_from: null }
+    const first = { ...base, rate: 0.023, age: 3, age_band: { from_age: 0, to_age: 5 }, annual: 460000 }
+    const middle = { ...base, rate: 0.02, age: 8, age_band: { from_age: 6, to_age: 10 }, annual: 400000 }
+    const last = { ...base, rate: 0.018, age: 14, age_band: { from_age: 11, to_age: null }, annual: 360000 }
+    expect(explainConcept('patente', breakdown({ patente: first }), 39000)).toBe(
+      'Patente en Santa Fe: 2,3% anual del valor del auto, por ser un auto de hasta 5 años, dividido 12 meses = $ 39.000 por mes.',
+    )
+    expect(explainConcept('patente', breakdown({ patente: middle }), 34000)).toBe(
+      'Patente en Santa Fe: 2% anual del valor del auto, por ser un auto de más de 5 y hasta 10 años, dividido 12 meses = $ 34.000 por mes.',
+    )
+    expect(explainConcept('patente', breakdown({ patente: last }), 30000)).toBe(
+      'Patente en Santa Fe: 1,8% anual del valor del auto, por ser un auto de más de 10 años, dividido 12 meses = $ 30.000 por mes.',
+    )
+  })
+
+  it('explains the rate by body type', () => {
+    const base = { ...NEUTRAL, base_source: 'listing' as const, base: 20000000, province: 'Misiones', province_known: true, method: 'body_rate' as const,
+      bracket_fixed: null, bracket_from: null }
+    const utility = { ...base, rate: 0.008, body_kind: 'utility' as const, annual: 160000 }
+    const car = { ...base, rate: 0.02, body_kind: 'car' as const, annual: 400000 }
+    expect(explainConcept('patente', breakdown({ patente: utility }), 14000)).toBe(
+      'Patente en Misiones: 0,8% anual del valor del auto, con la alícuota de utilitarios, dividido 12 meses = $ 14.000 por mes.',
+    )
+    expect(explainConcept('patente', breakdown({ patente: car }), 34000)).toBe(
+      'Patente en Misiones: 2% anual del valor del auto, con la alícuota de autos, dividido 12 meses = $ 34.000 por mes.',
+    )
+  })
+
+  it('keeps the ACARA wording together with a rate by age', () => {
+    const patente = { ...NEUTRAL, base_source: 'acara' as const, reference_year: 2022, reference_currency: 'ARS' as const, base: 30000000, province: 'Santa Fe',
+      province_known: true, method: 'age_rate' as const, rate: 0.02, age: 8, age_band: { from_age: 6, to_age: 10 }, bracket_fixed: null, bracket_from: null,
+      annual: 600000 }
+    expect(explainConcept('patente', breakdown({ patente }), 50000)).toBe(
+      'Patente en Santa Fe: 2% anual del valor de referencia ACARA de esta versión ($ 30.000.000), por ser un auto de más de 5 y hasta 10 años, dividido 12 meses = $ 50.000 por mes.',
+    )
+  })
+
   it('keeps the listing wording when the patente uses the listing price', () => {
-    const cordoba = { base_source: 'listing' as const, base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const,
+    const cordoba = { ...NEUTRAL, base_source: 'listing' as const, base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate' as const,
       rate: 0.025, bracket_fixed: null, bracket_from: null, annual: 500000 }
     expect(explainConcept('patente', breakdown({ patente: cordoba }), 42000)).not.toMatch(/ACARA/)
   })
 
   it('never mentions maximums or rounding in the patente text', () => {
-    const scale = { base_source: 'listing' as const, base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
+    const scale = { ...NEUTRAL, base_source: 'listing' as const, base: 20600000, province: 'Buenos Aires', province_known: true, method: 'scale' as const, rate: 0.03,
       bracket_fixed: 233000, bracket_from: 18700000, annual: 290000 }
     for (const patente of [scale, { ...scale, base_source: 'acara' as const }, breakdown().patente]) {
       expect(explainConcept('patente', breakdown({ patente }), 25000)).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
