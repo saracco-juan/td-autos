@@ -17,18 +17,15 @@ export type CostBreakdown = {
   insurance: {
     coverage: Coverage
     base: number
-    // Slug and label of the body type; null when the car's body type is not in the insurance table.
-    body_type: BodyType | null
-    body_label: string | null
-    // Monthly reference amount of the body type, CPI-indexed, before the zone factor.
-    base_monthly: number
-    // Yearly fraction of the price used when the price decides (2,3% terceros completo, 5,3% todo riesgo).
+    // Monthly floor of terceros completo at AMBA prices (ARS), CPI-indexed, before the value share and the zone factor.
+    floor: number
+    // Fraction of the price added to the floor per MONTH (0,37%); never indexed.
     value_rate: number
-    by_value: boolean
+    // Multiplies floor + value share; 1 in Buenos Aires and CABA, the default zone for a province without a published range.
     zone_factor: number
     province: string
     province_known: boolean
-    // Todo riesgo only: the multiple of terceros completo.
+    // Todo riesgo only: the multiple of the terceros completo shown (1,5).
     tr_ratio: number | null
     // Terceros completo as shown on the screen (the base of todo riesgo).
     terceros_completo: number
@@ -42,13 +39,33 @@ export type CostBreakdown = {
     reference_currency?: 'ARS' | 'USD'
     province: string
     province_known: boolean
-    // scale: fixed + rate over the excess of the bracket; bracket_rate: one rate over the whole value; flat: one rate.
-    method: 'scale' | 'bracket_rate' | 'flat'
-    // The rate that applies: over the excess (scale) or over the whole value (bracket_rate, flat).
+    // scale: fixed + rate over the excess of the bracket; bracket_rate: one rate over the whole value; age_rate: the rate
+    // of the age band of a car; body_rate: the rate of pickups and SUVs or of cars; flat: one rate; exempt: pays nothing.
+    method: 'scale' | 'bracket_rate' | 'age_rate' | 'body_rate' | 'flat' | 'exempt'
+    // The rate that applies: over the excess (scale) or over the whole value (the rest). 0 when exempt.
     rate: number
     // Scale only: the fixed amount of the bracket and the limit it starts at; null otherwise.
     bracket_fixed: number | null
     bracket_from: number | null
+    // Years since the model year (never negative).
+    age: number
+    // age_rate only: the band the car falls in (to_age null = no upper limit); null otherwise.
+    age_band: { from_age: number; to_age: number | null } | null
+    // body_rate only: whether the rate is the one of utility vehicles (the province's utility bodies) or of cars; null otherwise.
+    body_kind: 'utility' | 'car' | null
+    // The tax of the scheme, before the surcharge, the cap and the minimum.
+    subtotal: number
+    // Fraction added on top of the tax (0 when the province has none).
+    surcharge: number
+    // Maximum tax as a fraction of the value, and whether it reduced the tax; null when the province has no cap.
+    cap_rate: number | null
+    cap_applied: boolean
+    // Minimum tax per year in ARS, and whether it raised the tax; null when the province has no minimum.
+    minimum: number | null
+    minimum_applied: boolean
+    // Exempt vehicles (age >= exempt_from_age) pay nothing; exempt_from_age is null when the province has no exemption.
+    exempt: boolean
+    exempt_from_age: number | null
     annual: number
   }
   service: {

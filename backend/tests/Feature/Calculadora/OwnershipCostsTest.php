@@ -36,11 +36,10 @@ class OwnershipCostsTest extends TestCase
             'km_per_month' => ['menos_500' => 500, '500_1500' => 1500, '1500_3000' => 3000, 'mas_3000' => 4500, 'no_sabe' => 1500],
             'fuel_prices' => ['nafta' => 1000, 'diesel' => 900, 'gnc' => 500],
             'insurance' => [
-                'tc_base' => ['hatchback' => 103000, 'sedan' => 114000, 'rural' => 114000, 'suv' => 108000, 'pickup' => 152000, 'furgon' => 152000],
-                'value_rate_tc' => 0.023,
-                'zone_factor' => ['caba' => 1.0, 'buenos_aires' => 1.0, 'cordoba' => 0.8, 'santa_fe' => 0.78, 'mendoza' => 0.73, 'default' => 0.8],
-                'tr_ratio' => ['hatchback' => 1.8, 'sedan' => 2.1, 'rural' => 2.1, 'suv' => 2.0, 'pickup' => 2.35, 'furgon' => 2.35],
-                'value_rate_tr' => 0.06,
+                'tc_floor' => 46000,
+                'tc_value_rate' => 0.0037,
+                'tr_ratio' => 1.5,
+                'zone_factor' => ['caba' => 1.0, 'buenos_aires' => 1.0, 'cordoba' => 0.8, 'santa_fe' => 0.8, 'mendoza' => 0.72, 'default' => 0.7],
                 'cpi_base_month' => '2026-10',
             ],
             'transfer' => ['dnrpa_rate' => 0.01, 'fixed_costs' => 100000, 'stamp_rate' => ['cordoba' => 0.02, 'caba' => 0.01]],
@@ -135,16 +134,17 @@ class OwnershipCostsTest extends TestCase
                 'inputs' => ['km_per_month' => 1500, 'km_source' => 'diagnostico', 'coverage' => 'terceros_completo'],
                 'purchase' => ['price' => 20000000, 'transfer' => 700000, 'total' => 20700000,
                     'budget' => ['max' => 25000000.0, 'fits' => true, 'difference' => 4300000.0]],
-                'monthly' => ['fuel' => 120000, 'insurance' => 92000, 'patente' => 42000, 'total' => 254000, 'not_estimated' => []],
-                'yearly' => ['service' => 760000, 'total' => 3808000],
+                'monthly' => ['fuel' => 120000, 'insurance' => 96000, 'patente' => 42000, 'total' => 258000, 'not_estimated' => []],
+                'yearly' => ['service' => 760000, 'total' => 3856000],
                 'breakdown' => [
                     'fuel' => ['km_per_month' => 1500, 'consumption_l_100km' => 8.0, 'fuel_type' => 'nafta', 'price_fuel_type' => 'nafta',
                         'unit' => 'litro', 'unit_price' => 1000],
-                    'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000.0, 'body_type' => 'sedan', 'body_label' => 'Sedán',
-                        'base_monthly' => 114000.0, 'value_rate' => 0.023, 'by_value' => false, 'zone_factor' => 0.8, 'province' => 'Córdoba',
-                        'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 92000],
+                    'insurance' => ['coverage' => 'terceros_completo', 'base' => 20000000.0, 'floor' => 46000.0, 'value_rate' => 0.0037,
+                        'zone_factor' => 0.8, 'province' => 'Córdoba', 'province_known' => true, 'tr_ratio' => null, 'terceros_completo' => 96000],
                     'patente' => ['base' => 20000000.0, 'base_source' => 'listing', 'province' => 'Córdoba', 'province_known' => true, 'method' => 'bracket_rate', 'rate' => 0.025,
-                        'bracket_fixed' => null, 'bracket_from' => null, 'annual' => 500000.0],
+                        'bracket_fixed' => null, 'bracket_from' => null, 'age' => 4, 'age_band' => null, 'body_kind' => null, 'subtotal' => 500000.0,
+                        'surcharge' => 0.0, 'cap_rate' => null, 'cap_applied' => false, 'minimum' => null, 'minimum_applied' => false,
+                        'exempt' => false, 'exempt_from_age' => null, 'annual' => 500000.0],
                     'service' => ['brand' => null, 'brand_known' => false, 'model_matched' => false, 'body_type' => 'sedan', 'body_label' => 'Sedán',
                         'km_per_year' => 18000, 'interval_km' => 10000, 'interval_months' => 12, 'services_per_year' => 2,
                         'price_per_service' => 380000.0, 'fuel_factor' => 1.0, 'source_label' => 'valor de referencia'],
@@ -166,7 +166,7 @@ class OwnershipCostsTest extends TestCase
         // Patente: 30.000.000 x 3% / 12 = 75.000. Insurance and transfer keep the listing price (20.000.000).
         $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
             ->assertJsonPath('monthly.patente', 75000)
-            ->assertJsonPath('monthly.insurance', 92000)
+            ->assertJsonPath('monthly.insurance', 96000)
             ->assertJsonPath('purchase.transfer', 700000)
             ->assertJsonPath('breakdown.insurance.base', 20000000)
             ->assertJsonPath('breakdown.transfer.base', 20000000)
@@ -244,10 +244,10 @@ class OwnershipCostsTest extends TestCase
         $this->buyer();
         $car = $this->car(['marca' => 'Toyota', 'modelo' => 'Yaris', 'tipo_carroceria_id' => TipoCarroceria::where('nombre', 'Hatchback')->value('id')]);
 
-        // 18.000 km / 10.000 -> 2 services x 361.000 = 722.000; the monthly total keeps only fuel, insurance and patente.
+        // 18.000 km / 10.000 -> 2 services x 361.000 = 722.000; the monthly total keeps only fuel, insurance (96.000) and patente.
         $this->getJson("/api/vehiculos/{$car->id}/costos")->assertOk()
             ->assertJsonPath('yearly.service', 722000)
-            ->assertJsonPath('yearly.total', 722000 + 12 * 245000)
+            ->assertJsonPath('yearly.total', 722000 + 12 * 258000)
             ->assertJsonPath('breakdown.service.brand', 'Toyota')
             ->assertJsonPath('breakdown.service.model_matched', true)
             ->assertJsonPath('breakdown.service.source_label', 'service oficial Toyota Yaris')
@@ -310,7 +310,7 @@ class OwnershipCostsTest extends TestCase
         $this->getJson("/api/vehiculos/{$car->id}/costos?km=3000&cobertura=todo_riesgo")->assertOk()
             ->assertJsonPath('inputs', ['km_per_month' => 3000, 'km_source' => 'usuario', 'coverage' => 'todo_riesgo'])
             ->assertJsonPath('monthly.fuel', 240000)
-            ->assertJsonPath('monthly.insurance', 194000);
+            ->assertJsonPath('monthly.insurance', 144000);
     }
 
     public function test_zero_km_is_valid(): void

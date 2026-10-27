@@ -49,11 +49,10 @@ class CalculatorRefreshTest extends TestCase
             'km_per_month' => ['menos_500' => 500, '500_1500' => 1500, '1500_3000' => 3000, 'mas_3000' => 4500, 'no_sabe' => 1500],
             'fuel_prices' => ['nafta' => 1000, 'diesel' => 900, 'gnc' => 500],
             'insurance' => [
-                'tc_base' => ['hatchback' => 100000, 'pickup' => 150000],
-                'value_rate_tc' => 0.023,
-                'zone_factor' => ['cordoba' => 0.8, 'default' => 0.8],
-                'tr_ratio' => ['hatchback' => 1.8, 'pickup' => 2.35],
-                'value_rate_tr' => 0.06,
+                'tc_floor' => 100000,
+                'tc_value_rate' => 0.0037,
+                'zone_factor' => ['cordoba' => 0.8, 'default' => 0.7],
+                'tr_ratio' => 1.5,
                 'cpi_base_month' => '2026-10',
             ],
             'transfer' => ['dnrpa_rate' => 0.01, 'fixed_costs' => 100000, 'stamp_rate' => ['cordoba' => 0.02, 'caba' => 0.01]],
@@ -310,7 +309,7 @@ class CalculatorRefreshTest extends TestCase
 
         $this->assertEqualsWithDelta(100000 * $factor, $rates['transfer']['fixed_costs'], 1.0);
         $this->assertSame(0.01, $rates['transfer']['dnrpa_rate']);
-        $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
+        $this->assertSame(0.0037, $rates['insurance']['tc_value_rate']);
         $this->assertSame(0.8, $rates['insurance']['zone_factor']['cordoba']);
     }
 
@@ -336,7 +335,7 @@ class CalculatorRefreshTest extends TestCase
         $this->assertSame([], CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi']['extra_bases']);
     }
 
-    public function test_insurance_bases_are_indexed_from_their_own_base_month(): void
+    public function test_the_insurance_floor_is_indexed_from_its_own_base_month(): void
     {
         $this->fakeSources(cpiRows: [['2026-08-01', 12276.766], ['2026-10-01', 13000.0], ['2026-11-01', 13650.0]]);
         app(CalculatorRatesStore::class)->refresh();
@@ -344,22 +343,22 @@ class CalculatorRefreshTest extends TestCase
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
         // Insurance: 13650 / 13000 = 1,05. The transfer keeps the main month (2026-08): 13650 / 12276,766.
-        $this->assertSame(105000, $rates['insurance']['tc_base']['hatchback']);
-        $this->assertSame(157500, $rates['insurance']['tc_base']['pickup']);
+        // Only the floor is an ARS amount: the rates and the zone factors never move.
+        $this->assertSame(105000, $rates['insurance']['tc_floor']);
         $this->assertEqualsWithDelta(100000 * 13650.0 / 12276.766, $rates['transfer']['fixed_costs'], 1.0);
-        $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
-        $this->assertSame(1.8, $rates['insurance']['tr_ratio']['hatchback']);
+        $this->assertSame(0.0037, $rates['insurance']['tc_value_rate']);
+        $this->assertSame(1.5, $rates['insurance']['tr_ratio']);
+        $this->assertSame(0.7, $rates['insurance']['zone_factor']['default']);
     }
 
-    public function test_insurance_bases_keep_the_config_until_the_base_month_is_published(): void
+    public function test_the_insurance_floor_keeps_the_config_until_the_base_month_is_published(): void
     {
         $this->fakeSources();
         app(CalculatorRatesStore::class)->refresh();
 
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
-        $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
-        $this->assertSame(150000, $rates['insurance']['tc_base']['pickup']);
+        $this->assertSame(100000, $rates['insurance']['tc_floor']);
     }
 
     public function test_the_insurance_factor_never_goes_below_one(): void
@@ -367,7 +366,7 @@ class CalculatorRefreshTest extends TestCase
         $this->fakeSources(cpiRows: [['2026-08-01', 12000.0], ['2026-10-01', 13000.0], ['2026-11-01', 12800.0]]);
         app(CalculatorRatesStore::class)->refresh();
 
-        $this->assertSame(100000, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_base']['hatchback']);
+        $this->assertSame(100000, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_floor']);
     }
 
     public function test_the_insurance_base_month_may_equal_the_main_base_month(): void
@@ -377,7 +376,7 @@ class CalculatorRefreshTest extends TestCase
         app(CalculatorRatesStore::class)->refresh();
 
         // 12600 / 12276,766 = 1,02633 -> 102.633.
-        $this->assertEqualsWithDelta(102633, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_base']['hatchback'], 2);
+        $this->assertEqualsWithDelta(102633, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_floor'], 2);
     }
 
     public function test_a_snapshot_stored_before_the_insurance_base_month_existed_stays_readable(): void
@@ -389,7 +388,7 @@ class CalculatorRefreshTest extends TestCase
 
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
-        $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
+        $this->assertSame(100000, $rates['insurance']['tc_floor']);
         $this->assertGreaterThan(100000, $rates['transfer']['fixed_costs']);
     }
 
@@ -424,6 +423,76 @@ class CalculatorRefreshTest extends TestCase
         $this->assertSame(0.025, $patente['bracket_rate']['cordoba'][0]['rate']);
         $this->assertSame(0.03, $patente['scale']['buenos_aires'][2]['rate']);
         $this->assertSame(0.03, $patente['flat_rate']['mendoza']);
+    }
+
+    /** A province that states its scale at another month (CABA, Ley 6927 for 2026) is indexed from that month, minimum included. */
+    private function provinceBaseConfig(): array
+    {
+        $patente = $this->baseConfig()['patente'];
+        $patente['province_cpi_base_month'] = ['caba' => '2026-01'];
+        $patente['scale']['caba'] = [['up_to' => 7460000, 'fixed' => 0, 'rate' => 0.016], ['up_to' => null, 'fixed' => 119350, 'rate' => 0.04]];
+        $patente['rules'] = [
+            'caba' => ['surcharge' => 0.1, 'cap' => 0.06, 'minimum' => 13300, 'exempt_from_age' => 25],
+            'buenos_aires' => ['exempt_from_age' => 25, 'minimum' => 10000],
+        ];
+        $patente['age_rate'] = ['santa_fe' => [['up_to_age' => 5, 'rate' => 0.023], ['up_to_age' => null, 'rate' => 0.018]]];
+
+        return ['patente' => $patente];
+    }
+
+    public function test_the_refresh_fetches_the_base_month_of_a_province_that_states_its_own(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-01-01', 9000.0], ['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+
+        app(CalculatorRatesStore::class)->refresh();
+
+        $cpi = CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi'];
+        $this->assertEquals(9000.0, $cpi['extra_bases']['2026-01']);
+        $this->assertEquals(10000.0, $cpi['extra_bases']['2026-02']);
+    }
+
+    public function test_a_province_scale_and_minimum_are_indexed_from_the_province_base_month(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-01-01', 9000.0], ['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('caba')['patente'];
+
+        // CABA: 11000 / 9000 = 1,2222. Buenos Aires keeps the default month: 11000 / 10000 = 1,1.
+        $this->assertSame(9117778, $patente['scale']['caba'][0]['up_to']);
+        $this->assertSame(145872, $patente['scale']['caba'][1]['fixed']);
+        $this->assertSame(0.016, $patente['scale']['caba'][0]['rate']);
+        $this->assertSame(16256, $patente['rules']['caba']['minimum']);
+        $this->assertSame(15510000, $patente['scale']['buenos_aires'][0]['up_to']);
+        $this->assertSame(11000, $patente['rules']['buenos_aires']['minimum']);
+    }
+
+    public function test_the_rules_keep_their_percentages_and_ages_and_the_age_rates_are_never_indexed(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-01-01', 9000.0], ['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('caba')['patente'];
+
+        $this->assertSame(0.1, $patente['rules']['caba']['surcharge']);
+        $this->assertSame(0.06, $patente['rules']['caba']['cap']);
+        $this->assertSame(25, $patente['rules']['caba']['exempt_from_age']);
+        $this->assertSame(config('calculadora.patente.age_rate'), $patente['age_rate']);
+    }
+
+    public function test_a_province_month_that_is_not_published_leaves_its_amounts_as_they_are(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('caba')['patente'];
+
+        $this->assertSame(13300, $patente['rules']['caba']['minimum']);
+        $this->assertSame(7460000, $patente['scale']['caba'][0]['up_to']);
     }
 
     public function test_patente_keeps_the_config_until_its_base_month_is_published(): void
