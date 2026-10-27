@@ -117,6 +117,8 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## HU08 vehicle comparison (2026-10-27)
 
+- Shared web `components/Tabs` accepts domain-independent `{id, label}` items and a render callback for the active panel. It owns selected state, unique ARIA IDs, roving focus, ArrowLeft/Right wrap, Home/End and automatic activation. Styling follows the vehicle-detail tabs. Comparison adopts it first; migrating the existing detail tabs and vehicle-entry form is deferred. Do not put vehicle/cost/form logic in this primitive.
+
 - Follow High v3 desktop `2373:7368` / mobile `2373:10014`: two separate white vehicle cards with 14px corners, 32px gap, 160px photos and compact label/value rows. Each card is a named article with definition lists; CSS subgrid aligns corresponding rows even when values wrap. Keep both columns in a keyboard-focusable internal scroll viewport, never horizontal page scroll. Reuse the shell, back icon and explanation tooltips. Dynamic listing images retain explicit missing/broken fallbacks.
 - Selection controls use scoped auto-width 32px buttons, wrapping only when needed; shared buttons elsewhere remain unchanged. Explanations and cost caveats remain available in a compact disclosure above the cards. Source, detailed facts, factors and costs extend the sparse reference without changing their calculations.
 - Extend the sample with complete grouped technical facts, equipment, diagnosis compatibility factors and costs. Advantages mean compatibility reasons, not an absolute winner or promised satisfaction. Unknown is distinct from false. Preserve budget/body and missing/stale resale warnings.
