@@ -26,5 +26,6 @@ the other instance. Optional `className` / `panelClassName` allow layout composi
 Inactive panel content is unmounted. Keep editable field values in the parent
 form state when adopting this primitive for vehicle entry, not inside a panel.
 
-Comparison adopts this component inside each vehicle's specification section.
-The existing detail implementation and vehicle-entry form are not migrated yet.
+Comparison and the vehicle-detail specification section both use this component.
+Detail uses independent local selection; comparison shares a controlled value.
+Vehicle-entry form adoption remains deferred.

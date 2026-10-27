@@ -4,6 +4,17 @@ import { expect, it } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
 import VehicleSpecifications from './VehicleSpecifications'
 
+it('keeps separate specification instances independent with unique tab and panel IDs', async () => {
+  render(<><VehicleSpecifications vehicle={vehicle} /><VehicleSpecifications vehicle={vehicle} /></>)
+  const sections = screen.getAllByRole('region', { name: 'Especificaciones técnicas' })
+  await userEvent.click(within(sections[0]).getByRole('tab', { name: 'Motor y consumo' }))
+  expect(within(sections[0]).getByRole('tab', { name: 'Motor y consumo', selected: true })).toBeInTheDocument()
+  expect(within(sections[1]).getByRole('tab', { name: 'Información general', selected: true })).toBeInTheDocument()
+  const ids = screen.getAllByRole('tab').map((tab) => tab.id)
+  expect(new Set(ids).size).toBe(ids.length)
+  expect(within(sections[0]).getByRole('tabpanel').id).not.toBe(within(sections[1]).getByRole('tabpanel').id)
+})
+
 it('HU09 / TC-26 exposes complete facts and equipment through section tabs', async () => {
   render(<VehicleSpecifications vehicle={{ ...vehicle, frenos_abs: true, aire_acondicionado: false }} />)
   expect(screen.getByRole('heading', { name: 'Especificaciones técnicas' })).toBeInTheDocument()
