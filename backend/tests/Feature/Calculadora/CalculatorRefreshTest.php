@@ -426,6 +426,76 @@ class CalculatorRefreshTest extends TestCase
         $this->assertSame(0.03, $patente['flat_rate']['mendoza']);
     }
 
+    /** A province that states its scale at another month (CABA, Ley 6927 for 2026) is indexed from that month, minimum included. */
+    private function provinceBaseConfig(): array
+    {
+        $patente = $this->baseConfig()['patente'];
+        $patente['province_cpi_base_month'] = ['caba' => '2026-01'];
+        $patente['scale']['caba'] = [['up_to' => 7460000, 'fixed' => 0, 'rate' => 0.016], ['up_to' => null, 'fixed' => 119350, 'rate' => 0.04]];
+        $patente['rules'] = [
+            'caba' => ['surcharge' => 0.1, 'cap' => 0.06, 'minimum' => 13300, 'exempt_from_age' => 25],
+            'buenos_aires' => ['exempt_from_age' => 25, 'minimum' => 10000],
+        ];
+        $patente['age_rate'] = ['santa_fe' => [['up_to_age' => 5, 'rate' => 0.023], ['up_to_age' => null, 'rate' => 0.018]]];
+
+        return ['patente' => $patente];
+    }
+
+    public function test_the_refresh_fetches_the_base_month_of_a_province_that_states_its_own(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-01-01', 9000.0], ['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+
+        app(CalculatorRatesStore::class)->refresh();
+
+        $cpi = CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi'];
+        $this->assertEquals(9000.0, $cpi['extra_bases']['2026-01']);
+        $this->assertEquals(10000.0, $cpi['extra_bases']['2026-02']);
+    }
+
+    public function test_a_province_scale_and_minimum_are_indexed_from_the_province_base_month(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-01-01', 9000.0], ['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('caba')['patente'];
+
+        // CABA: 11000 / 9000 = 1,2222. Buenos Aires keeps the default month: 11000 / 10000 = 1,1.
+        $this->assertSame(9117778, $patente['scale']['caba'][0]['up_to']);
+        $this->assertSame(145872, $patente['scale']['caba'][1]['fixed']);
+        $this->assertSame(0.016, $patente['scale']['caba'][0]['rate']);
+        $this->assertSame(16256, $patente['rules']['caba']['minimum']);
+        $this->assertSame(15510000, $patente['scale']['buenos_aires'][0]['up_to']);
+        $this->assertSame(11000, $patente['rules']['buenos_aires']['minimum']);
+    }
+
+    public function test_the_rules_keep_their_percentages_and_ages_and_the_age_rates_are_never_indexed(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-01-01', 9000.0], ['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('caba')['patente'];
+
+        $this->assertSame(0.1, $patente['rules']['caba']['surcharge']);
+        $this->assertSame(0.06, $patente['rules']['caba']['cap']);
+        $this->assertSame(25, $patente['rules']['caba']['exempt_from_age']);
+        $this->assertSame(config('calculadora.patente.age_rate'), $patente['age_rate']);
+    }
+
+    public function test_a_province_month_that_is_not_published_leaves_its_amounts_as_they_are(): void
+    {
+        config(['calculadora' => $this->baseConfig($this->provinceBaseConfig())]);
+        $this->fakeSources(cpiRows: [['2026-02-01', 10000.0], ['2026-08-01', 12276.766], ['2026-11-01', 11000.0]]);
+        app(CalculatorRatesStore::class)->refresh();
+
+        $patente = app(EffectiveRates::class)->forProvince('caba')['patente'];
+
+        $this->assertSame(13300, $patente['rules']['caba']['minimum']);
+        $this->assertSame(7460000, $patente['scale']['caba'][0]['up_to']);
+    }
+
     public function test_patente_keeps_the_config_until_its_base_month_is_published(): void
     {
         $this->fakeSources();
