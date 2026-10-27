@@ -20,7 +20,7 @@ php artisan serve
 
 The database is Supabase (PostgreSQL). Before migrating, set `DB_CONNECTION=pgsql` and `DB_URL` in `.env` to the connection string of the Supabase project.
 
-To work without Supabase, `php artisan db:local` builds a SQLite database with demo data (see [`development.md`](development.md#local-demo-database)).
+To work without Supabase, `php artisan db:local` builds a SQLite database with demo data (see [`local-environment.md`](development/local-environment.md#local-demo-database)).
 
 ## 2. Web frontend
 
@@ -48,7 +48,7 @@ Open the app with Expo Go by scanning the QR code. The phone and the PC must be 
 
 The app uses Sanctum tokens (`/api/mobile/*`), not the web session cookie, and only accepts buyers. The link in the password recovery email opens the web reset screen.
 
-Google sign-in from the phone needs an HTTPS tunnel: see [`development.md`](development.md#google-sign-in-from-a-phone-development-only).
+Google sign-in from the phone needs an HTTPS tunnel: see [`local-environment.md`](development/local-environment.md#google-sign-in-from-a-phone-development-only).
 
 ## Commands
 
