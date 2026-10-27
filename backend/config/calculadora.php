@@ -2,9 +2,10 @@
 
 // Rates of the ownership cost calculator (HU10 / RF09), reviewed on `updated_at`.
 //
-// The PATENTE is a CENTRAL estimate (UH-10): it follows the 2026 rule of each jurisdiction and, where a province has no
-// rule here, takes the median flat rate. The other concepts (insurance, service, fuel, transfer) are still the UPPER end
-// of their range, a ceiling, until their own tasks move them to a central estimate.
+// The PATENTE and the INSURANCE are CENTRAL estimates (UH-10). The patente follows the 2026 rule of each jurisdiction and,
+// where a province has no rule here, takes the median flat rate; the insurance is a floor plus a rate over the price,
+// fitted on the validation survey. The other concepts (service, fuel, transfer) are still the UPPER end of their range,
+// a ceiling, until their own tasks move them to a central estimate.
 // No primary source was reachable for the ceiling values; they come from secondary sources (news, public calculators,
 // dealer price lists), taking the max across them. The patente rules of CABA, Mendoza, Misiones and Santa Fe come from
 // the official 2026 laws and tariffs (see `patente` below).
@@ -15,7 +16,7 @@ return [
     'updated_at' => '2026-10-24',
 
     // Month (YYYY-MM) in which the ARS amounts below (transfer.fixed_costs) are stated.
-    // insurance, patente and each service brand (and the service fallback) state their ARS amounts at their own `cpi_base_month`.
+    // The insurance floor, patente and each service brand (and the service fallback) state their ARS amounts at their own `cpi_base_month`.
     // The monthly refresh (calculadora:refresh) scales them by max(1, CPI latest / CPI of this month).
     // Move it forward together with those amounts when they are reviewed by hand.
     'cpi_base_month' => '2026-08',
@@ -42,57 +43,44 @@ return [
         'gnc' => 1100,
     ],
 
-    // Car insurance, per month, in two coverages.
+    // Car insurance, per month, in two coverages. A CENTRAL estimate (UH-10), not a ceiling.
     //
-    // Terceros completo (TC) = max(tc_base[body type], price x value_rate_tc / 12) x zone_factor[province].
-    // Todo riesgo (TR)       = max(TC x tr_ratio[body type], price x value_rate_tr / 12).
-    // The ratio multiplies the TC already rounded up, so the screen can explain TR from the TC it shows.
-    // `price` is the ARS price base of the calculator. An unknown body type takes the highest tc_base and tr_ratio;
-    // a province outside zone_factor (or an unknown one) takes `default`.
+    // Terceros completo (TC) = ceil_step((tc_floor + tc_value_rate x price) x zone_factor[province]).
+    // Todo riesgo (TR)       = ceil_step(TC x tr_ratio).
+    // `price` is the ARS price base of the calculator. The ratio multiplies the TC already rounded up, so the screen can
+    // explain TR from the TC it shows. A province outside zone_factor (or an unknown one) takes `default`.
+    // The body type and the age of the car are NOT modeled: the price already carries the class and the age.
     //
-    // Sources (no source publishes a premium by model + year + zone, only ranges from comparators):
-    //  - tc_base and tr_ratio: multicotizadorseguros.com price table, Oct-2026, 2024 units, TOP of each range per body
-    //    type (tr_ratio = TR top / TC top of the same table).
+    // Fit: `tc_floor` and `tc_value_rate` were fitted on the 6 AMBA terceros-completo points of the validation survey
+    // (Oct 2026). They are the only fitted parameters; the sources below give ranges, not a premium by model + year + zone.
+    //
+    // Sources:
+    //  - tr_ratio: multicotizadorseguros.com price table (TR and TC ranges by class, 2024 units) and cuantomecuesta.com
+    //    (a deductible lowers TR 20-35%): a TR with franquicia is about 1.5 x TC.
     //    https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina
-    //  - zone_factor: seguroya.com.ar zone ranges for a mid-size TC (CABA 145k, Córdoba 115k, Rosario 112k, Mendoza 105k),
-    //    expressed against AMBA = 1.0. Provinces without a published range use `default`.
+    //  - zone_factor: seguroya.com.ar zone ranges for a mid-size TC (CABA, Cordoba, Rosario, Mendoza) and cuantomecuesta.com
+    //    (interior 0.60-0.75 of AMBA), against AMBA = 1.0. Provinces without a published range use `default`.
     //    https://seguroya.com.ar/seguros-de-autos-precios
-    //  - Vehicle age and GNC conversion are NOT modeled: no source quantifies them.
+    //  - Order of magnitude of the value rate: hacecuentas, 2.5-3.5% of the value a year (unverified).
     //
-    // Yearly review: tc_base (ARS), zone_factor and tr_ratio, together with `updated_at`.
+    // Yearly review: tc_floor (ARS), tc_value_rate, tr_ratio and zone_factor, together with `updated_at`.
     'insurance' => [
-        // ARS per month at AMBA prices, stated at `cpi_base_month`. The monthly refresh scales them by
-        // max(1, CPI latest / CPI of that month).
-        'tc_base' => [
-            'hatchback' => 103000,
-            'sedan' => 114000,
-            'rural' => 114000, // "Rural / familiar"
-            'suv' => 108000,
-            'pickup' => 152000,
-            'furgon' => 152000,
-        ],
-        // Fraction of the vehicle price per year: when it exceeds the body base, the price decides.
-        'value_rate_tc' => 0.023,
+        // ARS per month at AMBA prices, stated at `cpi_base_month`. The monthly refresh scales it by
+        // max(1, CPI latest / CPI of that month). It is the only ARS amount of the insurance: the rates are never indexed.
+        'tc_floor' => 46000,
+        // Fraction of the vehicle price per MONTH added to the floor (0.37% a month = 4.4% a year).
+        'tc_value_rate' => 0.0037,
+        // Todo riesgo con franquicia as a multiple of the rounded terceros completo.
+        'tr_ratio' => 1.5,
         'zone_factor' => [
             'caba' => 1.00,
             'buenos_aires' => 1.00,
             'cordoba' => 0.80,
-            'santa_fe' => 0.78,
-            'mendoza' => 0.73,
-            'default' => 0.80,
+            'santa_fe' => 0.80,
+            'mendoza' => 0.72,
+            'default' => 0.70,
         ],
-        'tr_ratio' => [
-            'hatchback' => 1.8,
-            'sedan' => 2.1,
-            'rural' => 2.1,
-            'suv' => 2.0,
-            'pickup' => 2.35,
-            'furgon' => 2.35,
-        ],
-        // Fraction of the vehicle price per year: the floor of todo riesgo. 5.3% puts an $80M Hilux
-        // at the top of the published todo riesgo range (352k a month).
-        'value_rate_tr' => 0.053,
-        // Month (YYYY-MM) of the tc_base amounts; independent from the top-level `cpi_base_month`.
+        // Month (YYYY-MM) of the tc_floor amount; independent from the top-level `cpi_base_month`.
         // Until INDEC publishes it, the CPI factor is 1.
         'cpi_base_month' => '2026-10',
     ],
@@ -457,20 +445,22 @@ return [
                 'reviewed_at' => '2026-10-23',
                 'sources' => [],
             ],
-            'insurance_bases' => [
-                'label' => 'Bases, ratios y tasas sobre el valor del seguro',
-                'config_path' => 'insurance.tc_base',
-                'reviewed_at' => '2026-10-24',
+            'insurance_model' => [
+                'label' => 'Piso, tasa sobre el valor y relación todo riesgo del seguro',
+                'config_path' => 'insurance.tc_floor',
+                'reviewed_at' => '2026-10-27',
                 'sources' => [
                     'https://multicotizadorseguros.com/ar/guias/tabla-de-precios-seguros-autos-argentina',
+                    'https://hacecuentas.com',
                 ],
             ],
             'insurance_zones' => [
                 'label' => 'Factores de zona del seguro',
                 'config_path' => 'insurance.zone_factor',
-                'reviewed_at' => '2026-10-24',
+                'reviewed_at' => '2026-10-27',
                 'sources' => [
                     'https://seguroya.com.ar/seguros-de-autos-precios',
+                    'https://cuantomecuesta.com',
                 ],
             ],
             'service_toyota' => [

@@ -49,11 +49,10 @@ class CalculatorRefreshTest extends TestCase
             'km_per_month' => ['menos_500' => 500, '500_1500' => 1500, '1500_3000' => 3000, 'mas_3000' => 4500, 'no_sabe' => 1500],
             'fuel_prices' => ['nafta' => 1000, 'diesel' => 900, 'gnc' => 500],
             'insurance' => [
-                'tc_base' => ['hatchback' => 100000, 'pickup' => 150000],
-                'value_rate_tc' => 0.023,
-                'zone_factor' => ['cordoba' => 0.8, 'default' => 0.8],
-                'tr_ratio' => ['hatchback' => 1.8, 'pickup' => 2.35],
-                'value_rate_tr' => 0.06,
+                'tc_floor' => 100000,
+                'tc_value_rate' => 0.0037,
+                'zone_factor' => ['cordoba' => 0.8, 'default' => 0.7],
+                'tr_ratio' => 1.5,
                 'cpi_base_month' => '2026-10',
             ],
             'transfer' => ['dnrpa_rate' => 0.01, 'fixed_costs' => 100000, 'stamp_rate' => ['cordoba' => 0.02, 'caba' => 0.01]],
@@ -310,7 +309,7 @@ class CalculatorRefreshTest extends TestCase
 
         $this->assertEqualsWithDelta(100000 * $factor, $rates['transfer']['fixed_costs'], 1.0);
         $this->assertSame(0.01, $rates['transfer']['dnrpa_rate']);
-        $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
+        $this->assertSame(0.0037, $rates['insurance']['tc_value_rate']);
         $this->assertSame(0.8, $rates['insurance']['zone_factor']['cordoba']);
     }
 
@@ -336,7 +335,7 @@ class CalculatorRefreshTest extends TestCase
         $this->assertSame([], CalculatorRefreshSnapshot::query()->latest('id')->firstOrFail()->payload['cpi']['extra_bases']);
     }
 
-    public function test_insurance_bases_are_indexed_from_their_own_base_month(): void
+    public function test_the_insurance_floor_is_indexed_from_its_own_base_month(): void
     {
         $this->fakeSources(cpiRows: [['2026-08-01', 12276.766], ['2026-10-01', 13000.0], ['2026-11-01', 13650.0]]);
         app(CalculatorRatesStore::class)->refresh();
@@ -344,22 +343,22 @@ class CalculatorRefreshTest extends TestCase
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
         // Insurance: 13650 / 13000 = 1,05. The transfer keeps the main month (2026-08): 13650 / 12276,766.
-        $this->assertSame(105000, $rates['insurance']['tc_base']['hatchback']);
-        $this->assertSame(157500, $rates['insurance']['tc_base']['pickup']);
+        // Only the floor is an ARS amount: the rates and the zone factors never move.
+        $this->assertSame(105000, $rates['insurance']['tc_floor']);
         $this->assertEqualsWithDelta(100000 * 13650.0 / 12276.766, $rates['transfer']['fixed_costs'], 1.0);
-        $this->assertSame(0.023, $rates['insurance']['value_rate_tc']);
-        $this->assertSame(1.8, $rates['insurance']['tr_ratio']['hatchback']);
+        $this->assertSame(0.0037, $rates['insurance']['tc_value_rate']);
+        $this->assertSame(1.5, $rates['insurance']['tr_ratio']);
+        $this->assertSame(0.7, $rates['insurance']['zone_factor']['default']);
     }
 
-    public function test_insurance_bases_keep_the_config_until_the_base_month_is_published(): void
+    public function test_the_insurance_floor_keeps_the_config_until_the_base_month_is_published(): void
     {
         $this->fakeSources();
         app(CalculatorRatesStore::class)->refresh();
 
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
-        $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
-        $this->assertSame(150000, $rates['insurance']['tc_base']['pickup']);
+        $this->assertSame(100000, $rates['insurance']['tc_floor']);
     }
 
     public function test_the_insurance_factor_never_goes_below_one(): void
@@ -367,7 +366,7 @@ class CalculatorRefreshTest extends TestCase
         $this->fakeSources(cpiRows: [['2026-08-01', 12000.0], ['2026-10-01', 13000.0], ['2026-11-01', 12800.0]]);
         app(CalculatorRatesStore::class)->refresh();
 
-        $this->assertSame(100000, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_base']['hatchback']);
+        $this->assertSame(100000, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_floor']);
     }
 
     public function test_the_insurance_base_month_may_equal_the_main_base_month(): void
@@ -377,7 +376,7 @@ class CalculatorRefreshTest extends TestCase
         app(CalculatorRatesStore::class)->refresh();
 
         // 12600 / 12276,766 = 1,02633 -> 102.633.
-        $this->assertEqualsWithDelta(102633, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_base']['hatchback'], 2);
+        $this->assertEqualsWithDelta(102633, app(EffectiveRates::class)->forProvince('cordoba')['insurance']['tc_floor'], 2);
     }
 
     public function test_a_snapshot_stored_before_the_insurance_base_month_existed_stays_readable(): void
@@ -389,7 +388,7 @@ class CalculatorRefreshTest extends TestCase
 
         $rates = app(EffectiveRates::class)->forProvince('cordoba');
 
-        $this->assertSame(100000, $rates['insurance']['tc_base']['hatchback']);
+        $this->assertSame(100000, $rates['insurance']['tc_floor']);
         $this->assertGreaterThan(100000, $rates['transfer']['fixed_costs']);
     }
 

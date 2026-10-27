@@ -5,10 +5,10 @@ namespace App\Services\Calculadora;
 /**
  * The calculator rates in force: config('calculadora') overridden by the latest valid refresh snapshot.
  * Fuel: the dealer's province, then the national value, then the config. ARS amounts (transfer fixed
- * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance bases, the patente bracket limits, fixed amounts and
- * minimums and the service prices are scaled the same way from their own base month (`insurance.cpi_base_month`,
- * `patente.cpi_base_month`, and `cpi_base_month` of each `service.brands.*` and of `service.fallback`). Percentages
- * and service intervals are never touched. `updated_at` is the older of the config review date and the fuel price date.
+ * costs) are scaled by max(1, cpi_latest / cpi_base). The insurance floor (`insurance.tc_floor`, the only ARS amount of
+ * the insurance), the patente bracket limits, fixed amounts and minimums and the service prices are scaled the same
+ * way from their own base month (`insurance.cpi_base_month`, `patente.cpi_base_month`, and `cpi_base_month` of each
+ * `service.brands.*` and of `service.fallback`). Percentages, ratios, zone factors and service intervals are never touched. `updated_at` is the older of the config review date and the fuel price date.
  */
 final class EffectiveRates
 {
@@ -36,7 +36,7 @@ final class EffectiveRates
         }
         $insuranceFactor = $this->cpiFactor($cpi, (string) ($rates['insurance']['cpi_base_month'] ?? ''));
         if ($insuranceFactor > 1) {
-            $rates['insurance']['tc_base'] = array_map(fn ($amount) => (int) round($amount * $insuranceFactor), $rates['insurance']['tc_base']);
+            $rates['insurance']['tc_floor'] = (int) round($rates['insurance']['tc_floor'] * $insuranceFactor);
         }
         foreach ((array) ($rates['service']['brands'] ?? []) as $key => $brand) {
             $rates['service']['brands'][$key] = $this->indexServicePrices($brand, $this->cpiFactor($cpi, (string) ($brand['cpi_base_month'] ?? '')));

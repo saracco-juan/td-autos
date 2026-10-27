@@ -3,8 +3,9 @@
 namespace App\Services\Calculadora;
 
 /**
- * Estimate of what a vehicle costs to buy and to keep per month, plus the yearly service. The patente is a CENTRAL
- * estimate (the 2026 rule of each province); the other concepts are still a ceiling. Pure: no database, HTTP or clock.
+ * Estimate of what a vehicle costs to buy and to keep per month, plus the yearly service. The patente (the 2026 rule of
+ * each province) and the insurance (a floor plus a rate over the price) are CENTRAL estimates; the other concepts are
+ * still a ceiling. Pure: no database, HTTP or clock.
  * Every concept rounds up and totals add the rounded concepts, so the screen always adds up.
  */
 final class OwnershipCostCalculator
@@ -39,7 +40,7 @@ final class OwnershipCostCalculator
         $fuelInputs = $this->fuelInputs($vehicle, $kmPerMonth, $rates);
         $fuel = $fuelInputs === null ? null
             : $this->ceil($kmPerMonth * $fuelInputs['consumption_l_100km'] / 100 * (float) $fuelInputs['unit_price'], $step);
-        $insuranceCalc = $this->insurance($vehicle['body_type'] ?? null, $base, $slug, $province, $coverage, $rates['insurance'], $step);
+        $insuranceCalc = $this->insurance($base, $slug, $province, $coverage, $rates['insurance'], $step);
         $insurance = $insuranceCalc['amount'];
         // Only the patente may use another base (the ACARA reference value); everything else keeps the listing price.
         $patenteCalc = $this->patente((float) ($vehicle['patente_base'] ?? $base), $slug, trim($province), $rates['patente'], $vehicle, $currentYear);
@@ -89,42 +90,33 @@ final class OwnershipCostCalculator
     }
 
     /**
-     * Terceros completo = max(base by body type, price x value rate / 12) x zone factor, rounded up.
-     * Todo riesgo = max(rounded terceros completo x ratio by body type, price x value rate / 12), rounded up.
-     * An unknown body type takes the highest base and ratio; a province outside the zone map takes `default`.
+     * Central estimate. Terceros completo = (floor + price x monthly value rate) x zone factor, rounded up.
+     * Todo riesgo = the rounded terceros completo x the ratio, rounded up. The body type does not matter: the price
+     * already carries the class and the age of the car. A province outside the zone map takes `default`.
      *
      * @param  array<string, mixed>  $insurance  rates['insurance']
      * @return array{amount: int, breakdown: array<string, mixed>}
      */
-    private function insurance(?string $bodyName, float $base, string $provinceSlug, string $province, string $coverage, array $insurance, int $step): array
+    private function insurance(float $base, string $provinceSlug, string $province, string $coverage, array $insurance, int $step): array
     {
-        $bodySlug = $this->bodySlug($bodyName);
-        $baseMonthly = (float) ($insurance['tc_base'][$bodySlug] ?? max($insurance['tc_base']));
+        $floor = (float) $insurance['tc_floor'];
+        $valueRate = (float) $insurance['tc_value_rate'];
         $zoneKnown = $provinceSlug !== 'default' && isset($insurance['zone_factor'][$provinceSlug]);
         $zone = (float) ($zoneKnown ? $insurance['zone_factor'][$provinceSlug] : $insurance['zone_factor']['default']);
 
-        $tcByValue = $base * (float) $insurance['value_rate_tc'] / 12;
-        $terceros = $this->ceil(max($baseMonthly, $tcByValue) * $zone, $step);
+        $terceros = $this->ceil(($floor + $base * $valueRate) * $zone, $step);
 
         $trRatio = null;
-        $valueRate = (float) $insurance['value_rate_tc'];
-        $byValue = $tcByValue > $baseMonthly;
         $amount = $terceros;
         if ($coverage === 'todo_riesgo') {
-            $trRatio = (float) ($insurance['tr_ratio'][$bodySlug] ?? max($insurance['tr_ratio']));
-            $valueRate = (float) $insurance['value_rate_tr'];
-            $trByValue = $base * $valueRate / 12;
-            $byValue = $trByValue > $terceros * $trRatio;
-            $amount = $this->ceil(max($terceros * $trRatio, $trByValue), $step);
+            $trRatio = (float) $insurance['tr_ratio'];
+            $amount = $this->ceil($terceros * $trRatio, $step);
         }
 
         return [
             'amount' => $amount,
             'breakdown' => [
-                'coverage' => $coverage, 'base' => $base,
-                'body_type' => isset($insurance['tc_base'][$bodySlug]) ? $bodySlug : null,
-                'body_label' => isset($insurance['tc_base'][$bodySlug]) ? trim((string) $bodyName) : null,
-                'base_monthly' => $baseMonthly, 'value_rate' => $valueRate, 'by_value' => $byValue,
+                'coverage' => $coverage, 'base' => $base, 'floor' => $floor, 'value_rate' => $valueRate,
                 'zone_factor' => $zone, 'province' => trim($province), 'province_known' => $zoneKnown,
                 'tr_ratio' => $trRatio, 'terceros_completo' => $terceros,
             ],
