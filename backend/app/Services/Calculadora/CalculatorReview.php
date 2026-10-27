@@ -105,7 +105,7 @@ class CalculatorReview
         }
 
         $lines[] = '';
-        $lines[] = 'Cómo revisar y actualizar `reviewed_at`: `docs/development.md`, sección "Calculator yearly review".';
+        $lines[] = 'Cómo revisar y actualizar `reviewed_at`: `docs/development/calculator.md`, sección "Calculator yearly review".';
 
         return implode("\n", $lines)."\n";
     }

@@ -372,7 +372,7 @@ return [
 
     // Yearly review of the hand-reviewed values (D21). Data only: `calculadora:review` and the January 1 job read it to
     // list the groups whose `reviewed_at` is older than `max_age_months` and to check that each source still answers.
-    // It never changes a rate. After reviewing a group, move its `reviewed_at` to the review date (see docs/development.md).
+    // It never changes a rate. After reviewing a group, move its `reviewed_at` to the review date (see docs/development/calculator.md).
     // Groups without `sources` have no public source; they are judgment or sourced only from the notes above.
     'review' => [
         'max_age_months' => 12,

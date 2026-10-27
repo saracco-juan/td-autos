@@ -122,7 +122,7 @@ a restart or loss of Render's local files, the backend rebuilds it from those ta
 without downloading or parsing a PDF. Only warm catalog reads avoid database queries;
 authentication and inventory operations still use the database.
 
-Initial loading is a one-time operation described in [development.md](development.md#fixed-acara-catalog-hu05hu21).
+Initial loading is a one-time operation described in [`inventory-catalog.md`](development/inventory-catalog.md#fixed-acara-catalog-hu05hu21).
 Render's free plan has no shell to run `catalog:import-acara` with a PDF, so the container start
 (`docker/start.sh`) runs `php artisan catalog:load-bundled` in the background, as `www-data`, after the migrations (so Apache binds the port at once and a slow first load cannot fail Render's port scan): when the database has
 no catalog it loads the bundled fixed snapshot (`database/seeders/assets/acara-2026-10-19.json.gz`, the
