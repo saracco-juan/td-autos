@@ -17,18 +17,15 @@ export type CostBreakdown = {
   insurance: {
     coverage: Coverage
     base: number
-    // Slug and label of the body type; null when the car's body type is not in the insurance table.
-    body_type: BodyType | null
-    body_label: string | null
-    // Monthly reference amount of the body type, CPI-indexed, before the zone factor.
-    base_monthly: number
-    // Yearly fraction of the price used when the price decides (2,3% terceros completo, 5,3% todo riesgo).
+    // Monthly floor of terceros completo at AMBA prices (ARS), CPI-indexed, before the value share and the zone factor.
+    floor: number
+    // Fraction of the price added to the floor per MONTH (0,37%); never indexed.
     value_rate: number
-    by_value: boolean
+    // Multiplies floor + value share; 1 in Buenos Aires and CABA, the default zone for a province without a published range.
     zone_factor: number
     province: string
     province_known: boolean
-    // Todo riesgo only: the multiple of terceros completo.
+    // Todo riesgo only: the multiple of the terceros completo shown (1,5).
     tr_ratio: number | null
     // Terceros completo as shown on the screen (the base of todo riesgo).
     terceros_completo: number

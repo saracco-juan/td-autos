@@ -13,13 +13,12 @@ const costs = (): OwnershipCosts => ({
     published_price: 20000000, published_currency: 'ARS' },
   inputs: { km_per_month: 1500, km_source: 'diagnostico', coverage: 'terceros_completo' },
   purchase: { price: 20000000, transfer: 700000, total: 20700000, budget: { max: 25000000, fits: true, difference: 4300000 } },
-  monthly: { fuel: 120000, insurance: 92000, patente: 20000, total: 232000, not_estimated: [] },
-  yearly: { service: 972000, total: 3756000 },
+  monthly: { fuel: 120000, insurance: 96000, patente: 20000, total: 236000, not_estimated: [] },
+  yearly: { service: 972000, total: 3804000 },
   breakdown: {
     fuel: { km_per_month: 1500, consumption_l_100km: 8, fuel_type: 'nafta', price_fuel_type: 'nafta', unit: 'litro', unit_price: 1000 },
-    insurance: { coverage: 'terceros_completo', base: 20000000, body_type: 'sedan', body_label: 'Sedán', base_monthly: 114000,
-      value_rate: 0.023, by_value: false, zone_factor: 0.8, province: 'Córdoba', province_known: true, tr_ratio: null,
-      terceros_completo: 92000 },
+    insurance: { coverage: 'terceros_completo', base: 20000000, floor: 46000, value_rate: 0.0037, zone_factor: 0.8,
+      province: 'Córdoba', province_known: true, tr_ratio: null, terceros_completo: 96000 },
     patente: { base_source: 'listing', base: 20000000, province: 'Córdoba', province_known: true, method: 'bracket_rate', rate: 0.025, bracket_fixed: null,
       bracket_from: null, annual: 500000, age: 4, age_band: null, body_kind: null, subtotal: 500000, surcharge: 0, cap_rate: null, cap_applied: false,
       minimum: null, minimum_applied: false, exempt: false, exempt_from_age: null },
@@ -53,15 +52,15 @@ it('shows what it costs to keep and to buy the vehicle without ceiling wording',
   expect(screen.getByRole('link', { name: 'Volver a la ficha' })).toHaveAttribute('href', '/vehiculos/1')
 
   expect(within(monthly()).getByText('$ 120.000 por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('$ 92.000 por mes')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 96.000 por mes')).toBeInTheDocument()
   expect(within(monthly()).getByText('$ 20.000 por mes')).toBeInTheDocument()
   expect(within(monthly()).queryByText('Mantenimiento')).not.toBeInTheDocument()
   expect(within(monthly()).getByText('Total por mes')).toBeInTheDocument()
-  expect(within(monthly()).getByText('$ 232.000')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 236.000')).toBeInTheDocument()
   const service = within(monthly()).getByText('Service (por año)').closest('div') as HTMLElement
   expect(within(service).getByText('$ 972.000')).toBeInTheDocument()
   const yearly = within(monthly()).getByText('Total por año').closest('div') as HTMLElement
-  expect(within(yearly).getByText('$ 3.756.000')).toBeInTheDocument()
+  expect(within(yearly).getByText('$ 3.804.000')).toBeInTheDocument()
   expect(within(monthly()).queryByText(/Equivale a/)).not.toBeInTheDocument()
 
   expect(within(purchase()).getByText('$ 20.000.000')).toBeInTheDocument()
@@ -88,7 +87,7 @@ it('puts an info button next to each concept and explains it with the numbers of
     return screen.getByRole('tooltip')
   }
   expect(await tip('Combustible')).toHaveTextContent('1.500 km por mes × 8 L cada 100 km (consumo del auto) × $ 1.000 el litro de nafta = $ 120.000.')
-  expect(await tip('Seguro')).toHaveTextContent('Terceros completo para un sedán: $ 114.000 por mes de referencia, × 0,8 por la zona (Córdoba) = $ 92.000 por mes.')
+  expect(await tip('Seguro')).toHaveTextContent('Terceros completo: ($ 46.000 + 0,37% mensual del valor del auto, $ 74.000) × 0,8 por la zona (Córdoba) = $ 96.000 por mes.')
   expect(await tip('Patente')).toHaveTextContent('Patente en Córdoba: 2,5% anual del valor del auto')
   expect(await tip('Service')).toHaveTextContent('18.000 km al año ÷ 10.000 km = 2 services × $ 486.000 (service oficial Toyota Corolla XEI) = $ 972.000 al año.')
   expect(await tip('Transferencia')).toHaveTextContent('Arancel del registro (1%) + sellos de Córdoba (2%)')
@@ -250,7 +249,7 @@ it('shows the server validation messages under each field and keeps the previous
   await userEvent.click(screen.getByRole('button', { name: 'RECALCULAR' }))
   expect(await screen.findByText('Revisá los kilómetros: el máximo es 20.000 por mes.')).toBeInTheDocument()
   expect(screen.getByText('Elegí una cobertura de la lista.')).toBeInTheDocument()
-  expect(within(monthly()).getByText('$ 232.000')).toBeInTheDocument()
+  expect(within(monthly()).getByText('$ 236.000')).toBeInTheDocument()
 })
 
 it('says the vehicle was not found', async () => {

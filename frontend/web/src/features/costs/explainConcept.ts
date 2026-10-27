@@ -27,16 +27,15 @@ const BODY_PHRASES: Record<BodyType, string> = {
 const percent = (rate: number) => `${decimal(rate * 100)}%`
 
 function explainInsurance(insurance: CostBreakdown['insurance'], money: string): string {
-  const body = insurance.body_type === null ? null : BODY_PHRASES[insurance.body_type]
-  const zone = `× ${decimal(insurance.zone_factor)} por la zona${insurance.province_known ? ` (${insurance.province})` : ''}`
-  const yearlyValue = `${percent(insurance.value_rate)} anual del valor del auto, dividido 12 meses`
-
-  if (insurance.coverage === 'todo_riesgo') {
-    if (insurance.by_value || insurance.tr_ratio === null) return `Todo riesgo: ${yearlyValue} = ${money} por mes.`
-    return `Todo riesgo: terceros completo (${formatPrice(insurance.terceros_completo)}) × ${decimal(insurance.tr_ratio)}${body ? ` para ${body}` : ''} = ${money} por mes.`
+  if (insurance.coverage === 'todo_riesgo' && insurance.tr_ratio !== null) {
+    return `Todo riesgo: terceros completo (${formatPrice(insurance.terceros_completo)}) × ${decimal(insurance.tr_ratio)} = ${money} por mes.`
   }
-  if (insurance.by_value) return `Terceros completo: ${yearlyValue}, ${zone} = ${money} por mes.`
-  return `Terceros completo${body ? ` para ${body}` : ''}: ${formatPrice(Math.round(insurance.base_monthly))} por mes de referencia, ${zone} = ${money} por mes. Sale de cotizaciones publicadas en octubre de 2026.`
+  const floor = formatPrice(insurance.floor)
+  const share = `${percent(insurance.value_rate)} mensual del valor del auto`
+  const value = formatPrice(Math.round(insurance.base * insurance.value_rate))
+  if (insurance.zone_factor === 1) return `Terceros completo: ${floor} + ${share} (${value}) = ${money} por mes.`
+  const zone = `× ${decimal(insurance.zone_factor)} por la zona${insurance.province_known ? ` (${insurance.province})` : ''}`
+  return `Terceros completo: (${floor} + ${share}, ${value}) ${zone} = ${money} por mes.`
 }
 
 // Why this rate applies, when the rate depends on the age or the body type of the vehicle.

@@ -9,9 +9,8 @@ const NEUTRAL = {
 }
 
 const insurance = (changes: Partial<CostBreakdown['insurance']> = {}): CostBreakdown['insurance'] => ({
-  coverage: 'terceros_completo', base: 23000000, body_type: 'hatchback', body_label: 'Hatchback', base_monthly: 103000,
-  value_rate: 0.023, by_value: false, zone_factor: 0.8, province: 'Córdoba', province_known: true, tr_ratio: null,
-  terceros_completo: 83000,
+  coverage: 'terceros_completo', base: 20641300, floor: 46000, value_rate: 0.0037, zone_factor: 1, province: 'Buenos Aires',
+  province_known: true, tr_ratio: null, terceros_completo: 123000,
   ...changes,
 })
 
@@ -59,61 +58,40 @@ describe('explainConcept', () => {
     expect(text).toBe('No tenemos datos de consumo de este auto, así que no podemos estimar el combustible.')
   })
 
-  it('explains terceros completo with the body base and the zone', () => {
-    expect(explainConcept('insurance', breakdown(), 83000)).toBe(
-      'Terceros completo para un hatchback: $ 103.000 por mes de referencia, × 0,8 por la zona (Córdoba) = $ 83.000 por mes. Sale de cotizaciones publicadas en octubre de 2026.',
+  it('explains terceros completo as the floor plus a monthly share of the value, with no zone when it is 1', () => {
+    expect(explainConcept('insurance', breakdown(), 123000)).toBe(
+      'Terceros completo: $ 46.000 + 0,37% mensual del valor del auto ($ 76.373) = $ 123.000 por mes.',
     )
   })
 
-  it('names each body type with its article', () => {
-    const tip = (body_type: CostBreakdown['insurance']['body_type']) =>
-      explainConcept('insurance', breakdown({ insurance: insurance({ body_type }) }), 83000)
-    expect(tip('sedan')).toContain('para un sedán')
-    expect(tip('rural')).toContain('para una rural')
-    expect(tip('suv')).toContain('para un SUV')
-    expect(tip('pickup')).toContain('para una pickup')
-    expect(tip('furgon')).toContain('para un furgón')
-  })
-
-  it('explains terceros completo by the value of the car when the value decides', () => {
-    const value = insurance({ body_type: 'pickup', body_label: 'Pickup', base: 80000000, by_value: true, zone_factor: 1,
-      province: 'Buenos Aires', terceros_completo: 154000 })
-    expect(explainConcept('insurance', breakdown({ insurance: value }), 154000)).toBe(
-      'Terceros completo: 2,3% anual del valor del auto, dividido 12 meses, × 1 por la zona (Buenos Aires) = $ 154.000 por mes.',
+  it('applies the zone factor to the sum and names the province when it is known', () => {
+    const cordoba = insurance({ base: 10000000, zone_factor: 0.8, province: 'Córdoba', terceros_completo: 67000 })
+    expect(explainConcept('insurance', breakdown({ insurance: cordoba }), 67000)).toBe(
+      'Terceros completo: ($ 46.000 + 0,37% mensual del valor del auto, $ 37.000) × 0,8 por la zona (Córdoba) = $ 67.000 por mes.',
     )
   })
 
-  it('omits the body type and the province when they were not recognized', () => {
-    const unknown = insurance({ body_type: null, body_label: null, province_known: false, province: 'Atlántida' })
-    expect(explainConcept('insurance', breakdown({ insurance: unknown }), 83000)).toBe(
-      'Terceros completo: $ 103.000 por mes de referencia, × 0,8 por la zona = $ 83.000 por mes. Sale de cotizaciones publicadas en octubre de 2026.',
+  it('omits the province when it is not in the zone table', () => {
+    const misiones = insurance({ base: 14021500, zone_factor: 0.7, province: 'Misiones', province_known: false, terceros_completo: 69000 })
+    expect(explainConcept('insurance', breakdown({ insurance: misiones }), 69000)).toBe(
+      'Terceros completo: ($ 46.000 + 0,37% mensual del valor del auto, $ 51.880) × 0,7 por la zona = $ 69.000 por mes.',
     )
   })
 
-  it('explains todo riesgo as terceros completo times the ratio of the body type', () => {
-    const tr = insurance({ coverage: 'todo_riesgo', body_type: 'pickup', body_label: 'Pickup', tr_ratio: 2.35, value_rate: 0.06,
-      terceros_completo: 154000 })
-    expect(explainConcept('insurance', breakdown({ insurance: tr }), 362000)).toBe(
-      'Todo riesgo: terceros completo ($ 154.000) × 2,35 para una pickup = $ 362.000 por mes.',
-    )
-  })
-
-  it('explains todo riesgo by the value of the car when the value decides', () => {
-    const tr = insurance({ coverage: 'todo_riesgo', body_type: 'pickup', body_label: 'Pickup', tr_ratio: 2.35, value_rate: 0.06,
-      by_value: true, base: 80000000, terceros_completo: 154000 })
-    expect(explainConcept('insurance', breakdown({ insurance: tr }), 400000)).toBe(
-      'Todo riesgo: 6% anual del valor del auto, dividido 12 meses = $ 400.000 por mes.',
+  it('explains todo riesgo as terceros completo times the ratio', () => {
+    const tr = insurance({ coverage: 'todo_riesgo', base: 38985600, tr_ratio: 1.5, terceros_completo: 191000 })
+    expect(explainConcept('insurance', breakdown({ insurance: tr }), 287000)).toBe(
+      'Todo riesgo: terceros completo ($ 191.000) × 1,5 = $ 287.000 por mes.',
     )
   })
 
   it('never reveals a ceiling or a rounding in the insurance text', () => {
     const texts = [
-      explainConcept('insurance', breakdown(), 83000),
-      explainConcept('insurance', breakdown({ insurance: insurance({ by_value: true }) }), 83000),
-      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.8 }) }), 150000),
-      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.8, by_value: true }) }), 150000),
+      explainConcept('insurance', breakdown(), 123000),
+      explainConcept('insurance', breakdown({ insurance: insurance({ zone_factor: 0.7, province_known: false }) }), 86000),
+      explainConcept('insurance', breakdown({ insurance: insurance({ coverage: 'todo_riesgo', tr_ratio: 1.5 }) }), 185000),
     ]
-    for (const text of texts) expect(text).not.toMatch(/máxim|más alt|hasta|redonde|techo/i)
+    for (const text of texts) expect(text).not.toMatch(/máxim|más alt|hasta|redonde|techo|cuerpo|carrocer/i)
   })
 
   it('explains the patente scale with the bracket fixed amount, the rate and the excess', () => {
