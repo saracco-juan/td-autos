@@ -40,6 +40,7 @@ it('HU08 TC-25 removes one, hides the comparison and preserves the other ID and 
   expect(screen.queryByRole('table')).not.toBeInTheDocument()
   expect(screen.getByRole('status')).toHaveTextContent('Seleccioná exactamente dos vehículos')
   expect(screen.getByRole('link', { name: /Volver a recomendados/ })).toHaveAttribute('href', '/recomendaciones?compare=8&maxPrice=30000000')
+  expect(screen.getByText('1 vehículo seleccionado')).toBeVisible()
 })
 
 it('does not show a comparison when either existing calculator request fails; retries current data', async () => {

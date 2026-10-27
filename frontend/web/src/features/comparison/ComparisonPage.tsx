@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { canCompare } from '@shared/comparison/selection'
-import buttonStyles from '../../components/button.module.css'
 import screenStyles from '../../components/screen.module.css'
 import ErrorState from '../../components/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
@@ -28,7 +27,7 @@ export default function ComparisonPage() {
     <header>
       <p className={screenStyles.eyebrow}>COMPARAR UNIDADES</p>
       <h1 className={screenStyles.title}>Comparar vehículos</h1>
-      <p>{ids.length} vehículos seleccionados</p>
+      <p>{ids.length} {ids.length === 1 ? 'vehículo seleccionado' : 'vehículos seleccionados'}</p>
     </header>
     {canCompare(ids) ? <ReadyComparison key={ids.join(',')} ids={ids as [number, number]} onRemove={toggle} />
       : <section role="status">
@@ -73,6 +72,5 @@ function ReadyComparison({ ids, onRemove }: { ids: [number, number]; onRemove: (
   }} />
   return <div ref={ready} tabIndex={-1} className={styles.ready}>
     <ComparisonTable entries={view.entries} onRemove={onRemove} />
-    <Link className={buttonStyles.button} to="/recomendaciones">ELEGIR OTROS VEHÍCULOS</Link>
   </div>
 }

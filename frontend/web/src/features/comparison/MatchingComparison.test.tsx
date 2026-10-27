@@ -23,10 +23,10 @@ const mount = (query = '') => render(<MemoryRouter initialEntries={[`/recomendac
 </MemoryRouter>)
 const select = async (index: number) => userEvent.click((await screen.findAllByRole('button', { name: /^Comparar Toyota/ }))[index])
 
-it('HU08 TC-23 selects two recommendations, compares them and keeps the existing detail/cost shortcuts', async () => {
+it('HU08 TC-23 selects two recommendations, compares them and preserves the existing detail shortcut', async () => {
   mount()
   expect((await screen.findAllByRole('link', { name: 'VER FICHA' }))[0]).toHaveAttribute('href', '/vehiculos/7')
-  expect(screen.getAllByRole('link', { name: 'CALCULAR COSTOS' })[0]).toHaveAttribute('href', '/vehiculos/7/costos')
+  expect(screen.queryByRole('link', { name: 'CALCULAR COSTOS' })).not.toBeInTheDocument()
   await select(0)
   await select(0)
   await userEvent.click(screen.getByRole('button', { name: 'COMPARAR' }))
