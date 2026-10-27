@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Database\Seeders\RealDemo\RealDemoDealers;
 use Database\Seeders\RealDemo\RealDemoInventory;
+use Database\Seeders\RealDemo\RealDemoTarget;
 use Illuminate\Console\Command;
 
 /**
@@ -24,12 +25,7 @@ class CreateRealDemoDealers extends Command
             return self::FAILURE;
         }
 
-        $connection = config('database.connections.'.config('database.default'), []);
-        $this->line(sprintf(
-            'Target database: %s @ %s',
-            $connection['driver'] ?? '?',
-            $connection['host'] ?? $connection['database'] ?? '?',
-        ));
+        $this->line('Target database: '.RealDemoTarget::describe());
 
         $confirmed = (bool) $this->option('confirm');
         $created = $confirmed ? $dealers->create(skipExisting: true) : null;

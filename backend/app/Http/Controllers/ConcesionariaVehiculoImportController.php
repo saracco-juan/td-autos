@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ImportVehiculosRequest;
 use App\Services\Inventario\ImportConflictException;
 use App\Services\Inventario\ImportPlan;
-use App\Services\Inventario\VehiculoImporter;
+use App\Services\Inventario\VehiculoImportApplier;
 use App\Services\Inventario\VehiculoImportPlanner;
 use App\Support\VehiculoFields;
-use App\Support\VehiculoFotos;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Bulk load of the signed-in dealer's inventory by XLSX (CU-20). The route group already
@@ -38,7 +36,7 @@ class ConcesionariaVehiculoImportController extends Controller
      * Validate the file again and apply it whole: every row or none. Photo files replaced by the
      * new URLs are deleted from the disk only once the transaction has committed.
      */
-    public function import(ImportVehiculosRequest $request, VehiculoImportPlanner $planner, VehiculoImporter $importer): JsonResponse
+    public function import(ImportVehiculosRequest $request, VehiculoImportPlanner $planner, VehiculoImportApplier $applier): JsonResponse
     {
         $dealer = $request->user()->concesionaria;
         $plan = $planner->plan($dealer, $request->file('archivo')->get());
@@ -48,7 +46,7 @@ class ConcesionariaVehiculoImportController extends Controller
         }
 
         try {
-            $replaced = DB::transaction(fn () => $importer->apply($dealer, $plan));
+            $applier->apply($dealer, $plan);
         } catch (ImportConflictException $e) {
             return $this->rejected([[
                 'fila' => $e->row->fila,
@@ -56,8 +54,6 @@ class ConcesionariaVehiculoImportController extends Controller
                 'mensajes' => [VehiculoFields::PATENTE_TAKEN_MESSAGE],
             ]]);
         }
-
-        VehiculoFotos::forget($replaced);
 
         return response()->json($this->counts($plan));
     }
