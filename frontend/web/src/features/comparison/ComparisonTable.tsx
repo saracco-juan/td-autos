@@ -1,8 +1,9 @@
-import { Fragment, useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import { equipmentValue, specificationGroups, type SpecificationRow } from '@shared/vehicles/detail'
 import InfoTip from '../../components/InfoTip'
+import Tabs from '../../components/Tabs'
 import buttonStyles from '../../components/button.module.css'
 import { formatPrice } from '../inventory/format'
 import { EQUIPMENT_GROUPS } from '../inventory/matchingFields'
@@ -24,18 +25,14 @@ const score = (value: number | null) => value === null ? 'No disponible'
 
 function groups({ detail: { vehicle, dealer }, recommendation, costs }: ComparisonEntry): Group[] {
   const partial = costs.monthly.not_estimated.length > 0 ? ' (parcial)' : ''
-  const [general, ...technical] = specificationGroups(vehicle)
-  const overview = ['Año', 'Kilometraje', 'Transmisión', 'Combustible', 'Ubicación']
   return [
     { title: 'Publicación', rows: [
       { label: 'Precio publicado', value: vehicle.precio === null || vehicle.moneda === null
         ? 'No disponible' : formatPrice(vehicle.precio, vehicle.moneda) },
       { label: 'Coincidencia', value: score(recommendation.score).replace('/100', '%') },
-      ...overview.flatMap((label) => general.rows.filter((row) => row.label === label)),
       { label: 'Fuente', value: `Concesionaria verificada · ${dealer.nombre}` },
     ] },
-    { ...general, rows: general.rows.filter((row) => !overview.includes(row.label)) },
-    ...technical,
+    ...specificationGroups(vehicle),
     ...Object.entries(EQUIPMENT_GROUPS).map(([title, fields]) => ({ title,
       rows: fields.map(([key, label]) => ({ label, value: equipmentValue(vehicle[key]) })),
     })),
@@ -69,11 +66,23 @@ function Photo({ url, title }: { url: string | undefined; title: string }) {
     onError={() => setFailed(true)} /> : <div className={styles.photo}>Fotos no disponibles.</div>
 }
 
+function Facts({ rows, title }: { rows: SpecificationRow[]; title: string }) {
+  return <dl className={styles.facts} style={{ gridRow: `span ${rows.length}` }}>
+    {rows.map(({ label, value, explanation }) => <div className={styles.fact} key={label}>
+      <dt>{label}{explanation ? <> <InfoTip label={`Sobre ${label} de ${title}`}>{explanation}</InfoTip></> : null}</dt>
+      <dd>{value}</dd>
+    </div>)}
+  </dl>
+}
+
 export default function ComparisonTable({ entries, onRemove }: {
   entries: [ComparisonEntry, ComparisonEntry]; onRemove: (id: number) => void
 }) {
+  const [section, setSection] = useState('Información general')
   const columns = entries.map(groups)
-  const rowCount = 2 + columns[0].reduce((count, group) => count + 1 + group.rows.length, 0)
+  const selected = columns.map((column) => column.find(({ title }) => title === section) ?? column[1])
+  const items = columns[0].slice(1).map(({ title }) => ({ id: title, label: title }))
+  const rowCount = 5 + columns[0][0].rows.length + selected[0].rows.length
   return (
     <>
       <details className={styles.notes}>
@@ -85,23 +94,23 @@ export default function ComparisonTable({ entries, onRemove }: {
         <div className={styles.cards}>
           {entries.map(({ id, detail: { vehicle } }, columnIndex) => {
             const title = vehicleTitle(vehicle)
+            const rows = selected[columnIndex].rows
             return <article key={id} className={styles.card} aria-labelledby={`comparison-${id}`}
-              style={{ gridRow: `1 / span ${rowCount}` }}>
+              style={{ gridRow: `1 / span ${rowCount}`, '--section-rows': rows.length } as CSSProperties}>
               <Photo key={vehicle.fotos[0]?.url} url={vehicle.fotos[0]?.url} title={title} />
               <div className={styles.intro}>
                 <h2 id={`comparison-${id}`}>{title}</h2>
                 <button type="button" className={`${buttonStyles.button} ${styles.remove}`}
                   aria-label={`Quitar ${title}`} onClick={() => onRemove(id)}>QUITAR</button>
               </div>
-              {columns[columnIndex].map(({ title: groupTitle, rows }, groupIndex) => <Fragment key={groupTitle}>
-                {groupIndex > 0 ? <h3 className={styles.group}>{groupTitle}</h3> : null}
-                <dl className={styles.facts} style={{ gridRow: `span ${rows.length}` }}>
-                  {rows.map(({ label, value, explanation }) => <div className={styles.fact} key={label}>
-                    <dt>{label}{explanation ? <> <InfoTip label={`Sobre ${label} de ${title}`}>{explanation}</InfoTip></> : null}</dt>
-                    <dd>{value}</dd>
-                  </div>)}
-                </dl>
-              </Fragment>)}
+              <Facts rows={columns[columnIndex][0].rows} title={title} />
+              <section className={styles.specifications} aria-label={`Especificaciones de ${title}`}>
+                <h3>Especificaciones técnicas</h3>
+                <Tabs label={`Secciones de ${title}`} items={items} value={section} onValueChange={setSection}
+                  className={styles.sectionTabs} panelClassName={styles.sectionPanel}>
+                  {() => <Facts rows={rows} title={title} />}
+                </Tabs>
+              </section>
               <div className={styles.footer}>
                 <Link className={buttonStyles.button} to={`/vehiculos/${id}/costos`}>VER CÁLCULO COMPLETO</Link>
               </div>

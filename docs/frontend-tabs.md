@@ -23,5 +23,8 @@ Instances have unique ARIA IDs and separate roving keyboard focus. Arrow keys wr
 Home/End activate the first/last section. Synchronization never moves focus into
 the other instance. Optional `className` / `panelClassName` allow layout composition.
 
+Inactive panel content is unmounted. Keep editable field values in the parent
+form state when adopting this primitive for vehicle entry, not inside a panel.
+
 Comparison adopts this component inside each vehicle's specification section.
 The existing detail implementation and vehicle-entry form are not migrated yet.

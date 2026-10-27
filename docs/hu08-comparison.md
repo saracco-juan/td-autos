@@ -17,6 +17,10 @@ At 1280×800, 768×1024 and 375×812, the page must not scroll horizontally; the
 
 The comparison uses two separate named vehicle cards, matching High v3 photos, spacing and label/value alignment. Selection actions are compact, not full-width stacked buttons. Expand “Sobre la comparación y los costos” for estimate caveats; fact explanations remain available through their information buttons. Detailed facts and the existing calculator totals are retained below the overview.
 
+Each vehicle card contains its own tabs below “Especificaciones técnicas”, like the detail screen. Use either to compare general information, engine/consumption, safety, comfort, diagnosis factors and costs. Both panels must switch together; ArrowLeft/Right wrap and Home/End activate first/last. Keyboard focus must stay in the initiating card. The selected pair and calculator totals must not change.
+
+In recommendations, COMPARAR (QUITAR when selected) and VER FICHA must remain adjacent at desktop and mobile widths. Selecting a third still rejects it; removing one still preserves the other; VER FICHA retains its original navigation/provenance state. The vehicle-entry form and existing detail tabs are not migrated in this scope.
+
 ## Data boundaries
 
 - Only selection IDs live in the route query; current recommendations, public vehicle details and calculator GETs remain authoritative. No local storage or user-profile writes.

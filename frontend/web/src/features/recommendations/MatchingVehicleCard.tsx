@@ -35,11 +35,17 @@ export default function MatchingVehicleCard({ result, comparison }: {
         {equivalent === null ? 'Equivalente en USD no disponible.' : `Equivalente: ${formatPrice(equivalent, currency)}`}
       </p>
       <span className={styles.source}>{dealer.nombre} · {dealer.provincia}</span>
-      <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${buttonStyles.primary}`}
-        state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
-          factors: components, returnTo: `${location.pathname}${location.search}` } }}>
-        VER FICHA
-      </Link>
+      <div className={styles.actions} role="group" aria-label={`Acciones de ${title}`}>
+        {comparison ? <button type="button" className={buttonStyles.button} aria-pressed={comparison.selected}
+          aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
+          {comparison.selected ? 'QUITAR' : 'COMPARAR'}
+        </button> : null}
+        <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${buttonStyles.primary}`}
+          state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
+            factors: components, returnTo: `${location.pathname}${location.search}` } }}>
+          VER FICHA
+        </Link>
+      </div>
       {result.warnings.includes('budget_exceeded') ? (
         <p className={alertStyles.warning}>Supera tu presupuesto en {displayScore(result.budget_excess_percent)}%.</p>
       ) : null}
@@ -64,10 +70,6 @@ export default function MatchingVehicleCard({ result, comparison }: {
           <p key={group}>{group}: {fields.filter(([key]) => vehicle[key] === true).map(([, label]) => label).join(', ') || 'Ninguno de estos elementos'}</p>
         ))}
       </details>
-      {comparison ? <button type="button" className={buttonStyles.button} aria-pressed={comparison.selected}
-        aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
-        {comparison.selected ? 'QUITAR DE COMPARACIÓN' : 'SELECCIONAR PARA COMPARAR'}
-      </button> : null}
     </li>
   )
 }

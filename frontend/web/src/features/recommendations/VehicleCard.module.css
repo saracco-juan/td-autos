@@ -60,6 +60,19 @@
   overflow-wrap: anywhere;
 }
 
+.actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.actions > a,
+.actions > button {
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px;
+}
+
 .card summary {
   cursor: pointer;
   font-weight: 600;
