@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import InfoTip from '../../components/InfoTip'
@@ -128,6 +128,8 @@ function PurchaseCard({ data }: { data: OwnershipCosts }) {
 // Figma 2373:7378 "06 - Calculadora financiera", reshaped to the cost blocks decided for UH-10 (DESIGN.md).
 export default function OwnershipCostsPage() {
   const { id = '' } = useParams()
+  // The detail's recommendation context (score, return to the filtered list) goes back with "Volver a la ficha".
+  const { state: detailState } = useLocation()
   const [data, setData] = useState<OwnershipCosts | null>(null)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string>()
@@ -178,9 +180,9 @@ export default function OwnershipCostsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <Link to="/recomendaciones" className={styles.backLink}>
+        <Link to={`/vehiculos/${encodeURIComponent(id)}`} state={detailState} className={styles.backLink}>
           <span aria-hidden="true" className={styles.backIcon}>‹</span>
-          Volver a recomendaciones
+          Volver a la ficha
         </Link>
         {vehicle ? (
           <div className={styles.titleBlock}>

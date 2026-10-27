@@ -408,6 +408,22 @@
       "sessions": 0,
       "memories": 5,
       "prompts": 0
+    },
+    {
+      "id": "70592811",
+      "created_by": "Juan",
+      "created_at": "2026-10-27T01:19:25Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
+    },
+    {
+      "id": "a4cfe19b",
+      "created_by": "Juan",
+      "created_at": "2026-10-27T01:33:44Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }

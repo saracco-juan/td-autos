@@ -164,10 +164,11 @@ it('keeps a USD publication distinct from its ARS equivalent and shows its actua
   expect(screen.getByRole('img')).toHaveAttribute('src', '/demo/corolla.webp')
 })
 
-it('links each card to the cost estimate of its vehicle', async () => {
+it('leaves the cost estimate to the vehicle detail instead of the card', async () => {
   renderPage()
   const card = await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
-  expect(within(card).getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/1/costos')
+  expect(within(card).getByRole('link', { name: 'VER FICHA' })).toHaveAttribute('href', '/vehiculos/1')
+  expect(within(card).queryByRole('link', { name: 'CALCULAR COSTOS' })).not.toBeInTheDocument()
 })
 
 it('identifies inferred model families as approximate rather than exact', async () => {
