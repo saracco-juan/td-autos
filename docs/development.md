@@ -953,7 +953,7 @@ The `patente` block of `config/calculadora.php` is a CENTRAL estimate (the other
 
 - `scale` (Buenos Aires, CABA): progressive. Each bracket is `{up_to, fixed, rate}` and the tax is `fixed + rate x (value - previous up_to)`. A value equal to a limit stays in the bracket that ends there.
 - `bracket_rate` (Córdoba, Mendoza): one rate over the WHOLE value, chosen by the bracket the value falls in.
-- `body_rate[utility]`: one rate for pickups and SUVs (`utility_bodies`). Furgón, rural, sedán, hatchback and an unknown body type count as cars.
+- `body_rate[utility]`: one rate for the utility bodies: pickups and SUVs (`utility_bodies`), unless the province sets its own `body_rate[province][utility_bodies]` (Misiones: pickups only, since the validation survey shows an SUV paying the car rate). Furgón, rural, sedán, hatchback and an unknown body type count as cars.
 - `age_rate` (Santa Fe cars): one rate over the whole value by age band `{up_to_age, rate}`; an age equal to `up_to_age` stays in that band, and the last band (`null`) also covers the oldest cars.
 - `body_rate[car]` (Misiones): one rate for every non-utility body type.
 - `flat_rate` (every other province): one rate over the value. A province outside every map takes the MEDIAN flat rate.

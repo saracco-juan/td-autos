@@ -147,7 +147,8 @@ return [
     //    https://www.infozona.com.ar/?p=389634
     //  - Mendoza: Ley Impositiva 2026, one rate over the whole value by bracket.
     //    https://atm.mendoza.gov.ar/wp-content/uploads/2025/12/Ley-Impositiva-2026.pdf
-    //  - Misiones: Ley XXII N 25 (2% cars, 0.8% pickups and SUVs, cars exempt when older than 20 years) and RG 29/2025.
+    //  - Misiones: Ley XXII N 25 (2% cars, 0.8% utility vehicles, cars exempt when older than 20 years) and RG 29/2025.
+    //    Only pickups are taken as utility vehicles: the survey shows an SUV paying the car rate.
     //    https://digestomisiones.gob.ar/archivospdf/1688643175_Ley%20XXII%20-%20N%2025.pdf
     //    https://atmisiones.gob.ar/wp-content/uploads/2026/02/RG-29-2025-y-RG-Hacienda-1505-2025.pdf
     //  - Santa Fe: Ley impositiva anual, patente unica sobre vehiculos (arts. 55 a 58): cars by age (up to 5 years 2.3%,
@@ -224,10 +225,11 @@ return [
                 ['up_to_age' => null, 'rate' => 0.018],
             ],
         ],
-        // Rate by body type: `utility` for pickups and SUVs, `car` for the rest (Misiones). Santa Fe only sets the
-        // utility rate: its cars go by age.
+        // Rate by body type: `utility` for the utility bodies, `car` for the rest (Misiones). Santa Fe only sets the
+        // utility rate: its cars go by age. A province's `utility_bodies` replaces the general list: in Misiones only
+        // pickups pay the utility rate (validation survey, 2026-10: a 2018 SUV pays about 2% of its value).
         'body_rate' => [
-            'misiones' => ['car' => 0.02, 'utility' => 0.008],
+            'misiones' => ['car' => 0.02, 'utility' => 0.008, 'utility_bodies' => ['pickup']],
             'santa_fe' => ['utility' => 0.02],
         ],
         'rules' => [

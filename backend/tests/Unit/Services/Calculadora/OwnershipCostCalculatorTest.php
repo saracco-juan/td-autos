@@ -67,7 +67,7 @@ class OwnershipCostCalculatorTest extends TestCase
                     'santa_fe' => [['up_to_age' => 5, 'rate' => 0.023], ['up_to_age' => 10, 'rate' => 0.02], ['up_to_age' => null, 'rate' => 0.018]],
                 ],
                 'body_rate' => [
-                    'misiones' => ['car' => 0.02, 'utility' => 0.008],
+                    'misiones' => ['car' => 0.02, 'utility' => 0.008, 'utility_bodies' => ['pickup']],
                     'santa_fe' => ['utility' => 0.02],
                 ],
                 'utility_bodies' => ['pickup', 'suv'],
@@ -767,7 +767,7 @@ class OwnershipCostCalculatorTest extends TestCase
     {
         return [
             'pickup' => ['Pickup', 'utility', 0.008],
-            'suv' => ['SUV', 'utility', 0.008],
+            'suv is a car' => ['SUV', 'car', 0.02],
             'rural is a car' => ['Rural / familiar', 'car', 0.02],
             'hatchback' => ['Hatchback', 'car', 0.02],
             'furgon is a car' => ['Furgón', 'car', 0.02],
@@ -776,7 +776,7 @@ class OwnershipCostCalculatorTest extends TestCase
     }
 
     #[DataProvider('misionesBodies')]
-    public function test_misiones_charges_pickups_and_suvs_less(?string $body, string $kind, float $rate): void
+    public function test_misiones_charges_only_pickups_less(?string $body, string $kind, float $rate): void
     {
         $p = $this->estimate(['body_type' => $body, 'price_ars' => 20000000], 'Misiones')['breakdown']['patente'];
 

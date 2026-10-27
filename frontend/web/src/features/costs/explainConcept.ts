@@ -46,7 +46,7 @@ function patenteQualifier(patente: CostBreakdown['patente']): string {
     if (to === null) return `, por ser un auto de más de ${from - 1} años`
     return from === 0 ? `, por ser un auto de hasta ${to} años` : `, por ser un auto de más de ${from - 1} y hasta ${to} años`
   }
-  if (patente.method === 'body_rate') return patente.body_kind === 'utility' ? ', por ser una pickup o un SUV' : ', por ser un auto'
+  if (patente.method === 'body_rate') return patente.body_kind === 'utility' ? ', con la alícuota de utilitarios' : ', con la alícuota de autos'
   return ''
 }
 

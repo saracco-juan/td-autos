@@ -233,10 +233,10 @@ describe('explainConcept', () => {
     const utility = { ...base, rate: 0.008, body_kind: 'utility' as const, annual: 160000 }
     const car = { ...base, rate: 0.02, body_kind: 'car' as const, annual: 400000 }
     expect(explainConcept('patente', breakdown({ patente: utility }), 14000)).toBe(
-      'Patente en Misiones: 0,8% anual del valor del auto, por ser una pickup o un SUV, dividido 12 meses = $ 14.000 por mes.',
+      'Patente en Misiones: 0,8% anual del valor del auto, con la alícuota de utilitarios, dividido 12 meses = $ 14.000 por mes.',
     )
     expect(explainConcept('patente', breakdown({ patente: car }), 34000)).toBe(
-      'Patente en Misiones: 2% anual del valor del auto, por ser un auto, dividido 12 meses = $ 34.000 por mes.',
+      'Patente en Misiones: 2% anual del valor del auto, con la alícuota de autos, dividido 12 meses = $ 34.000 por mes.',
     )
   })
 

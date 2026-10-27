@@ -54,7 +54,7 @@ export type CostBreakdown = {
     age: number
     // age_rate only: the band the car falls in (to_age null = no upper limit); null otherwise.
     age_band: { from_age: number; to_age: number | null } | null
-    // body_rate only: whether the rate is the one of pickups and SUVs or of cars; null otherwise.
+    // body_rate only: whether the rate is the one of utility vehicles (the province's utility bodies) or of cars; null otherwise.
     body_kind: 'utility' | 'car' | null
     // The tax of the scheme, before the surcharge, the cap and the minimum.
     subtotal: number

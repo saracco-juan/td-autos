@@ -137,7 +137,7 @@ final class OwnershipCostCalculator
      * Scheme, the first that applies:
      *  - `scale`: progressive (fixed + rate x the excess over the previous limit);
      *  - `bracket_rate`: one rate over the whole value, chosen by bracket;
-     *  - `body_rate[utility]` for a pickup or SUV (`utility_bodies`);
+     *  - `body_rate[utility]` for a utility body (`utility_bodies`, or the province's own `body_rate[utility_bodies]`);
      *  - `age_rate`: one rate over the whole value, chosen by the age of the vehicle;
      *  - `body_rate[car]`: one rate for any other body type (an unknown body type is a car);
      *  - `flat_rate`: one rate. A province outside every map takes the MEDIAN flat rate (central estimate).
@@ -170,7 +170,7 @@ final class OwnershipCostCalculator
             return array_merge($result, ['method' => 'exempt', 'rate' => 0.0, 'subtotal' => 0.0, 'annual' => 0.0, 'exempt' => true]);
         }
 
-        $tax = $this->patenteScheme($base, $slug, $age, $this->isUtility($vehicle['body_type'] ?? null, $patente), $patente);
+        $tax = $this->patenteScheme($base, $slug, $age, $this->isUtility($vehicle['body_type'] ?? null, $slug, $patente), $patente);
         $annual = $tax['subtotal'] * (1 + $surcharge);
         $capApplied = $cap !== null && $annual > $base * $cap;
         if ($capApplied) {
@@ -234,10 +234,16 @@ final class OwnershipCostCalculator
         return ['method' => 'flat', 'rate' => $rate, 'province_known' => isset($patente['flat_rate'][$slug]), 'subtotal' => $base * $rate];
     }
 
-    /** @param  array<string, mixed>  $patente */
-    private function isUtility(?string $bodyName, array $patente): bool
+    /**
+     * A province's `body_rate[utility_bodies]` replaces the general `utility_bodies` list.
+     *
+     * @param  array<string, mixed>  $patente
+     */
+    private function isUtility(?string $bodyName, string $slug, array $patente): bool
     {
-        return in_array($this->bodySlug($bodyName), (array) ($patente['utility_bodies'] ?? []), true);
+        $bodies = $patente['body_rate'][$slug]['utility_bodies'] ?? $patente['utility_bodies'] ?? [];
+
+        return in_array($this->bodySlug($bodyName), (array) $bodies, true);
     }
 
     /** "Rural / familiar" and "Rural" are the same body type. */

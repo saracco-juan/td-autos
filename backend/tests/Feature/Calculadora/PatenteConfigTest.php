@@ -64,9 +64,11 @@ class PatenteConfigTest extends TestCase
         $car = $this->patente(['price_ars' => 14021500, 'anio' => 2014], 'Misiones');
         $this->assertSame(24000, $car['monthly']['patente']);
 
-        // Pickups and SUVs pay 0,8%.
+        // Only pickups pay 0,8%; an SUV pays as a car (survey: a 2018 Renegade pays about 2% of its value).
         $pickup = $this->patente(['price_ars' => 20000000, 'anio' => 2022, 'body_type' => 'Pickup'], 'Misiones');
         $this->assertEqualsWithDelta(160000.0, $pickup['breakdown']['patente']['annual'], 0.01);
+        $suv = $this->patente(['price_ars' => 25740000, 'anio' => 2018, 'body_type' => 'SUV'], 'Misiones');
+        $this->assertEqualsWithDelta(514800.0, $suv['breakdown']['patente']['annual'], 0.01);
 
         // Older than 20 years (age 21 or more) pays nothing.
         $this->assertSame(0, $this->patente(['price_ars' => 14021500, 'anio' => 2005], 'Misiones')['monthly']['patente']);
