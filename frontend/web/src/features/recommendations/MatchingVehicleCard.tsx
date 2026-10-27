@@ -10,7 +10,9 @@ import styles from './VehicleCard.module.css'
 const displayScore = (value: number) => value.toLocaleString('es-AR', { maximumFractionDigits: 1 })
 
 // High v3 Card/Vehicle (2373:7340); computation and eligibility stay in the backend.
-export default function MatchingVehicleCard({ result }: { result: Recommendation }) {
+export default function MatchingVehicleCard({ result, comparison }: {
+  result: Recommendation; comparison?: { selected: boolean; toggle: () => void }
+}) {
   const titleId = useId()
   const location = useLocation()
   const { vehicle, dealer, components } = result
@@ -33,11 +35,17 @@ export default function MatchingVehicleCard({ result }: { result: Recommendation
         {equivalent === null ? 'Equivalente en USD no disponible.' : `Equivalente: ${formatPrice(equivalent, currency)}`}
       </p>
       <span className={styles.source}>{dealer.nombre} · {dealer.provincia}</span>
-      <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${buttonStyles.primary}`}
-        state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
-          factors: components, returnTo: `${location.pathname}${location.search}` } }}>
-        VER FICHA
-      </Link>
+      <div className={styles.actions} role="group" aria-label={`Acciones de ${title}`}>
+        {comparison ? <button type="button" className={buttonStyles.button} aria-pressed={comparison.selected}
+          aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
+          {comparison.selected ? 'QUITAR' : 'COMPARAR'}
+        </button> : null}
+        <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${buttonStyles.primary}`}
+          state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
+            factors: components, returnTo: `${location.pathname}${location.search}` } }}>
+          VER FICHA
+        </Link>
+      </div>
       {result.warnings.includes('budget_exceeded') ? (
         <p className={alertStyles.warning}>Supera tu presupuesto en {displayScore(result.budget_excess_percent)}%.</p>
       ) : null}
