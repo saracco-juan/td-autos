@@ -6,7 +6,7 @@ import type { DetailContext } from './navigation'
 // context travels along so "Volver a la ficha" shows the detail as it was.
 export default function VehicleCostShortcut({ vehicleId, context }: { vehicleId: number; context: DetailContext | null }) {
   return (
-    <Link to={`/vehiculos/${vehicleId}/costos`} state={context ? { vehicleDetail: context } : undefined}
+    <Link to={`/vehiculos/${vehicleId}/costos`} state={{ vehicleDetail: context }}
       className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
       CALCULAR COSTOS
     </Link>

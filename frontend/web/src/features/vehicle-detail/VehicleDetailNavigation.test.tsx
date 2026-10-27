@@ -70,6 +70,21 @@ it('UH-10 goes from the detail to its costs and back without losing the recommen
   expect(screen.getByRole('link', { name: 'Volver a recomendados' })).toHaveAttribute('href', context.returnTo)
 })
 
+it('UH-10 goes from a detail opened directly to its costs and back to the same detail', async () => {
+  vi.mocked(apiFetch).mockImplementation(async (path) => {
+    if (String(path).startsWith('/api/vehiculos/7/costos')) throw new HttpError(503, {})
+    return { vehicle: { ...vehicle, precio: 30000000 }, dealer: recommendation.dealer }
+  })
+  mount('/vehiculos/7')
+  await userEvent.click(await screen.findByRole('link', { name: 'CALCULAR COSTOS' }))
+  const back = await screen.findByRole('link', { name: 'Volver a la ficha' })
+  expect(back).toHaveAttribute('href', '/vehiculos/7')
+  await userEvent.click(back)
+  expect(await screen.findByRole('heading', { name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
+  expect(screen.queryByText('88,5% de compatibilidad')).not.toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Volver a recomendados' })).toHaveAttribute('href', '/recomendaciones')
+})
+
 it.each([
   { ...context, listingId: 8 },
   { ...context, returnTo: 'https://example.test' },
