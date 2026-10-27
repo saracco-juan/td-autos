@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
 import { apiFetch, HttpError } from '../../lib/http'
+import OwnershipCostsPage from '../costs/OwnershipCostsPage'
 import MatchingRecommendationsPage from '../recommendations/MatchingRecommendationsPage'
 import VehicleDetailPage from './VehicleDetailPage'
 
@@ -28,6 +29,7 @@ function mount(path = context.returnTo, state?: unknown) {
     <Routes>
       <Route path="/recomendaciones" element={<MatchingRecommendationsPage />} />
       <Route path="/vehiculos/:id" element={<VehicleDetailPage />} />
+      <Route path="/vehiculos/:id/costos" element={<OwnershipCostsPage />} />
     </Routes>
   </MemoryRouter>)
 }
@@ -50,9 +52,22 @@ it('HU09 keeps VER FICHA primary, the existing costs shortcut, current facts and
   expect(back).toHaveAttribute('href', context.returnTo)
   await userEvent.click(back)
   expect(await screen.findByRole('link', { name: 'VER FICHA' })).toHaveAttribute('href', '/vehiculos/7')
-  expect(screen.getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/7/costos')
+  expect(screen.queryByRole('link', { name: 'CALCULAR COSTOS' })).not.toBeInTheDocument()
   expect(screen.getByLabelText('Ruta actual')).toHaveTextContent(context.returnTo)
   expect(screen.getByText('Mostrando 1 vehículo')).toBeInTheDocument()
+})
+
+it('UH-10 goes from the detail to its costs and back without losing the recommendation context', async () => {
+  vi.mocked(apiFetch).mockImplementation(async (path) => {
+    if (String(path).startsWith('/api/vehiculos/7/costos')) throw new HttpError(503, {})
+    return { vehicle: { ...vehicle, precio: 30000000 }, dealer: recommendation.dealer }
+  })
+  mount('/vehiculos/7', { vehicleDetail: context })
+  await userEvent.click(await screen.findByRole('link', { name: 'CALCULAR COSTOS' }))
+  expect(screen.getByLabelText('Ruta actual')).toHaveTextContent('/vehiculos/7/costos')
+  await userEvent.click(await screen.findByRole('link', { name: 'Volver a la ficha' }))
+  expect(await screen.findByText('88,5% de compatibilidad')).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Volver a recomendados' })).toHaveAttribute('href', context.returnTo)
 })
 
 it.each([
