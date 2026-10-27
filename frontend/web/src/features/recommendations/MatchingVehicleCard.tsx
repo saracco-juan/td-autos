@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import { formatKilometers, formatPrice } from '../inventory/format'
@@ -12,6 +12,7 @@ const displayScore = (value: number) => value.toLocaleString('es-AR', { maximumF
 // High v3 Card/Vehicle (2373:7340); computation and eligibility stay in the backend.
 export default function MatchingVehicleCard({ result }: { result: Recommendation }) {
   const titleId = useId()
+  const location = useLocation()
   const { vehicle, dealer, components } = result
   const title = [vehicle.marca, vehicle.modelo, vehicle.version, vehicle.anio].filter(Boolean).join(' ')
   const equivalent = result.published_currency === 'USD' ? result.price_ars : result.price_usd
@@ -32,6 +33,11 @@ export default function MatchingVehicleCard({ result }: { result: Recommendation
         {equivalent === null ? 'Equivalente en USD no disponible.' : `Equivalente: ${formatPrice(equivalent, currency)}`}
       </p>
       <span className={styles.source}>{dealer.nombre} · {dealer.provincia}</span>
+      <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${buttonStyles.primary}`}
+        state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
+          factors: components, returnTo: `${location.pathname}${location.search}` } }}>
+        VER FICHA
+      </Link>
       {result.warnings.includes('budget_exceeded') ? (
         <p className={alertStyles.warning}>Supera tu presupuesto en {displayScore(result.budget_excess_percent)}%.</p>
       ) : null}
