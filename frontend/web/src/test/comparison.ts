@@ -15,3 +15,8 @@ export const entry = (id = 7): ComparisonEntry => ({
   },
 })
 
+export const recommendation = (id = 7) => ({
+  ...entry(id).recommendation, listing_id: id, vehicle: entry(id).detail.vehicle,
+  published_price: 28900000, published_currency: 'ARS', price_ars: 28900000, price_usd: null,
+  budget_penalty: 0, dealer: entry(id).detail.dealer,
+})

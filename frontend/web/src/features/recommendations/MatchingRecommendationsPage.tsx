@@ -10,6 +10,8 @@ import ScrollArea from '../../components/ScrollArea'
 import screenStyles from '../../components/screen.module.css'
 import { NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
+import ComparisonControls from '../comparison/ComparisonControls'
+import { useComparisonSelection } from '../comparison/useComparisonSelection'
 import { formatPrice } from '../inventory/format'
 import { fetchRecommendations, type RecommendationsResponse } from './matching'
 import MatchingVehicleCard from './MatchingVehicleCard'
@@ -34,6 +36,7 @@ export default function MatchingRecommendationsPage() {
   const [attempt, setAttempt] = useState(0)
   const [page, setPage] = useState(1)
   const { filters, applyFilters } = useRecommendationFilters()
+  const comparison = useComparisonSelection()
   useEffect(() => {
     let active = true
     fetchRecommendations()
@@ -60,6 +63,7 @@ export default function MatchingRecommendationsPage() {
           {response?.status === 'ready' ? (
             <p className={styles.subtitle}>Mostrando {results.length} {results.length === 1 ? 'vehículo' : 'vehículos'}</p>
           ) : null}
+          {response?.status === 'ready' ? <ComparisonControls selection={comparison} /> : null}
         </div>
         <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.adjust}`}>
           AJUSTAR DIAGNÓSTICO
@@ -106,7 +110,9 @@ export default function MatchingRecommendationsPage() {
             <ScrollArea key={page} label="Recomendaciones" fill className={styles.filteredFrame} viewportClassName={styles.gridArea}>
               <ul className={styles.grid} aria-label="Recomendaciones">
                 {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
-                  <MatchingVehicleCard key={result.listing_id} result={result} />
+                  <MatchingVehicleCard key={result.listing_id} result={result} comparison={{
+                    selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
+                  }} />
                 ))}
               </ul>
             </ScrollArea>

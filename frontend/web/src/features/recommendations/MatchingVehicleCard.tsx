@@ -10,7 +10,9 @@ import styles from './VehicleCard.module.css'
 const displayScore = (value: number) => value.toLocaleString('es-AR', { maximumFractionDigits: 1 })
 
 // High v3 Card/Vehicle (2373:7340); computation and eligibility stay in the backend.
-export default function MatchingVehicleCard({ result }: { result: Recommendation }) {
+export default function MatchingVehicleCard({ result, comparison }: {
+  result: Recommendation; comparison?: { selected: boolean; toggle: () => void }
+}) {
   const titleId = useId()
   const location = useLocation()
   const { vehicle, dealer, components } = result
@@ -62,6 +64,10 @@ export default function MatchingVehicleCard({ result }: { result: Recommendation
           <p key={group}>{group}: {fields.filter(([key]) => vehicle[key] === true).map(([, label]) => label).join(', ') || 'Ninguno de estos elementos'}</p>
         ))}
       </details>
+      {comparison ? <button type="button" className={buttonStyles.button} aria-pressed={comparison.selected}
+        aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
+        {comparison.selected ? 'QUITAR DE COMPARACIÓN' : 'SELECCIONAR PARA COMPARAR'}
+      </button> : null}
     </li>
   )
 }

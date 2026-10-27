@@ -19,3 +19,10 @@
   min-height: 0;
   outline: none;
 }
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
