@@ -1,0 +1,26 @@
+# HU08 vehicle comparison
+Objective: implement RF07/CU-07, TC-23/24/25/76 without ArgAutos, reusing HU10 costs. Baseline: `d91f2e3`.
+Integration: `feature/uh-8-comparacion-vehiculos`; strategy: local feature-branch-chain, no publication. Forecast: 900 authored lines; hard limit: 400 additions + deletions per commit. Runner: web Vitest, lint, build; duplication check and browser QA at closure.
+
+## Specs
+- S1 — User: «Dale, seguí con HU08 en una branch desde develop, sin ArgAutos y reutilizando los costos de la calculadora. Cumplí los test cases y mantené los commits con un máximo de 400 líneas.» Only web implementation; no calculator internals, ArgAutos, mobile lockfile, push, PR or merge.
+- S2 — Trello: «el usuario seleccionó exactamente dos vehículos»; «el sistema muestra lado a lado las especificaciones, ventajas y costos de ambos». RF07/CU-07, TC-23. Start from recommended vehicles; reuse public detail and costs GETs, not formulas.
+- S3 — Trello: «el sistema impide la selección e informa que la comparación admite exactamente dos vehículos». TC-24: a third does not replace either selected vehicle.
+- S4 — Trello: «el sistema solicita completar o corregir la selección y no muestra la comparación». TC-76: fewer than two never render a comparison table.
+- S5 — Trello: «el sistema actualiza la vista quitando ese vehículo y solicita seleccionar otro para completar la comparación». TC-25: removal preserves the other selection and supports replacement.
+- S6 — User approved advantages as compatibility reasons with buyer diagnosis, not an absolute winner: «Si. Ahora eso de arg autos dejado de lado.» Use existing matching factors; never invent a winner or missing values.
+- S7 — User: «Por commit fijate si amerita revision de rdd o no»; «Dale, hagamos la cadena integrada de HU08 antes de llevarla a develop, todo local por ahora. Máximo 400 líneas por commit y evaluá RDD en cada uno.» Native assess on each commit; consent remains candidate-scoped.
+- S8 — High v3 comparison web `2373:7368`, mobile `2373:10014`: two parallel white cards, photos, aligned facts, source and compatibility. Extend with required costs, factors and selection states; record differences, request approval before Figma edits. Browser widths: 1280, 768, 375.
+
+## Tasks
+- T1 | S2-S5,S7 | inline (understood pure shared selection rules, no writer trigger) | verified | child `feature/uh-8-comparacion-1-selection`; missing-module RED, 27 focused/regression tests GREEN; lint/build pass; commit recorded next.
+- T2 | S2,S6,S8 | inline (one presentation behavior, no independent parallel writer unit) | pending | child `feature/uh-8-comparacion-2-table`; costs and factual comparison with component tests.
+- T3 | S1-S8 | inline (navigation/selection and current-data integration depend on T1/T2) | pending | child `feature/uh-8-comparacion-3-web`; TC public UI tests; split coherently if >400.
+- T4 | S1-S8 | inline checks; long suite delegated per action | pending | final full checks, responsive QA, local integration fast-forward, Figma approval handoff.
+
+## Log
+- L1 (2026-10-27): Original request: «Revisa la card de trello HU08-WEB:[RF07] Comparación de vehículos Ficha detallada del vehículo, el comentario es xq mi compañero esta desarrollando la calculadora... Revisa los requerimientos y los test cases(hay que cumplirlos) Hay que desarrollar esta funcionalidad, busca en el figma como esta hecha visualmente para que quede similar. Iteremos la idea una vez hayas realizado esos 3 pasos anteriores, luego implementamos en una branch con ls convenciones que venimos llevando y con 400 lineas de commits top».
+- L2: Subsequent authorizations are quoted in S1/S6/S7. Engram registration repaired and save/readback #2497 confirmed before implementation. Sources reread by explorer; parent inspected comparison design context/screenshot and data seams. No conflicting requirement: removal updates selection AND asks for replacement.
+- L3: Branch starts from cached `origin/develop` d91f2e3, which contains merged HU09 and HU10. Stale local develop was not used. Dirty `frontend/mobile/package-lock.json` preserved. RDD mode on globally. No fetch/publish, no DB or credentials.
+- L4: Shared URL selection keeps only IDs, preserving recommendation filters; live recommendations and vehicle detail remain authoritative, costs come from existing `fetchCosts` with diagnostic/default inputs. No persisted buyer state or calculator modifications.
+- L5: T1 observed RED (missing selection module after sandbox EPERM) then 27 shared selection/filter tests GREEN; web lint/build passed with existing PostCSS/chunk warnings. Risk: none (new isolated helpers). Runtime boundary N/A until web wiring; rollback is the comparison helper/tests only. No existing helper was changed; no differential behavior to test in this unit.
