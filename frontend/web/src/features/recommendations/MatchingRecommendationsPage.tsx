@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { filterRecommendations } from '@shared/recommendations/filters'
+import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
+import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
@@ -12,7 +14,6 @@ import { NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import ComparisonControls from '../comparison/ComparisonControls'
 import { useComparisonSelection } from '../comparison/useComparisonSelection'
-import { formatPrice } from '../inventory/format'
 import { fetchRecommendations, type RecommendationsResponse } from './matching'
 import MatchingVehicleCard from './MatchingVehicleCard'
 import RecommendationFilters from './RecommendationFilters'
@@ -23,12 +24,6 @@ type View =
   | { status: 'loading' }
   | { status: 'error'; kind: ErrorKind }
   | { status: 'ready'; response: RecommendationsResponse }
-const PER_PAGE = 9
-const MESSAGES = {
-  diagnosis_incomplete: 'Completá tu diagnóstico para ver recomendaciones.',
-  resale_pending: 'Las recomendaciones por reventa todavía no están disponibles.',
-  ready: 'No encontramos vehículos que coincidan con tu diagnóstico.',
-}
 
 // High v3 2373:7641; HU07 refines the existing matching results, not a separate catalog.
 export default function MatchingRecommendationsPage() {
@@ -52,8 +47,8 @@ export default function MatchingRecommendationsPage() {
   const response = view.status === 'ready' ? view.response : null
   const results = filterRecommendations(response?.results ?? [], filters)
   const hasFilters = Object.keys(filters).length > 0
-  const exchange = response?.exchange_rate
-  const quote = exchange?.quote
+  const notice = exchangeRateNotice(response?.exchange_rate)
+  const empty = response ? emptyStateCopy(response.status, hasFilters) : null
   return (
     <div className={`${styles.page} ${styles.filterPage}`}>
       <div className={styles.headerRow}>
@@ -61,7 +56,7 @@ export default function MatchingRecommendationsPage() {
           <p className={screenStyles.eyebrow}>AUTOS RECOMENDADOS</p>
           <h1 className={styles.title}>Mejores opciones para vos</h1>
           {response?.status === 'ready' ? (
-            <p className={styles.subtitle}>Mostrando {results.length} {results.length === 1 ? 'vehículo' : 'vehículos'}</p>
+            <p className={styles.subtitle}>{vehicleCount(results.length)}</p>
           ) : null}
           {response?.status === 'ready' ? <ComparisonControls selection={comparison} /> : null}
         </div>
@@ -85,24 +80,14 @@ export default function MatchingRecommendationsPage() {
         ) : null}
         {response?.status === 'ready' ? (
           <div className={styles.subtitle}>
-            {quote ? (
-              <p>Dólar oficial venta · {quote.source} · {formatPrice(quote.sell)} · {new Date(quote.updated_at).toLocaleString('es-AR')}</p>
-            ) : null}
-            {!quote || exchange?.stale ? (
-              <p role="status" className={alertStyles.warning}>
-                {quote ? 'Última cotización disponible: no se pudo actualizar.'
-                  : 'Sin cotización disponible: solo evaluamos precios publicados en pesos, sin equivalente en dólares.'}
-              </p>
-            ) : null}
+            {notice.summary ? <p>{notice.summary}</p> : null}
+            {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
           </div>
         ) : null}
-        {response && results.length === 0 ? (
+        {empty && results.length === 0 ? (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle} role="status">{hasFilters && response.status === 'ready'
-              ? 'No encontramos vehículos que cumplan estos filtros.' : MESSAGES[response.status]}</p>
-            <p className={styles.emptyHint}>{hasFilters && response.status === 'ready'
-              ? 'Quitá o limpiá los filtros para volver a ver tus recomendaciones.'
-              : 'Ajustá el diagnóstico para buscar otras opciones.'}</p>
+            <p className={styles.emptyTitle} role="status">{empty.title}</p>
+            <p className={styles.emptyHint}>{empty.hint}</p>
           </div>
         ) : null}
         {results.length > 0 ? (
