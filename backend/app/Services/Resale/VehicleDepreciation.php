@@ -18,7 +18,7 @@ final class VehicleDepreciation
     public function forVehicle(int $id): ?array
     {
         $dealers = $this->lifecycle->operativeDealerIds(now());
-        $vehicle = Vehiculo::query()->whereKey($id)
+        $vehicle = Vehiculo::query()->with('tipoCarroceria')->whereKey($id)
             ->where('origen', VehiculoOptions::ORIGEN_CONCESIONARIA)
             ->whereHas('propiedad', fn ($query) => $query->where('visible', true)
                 ->whereIn('concesionaria_id', $dealers))->first();
