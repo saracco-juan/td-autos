@@ -7,7 +7,7 @@ import {
   warningMessages,
 } from '@shared/recommendations/format'
 import { formatKilometers, formatPrice } from '../inventory/format'
-import { EQUIPMENT_GROUPS } from '../inventory/matchingFields'
+import { EQUIPMENT_GROUPS } from '@shared/vehicles/equipment'
 import type { Recommendation } from './matching'
 import styles from './VehicleCard.module.css'
 

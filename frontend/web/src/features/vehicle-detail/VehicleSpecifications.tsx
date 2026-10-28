@@ -1,21 +1,12 @@
 import { useId } from 'react'
-import { equipmentValue, specificationGroups } from '@shared/vehicles/detail'
-import { EQUIPMENT_EXPLANATIONS } from '@shared/vehicles/equipment'
+import { detailSections } from '@shared/vehicles/detail'
 import Tabs from '../../components/Tabs'
-import { EQUIPMENT_GROUPS } from '../inventory/matchingFields'
 import type { BuyerVehicle } from './types'
 import styles from './VehicleSpecifications.module.css'
 
 export default function VehicleSpecifications({ vehicle }: { vehicle: BuyerVehicle }) {
   const id = useId()
-  const groups = [
-    ...specificationGroups(vehicle),
-    ...Object.entries(EQUIPMENT_GROUPS).map(([title, fields]) => ({
-      title,
-      rows: fields.map(([key, label]) => ({ label, value: equipmentValue(vehicle[key]),
-        explanation: EQUIPMENT_EXPLANATIONS[key] })),
-    })),
-  ]
+  const groups = detailSections(vehicle)
 
   return (
     <section className={styles.card} aria-labelledby={`${id}-heading`}>

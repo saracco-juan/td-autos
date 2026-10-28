@@ -6,21 +6,22 @@ import { BACK_TO_SHEET, EYEBROW, reviewedCounter } from '@shared/checklist/inspe
 import { colors, radii } from '../../theme/tokens'
 
 type Props = {
+  vehicleId: number
   title: string
   completed: number
   total: number
 }
 
-// "Volver a la ficha": the vehicle sheet (HU09-MOBILE) does not exist yet, so it goes back to wherever the user
-// came from, or to the home tab when the screen was opened by a deep link.
-export function useBackToSheet() {
+// "Volver a la ficha": opens the sheet of this vehicle. Not `router.back()`: the tabs navigator goes back to its first
+// tab, not to the previous screen, so the target is explicit (it also covers a deep link into the checklist).
+export function useBackToSheet(vehicleId: number) {
   const router = useRouter()
-  return () => (router.canGoBack() ? router.back() : router.replace('/'))
+  return () => router.navigate(`/vehiculos/${vehicleId}`)
 }
 
 // Shared by the checklist and the summary (Figma 07 / 07c): back link, eyebrow, vehicle title and counter.
-export default function InspectionHeader({ title, completed, total }: Readonly<Props>) {
-  const goBack = useBackToSheet()
+export default function InspectionHeader({ vehicleId, title, completed, total }: Readonly<Props>) {
+  const goBack = useBackToSheet(vehicleId)
 
   return (
     <View style={styles.header}>

@@ -67,3 +67,13 @@ The detail always fetches current vehicle facts; recommendation context never
 replaces an unavailable response. Compatibility is labelled as the entry snapshot,
 not a new calculation. Direct entry does not invent a profile match. Invalid or
 mismatched context is ignored. The back link restores applied filters.
+
+## Mobile
+
+The native app shows the same sheet (`frontend/mobile/src/features/vehicle-detail`)
+with the shared sections and copy. Open it from `Recomendados` with `VER FICHA`
+on a card, or with the deep link `tdautos://vehiculos/<id>`. It shows the cover and
+thumbnails, price, dealer and the four specification tabs; its only action is
+`CHECKLIST DE INSPECCIÓN`, and "Volver a la ficha" in the checklist returns to it.
+`VER PUBLICACIÓN`, `CALCULAR COSTOS`, `COMPARAR` and the compatibility snapshot are
+not shown on mobile.

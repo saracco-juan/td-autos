@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor, within } from 'expo-router/testing-library'
 import * as authApi from '../../../features/auth/api'
 import * as diagnosisApi from '../../../features/diagnosis/api'
 import * as recommendationsApi from '../../../features/recommendations/api'
+import * as vehicleDetailApi from '../../../features/vehicle-detail/api'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import { renderApp } from '../../../test-utils/renderApp'
@@ -12,6 +13,7 @@ import { ready, recommendation } from '../../../test-utils/recommendations'
 jest.mock('../../../features/auth/api')
 jest.mock('../../../features/diagnosis/api')
 jest.mock('../../../features/recommendations/api')
+jest.mock('../../../features/vehicle-detail/api')
 jest.mock('../../../lib/tokenStorage')
 
 const auth = jest.mocked(authApi)
@@ -45,6 +47,7 @@ describe('RecommendationsScreen', () => {
     storage.readToken.mockResolvedValue('tok')
     auth.fetchCurrentUser.mockResolvedValue(USER)
     diagnosis.fetchDiagnosis.mockReturnValue(new Promise(() => {}))
+    jest.mocked(vehicleDetailApi).fetchVehicleDetail.mockReturnValue(new Promise(() => {}))
   })
 
   it('shows a local loader while the ranking loads', async () => {
@@ -73,9 +76,9 @@ describe('RecommendationsScreen', () => {
     expect(first.getByText('Autos Sur · Buenos Aires')).toBeOnTheScreen()
     expect(within(cards()[1]).queryByText('MEJOR COINCIDENCIA')).not.toBeOnTheScreen()
     expect(screen.getByText(/^Dólar oficial venta · DolarAPI · \$ 1\.000/)).toBeOnTheScreen()
-    // Detail and comparison do not exist on mobile yet.
+    // The comparison does not exist on mobile yet; the sheet does.
     expect(screen.queryByText('COMPARAR')).not.toBeOnTheScreen()
-    expect(screen.queryByText('VER FICHA')).not.toBeOnTheScreen()
+    expect(first.getByRole('button', { name: 'VER FICHA' })).toBeOnTheScreen()
     expect(api.fetchRecommendations).toHaveBeenCalledTimes(1)
   })
 
@@ -230,5 +233,16 @@ describe('RecommendationsScreen', () => {
 
     await fireEvent.press(screen.getAllByRole('button', { name: 'LIMPIAR FILTROS' })[0])
     expect(screen.getByText('Mostrando 3 vehículos')).toBeOnTheScreen()
+  })
+
+  it('S4: VER FICHA opens the sheet of that listing and the back chip returns to the recommendations', async () => {
+    const view = await open(ready(THREE))
+    await screen.findByText('Mostrando 3 vehículos')
+
+    await fireEvent.press(within(cards()[1]).getByRole('button', { name: 'VER FICHA' }))
+
+    await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/2'))
+    await fireEvent.press(await screen.findByRole('link', { name: 'Volver a recomendados' }))
+    await waitFor(() => expect(view.getPathname()).toBe('/recomendados'))
   })
 })

@@ -1,32 +1,5 @@
-export const EQUIPMENT_GROUPS = {
-  Seguridad: [
-    ['control_estabilidad', 'Control de estabilidad'],
-    ['frenos_abs', 'Frenos ABS'],
-    ['airbags_frontales', 'Airbags para conductor y acompañante'],
-    ['airbags_laterales', 'Airbags laterales'],
-    ['airbags_cortina', 'Airbags de cortina'],
-    ['isofix', 'Anclajes ISOFIX'],
-    ['frenado_autonomo', 'Frenado autónomo de emergencia'],
-    ['asistencia_carril', 'Alerta o asistencia de carril'],
-    ['punto_ciego', 'Alerta de punto ciego'],
-    ['recordatorio_cinturon', 'Recordatorio de cinturón'],
-    ['asistencia_velocidad', 'Asistencia de velocidad (extra)'],
-    ['monitoreo_conductor', 'Monitoreo del conductor (extra)'],
-  ],
-  Confort: [
-    ['volante_regulable', 'Volante regulable en altura y profundidad'],
-    ['climatizador_bizona', 'Climatizador bizona'],
-    ['butacas_calefaccionadas', 'Butacas calefaccionadas'],
-    ['android_auto_apple_carplay', 'Android Auto o Apple CarPlay'],
-    ['sensores_estacionamiento', 'Sensores de estacionamiento'],
-    ['velocidad_crucero', 'Velocidad crucero'],
-    ['camara_retroceso', 'Cámara de retroceso'],
-    ['aire_acondicionado', 'Aire acondicionado o climatizador'],
-  ],
-} as const
+import { EQUIPMENT_FIELDS, type EquipmentField } from '@shared/vehicles/equipment'
 
-export const EQUIPMENT_FIELDS = Object.values(EQUIPMENT_GROUPS).flat()
-export type EquipmentField = (typeof EQUIPMENT_FIELDS)[number][0]
 export type MatchingFacts = Record<EquipmentField, boolean | null> & {
   moneda: 'ARS' | 'USD'
   plazas: number | null
