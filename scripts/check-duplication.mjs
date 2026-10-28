@@ -90,13 +90,14 @@ const touching = []
 for (const clone of clones()) {
   let hit = false
   for (const fragment of [clone.firstFile, clone.secondFile]) {
-    const lines = changed.get(fragment.name)
+    const name = fragment.name.replaceAll('\\', '/') // jscpd reports backslashes on Windows
+    const lines = changed.get(name)
     if (!lines) continue
     for (let n = fragment.start; n <= fragment.end; n += 1) {
       if (!lines.has(n)) continue
       hit = true
-      if (!duplicated.has(fragment.name)) duplicated.set(fragment.name, new Set())
-      duplicated.get(fragment.name).add(n)
+      if (!duplicated.has(name)) duplicated.set(name, new Set())
+      duplicated.get(name).add(n)
     }
   }
   if (hit) touching.push(clone)
