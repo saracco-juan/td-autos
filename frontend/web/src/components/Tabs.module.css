@@ -43,3 +43,42 @@
   outline: 3px solid var(--border-input);
   outline-offset: 2px;
 }
+
+/* Compact text tabs on a hairline (HU06 recommendations): left aligned at content width, the active one bold with
+   a 2 px underline in the action color. The boxed look above stays the default for the other screens. */
+.tabs[data-variant='underline'] {
+  flex-wrap: wrap;
+  gap: 0 24px;
+  margin: 12px 0 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.tabs[data-variant='underline'] .tab {
+  flex: none;
+  padding: 10px 2px 12px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.tabs[data-variant='underline'] .tab:hover {
+  background: none;
+  color: var(--text-primary);
+}
+
+.tabs[data-variant='underline'] .tab[aria-selected='true'] {
+  border-bottom-color: var(--action-primary);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.tabs[data-variant='underline'] .tab:focus-visible {
+  outline-offset: -2px;
+  border-radius: 6px;
+}

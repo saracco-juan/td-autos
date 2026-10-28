@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { OTHER_PORTALS_TAB, portalTabLabel } from '@shared/portals/format'
+import { OTHER_PORTALS_TAB, portalCountLabel, portalTabLabel } from '@shared/portals/format'
 import { filterRecommendations } from '@shared/recommendations/filters'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
 import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
@@ -52,25 +52,30 @@ export default function MatchingRecommendationsPage() {
     { id: PORTALS_TAB, label: portalCount === null ? OTHER_PORTALS_TAB : portalTabLabel(portalCount) },
   ]
 
+  const activeTab = chosenTab ?? (firstLoadEmpty ? PORTALS_TAB : DEALERS_TAB)
+  // The count of the active tab, once its list is known; nothing while loading or on error.
+  const subtitle = activeTab === PORTALS_TAB
+    ? (portalCount === null ? null : portalCountLabel(portalCount))
+    : (response?.status === 'ready' ? vehicleCount(results.length) : null)
+
   const dealersPanel = (
     <div className={styles.dealersLayout}>
       {response?.status === 'ready' ? (
-        <div className={`${styles.header} ${styles.summary}`}>
-          <p className={styles.subtitle}>{vehicleCount(results.length)}</p>
-          <ComparisonControls selection={comparison} />
+        <div className={styles.toolbar} role="toolbar" aria-label="Filtros y comparación">
+          <RecommendationFilters value={filters} onChange={(next) => {
+            applyFilters(next)
+            setPage(1)
+          }} />
+          <div className={styles.comparison}>
+            <ComparisonControls selection={comparison} />
+          </div>
         </div>
-      ) : null}
-      {response?.status === 'ready' ? (
-        <RecommendationFilters value={filters} onChange={(next) => {
-          applyFilters(next)
-          setPage(1)
-        }} />
       ) : null}
       <section className={styles.results} aria-label="Resultados">
         {view.status === 'loading' ? <SessionLoading /> : null}
         {view.status === 'error' ? <ErrorState kind={view.kind} onRetry={retry} /> : null}
         {response?.status === 'ready' ? (
-          <div className={styles.subtitle}>
+          <div className={styles.notice}>
             {notice.summary ? <p>{notice.summary}</p> : null}
             {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
           </div>
@@ -109,12 +114,13 @@ export default function MatchingRecommendationsPage() {
         <div className={styles.header}>
           <p className={screenStyles.eyebrow}>AUTOS RECOMENDADOS</p>
           <h1 className={styles.title}>Mejores opciones para vos</h1>
+          {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
         </div>
         <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.adjust}`}>
           AJUSTAR DIAGNÓSTICO
         </Link>
       </div>
-      <Tabs label="Fuentes de recomendaciones" items={tabs} value={chosenTab ?? (firstLoadEmpty ? PORTALS_TAB : DEALERS_TAB)}
+      <Tabs label="Fuentes de recomendaciones" items={tabs} value={activeTab} variant="underline"
         onValueChange={setChosenTab} panelClassName={styles.tabPanel}>
         {(id) => id === PORTALS_TAB ? <PortalModelsPanel view={portals.view} onRetry={portals.retry} /> : dealersPanel}
       </Tabs>

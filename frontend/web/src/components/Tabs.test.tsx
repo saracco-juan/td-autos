@@ -54,3 +54,11 @@ it('supports synchronized controlled instances without moving focus to the other
   expect(screen.getAllByRole('tab', { name: 'General', selected: true })).toHaveLength(2)
   expect(screen.getAllByRole('tabpanel', { name: 'General' })).toHaveLength(2)
 })
+
+it('keeps the boxed look by default and only the underline variant is flagged', () => {
+  const { unmount } = mount()
+  expect(screen.getByRole('tablist')).not.toHaveAttribute('data-variant')
+  unmount()
+  render(<Tabs label="Example sections" items={items} variant="underline">{(id) => <p>{id}</p>}</Tabs>)
+  expect(screen.getByRole('tablist')).toHaveAttribute('data-variant', 'underline')
+})

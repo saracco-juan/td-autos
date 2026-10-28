@@ -8,13 +8,15 @@ type TabsProps = {
   children: (id: string) => ReactNode
   className?: string
   panelClassName?: string
+  /** 'underline': compact text tabs on a hairline, left aligned; the default keeps the boxed look. */
+  variant?: 'underline'
 } & ({ value: string; onValueChange: (value: string) => void } | {
   value?: never
   onValueChange?: never
 })
 
 /** Automatically activates tabs on arrow navigation, matching the vehicle-detail pattern. */
-export default function Tabs({ label, items, children, value, onValueChange, className = '', panelClassName = '' }: TabsProps) {
+export default function Tabs({ label, items, children, value, onValueChange, className = '', panelClassName = '', variant }: TabsProps) {
   const id = useId()
   const [selected, setSelected] = useState(0)
   const buttons = useRef<(HTMLButtonElement | null)[]>([])
@@ -38,7 +40,7 @@ export default function Tabs({ label, items, children, value, onValueChange, cla
   }
 
   return <div className={`${styles.root} ${className}`}>
-    <div className={styles.tabs} role="tablist" aria-label={label}>
+    <div className={styles.tabs} role="tablist" aria-label={label} data-variant={variant}>
       {items.map((item, index) => <button key={item.id} type="button" role="tab"
         id={`${id}-tab-${index}`} aria-controls={`${id}-panel`} aria-selected={active === index}
         tabIndex={active === index ? 0 : -1} className={styles.tab}
