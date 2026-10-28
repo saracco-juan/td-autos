@@ -13,27 +13,40 @@
   padding-top: 16px;
 }
 
-/* HU07 keeps the existing header/grid and adds the High v3 filter sidebar. */
+/* HU07 keeps the existing header/grid and adds the High v3 filter sidebar (inside the dealers tab, HU06). */
 .filterPage {
-  display: grid;
   /* The real shell has min-height, not a fixed height: sidebar content must not size the page. */
   contain: size;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  column-gap: 24px;
 }
 
-.filterPage > .headerRow {
+.tabPanel {
+  min-width: 0;
+}
+
+.dealersLayout {
+  display: grid;
+  flex: 1;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  column-gap: 24px;
+  row-gap: 12px;
+}
+
+.dealersLayout > .summary {
   grid-column: 1 / -1;
 }
 
-.filterPage > .results {
+.dealersLayout > .results {
   grid-column: 2;
+  grid-row: 2;
   min-width: 0;
   min-height: 0;
 }
 
-.filterPage > aside {
+.dealersLayout > aside {
+  grid-column: 1;
+  grid-row: 2;
   min-height: 0;
   overflow: auto;
   scrollbar-width: thin;
@@ -44,11 +57,12 @@
 }
 
 @media (max-width: 800px) {
-  .filterPage {
+  .dealersLayout {
     display: flex;
+    flex-direction: column;
   }
 
-  .filterPage > aside {
+  .dealersLayout > aside {
     max-height: 45dvh;
   }
 }

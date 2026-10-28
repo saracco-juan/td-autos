@@ -11,6 +11,7 @@ vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), ap
 beforeEach(() => {
   vi.mocked(apiFetch).mockReset().mockImplementation(async (path) => {
     if (path === '/api/recomendaciones') return { status: 'ready', results: [7, 8, 9].map(recommendation), exchange_rate: null }
+    if (path === '/api/recomendaciones/modelos') return { status: 'ready', modelos: [], fuente_precios: null }
     const id = Number(path.split('/')[3])
     return path.endsWith('/costos') ? entry(id).costs : entry(id).detail
   })
@@ -59,7 +60,8 @@ it('HU08 TC-76 requests completion for zero or one selection without leaving rec
   await select(0)
   await userEvent.click(screen.getByRole('button', { name: 'COMPARAR' }))
   expect(screen.queryByRole('region', { name: 'Comparación de vehículos' })).not.toBeInTheDocument()
-  expect(apiFetch).toHaveBeenCalledTimes(1)
+  // Only the two recommendation lists (dealers and portals), never a comparison request.
+  expect(apiFetch).toHaveBeenCalledTimes(2)
 })
 
 it('HU08 TC-25 removes either selected vehicle, preserves filters and permits replacement', async () => {

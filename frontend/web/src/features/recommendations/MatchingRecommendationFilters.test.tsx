@@ -19,10 +19,14 @@ const results = Array.from({ length: 10 }, (_, i) => result(10 - i))
 const renderPage = (entry = '/recomendados') => render(
   <MemoryRouter initialEntries={[entry]}><MatchingRecommendationsPage /></MemoryRouter>,
 )
+// HU06: the page also requests the portal models; these tests only care about the dealers endpoint.
+const dealers = { status: 'ready', results, exchange_rate: {
+  quote: { sell: 1000, source: 'Fixture', updated_at: '2026-10-26T10:00:00Z' }, stale: false, warning: null,
+} }
+const dealerCalls = () => vi.mocked(apiFetch).mock.calls.filter(([path]) => path === '/api/recomendaciones').length
 beforeEach(() => {
-  vi.mocked(apiFetch).mockReset().mockResolvedValue({ status: 'ready', results, exchange_rate: {
-    quote: { sell: 1000, source: 'Fixture', updated_at: '2026-10-26T10:00:00Z' }, stale: false, warning: null,
-  } })
+  vi.mocked(apiFetch).mockReset().mockImplementation(async (path) => (path === '/api/recomendaciones/modelos'
+    ? { status: 'ready', modelos: [], fuente_precios: null } : dealers) as never)
 })
 
 it('HU07 TC-21 applies all criteria to the complete set before paging, retaining matching and ARS prices', async () => {
@@ -44,7 +48,7 @@ it('HU07 TC-21 applies all criteria to the complete set before paging, retaining
   await user.click(screen.getByRole('button', { name: 'Quitar Hasta $ 5.000.000' }))
   expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
   expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('Toyota Auto 10 2020')
-  expect(apiFetch).toHaveBeenCalledTimes(1)
+  expect(dealerCalls()).toBe(1)
   expect(apiFetch).toHaveBeenCalledWith('/api/recomendaciones')
 })
 
@@ -60,7 +64,7 @@ it('HU07 TC-22 keeps filters and diagnosis intact on empty matches and clears im
   expect(screen.queryByRole('list', { name: 'Recomendaciones' })).not.toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'LIMPIAR FILTROS' }))
   expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
-  expect(apiFetch).toHaveBeenCalledTimes(1)
+  expect(dealerCalls()).toBe(1)
 })
 
 it('HU07 restores applied filters after real router navigation and Back, without adding a HU09 screen', async () => {

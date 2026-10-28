@@ -127,6 +127,23 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Figma updated with explicit user authorization and placement correction: desktop `2373:7368` and mobile `2373:10014` now contain two inside-card tablists and five additional editable section states per platform. Clicking either card's tabs navigates to a state with both cards synchronized. The rejected external tab bar is gone. Additional sample fields use explicit unavailable/diagnosis placeholders, not invented specifications or calculator amounts. Existing detail/form designs remain untouched. Selection/removal and incomplete/error-state design synchronization remains outside this tabs update.
 - Recommendation actions follow existing High v3 `2373:6982`: COMPARAR (QUITAR when selected) and VER FICHA share one row. Preserve detail provenance/navigation state and selection semantics; the long selection text is replaced by compact labels with descriptive accessible names.
 
+## HU06 portals tab (2026-10-28)
+
+User-approved design for `Recomendados` on web; types, copy and formatters live in `frontend/shared/portals` (mobile consumes them later).
+
+- Two tabs with the reusable `components/Tabs` (controlled): "Concesionarias" (filters, 3 x 3 grid, pager and comparison controls, unchanged) and "Otros portales", which shows the count once loaded ("Otros portales · 8 modelos", "· 1 modelo"). The page opens on "Concesionarias", or on "Otros portales" when the first dealers load comes back empty; it never switches tabs on its own afterwards. Filters, "Mostrando N vehículos" and the comparison controls belong to the dealers tab only.
+- `GET /api/recomendaciones/modelos` loads in parallel with the dealers list and has its own state: a local centered loader inside the panel, the shared `ErrorState` with a retry that requests only this endpoint, and the dealers copy and AJUSTAR DIAGNÓSTICO link for an incomplete diagnosis. A failure never affects the dealers tab.
+- Panel: the line "Estos modelos encajan con tu diagnóstico. Te llevamos al portal con la búsqueda ya armada." above the grid, and below it "Precios de referencia: Guía de precios ACARA, 19/10/2026" plus the dealers exchange-rate notice when the API sends `exchange_rate`. Empty list: "No encontramos modelos para tu diagnóstico." / "Probá ajustando el presupuesto o la carrocería." (AJUSTAR DIAGNÓSTICO stays in the page header).
+- Model card, no photo: "Marca Modelo" (brand in title case), "Años 2017–2025" ("Año 2020" for one year), "Entre $ 24.662.900 y $ 32.670.000 · modelos 2025", the reasons as a short list, the applied filters as chips under "Filtros que aplicamos en Mercado Libre", one soft button per portal (VER EN MERCADO LIBRE, VER EN KAVAK) and the line "Las publicaciones y los precios son del portal. Kavak muestra solo el modelo." Buttons are real links with `target="_blank"`, `rel="noopener noreferrer"` and an accessible name that says they open in a new tab. Same grid rules as the dealers cards (centered column up to 1200 px, two columns on tablets, one card per row on phones), at most 8 cards with no pager; the list box scrolls inside, never the page.
+- Figma sync pending approval (no Figma edits were made): Recomendados web `2373:7328` and mobile `2373:9914` show no tabs and no model card.
+
+| Change | What was implemented and why | Web | Mobile |
+| --- | --- | --- | --- |
+| Tab bar "Concesionarias" / "Otros portales · N modelos" | Separates dealer stock from portal searches; the first tab keeps the existing frame | Implemented | Pending HU06-MOBILE |
+| Portal model card (no photo) | Title, years, price range, reasons, filter chips, two portal links and the Kavak note; the portals own the listings and photos | Implemented | Pending HU06-MOBILE |
+| Panel header and price source line | Explains the links and dates the ACARA reference prices | Implemented | Pending HU06-MOBILE |
+| Empty and incomplete states of the tab | Reuse the dealers copy and the page's AJUSTAR DIAGNÓSTICO action | Implemented | Pending HU06-MOBILE |
+
 ## HU05-MOBILE recommendation screen (2026-10-28)
 
 Native mobile `Recomendados` tab, High v3 `2373:9914` and its states `2373:9930`–`2373:9982`. Same data, order, filters and states as the web page; copy, types and formatting come from `frontend/shared/recommendations`. Figma sync pending approval; no Figma edits were made.
