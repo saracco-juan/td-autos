@@ -1,15 +1,70 @@
-/* The "Otros portales" panel: intro, a scrolling grid (same 3 / 2 / 1 columns as the dealers cards) and the source. */
+/* The "Otros portales" panel: an intro row, a scrolling grid (same 3 / 2 / 1 columns as the dealers cards) and the source. */
 .panel {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
   min-height: 0;
 }
 
+/* Takes the place of the dealers toolbar. */
+.intro {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
 .frame[data-fill] {
   min-height: 0;
+}
+
+/* Cards of a row share their height; the links stay at the bottom. */
+.panel .grid {
+  align-items: stretch;
+}
+
+/* The dealers card base (white, radius, soft shadow) with its parts stretched and spaced for this content. */
+.card {
+  composes: card from './VehicleCard.module.css';
+  align-items: stretch;
+  gap: 14px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.title {
+  font-size: 18px;
+}
+
+.years {
+  flex: none;
+  padding: 3px 10px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.range {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .reasons,
@@ -22,12 +77,30 @@
 .reasons {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
   font-size: 13px;
 }
 
-.reasons li::before {
-  content: '• ';
+.reasons li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.check {
+  flex: none;
+  margin-top: 2px;
+  color: var(--action-success);
+}
+
+/* Thin divider, then the applied filters and, pushed to the bottom, the links. */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-default);
 }
 
 .chips {
@@ -36,10 +109,27 @@
   gap: 6px;
 }
 
-/* Long portal names wrap instead of squeezing the label. */
+.chips li {
+  padding: 1px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+/* Equal width and height; they stack only when the card is too narrow for two. */
+.actions {
+  flex-wrap: wrap;
+}
+
 .actions > a {
+  flex: 1 1 140px;
   height: auto;
   min-height: 40px;
   padding-block: 6px;
+  text-align: center;
+}
+
+.note {
   text-align: center;
 }

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   OTHER_PORTALS_TAB, PORTAL_EMPTY_COPY, PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_PANEL_INTRO,
-  portalButtonLabel, portalLinkName, portalModelTitle, portalPriceLabel, portalSourceLabel, portalTabLabel,
+  PORTAL_PRICE_LABEL, portalButtonLabel, portalCountLabel, portalLinkName, portalModelTitle, portalPriceRange,
+  portalPriceYear, portalSourceLabel, portalTabLabel,
   portalYearsLabel, titleCaseBrand,
 } from './format'
 import type { PortalModel } from './models'
@@ -31,8 +32,15 @@ describe('HU06 portal models formatting shared by web and mobile', () => {
     expect(portalYearsLabel({ desde: 2020, hasta: 2020 })).toBe('Año 2020')
   })
 
-  it('labels the price range with Argentine pesos and the reference model year', () => {
-    expect(portalPriceLabel(model.precio)).toBe('Entre $ 24.662.900 y $ 32.670.000 · modelos 2025')
+  it('splits the price into a label, a peso range and the reference model year', () => {
+    expect(PORTAL_PRICE_LABEL).toBe('Precio de referencia')
+    expect(portalPriceRange(model.precio)).toBe('$ 24.662.900 – $ 32.670.000')
+    expect(portalPriceYear(model.precio)).toBe('modelos 2025')
+  })
+
+  it('counts the recommended models for the page subtitle, singular for one', () => {
+    expect(portalCountLabel(8)).toBe('8 modelos recomendados')
+    expect(portalCountLabel(1)).toBe('1 modelo recomendado')
   })
 
   it('labels the tab with the count only once it is known, singular for one', () => {

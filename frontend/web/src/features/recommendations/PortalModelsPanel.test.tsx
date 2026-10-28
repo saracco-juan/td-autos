@@ -35,11 +35,13 @@ it('HU06 shows the intro, one card per model and the dated price source', () => 
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 
-it('HU06 card shows the title, years, price range, reasons and filter chips without a photo', () => {
+it('HU06 card shows the title, years pill, price block, reasons and filter chips without a photo', () => {
   renderPanel(ready())
   const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
   expect(within(card).getByText('Años 2017–2025')).toBeVisible()
-  expect(within(card).getByText('Entre $ 24.662.900 y $ 32.670.000 · modelos 2025')).toBeVisible()
+  expect(within(card).getByText('Precio de referencia')).toBeVisible()
+  expect(within(card).getByText('$ 24.662.900 – $ 32.670.000')).toBeVisible()
+  expect(within(card).getByText('modelos 2025')).toBeVisible()
   const reasons = within(card).getByRole('list', { name: 'Motivos' })
   expect(within(reasons).getAllByRole('listitem').map((item) => item.textContent))
     .toEqual(['Consumo bajo', 'Apto para ciudad', '5 plazas'])
@@ -48,6 +50,13 @@ it('HU06 card shows the title, years, price range, reasons and filter chips with
   expect(within(chips).getAllByRole('listitem').map((item) => item.textContent))
     .toEqual(['Hatchback', '2017–2025', 'Hasta $ 33.000.000'])
   expect(within(card).queryByRole('img')).not.toBeInTheDocument()
+  expect(card.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(3)
+})
+
+it('HU06 gives both portal links the same class so they share width and height', () => {
+  renderPanel(ready({ modelos: [model(1)] }))
+  const [ml, kavak] = screen.getAllByRole('link')
+  expect(ml.className).toBe(kavak.className)
 })
 
 it('HU06 labels a single model year as "Año"', () => {

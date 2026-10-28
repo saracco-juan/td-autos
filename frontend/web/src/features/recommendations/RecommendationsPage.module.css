@@ -24,32 +24,38 @@
 }
 
 .dealersLayout {
-  display: grid;
+  display: flex;
   flex: 1;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  min-height: 0;
-  column-gap: 24px;
-  row-gap: 12px;
-}
-
-.dealersLayout > .summary {
-  grid-column: 1 / -1;
-}
-
-.dealersLayout > .results {
-  grid-column: 2;
-  grid-row: 2;
-  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
   min-height: 0;
 }
 
-.dealersLayout > aside {
-  grid-column: 1;
-  grid-row: 2;
-  min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
+/* One row under the tabs: the filters and their chips on the left, the comparison group on the right. */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.comparison {
+  flex: none;
+  max-width: 100%;
+}
+
+/* The exchange-rate notice: small secondary text under the toolbar. */
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.notice p {
+  margin: 0;
 }
 
 .filterPage .filteredFrame[data-fill] {
@@ -57,13 +63,14 @@
 }
 
 @media (max-width: 800px) {
-  .dealersLayout {
-    display: flex;
-    flex-direction: column;
+  /* Filters first, the comparison group below at full width. */
+  .toolbar,
+  .comparison {
+    width: 100%;
   }
 
-  .dealersLayout > aside {
-    max-height: 45dvh;
+  .comparison > section > div {
+    justify-content: space-between;
   }
 }
 
@@ -106,7 +113,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   min-height: 240px;
 }
 

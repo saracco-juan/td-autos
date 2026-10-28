@@ -4,6 +4,7 @@ import type { PortalLink, PortalModel, PortalPriceSource } from './models'
 export const OTHER_PORTALS_TAB = 'Otros portales'
 export const PORTAL_PANEL_INTRO = 'Estos modelos encajan con tu diagnóstico. Te llevamos al portal con la búsqueda ya armada.'
 export const PORTAL_FILTERS_HEADING = 'Filtros que aplicamos en Mercado Libre'
+export const PORTAL_PRICE_LABEL = 'Precio de referencia'
 export const PORTAL_KAVAK_NOTE = 'Las publicaciones y los precios son del portal. Kavak muestra solo el modelo.'
 export const PORTAL_EMPTY_COPY = {
   title: 'No encontramos modelos para tu diagnóstico.',
@@ -27,8 +28,17 @@ export function portalYearsLabel({ desde, hasta }: PortalModel['anios']): string
   return desde === hasta ? `Año ${desde}` : `Años ${desde}–${hasta}`
 }
 
-export function portalPriceLabel(precio: PortalModel['precio']): string {
-  return `Entre ${formatPrice(precio.desde_ars)} y ${formatPrice(precio.hasta_ars)} · modelos ${precio.anio_referencia}`
+export function portalPriceRange({ desde_ars, hasta_ars }: PortalModel['precio']): string {
+  return `${formatPrice(desde_ars)} – ${formatPrice(hasta_ars)}`
+}
+
+export function portalPriceYear({ anio_referencia }: PortalModel['precio']): string {
+  return `modelos ${anio_referencia}`
+}
+
+// The page subtitle while the portals tab is active.
+export function portalCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'modelo recomendado' : 'modelos recomendados'}`
 }
 
 // The count appears once the models are known.

@@ -1,29 +1,45 @@
 import { useId } from 'react'
 import {
-  PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, portalButtonLabel, portalLinkName, portalModelTitle, portalPriceLabel,
-  portalYearsLabel,
+  PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_PRICE_LABEL, portalButtonLabel, portalLinkName, portalModelTitle,
+  portalPriceRange, portalPriceYear, portalYearsLabel,
 } from '@shared/portals/format'
 import type { PortalModel } from '@shared/portals/models'
 import buttonStyles from '../../components/button.module.css'
 import cardStyles from './VehicleCard.module.css'
 import styles from './PortalModels.module.css'
 
+function CheckIcon() {
+  return (
+    <svg className={styles.check} viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
+      <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 // A curated model with the searches already built for each portal. No photo: the portals own the listings.
 export default function PortalModelCard({ model }: { model: PortalModel }) {
   const titleId = useId()
   const headingId = useId()
   return (
-    <li className={cardStyles.card} aria-labelledby={titleId}>
-      <p id={titleId} className={cardStyles.title}>{portalModelTitle(model)}</p>
-      <p className={cardStyles.meta}>{portalYearsLabel(model.anios)}</p>
-      <strong>{portalPriceLabel(model.precio)}</strong>
+    <li className={styles.card} aria-labelledby={titleId}>
+      <div className={styles.head}>
+        <p id={titleId} className={`${cardStyles.title} ${styles.title}`}>{portalModelTitle(model)}</p>
+        <span className={styles.years}>{portalYearsLabel(model.anios)}</span>
+      </div>
+      <div className={styles.price}>
+        <p className={cardStyles.meta}>{PORTAL_PRICE_LABEL}</p>
+        <p className={styles.range}>{portalPriceRange(model.precio)}</p>
+        <p className={cardStyles.meta}>{portalPriceYear(model.precio)}</p>
+      </div>
       <ul className={styles.reasons} aria-label="Motivos">
-        {model.motivos.map((reason) => <li key={reason}>{reason}</li>)}
+        {model.motivos.map((reason) => <li key={reason}><CheckIcon />{reason}</li>)}
       </ul>
-      <p id={headingId} className={cardStyles.meta}>{PORTAL_FILTERS_HEADING}</p>
-      <ul className={styles.chips} aria-labelledby={headingId}>
-        {model.filtros.map((filter) => <li key={filter} className={cardStyles.source}>{filter}</li>)}
-      </ul>
+      <div className={styles.filters}>
+        <p id={headingId} className={cardStyles.meta}>{PORTAL_FILTERS_HEADING}</p>
+        <ul className={styles.chips} aria-labelledby={headingId}>
+          {model.filtros.map((filter) => <li key={filter}>{filter}</li>)}
+        </ul>
+      </div>
       <div className={`${cardStyles.actions} ${styles.actions}`}>
         {model.links.map((link) => (
           <a key={link.portal} href={link.url} target="_blank" rel="noopener noreferrer"
@@ -32,7 +48,7 @@ export default function PortalModelCard({ model }: { model: PortalModel }) {
           </a>
         ))}
       </div>
-      <p className={cardStyles.meta}>{PORTAL_KAVAK_NOTE}</p>
+      <p className={`${cardStyles.meta} ${styles.note}`}>{PORTAL_KAVAK_NOTE}</p>
     </li>
   )
 }

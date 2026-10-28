@@ -31,13 +31,13 @@ export default function PortalModelsPanel({ view, onRetry }: { view: PortalModel
   const notice = response.exchange_rate ? exchangeRateNotice(response.exchange_rate) : { summary: null, warning: null }
   return (
     <div className={styles.panel}>
-      <p className={pageStyles.subtitle}>{PORTAL_PANEL_INTRO}</p>
+      <p className={styles.intro}>{PORTAL_PANEL_INTRO}</p>
       <ScrollArea fill label="Modelos recomendados" className={styles.frame} viewportClassName={pageStyles.gridArea}>
-        <ul className={pageStyles.grid} aria-label="Modelos en otros portales">
+        <ul className={`${pageStyles.grid} ${styles.grid}`} aria-label="Modelos en otros portales">
           {response.modelos.map((model) => <PortalModelCard key={model.id} model={model} />)}
         </ul>
       </ScrollArea>
-      <div className={pageStyles.subtitle}>
+      <div className={pageStyles.notice}>
         {response.fuente_precios ? <p>{portalSourceLabel(response.fuente_precios)}</p> : null}
         {notice.summary ? <p>{notice.summary}</p> : null}
         {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
