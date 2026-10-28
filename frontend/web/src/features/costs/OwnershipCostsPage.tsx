@@ -7,10 +7,9 @@ import screenStyles from '../../components/screen.module.css'
 import { HttpError } from '../../lib/http'
 import Field from '../auth/shared/Field'
 import SessionLoading from '../auth/session/SessionLoading'
-import { formatPrice } from '../inventory/format'
 import { fetchCosts } from './api'
-import { explainConcept, type Concept } from '@shared/costs/explainConcept'
 import { formatDate } from '@shared/costs/format'
+import { monthlyLines, purchaseLines } from '@shared/costs/summary'
 import styles from './OwnershipCostsPage.module.css'
 import type { Coverage, CostsQuery, OwnershipCosts } from '@shared/costs/types'
 import { validateKm } from '@shared/costs/validateKm'
@@ -59,68 +58,28 @@ function fieldErrorsOf(error: unknown): FieldErrors | null {
 }
 
 function MonthlyCard({ data }: { data: OwnershipCosts }) {
-  const { monthly, yearly, breakdown } = data
-  const info = (name: string, concept: Concept, amount: number | null) =>
-    ({ name, text: explainConcept(concept, breakdown, amount) })
-  const perMonth = (value: number) => `${formatPrice(value)} por mes`
-  // Electric cars have no fuel to price yet: charging costs are announced, not estimated (D15).
-  const electric = data.vehicle.fuel === 'electrico'
+  const { lines, note } = monthlyLines(data)
   return (
     <section className={styles.card} aria-labelledby="costs-monthly">
       <h2 id="costs-monthly" className={styles.cardTitle}>Para mantenerlo</h2>
       <dl className={styles.rows}>
-        <Row
-          label="Combustible"
-          value={monthly.fuel !== null ? perMonth(monthly.fuel) : electric ? 'Próximamente' : 'No podemos estimarlo'}
-          info={info('Combustible', electric && monthly.fuel === null ? 'charging' : 'fuel', monthly.fuel)}
-        />
-        <Row label="Seguro" value={perMonth(monthly.insurance)} info={info('Seguro', 'insurance', monthly.insurance)} />
-        <Row label="Patente" value={perMonth(monthly.patente)} info={info('Patente', 'patente', monthly.patente)} />
-        <Row label="Total por mes" value={formatPrice(monthly.total)} strong />
-        <Row label="Service (por año)" value={formatPrice(yearly.service)} info={info('Service', 'service', yearly.service)} />
-        <Row label="Total por año" value={formatPrice(yearly.total)} strong />
+        {lines.map((line) => <Row key={line.label} {...line} />)}
       </dl>
-      {monthly.not_estimated.includes('fuel') ? (
-        <p className={styles.note}>{electric ? 'El total no incluye la carga del auto.' : 'El total no incluye el combustible.'}</p>
-      ) : null}
+      {note ? <p className={styles.note}>{note}</p> : null}
     </section>
   )
 }
 
 function PurchaseCard({ data }: { data: OwnershipCosts }) {
-  const { purchase, vehicle, exchange_rate: rate, breakdown } = data
-  const budget = purchase.budget
-  const usd = vehicle.published_currency === 'USD' && rate
-    ? { published: vehicle.published_price, rate: rate.sell }
-    : undefined
+  const { lines, usdNote, budget } = purchaseLines(data, 'Precio')
   return (
     <section className={styles.card} aria-labelledby="costs-purchase">
       <h2 id="costs-purchase" className={styles.cardTitle}>Para comprarlo</h2>
       <dl className={styles.rows}>
-        <Row
-          label="Precio"
-          value={formatPrice(purchase.price)}
-          info={usd ? { name: 'Precio publicado', text: explainConcept('price', breakdown, purchase.price, usd) } : undefined}
-        />
-        <Row
-          label="Transferencia"
-          value={formatPrice(purchase.transfer)}
-          info={{ name: 'Transferencia', text: explainConcept('transfer', breakdown, purchase.transfer) }}
-        />
-        <Row label="Total" value={formatPrice(purchase.total)} strong />
+        {lines.map((line) => <Row key={line.label} {...line} />)}
       </dl>
-      {usd && rate ? (
-        <p className={styles.note}>
-          Publicado en {formatPrice(vehicle.published_price, 'USD')}, al dólar oficial venta de {formatPrice(rate.sell)} ({formatDate(rate.updated_at)}).
-        </p>
-      ) : null}
-      {budget ? (
-        <p className={budget.fits ? alertStyles.notice : alertStyles.warning}>
-          {budget.fits
-            ? `Entra en tu presupuesto (te sobran ${formatPrice(budget.difference)}).`
-            : `Supera tu presupuesto por ${formatPrice(Math.abs(budget.difference))}.`}
-        </p>
-      ) : null}
+      {usdNote ? <p className={styles.note}>{usdNote}</p> : null}
+      {budget ? <p className={budget.fits ? alertStyles.notice : alertStyles.warning}>{budget.message}</p> : null}
     </section>
   )
 }
