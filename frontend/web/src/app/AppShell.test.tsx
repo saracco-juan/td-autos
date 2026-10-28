@@ -143,7 +143,7 @@ describe('AppShell', () => {
     expect(screen.queryByRole('link', { name: 'Perfil' })).not.toBeInTheDocument()
   })
 
-  it('shows the logo, the diagnosis, recommendations, transfer and profile links and a logout button to an authenticated user, and nothing else in the nav', () => {
+  it('shows the logo, the diagnosis, recommendations, favorites, transfer and profile links and a logout button to an authenticated user, and nothing else in the nav', () => {
     mockAuth('authenticated')
     renderShell()
 
@@ -151,26 +151,27 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'TD Autos' })).toHaveAttribute('href', '/')
     expect(screen.getByRole('link', { name: 'Diagnóstico' })).toHaveAttribute('href', '/diagnostico')
     expect(screen.getByRole('link', { name: 'Recomendados' })).toHaveAttribute('href', '/recomendaciones')
+    expect(screen.getByRole('link', { name: 'Favoritos' })).toHaveAttribute('href', '/favoritos')
     expect(screen.getByRole('link', { name: 'Transferencia' })).toHaveAttribute('href', '/transferencia')
     expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/perfil')
     expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('type', 'button')
-    expect(banner.querySelectorAll('a')).toHaveLength(5)
+    expect(banner.querySelectorAll('a')).toHaveLength(6)
     // The menu toggle (visible on phones only) and the logout.
       expect(banner.querySelectorAll('button')).toHaveLength(2)
   })
 
-  it('orders the nav as in Figma: Diagnóstico, Recomendados, Transferencia, Perfil, Cerrar sesión', () => {
+  it('orders the nav as in Figma: Diagnóstico, Recomendados, Favoritos, Transferencia, Perfil, Cerrar sesión', () => {
     mockAuth('authenticated')
     renderShell()
 
     const items = within(screen.getByRole('banner')).getAllByRole('link').slice(1)
-    expect(items.map((item) => item.textContent)).toEqual(['Diagnóstico', 'Recomendados', 'Transferencia', 'Perfil'])
+    expect(items.map((item) => item.textContent)).toEqual(['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia', 'Perfil'])
     const logout = screen.getByRole('button', { name: 'Cerrar sesión' })
-    expect(items[3].compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(items[4].compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it.each([
-    ['buyer', ana, ['Diagnóstico', 'Recomendados', 'Transferencia'], 'Perfil'],
+    ['buyer', ana, ['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia'], 'Perfil'],
     ['dealer', marta, ['Suscripción', 'Verificación'], null],
     ['administrator', { ...ana, rol: 'administrador' }, ['Concesionarias'], 'Administración'],
   ])('groups the %s links in the main navigation beside the logo and keeps the account items apart', (_, user, links, accountLink) => {

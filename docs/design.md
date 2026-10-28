@@ -2,6 +2,22 @@
 
 Visual and interaction rules for every web screen (and the mobile app where the pattern exists). Read this file before building or changing a screen. Figma (`TD Autos · Wireframes High v3`, see `AGENTS.md`) is the visual source of truth; these rules cover what Figma does not say and win over it when they conflict, and every difference is logged for the Figma sync described in `AGENTS.md`.
 
+## HU11 favorites (2026-10-28)
+
+- Follow High v3 desktop `2373:7406`, `2373:7703`, `2373:7714` and mobile
+  `2373:10676`, `2373:10687`, `2373:10698`: a separate Favoritos navigation
+  destination, saved vehicle cards, removal with Deshacer, and the empty state.
+  The user retired history and chose this destination instead of profile tabs.
+- The user approved one shared heart control on recommendation cards and vehicle
+  detail, with immediate selected feedback and restoration on failure. Current
+  desktop `2373:7340` / `2373:7348` and mobile recommendation/detail frames omit
+  it. Apply this control to both platform designs after approval; native mobile
+  implementation remains outside this web story.
+- The existing list rules add a stable page-size selector and internal scrolling
+  to the Figma grid. Returning from a saved vehicle's detail goes to Favoritos.
+  These navigation and pagination differences await Figma synchronization
+  approval; no Figma edits have been made.
+
 ## Navbar
 
 - Red bar pinned to the top with a soft shadow: logo mark (the TD monogram of the favicon, red on a white tile) followed by the word "Autos" on the left (the link is named "TD Autos"), role links as pills beside it (subtle hover, a brighter pill for the current page), and on the right the account group: Perfil or Administración as a pill, the dealer name as a chip, Cerrar sesión as an outlined pill with an icon. On phones a MENÚ pill with a hamburger icon opens a panel with full-width pills.
