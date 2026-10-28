@@ -31,7 +31,8 @@ const TAB_SCREENS = TABS.map(({ name, title, icon }) => ({
 }))
 
 // No tab button. Not `href: null`: Expo Router 58 redirects a focused hidden tab to the first one.
-const HIDDEN = { tabBarButton: () => null }
+// The item wrapper keeps `flex: 1` even without a button, so it must not be laid out at all.
+const HIDDEN = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' as const } }
 
 export default function TabsLayout() {
   return (
