@@ -93,7 +93,7 @@ class RecommendationsTest extends TestCase
     public function test_hu05_local_resale_sources_combine_without_refresh_or_writes(): void
     {
         $this->buyer(['prioridad' => 'reventa', 'transmision' => 'indiferente']);
-        $car = $this->car(['marca' => 'Test', 'modelo' => 'Example', 'version' => 'Base']);
+        $car = $this->car(['marca' => 'Test', 'modelo' => 'Example', 'version' => 'Base', 'acara_version_id' => 'base']);
         $catalog = ['snapshot_id' => 'acara:test', 'source_date' => '2026-10-19', 'fetched_at' => now()->toISOString(),
             'rows' => [['make' => 'Test', 'model' => 'Example', 'version' => 'Base', 'version_id' => 'base',
                 'currency' => 'ARS', 'values' => [2025 => '100', 2022 => '80']]]];
@@ -128,25 +128,20 @@ class RecommendationsTest extends TestCase
         $this->assertSame($inventoryBefore, $car->fresh()->getAttributes());
         $car->update(['version' => 'Base', 'potencia' => 110, 'transmision' => 'manual']);
         $car->update(['version' => 'Feel Pack 1.6 AT', 'potencia' => 115, 'transmision' => 'automatica']);
-        $grouped = $natural;
-        $grouped['rows'][] = array_replace($natural['rows'][0], ['version' => '1.6 Feel Pack AT (115cv) (L23)', 'version_id' => 'base:2']);
-        Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), $grouped);
-        $this->getJson('/api/recomendaciones')->assertOk()
-            ->assertJsonPath('results.0.resale.estimate.reference_count', 2)
-            ->assertJsonPath('results.0.resale.comparison', null);
         $approximate = $natural;
         $approximate['rows'][0] = array_replace($natural['rows'][0], ['model' => 'Example Extended', 'version' => '1.6 Feel Pack AT (115cv) 4Ptas.']);
+        $car->update(['acara_version_id' => null]);
         Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), $approximate);
-        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results.0.resale.model_match.approximate', true)
-            ->assertJsonPath('results.0.resale.model_match.reference_model', 'Example Extended')
-            ->assertJsonPath('results.0.resale.retention_score', 72.9)->assertJsonPath('results.0.resale.activity_score', 100)
-            ->assertJsonPath('results.0.resale.comparison', null);
+        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results.0.resale.model_match', null)
+            ->assertJsonPath('results.0.resale.retention_score', null)->assertJsonPath('results.0.resale.activity_score', 100)
+            ->assertJsonPath('results.0.resale.estimate', null)->assertJsonPath('results.0.resale.comparison', null);
         $car->update(['version' => 'Base', 'potencia' => 110, 'transmision' => 'manual']);
-        foreach (['missing version', 'missing year', 'ambiguous identity', 'missing activity', 'missing catalog'] as $case) {
+        $car->update(['acara_version_id' => 'base']);
+        foreach (['missing link', 'missing year', 'ambiguous identity', 'missing activity', 'missing catalog'] as $case) {
             DB::table('dnrpa_activity_history')->updateOrInsert(['month' => '2026-09'], ['payload' => json_encode(['activity' => $activity])]);
             $changed = $catalog;
-            if ($case === 'missing version') {
-                $car->update(['version' => null]);
+            if ($case === 'missing link') {
+                $car->update(['acara_version_id' => null]);
             }
             if ($case === 'missing year') {
                 unset($changed['rows'][0]['values'][2022]);
@@ -160,7 +155,7 @@ class RecommendationsTest extends TestCase
             Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), $case === 'missing catalog' ? null : $changed);
             $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results.0.score', 90)
                 ->assertJsonPath('results.0.components.priority', null)->assertJsonPath('results.0.warnings.0', 'resale_unavailable');
-            $car->update(['version' => 'Base']);
+            $car->update(['version' => 'Base', 'acara_version_id' => 'base']);
         }
         Cache::store('catalog')->forever(FixedAcaraCatalog::cacheKey(), $catalog);
         DB::table('dnrpa_refresh_state')->update(['checked_at' => now()->subDays(14)]);
@@ -170,7 +165,7 @@ class RecommendationsTest extends TestCase
         Http::assertSentCount(1); // Only the existing shared quote; no ACARA/DNRPA HTTP.
     }
 
-    public function test_nullable_legacy_inventory_identity_does_not_break_resale_recommendations(): void
+    public function test_nullable_legacy_inventory_identity_has_no_inferred_resale_estimate(): void
     {
         $this->buyer(['prioridad' => 'reventa']);
         $valid = $this->car(['marca' => 'Test', 'modelo' => 'Example', 'version' => 'Base']);
@@ -188,8 +183,8 @@ class RecommendationsTest extends TestCase
         $before = $this->snapshot();
 
         $this->getJson('/api/recomendaciones')->assertOk()->assertJsonCount(1, 'results')
-            ->assertJsonPath('results.0.listing_id', $valid->id)->assertJsonPath('results.0.score', 97.5)
-            ->assertJsonPath('results.0.components.priority', 90);
+            ->assertJsonPath('results.0.listing_id', $valid->id)
+            ->assertJsonPath('results.0.resale.reference', null)->assertJsonPath('results.0.resale.estimate', null);
 
         $this->assertSame($before, $this->snapshot());
         Http::assertSentCount(1);

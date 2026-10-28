@@ -58,16 +58,15 @@ class VehicleCatalogLinkTest extends TestCase
         $this->assertDatabaseCount('vehiculo', 0);
     }
 
-    public function test_legacy_identity_can_be_preserved_but_not_replaced_without_selection(): void
+    public function test_unlinked_vehicle_cannot_be_saved_even_when_its_identity_is_unchanged(): void
     {
         TipoCarroceria::query()->firstOrCreate(['nombre' => 'Sedán']);
         $user = $this->dealer();
         $vehicle = $this->vehicleOf($user->concesionaria);
         $input = $this->payload([...$vehicle->only(['marca', 'modelo', 'version']), 'precio' => 12345]);
         unset($input['fotos']);
-        $this->actingAs($user)->postJson(self::URL.'/'.$vehicle->id, $input)->assertOk()
-            ->assertJsonPath('vehiculo.acara_version_id', null)->assertJsonPath('vehiculo.precio', 12345);
         $before = $vehicle->fresh()->getAttributes();
+        $this->actingAs($user)->postJson(self::URL.'/'.$vehicle->id, $input)->assertUnprocessable()->assertJsonValidationErrors('acara_version_id');
         $this->postJson(self::URL.'/'.$vehicle->id, [...$input, 'modelo' => 'Changed'])->assertUnprocessable()->assertJsonValidationErrors('acara_version_id');
         $this->assertSame($before, $vehicle->fresh()->getAttributes());
     }

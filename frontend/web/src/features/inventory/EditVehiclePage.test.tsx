@@ -35,7 +35,7 @@ describe('EditVehiclePage', () => {
       { id: 1, nombre: 'Hatchback' },
       { id: 2, nombre: 'Sedán' },
     ])
-    vi.mocked(fetchVehicle).mockResolvedValue(vehiculo({ version: 'XEI', descripcion: 'Único dueño' }))
+    vi.mocked(fetchVehicle).mockResolvedValue(vehiculo({ version: 'XEI', acara_version_id: 'selected-corolla', descripcion: 'Único dueño' }))
   })
 
   it('shows a centered section loader while the vehicle loads', () => {
@@ -84,7 +84,7 @@ describe('EditVehiclePage', () => {
   })
 
   it('RF22: repairs a legacy vehicle with no body type without losing its photos', async () => {
-    vi.mocked(fetchVehicle).mockResolvedValue(vehiculo({ carroceria: null }))
+    vi.mocked(fetchVehicle).mockResolvedValue(vehiculo({ carroceria: null, acara_version_id: 'selected-corolla' }))
     vi.mocked(updateVehicle).mockResolvedValue(vehiculo())
     renderPage()
     const user = userEvent.setup()

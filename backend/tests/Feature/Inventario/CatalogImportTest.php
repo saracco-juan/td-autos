@@ -28,6 +28,23 @@ class CatalogImportTest extends TestCase
         $this->assertEquals(25000000, $vehicle->precio);
     }
 
+    public function test_unchanged_unlinked_row_is_resolved_from_the_exact_catalog_identity(): void
+    {
+        $user = $this->dealer();
+        $existing = $this->vehicleOf($user->concesionaria, 7, 'AB123CD');
+        $existing->update(['acara_version_id' => null]);
+
+        $this->actingAs($user)->postJson(self::URL, [
+            'archivo' => $this->workbookFile($this->workbookContent([
+                $this->workbookRow(['patente' => 'AB123CD', 'precio' => '12345']),
+            ])),
+        ])->assertOk()->assertExactJson(['nuevos' => 0, 'actualizaciones' => 1]);
+
+        $this->assertSame($this->catalogId('Toyota', 'Corolla', 'XEI 2.0 CVT'), $existing->fresh()->acara_version_id);
+        $this->assertEquals(12345, $existing->fresh()->precio);
+        $this->assertDatabaseCount('vehiculo', 1);
+    }
+
     public static function invalidIdentities(): array
     {
         return [
@@ -70,16 +87,27 @@ class CatalogImportTest extends TestCase
         $this->assertDatabaseCount('vehiculo', 0);
     }
 
-    public static function legacyLinks(): array
-    {
-        return [[null], ['acara:'.str_repeat('a', 64)]];
-    }
-
-    #[DataProvider('legacyLinks')]
-    public function test_unchanged_legacy_identity_remains_editable_during_catalog_outage(?string $id): void
+    public function test_unchanged_unlinked_identity_is_rejected_during_catalog_outage_without_writes(): void
     {
         $user = $this->dealer();
         $existing = $this->vehicleOf($user->concesionaria, 7, 'AB123CD');
+        $existing->update(['marca' => 'Legacy', 'modelo' => 'Old', 'version' => null, 'acara_version_id' => null]);
+        $before = $existing->fresh()->getAttributes();
+        Cache::store('catalog')->forget(FixedAcaraCatalog::cacheKey());
+        $this->actingAs($user)->postJson(self::URL, [
+            'archivo' => $this->workbookFile($this->workbookContent([
+                $this->workbookRow(['marca' => 'Legacy', 'modelo' => 'Old', 'version' => '', 'precio' => '12345']),
+            ])),
+        ])->assertUnprocessable()->assertJsonPath('errores.0.mensajes', ['El catálogo no está disponible. Intentá de nuevo más tarde.']);
+        $this->assertSame($before, $existing->fresh()->getAttributes());
+        $this->assertDatabaseCount('vehiculo', 1);
+    }
+
+    public function test_unchanged_linked_identity_remains_editable_during_catalog_outage(): void
+    {
+        $user = $this->dealer();
+        $existing = $this->vehicleOf($user->concesionaria, 7, 'AB123CD');
+        $id = 'acara:'.str_repeat('a', 64);
         $existing->update(['marca' => 'Legacy', 'modelo' => 'Old', 'version' => null, 'acara_version_id' => $id]);
         Cache::store('catalog')->forget(FixedAcaraCatalog::cacheKey());
         $this->actingAs($user)->postJson(self::URL, [

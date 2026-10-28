@@ -18,6 +18,7 @@ use App\Http\Controllers\RecomendacionesController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
 use App\Http\Controllers\VehicleCatalogController;
+use App\Http\Controllers\VehicleDepreciationController;
 use App\Http\Controllers\VehiculoCostosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +51,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/favoritos/{id}', [FavoritoController::class, 'destroy'])->whereNumber('id');
 
     Route::get('/vehiculos/{id}', BuyerVehicleDetailController::class)->whereNumber('id');
+    Route::get('/vehiculos/{id}/depreciacion', VehicleDepreciationController::class)->whereNumber('id');
     Route::get('/vehiculos/{id}/costos', [VehiculoCostosController::class, 'show']);
 
     Route::get('/vehiculos/{vehiculo}/inspeccion', [InspeccionController::class, 'show']);

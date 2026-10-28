@@ -122,8 +122,7 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
     setFormError(undefined)
     setBlocked(undefined)
     const found = validateVehicleForm(values, draft.count)
-    const unchanged = isEditing && (['marca', 'modelo', 'version'] as const).every((key) => values[key] === initialValues[key])
-    if (!values.acara_version_id && !unchanged) found.version = ['Elegí la marca, el modelo y la versión del catálogo.']
+    if (!values.acara_version_id) found.version = ['Elegí la marca, el modelo y la versión del catálogo.']
     if (showErrors(found)) return
 
     setSubmitting(true)
@@ -218,9 +217,9 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
             <h2 className={styles.sectionTitle}>Datos del vehículo</h2>
             <div className={styles.fullRow}>
               <p>Buscá y elegí la marca, el modelo y la versión del catálogo.</p>
-              {!catalog.identities ? <p className={alertStyles.alert}>El catálogo no está disponible. Podés conservar los datos de un vehículo existente, pero no seleccionar otro modelo o versión. <button type="button" className={buttonStyles.button} onClick={retry}>REINTENTAR</button></p> : null}
+              {!catalog.identities ? <p className={alertStyles.alert}>El catálogo no está disponible. Podés guardar cambios de vehículos vinculados, pero no vincular una versión nueva. <button type="button" className={buttonStyles.button} onClick={retry}>REINTENTAR</button></p> : null}
               {catalog.identities?.stale ? <p>Usamos el último catálogo disponible. Sus precios pueden estar desactualizados.</p> : null}
-              {isEditing && !initialValues.acara_version_id ? <p>Este vehículo todavía no está vinculado al catálogo. Podés conservar sus datos o elegir una versión para vincularlo.</p> : null}
+              {isEditing && !initialValues.acara_version_id ? <p>Este vehículo no está vinculado al catálogo. Elegí una versión del catálogo para guardar cambios.</p> : null}
             </div>
             {text('patente', 'Patente')}
             {identity('marca', 'Marca')}
