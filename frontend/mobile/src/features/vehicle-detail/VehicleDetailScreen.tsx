@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import BackChip from '../../components/BackChip'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
 import { HttpError, NetworkError } from '../../lib/http'
@@ -71,12 +71,7 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <Pressable accessibilityRole="link" accessibilityLabel={BACK_LABEL} onPress={goBack} style={styles.back}>
-        <View style={styles.chevron}>
-          <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
-        </View>
-        <Text style={styles.backLabel}>{BACK_LABEL}</Text>
-      </Pressable>
+      <BackChip label={BACK_LABEL} onPress={goBack} />
 
       {view.status === 'loading' ? (
         <View style={styles.section}>
@@ -128,18 +123,6 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, gap: 16 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'flex-start' },
-  chevron: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.button,
-    backgroundColor: colors.surface,
-  },
-  backLabel: { color: colors.textPrimary, fontSize: 13 },
   // Loading and errors stay inside the screen content (docs/design.md "Feedback").
   section: { minHeight: 240, gap: 16 },
   unavailable: { gap: 8 },
