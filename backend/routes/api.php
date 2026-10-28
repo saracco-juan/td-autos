@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteControll
 use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\BusquedaController;
+use App\Http\Controllers\BuyerVehicleContactController;
 use App\Http\Controllers\BuyerVehicleDetailController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
@@ -51,6 +52,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/favoritos/{id}', [FavoritoController::class, 'destroy'])->whereNumber('id');
 
     Route::get('/vehiculos/{id}', BuyerVehicleDetailController::class)->whereNumber('id');
+    Route::post('/vehiculos/{id}/contacto', BuyerVehicleContactController::class)->whereNumber('id');
     Route::get('/vehiculos/{id}/depreciacion', VehicleDepreciationController::class)->whereNumber('id');
     Route::get('/vehiculos/{id}/costos', [VehiculoCostosController::class, 'show']);
 

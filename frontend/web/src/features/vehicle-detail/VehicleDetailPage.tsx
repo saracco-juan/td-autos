@@ -16,6 +16,7 @@ import VehicleCostShortcut from './VehicleCostShortcut'
 import VehicleGallery from './VehicleGallery'
 import VehicleSpecifications from './VehicleSpecifications'
 import VehicleCompatibility from './VehicleCompatibility'
+import VehicleContact from './VehicleContact'
 import backIcon from './back.svg'
 import styles from './VehicleDetailPage.module.css'
 
@@ -86,6 +87,7 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
                   ? 'Precio no disponible.' : formatPrice(data.vehicle.precio, data.vehicle.moneda)}</p>
                 <FavoriteButton vehicleId={data.vehicle.id} vehicleName={title} isFavorite={data.is_favorite ?? false} />
                 <p className={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</p>
+                <VehicleContact vehicleId={data.vehicle.id} available={data.whatsapp_available === true} />
                 <VehicleCostShortcut vehicleId={data.vehicle.id} context={context} />
                 <Link to={`/vehiculos/${id}/depreciacion`} state={returnState} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
                   DEPRECIACIÓN Y REVENTA

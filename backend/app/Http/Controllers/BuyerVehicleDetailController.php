@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Vehiculo;
+use App\Services\BuyerVehicleContact;
 use App\Services\Favorites\BuyerFavorites;
 use App\Services\Subscription\SubscriptionLifecycle;
 use App\Support\BuyerVehicleDetail;
@@ -14,7 +15,7 @@ use Illuminate\Http\Request;
 final class BuyerVehicleDetailController extends Controller
 {
     // HU09 / TC-77: availability is evaluated on every read, independently of a saved ranking.
-    public function __invoke(Request $request, string $id, SubscriptionLifecycle $lifecycle, BuyerFavorites $favorites): JsonResponse
+    public function __invoke(Request $request, string $id, SubscriptionLifecycle $lifecycle, BuyerFavorites $favorites, BuyerVehicleContact $contact): JsonResponse
     {
         abort_unless($request->user()->rol === User::ROL_COMPRADOR, 403);
         $dealerIds = $lifecycle->operativeDealerIds(now());
@@ -22,12 +23,14 @@ final class BuyerVehicleDetailController extends Controller
             ->where('origen', VehiculoOptions::ORIGEN_CONCESIONARIA)
             ->whereHas('propiedad', fn ($query) => $query->where('visible', true)
                 ->whereIn('concesionaria_id', $dealerIds))
-            ->with(['propiedad.concesionaria:id,nombre,provincia', 'tipoCarroceria', 'fotos'])
+            ->with(['propiedad.concesionaria:id,nombre,provincia,telefono_publico', 'tipoCarroceria', 'fotos'])
             ->first();
 
         $data = $vehicle === null
             ? ['message' => 'Esta publicación ya no está disponible.']
-            : [...BuyerVehicleDetail::present($vehicle), 'is_favorite' => $favorites->isSaved($request->user()->id, (int) $id)];
+            : [...BuyerVehicleDetail::present($vehicle),
+                'whatsapp_available' => $contact->number($vehicle->propiedad->concesionaria) !== null,
+                'is_favorite' => $favorites->isSaved($request->user()->id, (int) $id)];
 
         return response()->json($data, $vehicle === null ? 404 : 200)
             ->header('Cache-Control', 'private, no-store');
