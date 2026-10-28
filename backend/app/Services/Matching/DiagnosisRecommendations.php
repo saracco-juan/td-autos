@@ -6,6 +6,7 @@ use App\Models\Diagnostico;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
 use App\Services\ExchangeRates\DolarApi;
+use App\Services\Favorites\BuyerFavorites;
 use App\Services\Resale\AcaraPriceSource;
 use App\Services\Resale\DnrpaActivityStore;
 use App\Services\Resale\ResaleScorer;
@@ -21,6 +22,7 @@ final class DiagnosisRecommendations
         private readonly DealershipRanker $ranker,
         private readonly DolarApi $exchange,
         private readonly SubscriptionLifecycle $lifecycle,
+        private readonly BuyerFavorites $favorites,
     ) {}
 
     public function forUser(int $userId): array
@@ -45,8 +47,10 @@ final class DiagnosisRecommendations
         $resale = $diagnosis->prioridad_comprador === 'reventa'
             ? app(ResaleScorer::class)->scores($vehicles, app(AcaraPriceSource::class)->current(), app(DnrpaActivityStore::class)->current()) : [];
         $ranking = $this->ranker->rank($vehicles, $diagnosis, $dealerIds, $at->year, $exchange['quote']['sell'] ?? null, $resale);
+        $favoriteIds = $this->favorites->savedVehicleIds($userId, array_column($ranking['results'], 'listing_id'));
         foreach ($ranking['results'] as &$result) {
             $vehicle = $vehicles->get($result['listing_id']);
+            $result['is_favorite'] = in_array($result['listing_id'], $favoriteIds, true);
             $result['vehicle'] = $this->publicFacts($vehicle);
             $result['dealer'] = $vehicle->propiedad->concesionaria->only(['id', 'nombre', 'provincia']);
         }

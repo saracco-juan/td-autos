@@ -5,6 +5,7 @@ import type { Vehiculo } from '../inventory/types'
 // Public facts only: the recommendation response never includes plates or private dealer contacts.
 export type Recommendation = {
   listing_id: number
+  is_favorite?: boolean
   score: number
   components: Record<'usage' | 'body' | 'comfort', number> & { priority: number | null }
   resale?: {

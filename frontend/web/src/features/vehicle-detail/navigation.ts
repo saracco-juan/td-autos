@@ -5,6 +5,13 @@ export type DetailContext = {
   returnTo: string
 }
 
+export function readDetailReturn(state: unknown, context: DetailContext | null): { to: string; label: string } {
+  if (state && typeof state === 'object' && 'returnTo' in state && state.returnTo === '/favoritos') {
+    return { to: '/favoritos', label: 'Volver a favoritos' }
+  }
+  return { to: context?.returnTo ?? '/recomendaciones', label: 'Volver a recomendados' }
+}
+
 const score = (value: unknown): value is number => typeof value === 'number'
   && Number.isFinite(value) && value >= 0 && value <= 100
 

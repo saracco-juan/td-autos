@@ -58,6 +58,21 @@ final class BuyerFavorites
         DB::table('favorito')->where('usuario_id', $userId)->where('vehiculo_id', $vehicleId)->delete();
     }
 
+    public function savedVehicleIds(int $userId, array $vehicleIds): array
+    {
+        if ($vehicleIds === []) {
+            return [];
+        }
+
+        return DB::table('favorito')->where('usuario_id', $userId)->whereIn('vehiculo_id', $vehicleIds)
+            ->pluck('vehiculo_id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    public function isSaved(int $userId, int $vehicleId): bool
+    {
+        return DB::table('favorito')->where('usuario_id', $userId)->where('vehiculo_id', $vehicleId)->exists();
+    }
+
     private function available(): Builder
     {
         return Vehiculo::query()->where('origen', VehiculoOptions::ORIGEN_CONCESIONARIA)
