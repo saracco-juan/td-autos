@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Matching;
 
+use App\Models\ComprobantePago;
 use App\Models\Concesionaria;
 use App\Models\Diagnostico;
 use App\Models\Suscripcion;
@@ -295,6 +296,72 @@ class RecommendationsTest extends TestCase
         $this->getJson('/api/recomendaciones')->assertOk()->assertJsonCount(2, 'results')
             ->assertJsonPath('exchange_rate.stale', true)->assertJsonPath('exchange_rate.warning', 'exchange_rate_stale');
         Http::assertSentCount(3);
+    }
+
+    /**
+     * HU23-MOBILE: a car of a dealer whose subscription ended on 2026-10-15, so its grace ended on 2026-10-18
+     * and its retention runs until 2026-11-18. Returns the car and the bearer token of a mobile buyer.
+     *
+     * @return array{Vehiculo, string}
+     */
+    private function retainedCarForMobileBuyer(): array
+    {
+        $dealer = Concesionaria::factory()->active()->create();
+        Suscripcion::factory()->create(['concesionaria_id' => $dealer->id, 'estado' => 'activa',
+            'vigente_desde' => '2026-09-15', 'vigente_hasta' => '2026-10-15']);
+        // Loaded now so the dealer stays known after the purge deletes the car.
+        $car = $this->car([], $dealer)->load('propiedad');
+        $token = User::factory()->create()->createToken('mobile')->plainTextToken;
+        $this->withToken($token)->putJson('/api/diagnostico', $this->answers())->assertOk();
+        $this->artisan('suscripciones:procesar')->assertSuccessful();
+
+        return [$car, $token];
+    }
+
+    private function approveRenewal(Vehiculo $car): void
+    {
+        $receipt = ComprobantePago::factory()->create([
+            'suscripcion_id' => Suscripcion::where('concesionaria_id', $car->propiedad->concesionaria_id)->value('id'),
+            'periodo_desde' => now()->toDateString(),
+            'periodo_hasta' => now()->addMonth()->toDateString(),
+        ]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->postJson("/api/admin/comprobantes/{$receipt->id}/aprobar")->assertOk();
+        // The next request authenticates by the buyer's bearer token again, as the mobile app does.
+        $this->app['auth']->forgetGuards();
+    }
+
+    public function test_hu23_mobile_inactivation_hides_the_dealer_cars_and_retains_them_for_30_days(): void
+    {
+        [$car, $token] = $this->retainedCarForMobileBuyer();
+
+        $this->withToken($token)->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results', []);
+        $retained = $car->propiedad->fresh();
+        $this->assertFalse($retained->visible);
+        $this->assertSame('2026-11-18', $retained->eliminar_desde->toDateString());
+    }
+
+    public function test_tc61_mobile_renewal_within_retention_brings_the_retained_cars_back(): void
+    {
+        [$car, $token] = $this->retainedCarForMobileBuyer();
+        $this->travelTo(Carbon::parse('2026-11-01T12:00:00Z'));
+
+        $this->approveRenewal($car);
+
+        $this->withToken($token)->getJson('/api/recomendaciones')->assertOk()
+            ->assertJsonCount(1, 'results')->assertJsonPath('results.0.listing_id', $car->id);
+    }
+
+    public function test_tc62_mobile_cars_are_deleted_after_retention_and_a_late_renewal_does_not_bring_them_back(): void
+    {
+        [$car, $token] = $this->retainedCarForMobileBuyer();
+        $this->travelTo(Carbon::parse('2026-11-19T12:00:00Z'));
+
+        $this->artisan('suscripciones:procesar')->assertSuccessful();
+        $this->assertNull(Vehiculo::find($car->id));
+        $this->approveRenewal($car);
+
+        $this->withToken($token)->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('results', []);
     }
 
     public function test_sanctum_bearer_client_reads_only_its_saved_diagnosis(): void
