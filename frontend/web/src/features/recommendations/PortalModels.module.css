@@ -1,0 +1,45 @@
+/* The "Otros portales" panel: intro, a scrolling grid (same 3 / 2 / 1 columns as the dealers cards) and the source. */
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.frame[data-fill] {
+  min-height: 0;
+}
+
+.reasons,
+.chips {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.reasons li::before {
+  content: '• ';
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Long portal names wrap instead of squeezing the label. */
+.actions > a {
+  height: auto;
+  min-height: 40px;
+  padding-block: 6px;
+  text-align: center;
+}
