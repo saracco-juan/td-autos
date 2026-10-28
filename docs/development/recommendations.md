@@ -184,6 +184,11 @@ Rules, in order:
 4. Links: one `PortalSearch` per model with the Mercado Libre and Kavak routes, the transmission (unless
    `indiferente`), the first and last fitting year, the budget as maximum price and the body (`sedan` / `hatchback`
    only). Never zone, mileage, fuel or doors. Nothing is requested from the portals: the links are only built.
+   Kavak encodes filters as path segments and only the transmission was verified on the real site
+   (`/ar/usados/toyota/etios/automatico`, `.../manual`). Query strings are not safe (`?transmission=` loses the model,
+   `?year=` changes the page) and year ranges and price were not verified, so Kavak gets the model and the
+   transmission only. Its stock is small and an over-specific page can show "0 resultados" ("Por ahora no tenemos el
+   auto que buscas"): that is why nothing else is sent.
 
 Response (`status` is `diagnosis_incomplete` with `modelos: []`, `fuente_precios: null`, `exchange_rate: null` when the
 diagnosis is missing or incomplete; otherwise `ready`, with `modelos: []` when nothing matches):

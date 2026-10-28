@@ -65,7 +65,7 @@ describe('HU06 portal models formatting shared by web and mobile', () => {
   it('keeps the fixed copy in one place', () => {
     expect(PORTAL_PANEL_INTRO).toBe('Estos modelos encajan con tu diagnóstico. Te llevamos al portal con la búsqueda ya armada.')
     expect(PORTAL_FILTERS_HEADING).toBe('Filtros que aplicamos en Mercado Libre')
-    expect(PORTAL_KAVAK_NOTE).toBe('Las publicaciones y los precios son del portal. Kavak muestra solo el modelo.')
+    expect(PORTAL_KAVAK_NOTE).toBe('Las publicaciones y los precios son del portal. En Kavak aplicamos solo la transmisión.')
     expect(PORTAL_EMPTY_COPY).toEqual({
       title: 'No encontramos modelos para tu diagnóstico.',
       hint: 'Probá ajustando el presupuesto o la carrocería.',

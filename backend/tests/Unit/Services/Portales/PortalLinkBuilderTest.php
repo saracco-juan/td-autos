@@ -75,13 +75,31 @@ class PortalLinkBuilderTest extends TestCase
         ];
     }
 
-    public function test_kavak_only_takes_the_model_and_ignores_every_filter(): void
+    public function test_kavak_takes_the_model_and_the_transmission_ignoring_the_rest(): void
     {
         $urls = $this->urls($this->search([
-            'transmission' => 'automatica', 'yearFrom' => 2018, 'maxKm' => 100000, 'body' => 'sedan',
+            'transmission' => 'automatica', 'fuel' => 'nafta', 'yearFrom' => 2018, 'yearTo' => 2020,
+            'zone' => 'bsas-gba-sur', 'maxKm' => 100000, 'maxPriceArs' => 20000000, 'body' => 'sedan', 'doors' => 4,
         ]));
 
-        $this->assertSame('https://www.kavak.com/ar/usados/toyota/etios', $urls['kavak']);
+        $this->assertSame('https://www.kavak.com/ar/usados/toyota/etios/automatico', $urls['kavak']);
+    }
+
+    public function test_kavak_maps_a_manual_transmission_to_its_own_segment(): void
+    {
+        $this->assertSame(
+            'https://www.kavak.com/ar/usados/toyota/etios/manual',
+            $this->urls($this->search(['transmission' => 'manual']))['kavak'],
+        );
+    }
+
+    public function test_kavak_without_a_known_transmission_is_the_model_page(): void
+    {
+        $this->assertSame('https://www.kavak.com/ar/usados/toyota/etios', $this->urls($this->search())['kavak']);
+        $this->assertSame(
+            'https://www.kavak.com/ar/usados/toyota/etios',
+            $this->urls($this->search(['transmission' => 'cvt']))['kavak'],
+        );
     }
 
     public function test_a_portal_without_a_route_for_the_model_gets_no_link(): void

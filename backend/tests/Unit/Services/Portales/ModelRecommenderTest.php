@@ -191,6 +191,15 @@ class ModelRecommenderTest extends TestCase
             'url' => 'https://autos.mercadolibre.com.ar/toyota/corolla/automatica/2018-2021/_PriceRange_0ARS-20000000ARS_VEHICLE*BODY*TYPE_452758']], $links);
     }
 
+    public function test_the_kavak_link_carries_the_transmission_and_no_other_filter(): void
+    {
+        $model = $this->model('FORD', 'Fiesta', [], ['years' => [2022, 2023]]);
+
+        $links = $this->recommend([$model], $this->diagnosis(['transmision_preferida' => 'manual']))[0]->payload['links'];
+
+        $this->assertSame('https://www.kavak.com/ar/usados/ford/fiesta/manual', $links[1]['url']);
+    }
+
     public function test_every_portal_with_a_route_gets_a_link_and_no_cap_adds_no_price_filter(): void
     {
         $model = $this->model('FORD', 'Fiesta', [], ['years' => [2022, 2023]]);

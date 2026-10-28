@@ -76,7 +76,7 @@ it('HU06 opens each portal in a new tab with a safe real link and the Kavak note
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   }
-  expect(within(card).getByText('Las publicaciones y los precios son del portal. Kavak muestra solo el modelo.')).toBeVisible()
+  expect(within(card).getByText('Las publicaciones y los precios son del portal. En Kavak aplicamos solo la transmisión.')).toBeVisible()
 })
 
 it('HU06 shows one button per link the API returns', () => {

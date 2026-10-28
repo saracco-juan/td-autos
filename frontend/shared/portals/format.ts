@@ -5,7 +5,7 @@ export const OTHER_PORTALS_TAB = 'Otros portales'
 export const PORTAL_PANEL_INTRO = 'Estos modelos encajan con tu diagnóstico. Te llevamos al portal con la búsqueda ya armada.'
 export const PORTAL_FILTERS_HEADING = 'Filtros que aplicamos en Mercado Libre'
 export const PORTAL_PRICE_LABEL = 'Precio de referencia'
-export const PORTAL_KAVAK_NOTE = 'Las publicaciones y los precios son del portal. Kavak muestra solo el modelo.'
+export const PORTAL_KAVAK_NOTE = 'Las publicaciones y los precios son del portal. En Kavak aplicamos solo la transmisión.'
 export const PORTAL_EMPTY_COPY = {
   title: 'No encontramos modelos para tu diagnóstico.',
   hint: 'Probá ajustando el presupuesto o la carrocería.',
