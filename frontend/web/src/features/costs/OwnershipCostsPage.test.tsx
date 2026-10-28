@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { apiFetch, HttpError, NetworkError } from '../../lib/http'
 import OwnershipCostsPage from './OwnershipCostsPage'
-import type { OwnershipCosts } from './types'
+import type { OwnershipCosts } from '@shared/costs/types'
 
 vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 

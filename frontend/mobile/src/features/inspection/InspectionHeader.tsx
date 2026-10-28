@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 
 import { BACK_TO_SHEET, EYEBROW, reviewedCounter } from '@shared/checklist/inspection/copy'
-import { colors, radii } from '../../theme/tokens'
+import BackChip from '../../components/BackChip'
+import { colors } from '../../theme/tokens'
 
 type Props = {
   vehicleId: number
@@ -25,12 +25,7 @@ export default function InspectionHeader({ vehicleId, title, completed, total }:
 
   return (
     <View style={styles.header}>
-      <Pressable accessibilityRole="link" accessibilityLabel={BACK_TO_SHEET} onPress={goBack} style={styles.back}>
-        <View style={styles.chevron}>
-          <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
-        </View>
-        <Text style={styles.backLabel}>{BACK_TO_SHEET}</Text>
-      </Pressable>
+      <BackChip label={BACK_TO_SHEET} onPress={goBack} />
       <View style={styles.titles}>
         <Text style={styles.eyebrow}>{EYEBROW}</Text>
         <Text accessibilityRole="header" style={styles.title}>
@@ -46,18 +41,6 @@ export default function InspectionHeader({ vehicleId, title, completed, total }:
 
 const styles = StyleSheet.create({
   header: { gap: 20 },
-  back: { flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'flex-start' },
-  chevron: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.button,
-    backgroundColor: colors.surface,
-  },
-  backLabel: { color: colors.textPrimary, fontSize: 13 },
   titles: { gap: 8 },
   eyebrow: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
   title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },

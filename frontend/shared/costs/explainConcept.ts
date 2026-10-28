@@ -1,4 +1,4 @@
-import { formatPrice, groupThousands } from '../inventory/format'
+import { formatPrice, groupThousands } from '@shared/recommendations/format'
 import type { BodyType, CostBreakdown } from './types'
 
 export type Concept = 'fuel' | 'charging' | 'insurance' | 'patente' | 'service' | 'transfer' | 'price'

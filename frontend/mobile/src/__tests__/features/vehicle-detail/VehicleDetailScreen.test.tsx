@@ -3,16 +3,19 @@ import { fireEvent, screen, waitFor } from 'expo-router/testing-library'
 import * as authApi from '../../../features/auth/api'
 import * as detailApi from '../../../features/vehicle-detail/api'
 import * as inspectionApi from '../../../features/inspection/api'
+import * as costsApi from '../../../features/costs/api'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import type { VehicleDetailResponse } from '../../../features/vehicle-detail/types'
 import { vehicle } from '@shared/vehicles/fixtures'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
+import { costs } from '../../../test-utils/costs'
 import { renderApp } from '../../../test-utils/renderApp'
 
 jest.mock('../../../features/auth/api')
 jest.mock('../../../features/vehicle-detail/api')
 jest.mock('../../../features/inspection/api')
+jest.mock('../../../features/costs/api')
 jest.mock('../../../lib/tokenStorage')
 
 const auth = jest.mocked(authApi)
@@ -48,10 +51,11 @@ describe('VehicleDetailScreen', () => {
     expect(screen.getByTestId('gallery-cover')).toBeOnTheScreen()
     expect(screen.getByRole('link', { name: 'Volver a recomendados' })).toBeOnTheScreen()
     expect(screen.getByRole('button', { name: 'CHECKLIST DE INSPECCIÓN' })).toBeOnTheScreen()
+    expect(screen.getByRole('button', { name: 'CALCULAR COSTOS' })).toBeOnTheScreen()
     expect(screen.getByRole('tab', { name: 'Información general' })).toBeSelected()
     expect(screen.getByText('Único dueño')).toBeOnTheScreen()
     expect(screen.getByRole('button', { name: /^Diagnóstico,/ })).toBeOnTheScreen()
-    for (const retired of ['VER PUBLICACIÓN', 'CALCULAR COSTOS', 'COMPARAR']) {
+    for (const retired of ['VER PUBLICACIÓN', 'COMPARAR']) {
       expect(screen.queryByRole('button', { name: retired })).not.toBeOnTheScreen()
     }
   })
@@ -146,6 +150,20 @@ describe('VehicleDetailScreen', () => {
 
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7/inspeccion'))
     await fireEvent.press(await screen.findByRole('link', { name: 'Volver a la ficha' }))
+    await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
+    expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
+  })
+
+  it('S6: opens the calculator from the sheet and Volver a la ficha returns to it', async () => {
+    api.fetchVehicleDetail.mockResolvedValue(response())
+    jest.mocked(costsApi).fetchCosts.mockResolvedValue(costs())
+    const view = await renderApp(URL)
+
+    await fireEvent.press(await screen.findByRole('button', { name: 'CALCULAR COSTOS' }))
+
+    await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7/costos'))
+    expect(await screen.findByText('COSTO DE POSESIÓN')).toBeOnTheScreen()
+    await fireEvent.press(screen.getByRole('link', { name: 'Volver a la ficha' }))
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
     expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
   })
