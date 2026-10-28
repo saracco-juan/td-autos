@@ -11,12 +11,16 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - The user approved one shared heart control on recommendation cards and vehicle
   detail, with immediate selected feedback and restoration on failure. Current
   desktop `2373:7340` / `2373:7348` and mobile recommendation/detail frames omit
-  it. Apply this control to both platform designs after approval; native mobile
-  implementation remains outside this web story.
+  it. Synchronized on both platform designs on 2026-10-28 with shared
+  `FavoriteButton` variants (`2506:10157`); native mobile implementation
+  remains outside this web story.
 - The existing list rules add a stable page-size selector and internal scrolling
   to the Figma grid. Returning from a saved vehicle's detail goes to Favoritos.
-  These navigation and pagination differences await Figma synchronization
-  approval; no Figma edits have been made.
+  Synchronized on 2026-10-28: pinned actions and internal scrolling in the
+  existing web/mobile frames; paginated states `2506:10696` / `2506:10832`
+  show six items and the 6/12/24 selector. Saved-detail states
+  `2506:10972` / `2506:11098` retain a selected heart and return to Favoritos.
+  Editable layers, Inter typography and full-frame compositions were checked.
 
 ## Navbar
 
@@ -115,7 +119,7 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Synchronized after passing tests to High v3 desktop `2373:7348` (card
   `2461:9166`) and mobile `2373:9996` (card `2461:9213`), with editable layers,
   general information shown initially, and vertically scrollable content.
-  Native mobile implementation remains out of scope. Only the tab/description
+  Native mobile is described in HU09-MOBILE below. Only the tab/description
   design is synchronized; unrelated pending synchronization below stays pending.
   No calculator-internal or API changes are part of the tab follow-up.
 - `VER FICHA` is the primary recommendation-card action. `CALCULAR COSTOS`
@@ -128,8 +132,8 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   assumptions; no original-publication action is shown for dealer inventory.
 - Figma synchronization pending approval: expanded facts, unknown/unavailable
   states, restricted actions, compatibility provenance and filter-preserving back
-  navigation. Semantics apply to both platform designs; native mobile HU09 remains
-  unimplemented. No Figma writes or external thesis/test-source edits performed.
+  navigation. Semantics apply to both platform designs; native mobile HU09 is
+  described in HU09-MOBILE below. No Figma writes or external thesis/test-source edits performed.
 
 ## HU08 vehicle comparison (2026-10-27)
 
@@ -142,3 +146,37 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Comparison places a tablist INSIDE each vehicle card, below its “Especificaciones técnicas” heading. Both use the same controlled section ID: changing either switches both panels, without moving focus to the other card. Price, compatibility and source remain outside the panels; general vehicle fields belong in the general-information tab, as in the detail reference. Nested CSS subgrids retain aligned facts across the two instances. See [reusable tabs](frontend-tabs.md).
 - Figma updated with explicit user authorization and placement correction: desktop `2373:7368` and mobile `2373:10014` now contain two inside-card tablists and five additional editable section states per platform. Clicking either card's tabs navigates to a state with both cards synchronized. The rejected external tab bar is gone. Additional sample fields use explicit unavailable/diagnosis placeholders, not invented specifications or calculator amounts. Existing detail/form designs remain untouched. Selection/removal and incomplete/error-state design synchronization remains outside this tabs update.
 - Recommendation actions follow existing High v3 `2373:6982`: COMPARAR (QUITAR when selected) and VER FICHA share one row. Preserve detail provenance/navigation state and selection semantics; the long selection text is replaced by compact labels with descriptive accessible names.
+
+## HU05-MOBILE recommendation screen (2026-10-28)
+
+Native mobile `Recomendados` tab, High v3 `2373:9914` and its states `2373:9930`–`2373:9982`. Same data, order, filters and states as the web page; copy, types and formatting come from `frontend/shared/recommendations`. Figma sync pending approval; no Figma edits were made.
+
+- No search field (`2373:9914`, `2373:9930`, `2373:9941`): Figma shows "Buscar por marca, modelo o versión". The HU05 matching-only override above removed catalog search on both platforms, so mobile keeps only the square filter button; its row shows the applied chips (or "Sin filtros aplicados"). Web: already applied. Mobile Figma: remove the field.
+- Empty filtered state (`2373:9941`): Figma reads "No encontramos vehículos con esa búsqueda" with LIMPIAR BÚSQUEDA. Without search, mobile uses the web HU07 copy: "No encontramos vehículos que cumplan estos filtros." / "Quitá o limpiá los filtros para volver a ver tus recomendaciones." with LIMPIAR FILTROS. Apply to both frames.
+- COMPARAR is not rendered on mobile cards: comparison (HU08) does not exist on mobile yet. VER FICHA opens the native sheet (see HU09-MOBILE below). Web keeps both. Mobile Figma keeps COMPARAR for when that screen is built.
+- Card content (`2373:9914`): the placeholder line "N% de coincidencia · …" becomes "N% de compatibilidad", followed by the equivalent price, dealer, warnings and an expandable "Ver atributos y motivos" (score breakdown and budget discount), as on web. Resale evidence copy stays web-only until its mobile implementation is approved (see above). "MEJOR COINCIDENCIA" marks the top backend result only, so a filter that leaves it out shows no badge.
+- Filters sheet (`2373:9964`, `2373:9982`): transmission is a three-option segmented choice (Cualquiera, Manual, Automática) instead of a field, because React Native has no native select. Numbers accept dots as thousands separators; anything else shows "Ingresá solo números." Applied filters show as removable chips plus LIMPIAR FILTROS (HU07 rule). Applies to both platforms' Figma; web keeps its select.
+- States Figma does not draw (loading, request error with REINTENTAR, incomplete diagnosis with IR AL DIAGNÓSTICO, deferred resale, no match for the profile, missing/stale quote) follow the web page; loaders and errors get no frames (see "Feedback").
+- Pager: nine cards per page, as on web; it appears only with more than nine results (the API returns up to ten), pinned under the list.
+
+## HU09-MOBILE vehicle sheet (2026-10-28)
+
+Native mobile `Ficha técnica`, High v3 `2373:9996`, opened with VER FICHA from a recommendation card (route `/vehiculos/{id}`, a hidden screen of the tabs, bottom bar visible). Same data, copy and specification sections as the web detail (`frontend/shared/vehicles`). Figma sync applied on 2026-10-28 to the mobile frames only: in `2373:9996` the summary card keeps only CHECKLIST DE INSPECCIÓN (the other four buttons are hidden in that instance), and the new frames `2496:153` (03b, no photos) and `2496:232` (03c, listing unavailable) were added. Web `2373:7348` also lost VER PUBLICACIÓN (retired) and DEPRECIACIÓN Y REVENTA (hidden in its summary card instance). Pending approval: the mobile compatibility card `2373:10012` is untouched.
+
+- Not rendered on mobile: VER PUBLICACIÓN (retired), COMPARAR (HU08 mobile) and the compatibility snapshot. The summary card has CHECKLIST DE INSPECCIÓN and CALCULAR COSTOS (HU10-MOBILE, below), both secondary. Figma frame `2373:9996` still draws the other stacked secondary buttons: remove them on mobile, keep them on web where the screens exist.
+- Specifications: Figma shows one summary line; mobile uses the four section tabs approved for web (general information selected first, tabs wrap at narrow widths, only the selected section's rows). React Native has no hover, so each explanation is printed under its label. The dealer description is always below.
+- Subtitle under the title joins the known facts ("Automática · Nafta · 62.000 km · CABA"); unreported ones are left out of the line and read "No disponible" in the sections.
+- Photos: 16:10 cover with a thumbnail row. A broken cover reads "Esta foto no está disponible.", a broken thumbnail "Foto N no disponible", no photos "Fotos no disponibles."; never stock images.
+- States Figma does not draw: loading (centered loader), unavailable listing ("Esta publicación ya no está disponible."), network/server errors with REINTENTAR.
+- Navigation is explicit: the back chip opens `Recomendados` and the checklist's "Volver a la ficha" opens the sheet, because the tabs navigator's back goes to its first tab, not to the previous screen.
+
+## HU10-MOBILE calculator (2026-10-28)
+
+Native mobile `Calculadora financiera`, High v3 `2373:10024` (06) and `2469:16159` (06b), opened with CALCULAR COSTOS from the vehicle sheet (route `/vehiculos/{id}/costos`, a hidden screen of the tabs, bottom bar visible). Same data, copy and states as the web `OwnershipCostsPage`; types, km validation, date format and explanations come from `frontend/shared/costs`. Figma sync pending approval; no Figma edits were made.
+
+- The screen opens already computed (GET without a query, backend defaults). RECALCULAR sends the km and the coverage; an invalid km shows the shared message under the field and does not call the API. A failed recalculation keeps the previous result and shows a message box; only the results area shows the loader.
+- Coverage is a two-option segmented choice (Terceros completo, Todo riesgo) instead of a select, because React Native has no native select; same precedent as the transmission filter. Figma 06 draws a select with a chevron. Applies to both platforms' Figma; web keeps its select.
+- Tap-to-open info: there is no hover, so the info icon next to each concept opens its explanation under the row and a second tap closes it. Each icon has the accessible name "Cómo calculamos {concepto}". The published price has one only for USD listings, together with the rate note.
+- States: electric fuel reads "Próximamente", no consumption "No podemos estimarlo" (the total says what it leaves out), budget message (success or warning) only when the profile has a budget, 404 "No encontramos ese vehículo.", network or server errors with REINTENTAR (loader and errors get no frames, see "Feedback").
+- "Volver a la ficha" opens `/vehiculos/{id}` with an explicit target, because the tabs navigator's back goes to its first tab.
+

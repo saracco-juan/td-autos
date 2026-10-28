@@ -1,4 +1,5 @@
 import type { InspectionVehicle } from '../checklist/inspection/types'
+import { EQUIPMENT_EXPLANATIONS, EQUIPMENT_GROUPS, type EquipmentFacts } from './equipment'
 
 export type DetailVehicle = InspectionVehicle & {
   kilometraje: number | null
@@ -66,5 +67,19 @@ export function specificationGroups(vehicle: DetailVehicle): { title: string; ro
       { label: 'Consumo en ruta', value: consumption(vehicle.consumo_ruta, vehicle.combustible),
         explanation: 'Referencia declarada para circular en ruta; el consumo real depende del uso.' },
     ] },
+  ]
+}
+
+export type SpecificationSection = { title: string; rows: SpecificationRow[] }
+
+// The four buyer sections in order: general info, engine, safety, comfort. Equipment the dealer did not report reads "No disponible".
+export function detailSections(vehicle: DetailVehicle & EquipmentFacts): SpecificationSection[] {
+  return [
+    ...specificationGroups(vehicle),
+    ...Object.entries(EQUIPMENT_GROUPS).map(([title, fields]) => ({
+      title,
+      rows: fields.map(([key, label]) => ({ label, value: equipmentValue(vehicle[key]),
+        explanation: EQUIPMENT_EXPLANATIONS[key] })),
+    })),
   ]
 }

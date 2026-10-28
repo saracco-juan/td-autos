@@ -145,7 +145,7 @@ class CalculatorReviewTest extends TestCase
         $this->assertStringContainsString('Fuentes que no responden', $markdown);
         $this->assertStringContainsString('HTTP 404', $markdown);
         $this->assertStringContainsString('Sin snapshot válido', $markdown);
-        $this->assertStringContainsString('docs/development.md', $markdown);
+        $this->assertStringContainsString('docs/development/calculator.md', $markdown);
     }
 
     public function test_the_markdown_says_everything_is_up_to_date_when_nothing_is_stale(): void

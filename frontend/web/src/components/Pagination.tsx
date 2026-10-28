@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { buildPageItems } from '@shared/pagination/pageItems'
 import groupStyles from './buttonGroup.module.css'
 import styles from './Pagination.module.css'
 
@@ -16,43 +17,7 @@ type PaginationProps = {
 
 const DEFAULT_PAGE_SIZES = [10, 25, 50]
 
-type Item = number | 'start-ellipsis' | 'end-ellipsis'
-
-const BOUNDARY_COUNT = 1
 const COMPACT_QUERY = '(max-width: 600px)'
-
-const range = (from: number, to: number): number[] =>
-  Array.from({ length: Math.max(to - from + 1, 0) }, (_, index) => from + index)
-
-// Same page window as MUI's Pagination: first and last page always, siblings around the current one, "…" for the gaps.
-function buildItems(page: number, lastPage: number, siblingCount: number): Item[] {
-  const startPages = range(1, Math.min(BOUNDARY_COUNT, lastPage))
-  const endPages = range(Math.max(lastPage - BOUNDARY_COUNT + 1, BOUNDARY_COUNT + 1), lastPage)
-
-  const siblingsStart = Math.max(
-    Math.min(page - siblingCount, lastPage - BOUNDARY_COUNT - siblingCount * 2 - 1),
-    BOUNDARY_COUNT + 2,
-  )
-  const siblingsEnd = Math.min(
-    Math.max(page + siblingCount, BOUNDARY_COUNT + siblingCount * 2 + 2),
-    endPages.length > 0 ? endPages[0] - 2 : lastPage - 1,
-  )
-
-  const startGap: Item[] =
-    siblingsStart > BOUNDARY_COUNT + 2
-      ? ['start-ellipsis']
-      : BOUNDARY_COUNT + 1 < lastPage - BOUNDARY_COUNT
-        ? [BOUNDARY_COUNT + 1]
-        : []
-  const endGap: Item[] =
-    siblingsEnd < lastPage - BOUNDARY_COUNT - 1
-      ? ['end-ellipsis']
-      : lastPage - BOUNDARY_COUNT > BOUNDARY_COUNT
-        ? [lastPage - BOUNDARY_COUNT]
-        : []
-
-  return [...startPages, ...startGap, ...range(siblingsStart, siblingsEnd), ...endGap, ...endPages]
-}
 
 // Phones get no siblings so the control fits one line.
 function useCompact(): boolean {
@@ -97,7 +62,7 @@ export default function Pagination({
   onPageSizeChange,
 }: PaginationProps) {
   const compact = useCompact()
-  const items = buildItems(page, lastPage, siblingCount ?? (compact ? 0 : 1))
+  const items = buildPageItems(page, lastPage, siblingCount ?? (compact ? 0 : 1))
 
   return (
     <nav aria-label="Paginación" className={styles.pagination}>

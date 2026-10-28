@@ -1,5 +1,5 @@
 import { Children, useEffect, useRef, type ReactNode } from 'react'
-import { ScrollView, View } from 'react-native'
+import { ScrollView, View, type ScrollViewInstance } from 'react-native'
 
 import { layoutStyles } from './ChecklistLayout'
 
@@ -12,7 +12,7 @@ type Props = {
 
 // The summary view: scrolling header and summary, with the action buttons pinned below.
 export default function SummaryLayout({ header, summary, children }: Readonly<Props>) {
-  const scrollRef = useRef<ScrollView>(null)
+  const scrollRef = useRef<ScrollViewInstance>(null)
 
   // The summary starts at the top of the scroll.
   useEffect(() => {

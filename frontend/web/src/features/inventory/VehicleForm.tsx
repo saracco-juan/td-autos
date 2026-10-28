@@ -19,7 +19,8 @@ import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
 import type { FotoVehiculo, VehicleCatalog } from './types'
 import { usePhotoDraft } from './usePhotoDraft'
 import VehicleFormPage from './VehicleFormPage'
-import { EQUIPMENT_GROUPS, YES_NO } from './matchingFields'
+import { EQUIPMENT_GROUPS } from '@shared/vehicles/equipment'
+import { YES_NO } from './matchingFields'
 import styles from './VehicleForm.module.css'
 import {
   COMBUSTIBLE_OPTIONS,

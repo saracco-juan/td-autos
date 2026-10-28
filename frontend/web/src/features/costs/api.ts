@@ -1,5 +1,5 @@
 import { apiFetch } from '../../lib/http'
-import type { CostsQuery, OwnershipCosts } from './types'
+import type { CostsQuery, OwnershipCosts } from '@shared/costs/types'
 
 // Without a query the backend uses the km range of the diagnosis and the default coverage.
 export function fetchCosts(vehicleId: number | string, query: CostsQuery = {}): Promise<OwnershipCosts> {

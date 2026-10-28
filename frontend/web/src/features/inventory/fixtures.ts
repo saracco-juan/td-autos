@@ -1,5 +1,5 @@
 import type { Vehiculo, VehicleCatalog } from './types'
-import { EQUIPMENT_FIELDS } from './matchingFields'
+import { EQUIPMENT_FIELDS } from '@shared/vehicles/equipment'
 
 export const VEHICLE_CATALOG: VehicleCatalog = {
   snapshot_id: 'test', source_date: '2026-10-24', stale: false, warning: null,

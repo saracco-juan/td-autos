@@ -1,5 +1,6 @@
 import type { Combustible, Transmision, Vehiculo } from './types'
-import { EQUIPMENT_FIELDS, MATCHING_FIELDS, matchingValues, type MatchingField } from './matchingFields'
+import { EQUIPMENT_FIELDS } from '@shared/vehicles/equipment'
+import { MATCHING_FIELDS, matchingValues, type MatchingField } from './matchingFields'
 
 export const PHOTOS_MIN = 7
 export const PHOTOS_MAX = 20
