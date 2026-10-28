@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteController;
 use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\BusquedaController;
 use App\Http\Controllers\BuyerVehicleDetailController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
@@ -37,8 +36,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::put('/user', [ProfileController::class, 'update']);
-
-    Route::get('/busqueda', [BusquedaController::class, 'index']);
 
     Route::get('/diagnostico', [DiagnosticoController::class, 'show']);
     Route::put('/diagnostico', [DiagnosticoController::class, 'save']);
