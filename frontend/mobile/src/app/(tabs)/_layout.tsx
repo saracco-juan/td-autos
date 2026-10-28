@@ -52,6 +52,7 @@ export default function TabsLayout() {
       {/* Vehicle sheet and inspection checklist: screens of the tabs (the bottom bar stays) without a tab of their own. */}
       <Tabs.Screen name="vehiculos/[id]/index" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/inspeccion" options={HIDDEN} />
+      <Tabs.Screen name="vehiculos/[id]/costos" options={HIDDEN} />
     </Tabs>
   )
 }
