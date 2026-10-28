@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { ScrollView, StyleSheet, View } from 'react-native'
+import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native'
 
 import { pendingFlaggedByStep } from '@shared/checklist/progress'
 import type { ChecklistStep } from '@shared/checklist/types'
@@ -33,7 +33,7 @@ type Props = {
 
 // The checklist view: scrolling header, warning, pills and step card, with the action bar pinned below.
 export default function ChecklistLayout({ flow, steps, copy, header, panelFooter, after }: Readonly<Props>) {
-  const scrollRef = useRef<ScrollView>(null)
+  const scrollRef = useRef<ScrollViewInstance>(null)
   const { selected, progress, showWarning, warningText } = flow
 
   // A new step starts at the top of the scroll.

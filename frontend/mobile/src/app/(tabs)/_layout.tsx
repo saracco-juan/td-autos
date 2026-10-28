@@ -25,11 +25,13 @@ const TAB_SCREENS = TABS.map(({ name, title, icon }) => ({
   name,
   options: {
     title,
-    tabBarIcon: ({ color }: { color: ColorValue }) => <Ionicons name={icon} size={24} color={color} />,
+    // @expo/vector-icons 15 types predate React Native 0.88's ColorValue; the tab bar passes a plain color string.
+    tabBarIcon: ({ color }: { color: ColorValue }) => <Ionicons name={icon} size={24} color={color as string} />,
   },
 }))
 
-const HIDDEN = { href: null }
+// No tab button. Not `href: null`: Expo Router 58 redirects a focused hidden tab to the first one.
+const HIDDEN = { tabBarButton: () => null }
 
 export default function TabsLayout() {
   return (
