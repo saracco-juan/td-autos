@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
@@ -16,6 +16,7 @@ export default function MatchingVehicleCard({ result, comparison }: {
   result: Recommendation; comparison?: { selected: boolean; toggle: () => void }
 }) {
   const titleId = useId()
+  const [photoFailed, setPhotoFailed] = useState(false)
   const location = useLocation()
   const { vehicle, dealer, components } = result
   const title = recommendationTitle(result)
@@ -24,10 +25,19 @@ export default function MatchingVehicleCard({ result, comparison }: {
     <li className={styles.card} aria-labelledby={titleId}>
       <p id={titleId} className={styles.title}>{title}</p>
       <p className={styles.meta}>{formatKilometers(vehicle.kilometraje)} · {vehicle.ubicacion}</p>
-      {vehicle.image_url ? (
-        <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image} />
+      {vehicle.image_url && !photoFailed ? (
+        <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image}
+          onError={() => setPhotoFailed(true)} />
       ) : (
-        <div className={`${styles.image} ${styles.placeholder}`}>Sin imagen</div>
+        <div className={`${styles.image} ${styles.placeholder}`}>
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false" fill="none"
+            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 16V12l1.6-4.2A2 2 0 0 1 8.5 6.5h7a2 2 0 0 1 1.9 1.3L19 12v4" />
+            <path d="M3.5 12h17M5 16h14v2.5H17V16M7 16v2.5H5V16" />
+            <circle cx="8" cy="13.8" r=".6" /><circle cx="16" cy="13.8" r=".6" />
+          </svg>
+          <span>Sin fotos</span>
+        </div>
       )}
       <strong>{compatibilityLabel(result)}</strong>
       <p className={styles.meta}>Publicado: {formatPrice(result.published_price, result.published_currency)}</p>

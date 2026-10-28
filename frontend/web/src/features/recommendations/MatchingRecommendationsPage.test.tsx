@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -193,4 +193,16 @@ it('identifies inferred model families as approximate rather than exact', async 
   await screen.findByRole('list')
   await userEvent.click(screen.getByText('Ver atributos y motivos'))
   expect(screen.getByText(/Referencia aproximada.*Example Extended.*Example.*No confirma/)).toBeVisible()
+})
+
+it('shows a neutral "Sin fotos" placeholder when the vehicle has no photo or the photo fails to load', async () => {
+  mockDealers({ ...ready(), results: [result(1), { ...result(2), vehicle: { ...result(2).vehicle, image_url: '/missing.webp' } }] })
+  renderPage()
+  const first = await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
+  expect(within(first).getByText('Sin fotos')).toBeVisible()
+  expect(within(first).queryByRole('img', { name: /Foto de/ })).not.toBeInTheDocument()
+  const second = screen.getByRole('listitem', { name: 'Toyota Corolla XEI 2 2021' })
+  fireEvent.error(within(second).getByRole('img', { name: /Foto de/ }))
+  expect(within(second).getByText('Sin fotos')).toBeVisible()
+  expect(within(second).queryByRole('img', { name: /Foto de/ })).not.toBeInTheDocument()
 })
