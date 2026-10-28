@@ -12,7 +12,8 @@ class ResaleScorerTest extends TestCase
     {
         $row = array_replace(['make' => 'Test', 'model' => 'Example', 'version' => 'Base',
             'version_id' => 'generation:1', 'currency' => 'USD', 'values' => [2025 => 100, 2022 => 80]], $rowChanges);
-        $car = new Vehiculo(array_replace(['marca' => 'Tést', 'modelo' => 'Example', 'version' => 'BASE', 'anio' => 2025], $carChanges));
+        $car = new Vehiculo(array_replace(['marca' => 'Tést', 'modelo' => 'Example', 'version' => 'BASE',
+            'anio' => 2025, 'acara_version_id' => 'generation:1'], $carChanges));
         $car->id = 1;
         $prices = ['snapshot' => ['snapshot_id' => 'acara:1', 'source_date' => '2026-10-19',
             'rows' => $duplicate ? [$row, $row] : [$row]], 'stale' => true];
@@ -41,12 +42,10 @@ class ResaleScorerTest extends TestCase
 
     public function test_hu05_missing_ambiguous_or_different_generation_is_not_invented(): void
     {
-        foreach ([['version' => 'Base L20'],
-            ['values' => [2025 => 100, 2022 => null]]] as $changes) {
+        foreach ([['values' => [2025 => 100, 2022 => null]]] as $changes) {
             $this->assertNull($this->scores($changes)['score']);
         }
         $this->assertNull($this->scores(duplicate: true)['score']);
-        $this->assertNull($this->scores(carChanges: ['version' => null])['score']);
         $this->assertNull($this->scores(activityChanges: ['special' => ['gti']])['score']);
         $this->assertSame(70.0, $this->scores(['version' => 'GTI'], ['special' => ['gti']], ['version' => 'GTI'])['score']);
         $car = new Vehiculo(['marca' => 'Test', 'modelo' => 'Example', 'anio' => 2025]);
@@ -67,7 +66,7 @@ class ResaleScorerTest extends TestCase
         }
     }
 
-    public function test_explicit_catalog_link_selects_only_its_reference_without_text_guessing(): void
+    public function test_only_one_exact_catalog_link_selects_a_resale_reference(): void
     {
         $linked = $this->scores(carChanges: ['acara_version_id' => 'generation:1', 'version' => 'Imported display label']);
         $this->assertSame('generation:1', $linked['reference']['version_id']);
@@ -75,6 +74,12 @@ class ResaleScorerTest extends TestCase
         $this->assertNull($this->scores(carChanges: ['acara_version_id' => 'missing'])['reference']);
         $this->assertNull($this->scores(carChanges: ['acara_version_id' => 'missing'])['estimate']);
         $this->assertNull($this->scores(carChanges: ['acara_version_id' => 'generation:1'], duplicate: true)['reference']);
-        $this->assertSame(70.0, $this->scores(carChanges: ['acara_version_id' => null])['score']);
+        foreach ([null, '', 'missing'] as $id) {
+            $unlinked = $this->scores(carChanges: ['acara_version_id' => $id]);
+            $this->assertNull($unlinked['reference']);
+            $this->assertNull($unlinked['estimate']);
+            $this->assertNull($unlinked['retention_score']);
+            $this->assertNull($unlinked['model_match']);
+        }
     }
 }

@@ -18,7 +18,7 @@ class CruzeDepreciationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_tc40_projects_an_unlinked_cruze_using_its_body_style(): void
+    public function test_tc40_requires_the_exact_catalog_link_for_cruze_depreciation(): void
     {
         Http::preventStrayRequests();
         $dealer = Concesionaria::factory()->active()->create();
@@ -45,15 +45,22 @@ class CruzeDepreciationTest extends TestCase
 
         $this->actingAs(User::factory()->create(['rol' => User::ROL_COMPRADOR]))
             ->getJson("/api/vehiculos/{$vehicle->id}/depreciacion")->assertOk()
+            ->assertJsonPath('projection', null)
+            ->assertJsonPath('reference', null);
+
+        $this->assertSame($before, $vehicle->fresh()->getAttributes());
+
+        $vehicle->update(['acara_version_id' => 'chevrolet/cruze-ii/lt-mt']);
+        $this->getJson("/api/vehiculos/{$vehicle->id}/depreciacion")->assertOk()
             ->assertJsonPath('projection.current_value', 20000)
             ->assertJsonPath('projection.currency', 'USD')
             ->assertJsonPath('projection.points.0.value', 19200)
             ->assertJsonPath('projection.points.1.value', 17694.72)
             ->assertJsonPath('projection.points.2.value', 16307.45)
-            ->assertJsonPath('reference.approximate_model', 'Cruze II')
+            ->assertJsonPath('reference.approximate_model', null)
             ->assertJsonPath('reference.years_used', [2017, 2018, 2019]);
 
-        $this->assertSame($before, $vehicle->fresh()->getAttributes());
+        $this->assertSame(array_replace($before, ['acara_version_id' => 'chevrolet/cruze-ii/lt-mt']), $vehicle->fresh()->getAttributes());
         Http::assertNothingSent();
     }
 }
