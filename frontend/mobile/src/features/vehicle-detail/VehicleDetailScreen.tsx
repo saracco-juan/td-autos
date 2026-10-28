@@ -116,6 +116,7 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
             </Text>
             <Text style={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</Text>
             <Button label="CHECKLIST DE INSPECCIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/inspeccion`)} />
+            <Button label="CALCULAR COSTOS" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/costos`)} />
           </View>
           <VehicleSpecifications vehicle={data.vehicle} />
         </>

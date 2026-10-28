@@ -1,11 +1,13 @@
+import { Ionicons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import Alert from '../../components/Alert'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
 import { HttpError, NetworkError } from '../../lib/http'
-import { colors } from '../../theme/tokens'
+import { colors, radii } from '../../theme/tokens'
 import { parseVehicleId } from '@shared/checklist/inspection/vehicle'
 import { validateKm } from '@shared/costs/validateKm'
 import type { Coverage, CostsQuery, OwnershipCosts } from '@shared/costs/types'
@@ -19,6 +21,7 @@ type ScreenState = { status: 'loading' | 'notFound' } | { status: 'error'; kind:
 
 const GENERIC_ERROR = 'No pudimos calcular los costos. Intentá de nuevo en unos minutos.'
 const NOT_FOUND = 'No encontramos ese vehículo.'
+const BACK_LABEL = 'Volver a la ficha'
 
 type ValidationBody = { errors?: { km?: string[]; cobertura?: string[] } }
 
@@ -38,6 +41,7 @@ export default function CostsScreen({ rawId }: Readonly<{ rawId: string | undefi
 
 function Costs({ id }: Readonly<{ id: number | null }>) {
   const { authFetch } = useAuth()
+  const router = useRouter()
   const [view, setView] = useState<ScreenState>({ status: id === null ? 'notFound' : 'loading' })
   const [attempt, setAttempt] = useState(0)
   const [recalculating, setRecalculating] = useState(false)
@@ -103,12 +107,20 @@ function Costs({ id }: Readonly<{ id: number | null }>) {
     load({ km: checked.km, coverage }, false)
   }
 
+  // Explicit target: the tabs navigator's back goes to its first tab, not to the previous screen.
+  const goBack = () => router.navigate(`/vehiculos/${id}`)
   const data = view.status === 'ready' ? view.data : null
   const vehicle = data?.vehicle
   const title = vehicle ? [vehicle.make, vehicle.model, vehicle.version, vehicle.year].filter(Boolean).join(' ') : ''
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Pressable accessibilityRole="link" accessibilityLabel={BACK_LABEL} onPress={goBack} style={styles.back}>
+        <View style={styles.chevron}>
+          <Ionicons name="chevron-back" size={18} color={colors.textPrimary} />
+        </View>
+        <Text style={styles.backLabel}>{BACK_LABEL}</Text>
+      </Pressable>
       {view.status === 'loading' ? (
         <View style={styles.section}>
           <Loader />
@@ -168,6 +180,18 @@ function Costs({ id }: Readonly<{ id: number | null }>) {
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, gap: 16 },
+  back: { flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'flex-start' },
+  chevron: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderDefault,
+    borderRadius: radii.button,
+    backgroundColor: colors.surface,
+  },
+  backLabel: { color: colors.textPrimary, fontSize: 13 },
   // Loading and errors stay inside the screen content (docs/design.md "Feedback").
   section: { minHeight: 240, gap: 16 },
   notFound: { gap: 8 },

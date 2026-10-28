@@ -143,9 +143,20 @@ Native mobile `Recomendados` tab, High v3 `2373:9914` and its states `2373:9930`
 
 Native mobile `Ficha técnica`, High v3 `2373:9996`, opened with VER FICHA from a recommendation card (route `/vehiculos/{id}`, a hidden screen of the tabs, bottom bar visible). Same data, copy and specification sections as the web detail (`frontend/shared/vehicles`). Figma sync applied on 2026-10-28 to the mobile frames only: in `2373:9996` the summary card keeps only CHECKLIST DE INSPECCIÓN (the other four buttons are hidden in that instance), and the new frames `2496:153` (03b, no photos) and `2496:232` (03c, listing unavailable) were added. Web `2373:7348` also lost VER PUBLICACIÓN (retired) and DEPRECIACIÓN Y REVENTA (hidden in its summary card instance). Pending approval: the mobile compatibility card `2373:10012` is untouched.
 
-- Not rendered on mobile: VER PUBLICACIÓN (retired), CALCULAR COSTOS (HU10 mobile does not exist), COMPARAR (HU08 mobile) and the compatibility snapshot. The summary card has only CHECKLIST DE INSPECCIÓN. Figma frame `2373:9996` still draws the stacked secondary buttons: remove them on mobile, keep them on web where the screens exist.
+- Not rendered on mobile: VER PUBLICACIÓN (retired), COMPARAR (HU08 mobile) and the compatibility snapshot. The summary card has CHECKLIST DE INSPECCIÓN and CALCULAR COSTOS (HU10-MOBILE, below), both secondary. Figma frame `2373:9996` still draws the other stacked secondary buttons: remove them on mobile, keep them on web where the screens exist.
 - Specifications: Figma shows one summary line; mobile uses the four section tabs approved for web (general information selected first, tabs wrap at narrow widths, only the selected section's rows). React Native has no hover, so each explanation is printed under its label. The dealer description is always below.
 - Subtitle under the title joins the known facts ("Automática · Nafta · 62.000 km · CABA"); unreported ones are left out of the line and read "No disponible" in the sections.
 - Photos: 16:10 cover with a thumbnail row. A broken cover reads "Esta foto no está disponible.", a broken thumbnail "Foto N no disponible", no photos "Fotos no disponibles."; never stock images.
 - States Figma does not draw: loading (centered loader), unavailable listing ("Esta publicación ya no está disponible."), network/server errors with REINTENTAR.
 - Navigation is explicit: the back chip opens `Recomendados` and the checklist's "Volver a la ficha" opens the sheet, because the tabs navigator's back goes to its first tab, not to the previous screen.
+
+## HU10-MOBILE calculator (2026-10-28)
+
+Native mobile `Calculadora financiera`, High v3 `2373:10024` (06) and `2469:16159` (06b), opened with CALCULAR COSTOS from the vehicle sheet (route `/vehiculos/{id}/costos`, a hidden screen of the tabs, bottom bar visible). Same data, copy and states as the web `OwnershipCostsPage`; types, km validation, date format and explanations come from `frontend/shared/costs`. Figma sync pending approval; no Figma edits were made.
+
+- The screen opens already computed (GET without a query, backend defaults). RECALCULAR sends the km and the coverage; an invalid km shows the shared message under the field and does not call the API. A failed recalculation keeps the previous result and shows a message box; only the results area shows the loader.
+- Coverage is a two-option segmented choice (Terceros completo, Todo riesgo) instead of a select, because React Native has no native select; same precedent as the transmission filter. Figma 06 draws a select with a chevron. Applies to both platforms' Figma; web keeps its select.
+- Tap-to-open info: there is no hover, so the info icon next to each concept opens its explanation under the row and a second tap closes it. Each icon has the accessible name "Cómo calculamos {concepto}". The published price has one only for USD listings, together with the rate note.
+- States: electric fuel reads "Próximamente", no consumption "No podemos estimarlo" (the total says what it leaves out), budget message (success or warning) only when the profile has a budget, 404 "No encontramos ese vehículo.", network or server errors with REINTENTAR (loader and errors get no frames, see "Feedback").
+- "Volver a la ficha" opens `/vehiculos/{id}` with an explicit target, because the tabs navigator's back goes to its first tab.
+
