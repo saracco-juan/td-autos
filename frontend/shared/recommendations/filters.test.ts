@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filterRecommendations, type RecommendationFilters } from './filters'
+import { appliedFilterChips, filterRecommendations, type RecommendationFilters } from './filters'
 
 const first = { listing_id: 9, score: 92, price_ars: 20000000,
   vehicle: { anio: 2020, kilometraje: 60000, transmision: 'automatica' } }
@@ -56,5 +56,18 @@ describe('HU07 / RF06 agreed recommendation filters', () => {
   it('accepts a zero-kilometer maximum as an active inclusive bound', () => {
     const unused = { ...first, vehicle: { ...first.vehicle, kilometraje: 0 } }
     expect(filterRecommendations([first, unused], { maxKilometers: 0 })).toEqual([unused])
+  })
+})
+
+describe('HU07 applied filter chips', () => {
+  it('labels each applied criterion in form order', () => {
+    expect(appliedFilterChips({})).toEqual([])
+    expect(appliedFilterChips({ transmission: 'manual', maxKilometers: 50000, minYear: 2019, maxPrice: 15000000 })).toEqual([
+      { key: 'maxPrice', label: 'Hasta $ 15.000.000' },
+      { key: 'minYear', label: 'Desde 2019' },
+      { key: 'maxKilometers', label: 'Hasta 50.000 km' },
+      { key: 'transmission', label: 'Manual' },
+    ])
+    expect(appliedFilterChips({ transmission: 'automatica' })[0].label).toBe('Automática')
   })
 })

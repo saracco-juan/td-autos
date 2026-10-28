@@ -1,6 +1,5 @@
-import type { RecommendationFilters as Filters } from '@shared/recommendations/filters'
+import { appliedFilterChips, type RecommendationFilters as Filters } from '@shared/recommendations/filters'
 import buttonStyles from '../../components/button.module.css'
-import { formatKilometers, formatPrice } from '../inventory/format'
 import styles from './RecommendationFilters.module.css'
 
 type Props = { value: Filters; onChange: (value: Filters) => void }
@@ -12,11 +11,7 @@ const NUMERIC_FIELDS = [
 
 /** Draft inputs are uncontrolled; a changed applied value resets the form, not the disclosure. */
 export default function RecommendationFilters({ value, onChange }: Props) {
-  const chips: { key: keyof Filters; label: string }[] = []
-  if (value.maxPrice !== undefined) chips.push({ key: 'maxPrice', label: `Hasta ${formatPrice(value.maxPrice)}` })
-  if (value.minYear !== undefined) chips.push({ key: 'minYear', label: `Desde ${value.minYear}` })
-  if (value.maxKilometers !== undefined) chips.push({ key: 'maxKilometers', label: `Hasta ${formatKilometers(value.maxKilometers)}` })
-  if (value.transmission) chips.push({ key: 'transmission', label: value.transmission === 'manual' ? 'Manual' : 'Automática' })
+  const chips = appliedFilterChips(value)
   return (
     <aside className={styles.controls} aria-label="Filtros de recomendaciones">
       <details className={styles.panel}>

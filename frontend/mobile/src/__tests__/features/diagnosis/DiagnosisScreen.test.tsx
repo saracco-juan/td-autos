@@ -2,6 +2,7 @@ import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
 import * as diagnosisApi from '../../../features/diagnosis/api'
+import * as recommendationsApi from '../../../features/recommendations/api'
 import type { DiagnosisAnswers, DiagnosisResponse } from '@shared/diagnosis/types'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
@@ -9,11 +10,13 @@ import { renderApp } from '../../../test-utils/renderApp'
 
 jest.mock('../../../features/auth/api')
 jest.mock('../../../features/diagnosis/api')
+jest.mock('../../../features/recommendations/api')
 jest.mock('../../../lib/tokenStorage')
 
 const auth = jest.mocked(authApi)
 const api = jest.mocked(diagnosisApi)
 const storage = jest.mocked(tokenStorage)
+const recommendations = jest.mocked(recommendationsApi)
 
 const USER = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
 
@@ -73,6 +76,8 @@ describe('DiagnosisScreen', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     storage.readToken.mockResolvedValue('tok')
+    // VER RECOMENDACIONES opens the Recomendados tab, which asks for the ranking.
+    recommendations.fetchRecommendations.mockReturnValue(new Promise(() => {}))
     auth.fetchCurrentUser.mockResolvedValue({ ...USER, tiene_diagnostico: false })
   })
 
