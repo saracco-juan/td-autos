@@ -14,6 +14,7 @@ use App\Http\Controllers\Mobile\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecomendacionesController;
+use App\Http\Controllers\RecomendacionesModelosController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
 use App\Http\Controllers\VehicleCatalogController;
@@ -43,6 +44,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/diagnostico', [DiagnosticoController::class, 'save']);
 
     Route::get('/recomendaciones', [RecomendacionesController::class, 'index']);
+    Route::get('/recomendaciones/modelos', [RecomendacionesModelosController::class, 'index']);
 
     Route::get('/vehiculos/{id}', BuyerVehicleDetailController::class)->whereNumber('id');
     Route::get('/vehiculos/{id}/costos', [VehiculoCostosController::class, 'show']);

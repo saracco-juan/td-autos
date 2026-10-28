@@ -159,3 +159,53 @@ so the catalog and this table can load in any order. The source is `backend/data
 (body type by name); edit it and run `php artisan portales:load-models` (`--path=` for another file). The command
 upserts on (marca, modelo) and prints how many rows were created, updated or unchanged. `docker/start.sh` and
 `php artisan db:local` run it, and a test checks that every row exists in the bundled ACARA catalog.
+
+## HU06 model recommendations API
+
+`GET /api/recomendaciones/modelos` sits in the same `auth:sanctum` group as `/api/recomendaciones` and follows its
+rules: no user identity is accepted (the authenticated user's saved diagnosis is used), the same readiness check
+decides `diagnosis_incomplete`, there is no role restriction, and responses are `private, no-store`. Flow:
+`RecomendacionesModelosController` -> `Portales\PortalModelRecommendations` -> `AcaraModelPriceRepository` /
+`ModeloReferenciaRepository`, with the pure `ModelBudgetFit`, `ModelScorer` and `ModelRecommender` doing the work.
+
+Rules, in order:
+
+1. Hard filters on the curated models: body type among the diagnosis bodies, `plazas` >= seats needed, and
+   `automatica` / `manual` require `tiene_automatica` / `tiene_manual` (`indiferente` filters nothing).
+2. Budget from ACARA. The last 10 model years are read (current year minus 9 to the current year; `0km` and non-numeric
+   years never match), or only the 5 newest when `presupuesto_maximo` is null. One query returns, per model, year and
+   currency, the cheapest and dearest version (null and non-positive amounts ignored). USD is converted with
+   `DolarApi` (official sell rate), requested only when the window has USD prices; without a quote USD prices are skipped.
+   A year fits when its cheapest version is within the budget; a model enters with at least one fitting year.
+3. Score = use (1 point when the diagnosis use is in the model `usos`; `mixto` needs both `ciudad` and `ruta`) plus
+   priority: `consumo` bajo 2 / medio 1 / alto 0; `seguridad` stars / 5 * 2 (no rating counts 1); **`mantenimiento` and
+   `reventa` are neutral (1 point) for every model** because there is no per-model data for them yet. Ties: more fitting
+   years, then marca, then modelo. At most 8 models.
+4. Links: one `PortalSearch` per model with the Mercado Libre and Kavak routes, the transmission (unless
+   `indiferente`), the first and last fitting year, the budget as maximum price and the body (`sedan` / `hatchback`
+   only). Never zone, mileage, fuel or doors. Nothing is requested from the portals: the links are only built.
+
+Response (`status` is `diagnosis_incomplete` with `modelos: []`, `fuente_precios: null`, `exchange_rate: null` when the
+diagnosis is missing or incomplete; otherwise `ready`, with `modelos: []` when nothing matches):
+
+```json
+{
+  "status": "ready",
+  "modelos": [{
+    "id": 1, "marca": "TOYOTA", "modelo": "Etios", "carroceria": "Hatchback",
+    "anios": { "desde": 2019, "hasta": 2020 },
+    "precio": { "desde_ars": 24000000, "hasta_ars": 26000000, "anio_referencia": 2020 },
+    "motivos": ["Consumo bajo", "Apto para ciudad", "5 plazas"],
+    "filtros": ["Hatchback", "2019–2020", "Hasta $ 25.000.000"],
+    "links": [{ "portal": "mercadolibre", "nombre": "Mercado Libre", "url": "https://autos.mercadolibre.com.ar/..." }]
+  }],
+  "fuente_precios": { "nombre": "Guía de precios ACARA", "fecha": "2026-10-19" },
+  "exchange_rate": { "quote": { "sell": 1000 }, "stale": false, "warning": null }
+}
+```
+
+`precio` is the cheapest and dearest version of the newest fitting year, in whole pesos. `exchange_rate` (same shape as
+the neighbouring endpoint) appears only when a returned model used a converted USD price.
+
+Check: `cd backend; php artisan test --filter="ModelRecommendationsTest|ModelRecommenderTest|ModelBudgetFitTest"`
+(all HTTP is faked; the portals are never requested).
