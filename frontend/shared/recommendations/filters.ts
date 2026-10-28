@@ -1,3 +1,5 @@
+import { formatKilometers, formatPrice } from './format'
+
 export type RecommendationFilters = {
   maxPrice?: number
   minYear?: number
@@ -27,4 +29,20 @@ export function filterRecommendations<T extends FilterableRecommendation>(
     (filters.maxKilometers === undefined || (knownNumber(vehicle.kilometraje) && vehicle.kilometraje <= filters.maxKilometers)) &&
     (filters.transmission === undefined || vehicle.transmision === filters.transmission),
   )
+}
+
+export type FilterChip = { key: keyof RecommendationFilters; label: string }
+
+/** One removable chip per applied criterion, in the order of the form. */
+export function appliedFilterChips(filters: RecommendationFilters): FilterChip[] {
+  const chips: FilterChip[] = []
+  if (filters.maxPrice !== undefined) chips.push({ key: 'maxPrice', label: `Hasta ${formatPrice(filters.maxPrice)}` })
+  if (filters.minYear !== undefined) chips.push({ key: 'minYear', label: `Desde ${filters.minYear}` })
+  if (filters.maxKilometers !== undefined) {
+    chips.push({ key: 'maxKilometers', label: `Hasta ${formatKilometers(filters.maxKilometers)}` })
+  }
+  if (filters.transmission) {
+    chips.push({ key: 'transmission', label: filters.transmission === 'manual' ? 'Manual' : 'Automática' })
+  }
+  return chips
 }
