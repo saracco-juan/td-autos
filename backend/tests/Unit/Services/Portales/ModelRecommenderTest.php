@@ -191,6 +191,21 @@ class ModelRecommenderTest extends TestCase
             'url' => 'https://autos.mercadolibre.com.ar/toyota/corolla/automatica/2018-2021/_PriceRange_0ARS-20000000ARS_VEHICLE*BODY*TYPE_452758']], $links);
     }
 
+    public function test_the_photo_comes_with_its_credit_or_is_null(): void
+    {
+        $with = $this->model('TOYOTA', 'Etios', [
+            'imagen_url' => 'https://upload.wikimedia.org/a/500px-a.jpg', 'imagen_autor' => 'Ana', 'imagen_licencia' => 'CC BY 4.0',
+            'imagen_pagina' => 'https://commons.wikimedia.org/wiki/File:a.jpg',
+        ]);
+        $without = $this->model('VOLKSWAGEN', 'Gol');
+
+        $payloads = array_map(fn ($recommendation) => $recommendation->payload['imagen'], $this->recommend([$with, $without], $this->diagnosis()));
+
+        $this->assertContains(['url' => 'https://upload.wikimedia.org/a/500px-a.jpg', 'autor' => 'Ana', 'licencia' => 'CC BY 4.0',
+            'pagina' => 'https://commons.wikimedia.org/wiki/File:a.jpg'], $payloads);
+        $this->assertContains(null, $payloads);
+    }
+
     public function test_the_kavak_link_carries_the_transmission_and_no_other_filter(): void
     {
         $model = $this->model('FORD', 'Fiesta', [], ['years' => [2022, 2023]]);

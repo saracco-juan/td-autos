@@ -160,6 +160,12 @@ so the catalog and this table can load in any order. The source is `backend/data
 upserts on (marca, modelo) and prints how many rows were created, updated or unchanged. `docker/start.sh` and
 `php artisan db:local` run it, and a test checks that every row exists in the bundled ACARA catalog.
 
+Each model can carry a photo for the recommendation card: `imagen_url`, `imagen_autor`, `imagen_licencia` and
+`imagen_pagina`, all four or none (the loader rejects a partial photo, and clears the four when a row loses it). The
+photos are hotlinked from Wikimedia Commons (free licenses only: CC BY, CC BY-SA, CC0, public domain) at the standard
+`500px` thumbnail width, taken from `real-demo/models.json` and credited with author, license and file page. Models
+without a safe match (Gol, Fox, Cobalt) have no photo and the card shows the "Sin fotos" placeholder.
+
 ## HU06 model recommendations API
 
 `GET /api/recomendaciones/modelos` sits in the same `auth:sanctum` group as `/api/recomendaciones` and follows its
@@ -202,14 +208,15 @@ diagnosis is missing or incomplete; otherwise `ready`, with `modelos: []` when n
     "precio": { "desde_ars": 24000000, "hasta_ars": 26000000, "anio_referencia": 2020 },
     "motivos": ["Consumo bajo", "Apto para ciudad", "5 plazas"],
     "filtros": ["Hatchback", "2019–2020", "Hasta $ 25.000.000"],
-    "links": [{ "portal": "mercadolibre", "nombre": "Mercado Libre", "url": "https://autos.mercadolibre.com.ar/..." }]
+    "links": [{ "portal": "mercadolibre", "nombre": "Mercado Libre", "url": "https://autos.mercadolibre.com.ar/..." }],
+    "imagen": { "url": "https://upload.wikimedia.org/...", "autor": "Maxi-Napo-99", "licencia": "CC BY 4.0", "pagina": "https://commons.wikimedia.org/wiki/File:..." }
   }],
   "fuente_precios": { "nombre": "Guía de precios ACARA", "fecha": "2026-10-19" },
   "exchange_rate": { "quote": { "sell": 1000 }, "stale": false, "warning": null }
 }
 ```
 
-`precio` is the cheapest and dearest version of the newest fitting year, in whole pesos. `exchange_rate` (same shape as
+`imagen` is the credited photo of the model, or `null` when it has none. `precio` is the cheapest and dearest version of the newest fitting year, in whole pesos. `exchange_rate` (same shape as
 the neighbouring endpoint) appears only when a returned model used a converted USD price.
 
 Check: `cd backend; php artisan test --filter="ModelRecommendationsTest|ModelRecommenderTest|ModelBudgetFitTest"`

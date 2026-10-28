@@ -17,6 +17,8 @@ final class LoadPortalModels extends Command
 {
     private const ASSET = 'seeders/assets/portal-models.json';
 
+    private const PHOTO_FIELDS = ['imagen_url', 'imagen_autor', 'imagen_licencia', 'imagen_pagina'];
+
     protected $signature = 'portales:load-models {--path= : Models file (default: the repository asset)}';
 
     protected $description = 'Create or update the curated models the recommendations point to';
@@ -74,6 +76,7 @@ final class LoadPortalModels extends Command
             throw new RuntimeException($label.': unknown body type "'.(is_scalar($bodyType) ? $bodyType : '').'".');
         }
         unset($row['carroceria']);
+        $row = $this->withPhoto($row, $label);
 
         $model = ModeloReferencia::query()->firstOrNew(['marca' => $row['marca'], 'modelo' => $row['modelo']]);
         $exists = $model->exists;
@@ -85,5 +88,22 @@ final class LoadPortalModels extends Command
         $model->save();
 
         return $exists ? 'updated' : 'created';
+    }
+
+    /**
+     * The photo credit is all or nothing: the four fields come together or none does. Missing fields are set to
+     * null so a photo removed from the file is cleared on the next run.
+     *
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
+     */
+    private function withPhoto(array $row, string $label): array
+    {
+        $given = array_filter(self::PHOTO_FIELDS, fn (string $field) => ($row[$field] ?? null) !== null);
+        if ($given !== [] && count($given) !== count(self::PHOTO_FIELDS)) {
+            throw new RuntimeException($label.': the photo needs imagen_url, imagen_autor, imagen_licencia and imagen_pagina, or none.');
+        }
+
+        return array_replace(array_fill_keys(self::PHOTO_FIELDS, null), $row);
     }
 }

@@ -11,7 +11,11 @@
     "seguridad_estrellas": null,
     "usos": ["ciudad", "ruta"],
     "ruta_mercadolibre": "toyota/etios",
-    "ruta_kavak": "toyota/etios"
+    "ruta_kavak": "toyota/etios",
+    "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Etios.jpg/500px-Etios.jpg",
+    "imagen_autor": "Maxi-Napo-99",
+    "imagen_licencia": "CC BY 4.0",
+    "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Etios.jpg"
   },
   {
     "marca": "FORD",

@@ -79,6 +79,29 @@ class PortalModelsSeedTest extends TestCase
         }
     }
 
+    public function test_every_photo_is_a_free_wikimedia_commons_file_with_its_credit(): void
+    {
+        $fields = ['imagen_url', 'imagen_autor', 'imagen_licencia', 'imagen_pagina'];
+        $withPhoto = 0;
+
+        foreach ($this->rows() as $row) {
+            $label = $row['marca'].' '.$row['modelo'];
+            $present = array_filter($fields, fn (string $field) => ($row[$field] ?? null) !== null);
+            if ($present === []) {
+                continue;
+            }
+            $withPhoto++;
+
+            $this->assertSame($fields, array_values($present), "$label: a photo needs all four fields");
+            $this->assertMatchesRegularExpression('#^https://upload\.wikimedia\.org/wikipedia/commons/#', $row['imagen_url'], $label);
+            $this->assertMatchesRegularExpression('#^https://commons\.wikimedia\.org/wiki/File:#', $row['imagen_pagina'], $label);
+            $this->assertMatchesRegularExpression('/^(CC BY(-SA)? \d\.\d|CC0.*|Public domain.*)$/i', $row['imagen_licencia'], $label);
+            $this->assertNotSame('', trim($row['imagen_autor']), $label);
+        }
+
+        $this->assertGreaterThanOrEqual(30, $withPhoto);
+    }
+
     public function test_the_shipped_file_loads_with_the_command(): void
     {
         $this->artisan('portales:load-models')->assertSuccessful();
