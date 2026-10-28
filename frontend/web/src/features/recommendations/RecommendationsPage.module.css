@@ -31,15 +31,6 @@
   min-height: 0;
 }
 
-/* One row under the tabs: the filters and their chips on the left, the comparison group on the right. */
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px 24px;
-}
-
 .comparison {
   flex: none;
   max-width: 100%;
@@ -64,7 +55,6 @@
 
 @media (max-width: 800px) {
   /* Filters first, the comparison group below at full width. */
-  .toolbar,
   .comparison {
     width: 100%;
   }
@@ -114,6 +104,7 @@
   flex: 1;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
   min-height: 240px;
 }
 

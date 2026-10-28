@@ -58,53 +58,54 @@ export default function MatchingRecommendationsPage() {
     ? (portalCount === null ? null : portalCountLabel(portalCount))
     : (response?.status === 'ready' ? vehicleCount(results.length) : null)
 
+  const resultsSection = (
+    <section className={styles.results} aria-label="Resultados">
+      {view.status === 'loading' ? <SessionLoading /> : null}
+      {view.status === 'error' ? <ErrorState kind={view.kind} onRetry={retry} /> : null}
+      {response?.status === 'ready' ? (
+        <div className={styles.notice}>
+          {notice.summary ? <p>{notice.summary}</p> : null}
+          {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
+        </div>
+      ) : null}
+      {empty && results.length === 0 ? (
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle} role="status">{empty.title}</p>
+          <p className={styles.emptyHint}>{empty.hint}</p>
+        </div>
+      ) : null}
+      {results.length > 0 ? (
+        <>
+          <ScrollArea key={page} label="Recomendaciones" fill className={styles.filteredFrame} viewportClassName={styles.gridArea}>
+            <ul className={styles.grid} aria-label="Recomendaciones">
+              {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
+                <MatchingVehicleCard key={result.listing_id} result={result} comparison={{
+                  selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
+                }} />
+              ))}
+            </ul>
+          </ScrollArea>
+          {results.length > PER_PAGE ? (
+            <ListFooter>
+              <Pagination page={page} lastPage={Math.ceil(results.length / PER_PAGE)} onChange={setPage} />
+            </ListFooter>
+          ) : null}
+        </>
+      ) : null}
+    </section>
+  )
+
   const dealersPanel = (
     <div className={styles.dealersLayout}>
       {response?.status === 'ready' ? (
-        <div className={styles.toolbar} role="toolbar" aria-label="Filtros y comparación">
-          <RecommendationFilters value={filters} onChange={(next) => {
+        <RecommendationFilters value={filters} actions={<div className={styles.comparison}><ComparisonControls selection={comparison} /></div>}
+          onChange={(next) => {
             applyFilters(next)
             setPage(1)
-          }} />
-          <div className={styles.comparison}>
-            <ComparisonControls selection={comparison} />
-          </div>
-        </div>
-      ) : null}
-      <section className={styles.results} aria-label="Resultados">
-        {view.status === 'loading' ? <SessionLoading /> : null}
-        {view.status === 'error' ? <ErrorState kind={view.kind} onRetry={retry} /> : null}
-        {response?.status === 'ready' ? (
-          <div className={styles.notice}>
-            {notice.summary ? <p>{notice.summary}</p> : null}
-            {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
-          </div>
-        ) : null}
-        {empty && results.length === 0 ? (
-          <div className={styles.empty}>
-            <p className={styles.emptyTitle} role="status">{empty.title}</p>
-            <p className={styles.emptyHint}>{empty.hint}</p>
-          </div>
-        ) : null}
-        {results.length > 0 ? (
-          <>
-            <ScrollArea key={page} label="Recomendaciones" fill className={styles.filteredFrame} viewportClassName={styles.gridArea}>
-              <ul className={styles.grid} aria-label="Recomendaciones">
-                {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
-                  <MatchingVehicleCard key={result.listing_id} result={result} comparison={{
-                    selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
-                  }} />
-                ))}
-              </ul>
-            </ScrollArea>
-            {results.length > PER_PAGE ? (
-              <ListFooter>
-                <Pagination page={page} lastPage={Math.ceil(results.length / PER_PAGE)} onChange={setPage} />
-              </ListFooter>
-            ) : null}
-          </>
-        ) : null}
-      </section>
+          }}>
+          {resultsSection}
+        </RecommendationFilters>
+      ) : resultsSection}
     </div>
   )
 
