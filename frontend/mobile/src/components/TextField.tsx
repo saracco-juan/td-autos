@@ -12,6 +12,7 @@ export type TextFieldProps = Pick<
   | 'textContentType'
   | 'returnKeyType'
   | 'onSubmitEditing'
+  | 'placeholder'
 > & {
   label: string
   value: string

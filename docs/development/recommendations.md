@@ -139,3 +139,13 @@ The screen now calls `GET /api/recomendaciones`, not catalog search.
 Run the isolated frontend checks with
 `npm run test -- src/features/recommendations/MatchingRecommendationsPage.test.tsx src/features/recommendations/matching.test.ts`
 from `frontend/web`. These tests fake API data and never change the local inventory.
+
+## HU05-MOBILE recommendation screen
+
+The `Recomendados` tab calls the same `GET /api/recomendaciones` with the session bearer token
+(`features/recommendations/api.ts`) and asks again every time the tab gains focus, so finishing the
+diagnosis again shows the recalculated ranking. Filters (HU07) and pagination run on the device over
+the returned results, with the same shared helpers as web (`@shared/recommendations/*`).
+
+Isolated checks, from `frontend/mobile`:
+`npx jest src/__tests__/features/recommendations` (faked API; no backend needed).
