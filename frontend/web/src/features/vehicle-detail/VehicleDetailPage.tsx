@@ -7,9 +7,10 @@ import screenStyles from '../../components/screen.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
+import FavoriteButton from '../favorites/FavoriteButton'
 import { formatPrice } from '../inventory/format'
 import { fetchVehicleDetail } from './api'
-import { readDetailContext, type DetailContext } from './navigation'
+import { readDetailContext, readDetailReturn, type DetailContext } from './navigation'
 import type { VehicleDetailResponse } from './types'
 import VehicleCostShortcut from './VehicleCostShortcut'
 import VehicleGallery from './VehicleGallery'
@@ -26,10 +27,11 @@ export default function VehicleDetailPage() {
   const { id } = useParams()
   const { state } = useLocation()
   const vehicleId = parseVehicleId(id)
-  return <DetailScreen key={id} id={vehicleId} context={readDetailContext(state, vehicleId)} />
+  const context = readDetailContext(state, vehicleId)
+  return <DetailScreen key={id} id={vehicleId} context={context} returnTo={readDetailReturn(state, context)} />
 }
 
-function DetailScreen({ id, context }: { id: number | null; context: DetailContext | null }) {
+function DetailScreen({ id, context, returnTo }: { id: number | null; context: DetailContext | null; returnTo: { to: string; label: string } }) {
   const [view, setView] = useState<View>({ status: id === null ? 'unavailable' : 'loading' })
   const [attempt, setAttempt] = useState(0)
   const heading = useRef<HTMLHeadingElement>(null)
@@ -54,9 +56,9 @@ function DetailScreen({ id, context }: { id: number | null; context: DetailConte
     .map(({ label, value }) => `${label}: ${value}`).join(' · ') : ''
   return (
     <div className={styles.page}>
-      <Link className={styles.back} to={context?.returnTo ?? '/recomendaciones'}>
+      <Link className={styles.back} to={returnTo.to}>
         <span className={styles.backIcon}><img src={backIcon} alt="" /></span>
-        Volver a recomendados
+        {returnTo.label}
       </Link>
       {view.status === 'loading' ? <SessionLoading /> : null}
       {view.status === 'unavailable' ? (
@@ -82,6 +84,7 @@ function DetailScreen({ id, context }: { id: number | null; context: DetailConte
               <aside className={styles.summary} aria-label="Resumen de la publicación">
                 <p className={styles.price}>{data.vehicle.precio === null || data.vehicle.moneda === null
                   ? 'Precio no disponible.' : formatPrice(data.vehicle.precio, data.vehicle.moneda)}</p>
+                <FavoriteButton vehicleId={data.vehicle.id} vehicleName={title} isFavorite={data.is_favorite ?? false} />
                 <p className={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</p>
                 <VehicleCostShortcut vehicleId={data.vehicle.id} context={context} />
                 <Link to={`/vehiculos/${id}/inspeccion`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>

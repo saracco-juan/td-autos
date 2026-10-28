@@ -8,6 +8,7 @@ use App\Http\Controllers\BuyerVehicleDetailController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
 use App\Http\Controllers\DiagnosticoController;
+use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\InspeccionController;
 use App\Http\Controllers\InventoryXlsxTemplateController;
 use App\Http\Controllers\Mobile\MobileAuthController;
@@ -43,6 +44,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/diagnostico', [DiagnosticoController::class, 'save']);
 
     Route::get('/recomendaciones', [RecomendacionesController::class, 'index']);
+
+    Route::get('/favoritos', [FavoritoController::class, 'index']);
+    Route::put('/favoritos/{id}', [FavoritoController::class, 'store'])->whereNumber('id');
+    Route::delete('/favoritos/{id}', [FavoritoController::class, 'destroy'])->whereNumber('id');
 
     Route::get('/vehiculos/{id}', BuyerVehicleDetailController::class)->whereNumber('id');
     Route::get('/vehiculos/{id}/costos', [VehiculoCostosController::class, 'show']);

@@ -148,6 +148,9 @@ export default function AppShell() {
                     <NavLink to="/recomendaciones" className={styles.navAction}>
                       Recomendados
                     </NavLink>
+                    <NavLink to="/favoritos" className={styles.navAction}>
+                      Favoritos
+                    </NavLink>
                     <NavLink to="/transferencia" className={styles.navAction}>
                       Transferencia
                     </NavLink>

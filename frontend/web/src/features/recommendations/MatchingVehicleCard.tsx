@@ -8,6 +8,7 @@ import {
 } from '@shared/recommendations/format'
 import { formatKilometers, formatPrice } from '../inventory/format'
 import { EQUIPMENT_GROUPS } from '@shared/vehicles/equipment'
+import FavoriteButton from '../favorites/FavoriteButton'
 import type { Recommendation } from './matching'
 import styles from './VehicleCard.module.css'
 
@@ -24,11 +25,15 @@ export default function MatchingVehicleCard({ result, comparison }: {
     <li className={styles.card} aria-labelledby={titleId}>
       <p id={titleId} className={styles.title}>{title}</p>
       <p className={styles.meta}>{formatKilometers(vehicle.kilometraje)} · {vehicle.ubicacion}</p>
-      {vehicle.image_url ? (
-        <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image} />
-      ) : (
-        <div className={`${styles.image} ${styles.placeholder}`}>Sin imagen</div>
-      )}
+      <div className={styles.imageWrapper}>
+        {vehicle.image_url ? (
+          <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image} />
+        ) : (
+          <div className={`${styles.image} ${styles.placeholder}`}>Sin imagen</div>
+        )}
+        <div className={styles.favorite}><FavoriteButton vehicleId={result.listing_id}
+          vehicleName={title} isFavorite={result.is_favorite ?? false} /></div>
+      </div>
       <strong>{compatibilityLabel(result)}</strong>
       <p className={styles.meta}>Publicado: {formatPrice(result.published_price, result.published_currency)}</p>
       <p className={styles.meta}>{equivalentPriceLabel(result)}</p>
