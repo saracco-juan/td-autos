@@ -94,7 +94,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "volkswagen/amarok",
-        "ruta_kavak": null
+        "ruta_kavak": "volkswagen/amarok"
     },
     {
         "marca": "VOLKSWAGEN",
@@ -231,7 +231,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "chevrolet/s10",
-        "ruta_kavak": null
+        "ruta_kavak": "chevrolet/s10"
     },
     {
         "marca": "CHEVROLET",
@@ -328,7 +328,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "toyota/hilux",
-        "ruta_kavak": null
+        "ruta_kavak": "toyota/hilux"
     },
     {
         "marca": "TOYOTA",
@@ -442,7 +442,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "ford/ranger",
-        "ruta_kavak": null
+        "ruta_kavak": "ford/ranger"
     },
     {
         "marca": "RENAULT",
@@ -717,7 +717,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "nissan/frontier",
-        "ruta_kavak": null
+        "ruta_kavak": "nissan/frontier"
     },
     {
         "marca": "NISSAN",
