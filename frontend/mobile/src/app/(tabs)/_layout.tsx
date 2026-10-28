@@ -49,7 +49,8 @@ export default function TabsLayout() {
       {TAB_SCREENS.map(({ name, options }) => (
         <Tabs.Screen key={name} name={name} options={options} />
       ))}
-      {/* Inspection checklist: a screen of the tabs (the bottom bar stays) without a tab of its own. */}
+      {/* Vehicle sheet and inspection checklist: screens of the tabs (the bottom bar stays) without a tab of their own. */}
+      <Tabs.Screen name="vehiculos/[id]/index" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/inspeccion" options={HIDDEN} />
     </Tabs>
   )
