@@ -440,6 +440,14 @@
       "sessions": 0,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "f8fb95fd",
+      "created_by": "Juan",
+      "created_at": "2026-10-28T13:32:48Z",
+      "sessions": 0,
+      "memories": 4,
+      "prompts": 0
     }
   ]
 }
