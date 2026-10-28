@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { equipmentValue, specificationGroups, type DetailVehicle } from './detail'
+import { detailSections, equipmentValue, specificationGroups, type DetailVehicle } from './detail'
+import { EQUIPMENT_GROUPS } from './equipment'
 import { vehicle } from './fixtures'
 
 describe('HU09 / RF08 comprehensible technical facts', () => {
@@ -36,5 +37,27 @@ describe('HU09 / RF08 comprehensible technical facts', () => {
       const alternative = specificationGroups({ ...vehicle, combustible }).flatMap((group) => group.rows)
       expect(alternative.find((row) => row.label === 'Consumo en ciudad')?.value).toBe('8,5 (unidad no informada)')
     }
+  })
+})
+
+describe('HU09 four specification sections', () => {
+  it('orders general info, engine, safety and comfort', () => {
+    expect(detailSections(vehicle).map((section) => section.title))
+      .toEqual(['Información general', 'Motor y consumo', 'Seguridad', 'Confort'])
+  })
+
+  it('lists every equipment feature with its glossary explanation', () => {
+    const [, , safety, comfort] = detailSections({ ...vehicle, frenos_abs: true, isofix: false })
+    expect(safety.rows).toHaveLength(EQUIPMENT_GROUPS.Seguridad.length)
+    expect(comfort.rows).toHaveLength(EQUIPMENT_GROUPS.Confort.length)
+    expect(safety.rows.find((row) => row.label === 'Frenos ABS')).toEqual(expect.objectContaining({
+      value: 'Sí', explanation: expect.stringMatching(/bloqueen/) }))
+    expect(safety.rows.find((row) => row.label === 'Anclajes ISOFIX')?.value).toBe('No')
+    expect(safety.rows.every((row) => row.explanation)).toBe(true)
+  })
+
+  it('reports unreported equipment as unavailable instead of No', () => {
+    const rows = detailSections(vehicle).slice(2).flatMap((section) => section.rows)
+    expect(rows.every((row) => row.value === 'No disponible')).toBe(true)
   })
 })
