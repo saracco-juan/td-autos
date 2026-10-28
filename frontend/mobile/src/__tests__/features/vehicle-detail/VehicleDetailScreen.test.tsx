@@ -2,6 +2,8 @@ import { fireEvent, screen, waitFor } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
 import * as detailApi from '../../../features/vehicle-detail/api'
+import * as inspectionApi from '../../../features/inspection/api'
+import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import type { VehicleDetailResponse } from '../../../features/vehicle-detail/types'
 import { vehicle } from '@shared/vehicles/fixtures'
 import { HttpError, NetworkError } from '../../../lib/http'
@@ -10,6 +12,7 @@ import { renderApp } from '../../../test-utils/renderApp'
 
 jest.mock('../../../features/auth/api')
 jest.mock('../../../features/vehicle-detail/api')
+jest.mock('../../../features/inspection/api')
 jest.mock('../../../lib/tokenStorage')
 
 const auth = jest.mocked(authApi)
@@ -134,12 +137,16 @@ describe('VehicleDetailScreen', () => {
     expect(screen.getByText('Esta foto no está disponible.')).toBeOnTheScreen()
   })
 
-  it('S4: opens the inspection checklist from the sheet', async () => {
+  it('S4: opens the inspection checklist from the sheet and Volver a la ficha returns to it', async () => {
     api.fetchVehicleDetail.mockResolvedValue(response())
+    jest.mocked(inspectionApi).fetchInspection.mockResolvedValue(inspectionResponse())
     const view = await renderApp(URL)
 
     await fireEvent.press(await screen.findByRole('button', { name: 'CHECKLIST DE INSPECCIÓN' }))
 
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7/inspeccion'))
+    await fireEvent.press(await screen.findByRole('link', { name: 'Volver a la ficha' }))
+    await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
+    expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
   })
 })

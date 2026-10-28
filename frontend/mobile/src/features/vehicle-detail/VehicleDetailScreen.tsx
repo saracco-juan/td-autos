@@ -64,8 +64,8 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
     setView({ status: 'loading' })
     setAttempt((value) => value + 1)
   }, [])
-  // The sheet is opened from the recommendations; a deep link has nothing to go back to.
-  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/recomendados'))
+  // The sheet is opened from the recommendations. Explicit target: the tabs navigator's back goes to its first tab.
+  const goBack = () => router.navigate('/recomendados')
   const data = view.status === 'ready' ? view.response : null
   const title = data ? vehicleTitle(data.vehicle) : ''
 
