@@ -73,7 +73,7 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - User-approved override: recommendations replace catalog search; no search field or catalog tab. HU07 adds the filters specified below. Backend order is retained, nine cards per page, up to ten results total.
 - Cards show published/equivalent prices, compatibility, dealer, budget/body warnings and expandable grouped facts/motives. The shared quote shows source, sell rate, provider date and stale/unavailable notices. HU09 detail and HU08 comparison are described in their sections below.
 - Figma sync pending approval: High v3 desktop `2373:7328`, mobile `2373:9914` still show search and placeholder match lines. Apply the matching-only/content changes to both; tablet follows web responsive rules. No Figma edits have been made.
-- This supersedes the recommendation search-field rules above. Existing catalog components/tests remain unmounted legacy RF05 code, not another user-facing view.
+- This supersedes the recommendation search-field rules above. The old RF05 catalog view, its API client and `GET /api/busqueda` were removed in HU06.
 
 ## HU07 recommendation filters (2026-10-26)
 

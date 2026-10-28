@@ -53,7 +53,7 @@
   }
 }
 
-/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right; the search box goes under them. */
+/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right. */
 .headerRow {
   display: flex;
   align-items: flex-end;
@@ -87,26 +87,13 @@
   width: clamp(180px, 20%, 236px);
 }
 
-/* Full-width search field under the header; it searches on Enter. */
-.search {
-  min-width: 0;
-}
-
-/* The loader and the states live here and are centered in it; the header and the search stay in place. */
+/* The loader and the states live here and are centered in it, the header stays in place. */
 .results {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 12px;
   min-height: 240px;
-}
-
-/* Where the cards were while the next page loads: the loader is centered in the space of the grid. */
-.gridLoading {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
 }
 
 /* Room for the card shadows, which the scroll box would clip. */
