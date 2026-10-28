@@ -68,6 +68,7 @@ class LocalDevDatabaseTest extends TestCase
         $this->assertSame(7383, $db->table('catalog_versions')->count());
         $this->assertSame(118240, $db->table('catalog_prices')->count());
         $this->assertGreaterThan(0, $db->table('catalog_prices')->whereNull('amount')->count());
+        $this->assertSame(40, $db->table('modelo_referencia')->count());
         $corolla = 'acara:fe61f57616f218ce4b450c3562e6cf8fee5ac754b2e00d379aecf66212d156de';
         $this->assertSame('XEI 1.8 MT (140cv) (L14)', $db->table('catalog_versions')->where('id', $corolla)->value('name'));
         $this->assertEquals(17793100, $db->table('catalog_prices')->where('version_id', $corolla)->where('year', '2017')->value('amount'));

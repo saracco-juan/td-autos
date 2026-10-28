@@ -149,3 +149,13 @@ the returned results, with the same shared helpers as web (`@shared/recommendati
 
 Isolated checks, from `frontend/mobile`:
 `npx jest src/__tests__/features/recommendations` (faked API; no backend needed).
+
+## HU06 curated models
+
+HU06 recommends models, not portal listings. The `modelo_referencia` table holds the curated models (body type,
+seats, transmission, fuels, consumption class, optional Latin NCAP stars, uses and the Mercado Libre / Kavak
+route pieces such as `toyota/etios`). `marca` and `modelo` are the exact ACARA catalog names, with no foreign key,
+so the catalog and this table can load in any order. The source is `backend/database/seeders/assets/portal-models.json`
+(body type by name); edit it and run `php artisan portales:load-models` (`--path=` for another file). The command
+upserts on (marca, modelo) and prints how many rows were created, updated or unchanged. `docker/start.sh` and
+`php artisan db:local` run it, and a test checks that every row exists in the bundled ACARA catalog.
