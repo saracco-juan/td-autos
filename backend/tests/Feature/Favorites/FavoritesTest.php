@@ -140,6 +140,23 @@ class FavoritesTest extends TestCase
         $this->assertEquals($before, DB::table('favorito')->get()->toArray());
     }
 
+    public function test_save_does_not_report_success_when_the_listing_disappears_during_the_write(): void
+    {
+        $buyer = User::factory()->create(['rol' => User::ROL_COMPRADOR]);
+        $vehicle = $this->listing();
+        // Deterministically interrupt the write with the same cleanup as a concurrent deletion.
+        DB::listen(function ($query) use ($vehicle): void {
+            if (! str_starts_with(strtolower($query->sql), 'insert') || ! str_contains($query->sql, '"favorito"')) {
+                return;
+            }
+            DB::table('favorito')->where('vehiculo_id', $vehicle->id)->delete();
+            $vehicle->propiedad()->delete();
+            $vehicle->delete();
+        });
+        $this->actingAs($buyer)->putJson("/api/favoritos/{$vehicle->id}")->assertNotFound();
+        $this->assertDatabaseCount('favorito', 0);
+    }
+
     public function test_guests_and_non_buyers_cannot_access_favorites(): void
     {
         foreach (['get', 'put', 'delete'] as $method) {

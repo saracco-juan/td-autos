@@ -48,7 +48,8 @@ final class BuyerFavorites
             'usuario_id' => $userId, 'vehiculo_id' => $vehicleId, 'fecha_guardado' => now(),
         ]);
 
-        return true;
+        // Confirm persistence even if a concurrent listing deletion removed the favorite.
+        return DB::table('favorito')->where('usuario_id', $userId)->where('vehiculo_id', $vehicleId)->exists();
     }
 
     public function remove(int $userId, int $vehicleId): void
