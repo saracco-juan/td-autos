@@ -31,6 +31,35 @@
   gap: 14px;
 }
 
+/* The photo sits flush at the top of the card (the card padding is 16), with the credit over its bottom edge. */
+.media {
+  position: relative;
+  margin: -16px -16px 0;
+  overflow: hidden;
+  border-radius: 13px 13px 0 0;
+}
+
+.media > .photo {
+  border: 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.credit {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  left: 0;
+  padding: 3px 10px;
+  background: rgba(26, 20, 15, 0.72);
+  font-size: 11px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.credit a {
+  color: #fff;
+}
+
 .head {
   display: flex;
   align-items: flex-start;

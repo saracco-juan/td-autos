@@ -1,5 +1,5 @@
 import { formatPrice } from '../recommendations/format'
-import type { PortalLink, PortalModel, PortalPriceSource } from './models'
+import type { PortalLink, PortalModel, PortalPhoto, PortalPriceSource } from './models'
 
 export const OTHER_PORTALS_TAB = 'Otros portales'
 export const PORTAL_PANEL_INTRO = 'Estos modelos encajan con tu diagnóstico. Te llevamos al portal con la búsqueda ya armada.'
@@ -51,6 +51,11 @@ export function portalTabLabel(count: number | null): string {
 export function portalSourceLabel({ nombre, fecha }: PortalPriceSource): string {
   const [year, month, day] = fecha.split('-')
   return `Precios de referencia: ${nombre}, ${day}/${month}/${year}`
+}
+
+// The credit the photo license asks for; the file page it links to holds the license text.
+export function portalPhotoCredit({ autor, licencia }: PortalPhoto): string {
+  return `Foto: ${autor} · ${licencia} · Wikimedia Commons`
 }
 
 export function portalButtonLabel({ nombre }: Pick<PortalLink, 'nombre'>): string {

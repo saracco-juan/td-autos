@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   OTHER_PORTALS_TAB, PORTAL_EMPTY_COPY, PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_PANEL_INTRO,
   PORTAL_PRICE_LABEL, portalButtonLabel, portalCountLabel, portalLinkName, portalModelTitle, portalPriceRange,
-  portalPriceYear, portalSourceLabel, portalTabLabel,
+  portalPhotoCredit, portalPriceYear, portalSourceLabel, portalTabLabel,
   portalYearsLabel, titleCaseBrand,
 } from './format'
 import type { PortalModel } from './models'
@@ -13,6 +13,7 @@ const model: PortalModel = {
   precio: { desde_ars: 24662900, hasta_ars: 32670000, anio_referencia: 2025 },
   motivos: ['Consumo bajo'], filtros: ['Hatchback'],
   links: [{ portal: 'mercadolibre', nombre: 'Mercado Libre', url: 'https://autos.mercadolibre.com.ar/x' }],
+  imagen: null,
 }
 
 describe('HU06 portal models formatting shared by web and mobile', () => {
@@ -25,6 +26,13 @@ describe('HU06 portal models formatting shared by web and mobile', () => {
 
   it('builds the card title from the brand and the model as stored', () => {
     expect(portalModelTitle(model)).toBe('Toyota Etios')
+  })
+
+  it('credits the photo with its author, license and source', () => {
+    expect(portalPhotoCredit({
+      url: 'https://upload.wikimedia.org/a.jpg', autor: 'Maxi-Napo-99', licencia: 'CC BY 4.0',
+      pagina: 'https://commons.wikimedia.org/wiki/File:a.jpg',
+    })).toBe('Foto: Maxi-Napo-99 · CC BY 4.0 · Wikimedia Commons')
   })
 
   it('labels a year range or a single year', () => {

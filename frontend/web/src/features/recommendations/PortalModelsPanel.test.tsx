@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it, vi } from 'vitest'
 import type { PortalModel, PortalModelsResponse } from '@shared/portals/models'
@@ -15,8 +15,13 @@ const model = (id: number, overrides: Partial<PortalModel> = {}): PortalModel =>
     { portal: 'mercadolibre', nombre: 'Mercado Libre', url: 'https://autos.mercadolibre.com.ar/etios' },
     { portal: 'kavak', nombre: 'Kavak', url: 'https://www.kavak.com/ar/usado/toyota-etios' },
   ],
+  imagen: null,
   ...overrides,
 })
+const photo = {
+  url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Etios.jpg/500px-Etios.jpg',
+  autor: 'Maxi-Napo-99', licencia: 'CC BY 4.0', pagina: 'https://commons.wikimedia.org/wiki/File:Etios.jpg',
+}
 const response = (overrides: Partial<PortalModelsResponse> = {}): PortalModelsResponse => ({
   status: 'ready', modelos: [model(1), model(2)], exchange_rate: null,
   fuente_precios: { nombre: 'Guía de precios ACARA', fecha: '2026-10-19' }, ...overrides,
@@ -35,7 +40,7 @@ it('HU06 shows the intro, one card per model and the dated price source', () => 
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 
-it('HU06 card shows the title, years pill, price block, reasons and filter chips without a photo', () => {
+it('HU06 card shows the title, years pill, price block, reasons and filter chips and the no-photo placeholder', () => {
   renderPanel(ready())
   const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
   expect(within(card).getByText('Años 2017–2025')).toBeVisible()
@@ -50,7 +55,33 @@ it('HU06 card shows the title, years pill, price block, reasons and filter chips
   expect(within(chips).getAllByRole('listitem').map((item) => item.textContent))
     .toEqual(['Hatchback', '2017–2025', 'Hasta $ 33.000.000'])
   expect(within(card).queryByRole('img')).not.toBeInTheDocument()
-  expect(card.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(3)
+  expect(within(card).getByText('Sin fotos')).toBeVisible()
+  expect(card.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(4)
+})
+
+it('HU06 shows the model photo with its alt, lazy loading and a credit link to the file page', () => {
+  renderPanel(ready({ modelos: [model(1, { imagen: photo })] }))
+  const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
+  const image = within(card).getByRole('img', { name: 'Toyota Etios 1' })
+  expect(image).toHaveAttribute('src', photo.url)
+  expect(image).toHaveAttribute('loading', 'lazy')
+  expect(within(card).queryByText('Sin fotos')).not.toBeInTheDocument()
+  const credit = within(card).getByRole('link', { name: 'Foto: Maxi-Napo-99 · CC BY 4.0 · Wikimedia Commons' })
+  expect(credit).toHaveAttribute('href', photo.pagina)
+  expect(credit).toHaveAttribute('target', '_blank')
+  expect(credit).toHaveAttribute('rel', 'noopener noreferrer')
+})
+
+it('HU06 falls back to the placeholder, without the credit, when the photo fails to load', () => {
+  renderPanel(ready({ modelos: [model(1, { imagen: photo })] }))
+  const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
+
+  fireEvent.error(within(card).getByRole('img', { name: 'Toyota Etios 1' }))
+
+  expect(within(card).queryByRole('img')).not.toBeInTheDocument()
+  expect(within(card).getByText('Sin fotos')).toBeVisible()
+  expect(within(card).queryByText(/Wikimedia Commons/)).not.toBeInTheDocument()
+  expect(within(card).getAllByRole('link')).toHaveLength(2)
 })
 
 it('HU06 gives both portal links the same class so they share width and height', () => {

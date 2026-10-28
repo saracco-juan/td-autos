@@ -1,10 +1,11 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import {
   PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_PRICE_LABEL, portalButtonLabel, portalLinkName, portalModelTitle,
-  portalPriceRange, portalPriceYear, portalYearsLabel,
+  portalPhotoCredit, portalPriceRange, portalPriceYear, portalYearsLabel,
 } from '@shared/portals/format'
 import type { PortalModel } from '@shared/portals/models'
 import buttonStyles from '../../components/button.module.css'
+import PhotoPlaceholder from './PhotoPlaceholder'
 import cardStyles from './VehicleCard.module.css'
 import styles from './PortalModels.module.css'
 
@@ -16,14 +17,28 @@ function CheckIcon() {
   )
 }
 
-// A curated model with the searches already built for each portal. No photo: the portals own the listings.
+// A curated model with its credited photo and the searches already built for each portal. The listings stay in the portals.
 export default function PortalModelCard({ model }: { model: PortalModel }) {
   const titleId = useId()
   const headingId = useId()
+  const [photoFailed, setPhotoFailed] = useState(false)
+  const title = portalModelTitle(model)
+  const photo = photoFailed ? null : model.imagen
   return (
     <li className={styles.card} aria-labelledby={titleId}>
+      <figure className={styles.media}>
+        {photo ? (
+          <>
+            <img src={photo.url} alt={title} loading="lazy" className={`${cardStyles.image} ${styles.photo}`}
+              onError={() => setPhotoFailed(true)} />
+            <figcaption className={styles.credit}>
+              <a href={photo.pagina} target="_blank" rel="noopener noreferrer">{portalPhotoCredit(photo)}</a>
+            </figcaption>
+          </>
+        ) : <PhotoPlaceholder className={styles.photo} />}
+      </figure>
       <div className={styles.head}>
-        <p id={titleId} className={`${cardStyles.title} ${styles.title}`}>{portalModelTitle(model)}</p>
+        <p id={titleId} className={`${cardStyles.title} ${styles.title}`}>{title}</p>
         <span className={styles.years}>{portalYearsLabel(model.anios)}</span>
       </div>
       <div className={styles.price}>
