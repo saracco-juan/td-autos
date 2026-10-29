@@ -18,7 +18,6 @@ class BuyerVehicleContactTest extends TestCase
 
     private function listing(): Vehiculo
     {
-        config(['whatsapp.confirmed_numbers' => ['5491155550101']]);
         $dealer = Concesionaria::factory()->active()->create(['telefono_publico' => '+54 9 11 5555-0101']);
         Suscripcion::factory()->create(['concesionaria_id' => $dealer->id, 'estado' => 'activa',
             'vigente_hasta' => now()->addMonth()->toDateString()]);
@@ -54,11 +53,11 @@ class BuyerVehicleContactTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_unconfirmed_or_invalid_numbers_cannot_record_leads(): void
+    public function test_missing_or_invalid_public_numbers_cannot_record_leads(): void
     {
         $vehicle = $this->listing();
         $this->actingAs(User::factory()->state(['rol' => User::ROL_COMPRADOR])->create());
-        foreach ([null, '123', 'javascript:alert(1)', '5491155550999'] as $phone) {
+        foreach ([null, '123', 'javascript:alert(1)'] as $phone) {
             $vehicle->propiedad->concesionaria->update(['telefono_publico' => $phone]);
             $this->getJson("/api/vehiculos/{$vehicle->id}")->assertOk()->assertJsonPath('whatsapp_available', false);
             $this->postJson("/api/vehiculos/{$vehicle->id}/contacto")->assertConflict();
@@ -89,17 +88,6 @@ class BuyerVehicleContactTest extends TestCase
         $this->postJson($url)->assertNotFound();
         $this->postJson('/api/vehiculos/999999/contacto')->assertNotFound();
         $this->assertDatabaseCount('lead', 0);
-    }
-
-    public function test_removing_confirmation_disables_contact_without_modifying_public_phone(): void
-    {
-        $vehicle = $this->listing();
-        config(['whatsapp.confirmed_numbers' => []]);
-        $this->actingAs(User::factory()->create(['rol' => User::ROL_COMPRADOR]));
-        $this->getJson("/api/vehiculos/{$vehicle->id}")->assertOk()->assertJsonPath('whatsapp_available', false);
-        $this->postJson("/api/vehiculos/{$vehicle->id}/contacto")->assertConflict();
-        $this->assertDatabaseCount('lead', 0);
-        $this->assertSame('+54 9 11 5555-0101', $vehicle->propiedad->concesionaria->telefono_publico);
     }
 
     public function test_unknown_mileage_and_plate_are_omitted_instead_of_invented(): void

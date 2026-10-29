@@ -31,6 +31,15 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   is pending outside this web story. Figma synchronization for the detail
   is pending final approval; no Figma files were changed.
 
+## HU25 dealership contact settings (2026-10-29)
+
+- Reuse profile High v3 `2373:7499` field, card and button styles. Add EDITAR CONTACTO to dealership verification High v3 `2373:8723`; it opens
+  a CONTACTO DE LA CONCESIONARIA card using the profile form styles. The existing public phone is labelled Teléfono público / WhatsApp and
+  saves independently, with inline validation and saved feedback.
+- This owner contact setting applies to web and mobile. Web implementation is
+  in scope; native mobile implementation and Figma synchronization remain
+  pending approval. Existing buyer profile layout remains unchanged.
+
 ## Navbar
 
 - Red bar pinned to the top with a soft shadow: logo mark (the TD monogram of the favicon, red on a white tile) followed by the word "Autos" on the left (the link is named "TD Autos"), role links as pills beside it (subtle hover, a brighter pill for the current page), and on the right the account group: Perfil or Administración as a pill, the dealer name as a chip, Cerrar sesión as an outlined pill with an icon. On phones a MENÚ pill with a hamburger icon opens a panel with full-width pills.
