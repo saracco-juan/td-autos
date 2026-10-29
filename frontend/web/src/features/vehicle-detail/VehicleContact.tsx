@@ -9,6 +9,7 @@ export default function VehicleContact({ vehicleId, available }: { vehicleId: nu
   const [error, setError] = useState<string | null>(null)
   const active = useRef(true)
   const pending = useRef(false)
+  const attempt = useRef<string | null>(null)
   useEffect(() => {
     active.current = true
     return () => { active.current = false }
@@ -20,7 +21,9 @@ export default function VehicleContact({ vehicleId, available }: { vehicleId: nu
     setBusy(true)
     setError(null)
     try {
-      const { url } = await contactVehicle(vehicleId)
+      attempt.current ??= crypto.randomUUID()
+      const { url } = await contactVehicle(vehicleId, attempt.current)
+      attempt.current = null
       // Same-tab navigation avoids popup blocking after the lead request completes.
       if (active.current) window.open(url, '_self', 'noopener,noreferrer')
     } catch (failure) {

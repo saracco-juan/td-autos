@@ -26,7 +26,9 @@ it('TC65/TC66 persists contact before opening only WhatsApp, without relying on 
   mount()
   const button = await screen.findByRole('button', { name: 'CONTACTAR POR WHATSAPP' })
   await userEvent.click(button)
-  expect(apiFetch).toHaveBeenLastCalledWith('/api/vehiculos/7/contacto', { method: 'POST' })
+  expect(apiFetch).toHaveBeenLastCalledWith('/api/vehiculos/7/contacto', {
+    method: 'POST', body: { attempt_id: expect.stringMatching(/^[0-9a-f-]{36}$/) },
+  })
   expect(button).toBeDisabled()
   expect(window.open).not.toHaveBeenCalled()
   await act(async () => { complete({ url }) })
@@ -60,4 +62,21 @@ it('does not navigate from a detail that was closed while recording contact', as
   view.unmount()
   await act(async () => { complete({ url }) })
   expect(window.open).not.toHaveBeenCalled()
+})
+
+it('reuses an attempt after a lost response and starts a fresh one after success', async () => {
+  vi.mocked(apiFetch).mockRejectedValueOnce(new Error('Response lost after commit'))
+    .mockResolvedValue({ url })
+  mount()
+  const button = await screen.findByRole('button', { name: 'CONTACTAR POR WHATSAPP' })
+  await userEvent.click(button)
+  const first = vi.mocked(apiFetch).mock.calls.at(-1)![1]?.body
+  expect(first).toEqual({ attempt_id: expect.stringMatching(/^[0-9a-f-]{36}$/) })
+  expect(window.open).not.toHaveBeenCalled()
+  await userEvent.click(button)
+  expect(vi.mocked(apiFetch).mock.calls.at(-1)![1]?.body).toEqual(first)
+  expect(window.open).toHaveBeenCalledTimes(1)
+  await userEvent.click(button)
+  expect(vi.mocked(apiFetch).mock.calls.at(-1)![1]?.body).not.toEqual(first)
+  expect(window.open).toHaveBeenCalledTimes(2)
 })

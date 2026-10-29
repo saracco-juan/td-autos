@@ -19,7 +19,14 @@ Personal test numbers belong only in local demo data, never source or fixtures.
 Use a disposable SQLite copy and explicit connection settings for manual tests;
 do not rebuild an existing database with `db:local`.
 
-The authenticated buyer calls `POST /api/vehiculos/{id}/contacto` with no body.
+The authenticated buyer calls `POST /api/vehiculos/{id}/contacto` with
+`{ "attempt_id": "<UUID>" }`. The web keeps that UUID after an uncertain response
+and reuses it on retry; a successful contact clears it for the next attempt.
+The field is optional for older clients, which retain their per-request behavior.
+The service atomically records an opaque, buyer-and-vehicle-scoped attempt marker
+in the existing database `cache` table together with the lead. Retries with the
+same marker do not insert another lead; authorization and availability are still
+checked. No message facts are cached. Clearing that table removes retry protection.
 The service checks the current listing and subscription, inserts a lead, and
 returns HTTP 201 with `{ "url": "https://wa.me/…?text=…" }`. The message uses the
 stored full name, vehicle identity, known mileage and plate. Missing facts are

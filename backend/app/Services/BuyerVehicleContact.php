@@ -21,7 +21,7 @@ final class BuyerVehicleContact
             && in_array($number, config('whatsapp.confirmed_numbers', []), true) ? $number : null;
     }
 
-    public function create(User $buyer, int $vehicleId): string
+    public function create(User $buyer, int $vehicleId, ?string $attemptId = null): string
     {
         $vehicle = Vehiculo::query()->whereKey($vehicleId)
             ->where('origen', VehiculoOptions::ORIGEN_CONCESIONARIA)
@@ -46,11 +46,21 @@ final class BuyerVehicleContact
         $message = "¿Qué tal? Mi nombre es {$name}. Me interesa el {$title}{$facts}. Quisiera recibir más información.";
 
         // RF30 / TC66: persist before returning the link; sending in WhatsApp is independent.
-        DB::table('lead')->insert([
-            'comprador_usuario_id' => $buyer->id,
-            'vehiculo_concesionaria_id' => $vehicle->id,
-            'generado_en' => now(),
-        ]);
+        DB::transaction(function () use ($buyer, $vehicle, $attemptId) {
+            // The unique marker and lead commit together, even with concurrent retries.
+            if ($attemptId !== null && ! DB::table('cache')->insertOrIgnore([
+                'key' => 'whatsapp-contact:'.hash('sha256', $buyer->id.':'.$vehicle->id.':'.strtolower($attemptId)),
+                'value' => serialize(true),
+                'expiration' => now()->addDay()->getTimestamp(),
+            ])) {
+                return;
+            }
+            DB::table('lead')->insert([
+                'comprador_usuario_id' => $buyer->id,
+                'vehiculo_concesionaria_id' => $vehicle->id,
+                'generado_en' => now(),
+            ]);
+        });
 
         return 'https://wa.me/'.$number.'?text='.rawurlencode($message);
     }

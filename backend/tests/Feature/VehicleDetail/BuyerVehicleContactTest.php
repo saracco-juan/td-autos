@@ -113,4 +113,42 @@ class BuyerVehicleContactTest extends TestCase
         $this->assertSame('¿Qué tal? Mi nombre es Ana. Me interesa el Citroën C4 2021. Quisiera recibir más información.', $query['text']);
         $this->assertDatabaseCount('lead', 1);
     }
+
+    public function test_retry_after_a_lost_response_records_one_lead_but_new_attempts_remain_independent(): void
+    {
+        $vehicle = $this->listing();
+        $buyer = User::factory()->create(['rol' => User::ROL_COMPRADOR]);
+        $this->actingAs($buyer);
+        $endpoint = "/api/vehiculos/{$vehicle->id}/contacto";
+        $attempt = ['attempt_id' => 'e632c7df-1411-448f-82b1-e65ad9a760ac'];
+        $url = $this->postJson($endpoint, $attempt)->assertCreated()->json('url');
+        // The first response is lost in transit; the retry carries the same attempt.
+        $this->postJson($endpoint, $attempt)->assertCreated()->assertJsonPath('url', $url);
+        $this->assertDatabaseCount('lead', 1);
+        $this->postJson($endpoint, ['attempt_id' => '55ae1dbf-75ec-4c49-a2a5-7e5668d66b07'])->assertCreated();
+        $this->assertDatabaseCount('lead', 2);
+        $this->actingAs(User::factory()->create(['rol' => User::ROL_COMPRADOR]))
+            ->postJson($endpoint, $attempt)->assertCreated();
+        $this->assertDatabaseCount('lead', 3);
+        $vehicle->propiedad->update(['visible' => false]);
+        $this->actingAs($buyer)->postJson($endpoint, $attempt)->assertNotFound();
+        $this->assertDatabaseCount('lead', 3);
+    }
+
+    public function test_failed_lead_write_rolls_back_the_attempt_so_a_retry_can_succeed(): void
+    {
+        $vehicle = $this->listing();
+        $this->actingAs(User::factory()->create(['rol' => User::ROL_COMPRADOR]));
+        $endpoint = "/api/vehiculos/{$vehicle->id}/contacto";
+        $attempt = ['attempt_id' => 'e632c7df-1411-448f-82b1-e65ad9a760ac'];
+        DB::statement("CREATE TRIGGER reject_contact BEFORE INSERT ON lead BEGIN SELECT RAISE(ABORT, 'write failed'); END");
+        $this->postJson($endpoint, $attempt)->assertStatus(500);
+        $this->assertDatabaseCount('lead', 0);
+        $this->assertSame(0, DB::table('cache')->where('key', 'like', 'whatsapp-contact:%')->count());
+        DB::statement('DROP TRIGGER reject_contact');
+        $this->postJson($endpoint, $attempt)->assertCreated();
+        $this->assertDatabaseCount('lead', 1);
+        $this->postJson($endpoint, ['attempt_id' => 'invalid'])->assertUnprocessable();
+        $this->assertDatabaseCount('lead', 1);
+    }
 }
