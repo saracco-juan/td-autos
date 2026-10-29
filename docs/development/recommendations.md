@@ -160,7 +160,7 @@ so the catalog and this table can load in any order. The source is `backend/data
 upserts on (marca, modelo) and prints how many rows were created, updated or unchanged. `docker/start.sh` and
 `php artisan db:local` run it, and a test checks that every row exists in the bundled ACARA catalog.
 
-Each model can carry a photo for the recommendation card: `imagen_url`, `imagen_autor`, `imagen_licencia` and
+Each model can carry a photo for the recommendation card (the web shows it with a "Foto ilustrativa" pill and lists its author and license in one "Créditos de las fotos" disclosure under the grid): `imagen_url`, `imagen_autor`, `imagen_licencia` and
 `imagen_pagina`, all four or none (the loader rejects a partial photo, and clears the four when a row loses it). The
 photos are hotlinked from Wikimedia Commons (free licenses only: CC BY, CC BY-SA, CC0, public domain) at the standard
 `500px` thumbnail width, taken from `real-demo/models.json` and credited with author, license and file page. Models

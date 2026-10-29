@@ -52,6 +52,16 @@ it('HU06 labels the portals tab in singular for a single model and without a cou
   expect(await screen.findByRole('tab', { name: 'Otros portales · 1 modelo' })).toBeInTheDocument()
 })
 
+it('HU06 follows the real count with nine models in the tab label, the subtitle and the list', async () => {
+  const user = userEvent.setup()
+  respond({ portals: () => portals(9) })
+  renderPage()
+  await user.click(await screen.findByRole('tab', { name: 'Otros portales · 9 modelos' }))
+  expect(screen.getByText('9 modelos recomendados')).toBeVisible()
+  const list = await screen.findByRole('list', { name: 'Modelos en otros portales' })
+  expect(within(list).getAllByRole('listitem', { name: /Toyota Etios/ })).toHaveLength(9)
+})
+
 it('HU06 labels a ready but empty portals list with a zero count', async () => {
   respond({ portals: () => portals(0) })
   renderPage()

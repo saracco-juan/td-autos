@@ -1,4 +1,7 @@
-import { PORTAL_EMPTY_COPY, PORTAL_PANEL_INTRO, portalSourceLabel } from '@shared/portals/format'
+import {
+  PORTAL_CREDITS_SOURCE, PORTAL_CREDITS_SUMMARY, PORTAL_EMPTY_COPY, PORTAL_MODELS_NOTICE, portalPhotoCredit,
+  portalSourceLabel,
+} from '@shared/portals/format'
 import { emptyStateCopy, exchangeRateNotice } from '@shared/recommendations/format'
 import alertStyles from '../../components/alert.module.css'
 import ErrorState from '../../components/ErrorState'
@@ -29,9 +32,10 @@ export default function PortalModelsPanel({ view, onRetry }: { view: PortalModel
 
   // Present only when a returned model used a converted USD price; absent means nothing to explain.
   const notice = response.exchange_rate ? exchangeRateNotice(response.exchange_rate) : { summary: null, warning: null }
+  const credited = response.modelos.flatMap((model) => (model.imagen ? [{ model, photo: model.imagen }] : []))
   return (
     <div className={styles.panel}>
-      <p className={styles.intro}>{PORTAL_PANEL_INTRO}</p>
+      <p className={`${alertStyles.notice} ${styles.message}`}>{PORTAL_MODELS_NOTICE}</p>
       <ScrollArea fill label="Modelos recomendados" className={styles.frame} viewportClassName={pageStyles.gridArea}>
         <ul className={`${pageStyles.grid} ${styles.grid}`} aria-label="Modelos en otros portales">
           {response.modelos.map((model) => <PortalModelCard key={model.id} model={model} />)}
@@ -41,6 +45,19 @@ export default function PortalModelsPanel({ view, onRetry }: { view: PortalModel
         {response.fuente_precios ? <p>{portalSourceLabel(response.fuente_precios)}</p> : null}
         {notice.summary ? <p>{notice.summary}</p> : null}
         {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
+        {credited.length > 0 ? (
+          <details className={styles.credits}>
+            <summary>{PORTAL_CREDITS_SUMMARY}</summary>
+            <p>{PORTAL_CREDITS_SOURCE}</p>
+            <ul>
+              {credited.map(({ model, photo }) => (
+                <li key={model.id}>
+                  <a href={photo.pagina} target="_blank" rel="noopener noreferrer">{portalPhotoCredit(model, photo)}</a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
       </div>
     </div>
   )

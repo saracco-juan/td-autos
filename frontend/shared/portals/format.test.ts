@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
-  OTHER_PORTALS_TAB, PORTAL_EMPTY_COPY, PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_PANEL_INTRO,
-  PORTAL_PRICE_LABEL, portalButtonLabel, portalCountLabel, portalLinkName, portalModelTitle, portalPriceRange,
+  OTHER_PORTALS_TAB, PORTAL_CREDITS_SOURCE, PORTAL_CREDITS_SUMMARY, PORTAL_DETAILS_SUMMARY, PORTAL_EMPTY_COPY,
+  PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_MODELS_NOTICE, PORTAL_PHOTO_PILL, portalButtonLabel, portalCountLabel, portalLinkName, portalModelTitle, portalPriceRange,
   portalPhotoCredit, portalPriceYear, portalSourceLabel, portalTabLabel,
   portalYearsLabel, titleCaseBrand,
 } from './format'
@@ -28,33 +28,32 @@ describe('HU06 portal models formatting shared by web and mobile', () => {
     expect(portalModelTitle(model)).toBe('Toyota Etios')
   })
 
-  it('credits the photo with its author, license and source', () => {
-    expect(portalPhotoCredit({
+  it('credits each photo under its model with the author and the license', () => {
+    expect(portalPhotoCredit(model, {
       url: 'https://upload.wikimedia.org/a.jpg', autor: 'Maxi-Napo-99', licencia: 'CC BY 4.0',
       pagina: 'https://commons.wikimedia.org/wiki/File:a.jpg',
-    })).toBe('Foto: Maxi-Napo-99 · CC BY 4.0 · Wikimedia Commons')
+    })).toBe('Toyota Etios: Maxi-Napo-99 · CC BY 4.0')
   })
 
   it('labels a year range or a single year', () => {
-    expect(portalYearsLabel({ desde: 2017, hasta: 2025 })).toBe('Años 2017–2025')
-    expect(portalYearsLabel({ desde: 2020, hasta: 2020 })).toBe('Año 2020')
+    expect(portalYearsLabel({ desde: 2017, hasta: 2025 })).toBe('Modelos 2017–2025')
+    expect(portalYearsLabel({ desde: 2020, hasta: 2020 })).toBe('Modelo 2020')
   })
 
-  it('splits the price into a label, a peso range and the reference model year', () => {
-    expect(PORTAL_PRICE_LABEL).toBe('Precio de referencia')
+  it('splits the price into a peso range and the reference model year', () => {
     expect(portalPriceRange(model.precio)).toBe('$ 24.662.900 – $ 32.670.000')
-    expect(portalPriceYear(model.precio)).toBe('modelos 2025')
+    expect(portalPriceYear(model.precio)).toBe('Precio de referencia del modelo 2025')
   })
 
   it('counts the recommended models for the page subtitle, singular for one', () => {
-    expect(portalCountLabel(8)).toBe('8 modelos recomendados')
+    expect(portalCountLabel(9)).toBe('9 modelos recomendados')
     expect(portalCountLabel(1)).toBe('1 modelo recomendado')
   })
 
   it('labels the tab with the count only once it is known, singular for one', () => {
     expect(OTHER_PORTALS_TAB).toBe('Otros portales')
     expect(portalTabLabel(null)).toBe('Otros portales')
-    expect(portalTabLabel(8)).toBe('Otros portales · 8 modelos')
+    expect(portalTabLabel(9)).toBe('Otros portales · 9 modelos')
     expect(portalTabLabel(1)).toBe('Otros portales · 1 modelo')
   })
 
@@ -71,9 +70,13 @@ describe('HU06 portal models formatting shared by web and mobile', () => {
   })
 
   it('keeps the fixed copy in one place', () => {
-    expect(PORTAL_PANEL_INTRO).toBe('Estos modelos encajan con tu diagnóstico. Te llevamos al portal con la búsqueda ya armada.')
+    expect(PORTAL_MODELS_NOTICE).toBe('Estos son modelos, no unidades en venta: la foto es ilustrativa. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.')
+    expect(PORTAL_PHOTO_PILL).toBe('Foto ilustrativa')
+    expect(PORTAL_DETAILS_SUMMARY).toBe('Ver motivos y filtros')
+    expect(PORTAL_CREDITS_SUMMARY).toBe('Créditos de las fotos')
+    expect(PORTAL_CREDITS_SOURCE).toBe('Wikimedia Commons')
     expect(PORTAL_FILTERS_HEADING).toBe('Filtros que aplicamos en Mercado Libre')
-    expect(PORTAL_KAVAK_NOTE).toBe('Las publicaciones y los precios son del portal. En Kavak aplicamos solo la transmisión.')
+    expect(PORTAL_KAVAK_NOTE).toBe('Las unidades y sus precios reales son del portal. En Kavak aplicamos solo la transmisión.')
     expect(PORTAL_EMPTY_COPY).toEqual({
       title: 'No encontramos modelos para tu diagnóstico.',
       hint: 'Probá ajustando el presupuesto o la carrocería.',
