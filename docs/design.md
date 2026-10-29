@@ -22,6 +22,15 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   `2506:10972` / `2506:11098` retain a selected heart and return to Favoritos.
   Editable layers, Inter typography and full-frame compositions were checked.
 
+## HU25 WhatsApp contact (2026-10-28)
+
+- Approved addition to High v3 web detail `2373:7348`: CONTACTAR POR WHATSAPP
+  immediately below the dealership name, using the existing success button.
+  An unconfigured destination shows WhatsApp no disponible. Errors stay inline.
+- The contact decision applies to web and mobile; native mobile implementation
+  is pending outside this web story. Figma synchronization for the detail
+  is pending final approval; no Figma files were changed.
+
 ## Navbar
 
 - Red bar pinned to the top with a soft shadow: logo mark (the TD monogram of the favicon, red on a white tile) followed by the word "Autos" on the left (the link is named "TD Autos"), role links as pills beside it (subtle hover, a brighter pill for the current page), and on the right the account group: Perfil or Administración as a pill, the dealer name as a chip, Cerrar sesión as an outlined pill with an icon. On phones a MENÚ pill with a hamburger icon opens a panel with full-width pills.
