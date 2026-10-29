@@ -149,3 +149,87 @@ the returned results, with the same shared helpers as web (`@shared/recommendati
 
 Isolated checks, from `frontend/mobile`:
 `npx jest src/__tests__/features/recommendations` (faked API; no backend needed).
+
+## HU06 curated models
+
+HU06 recommends models, not portal listings. The `modelo_referencia` table holds the curated models (body type,
+seats, transmission, fuels, consumption class, optional Latin NCAP stars, uses and the Mercado Libre / Kavak
+route pieces such as `toyota/etios`). `marca` and `modelo` are the exact ACARA catalog names, with no foreign key,
+so the catalog and this table can load in any order. The source is `backend/database/seeders/assets/portal-models.json`
+(body type by name); edit it and run `php artisan portales:load-models` (`--path=` for another file). The command
+upserts on (marca, modelo) and prints how many rows were created, updated or unchanged. `docker/start.sh` and
+`php artisan db:local` run it, and a test checks that every row exists in the bundled ACARA catalog.
+
+The models store no photo and no credit. The photo of a recommended model comes from the vehicles the dealers already
+loaded (see `imagen_url` in the API below), so there is nothing to license or credit.
+
+## HU06 model recommendations API
+
+`GET /api/recomendaciones/modelos` sits in the same `auth:sanctum` group as `/api/recomendaciones` and follows its
+rules: no user identity is accepted (the authenticated user's saved diagnosis is used), the same readiness check
+decides `diagnosis_incomplete`, there is no role restriction, and responses are `private, no-store`. Flow:
+`RecomendacionesModelosController` -> `Portales\PortalModelRecommendations` -> `AcaraModelPriceRepository` /
+`ModeloReferenciaRepository` / `ModelPhotoRepository`, with the pure `ModelBudgetFit`, `ModelScorer` and `ModelRecommender` doing the work.
+
+Rules, in order:
+
+1. Hard filters on the curated models: body type among the diagnosis bodies, `plazas` >= seats needed, and
+   `automatica` / `manual` require `tiene_automatica` / `tiene_manual` (`indiferente` filters nothing).
+2. Budget from ACARA. The last 10 model years are read (current year minus 9 to the current year; `0km` and non-numeric
+   years never match), or only the 5 newest when `presupuesto_maximo` is null. One query returns, per model, year and
+   currency, the cheapest and dearest version (null and non-positive amounts ignored). USD is converted with
+   `DolarApi` (official sell rate), requested only when the window has USD prices; without a quote USD prices are skipped.
+   A year fits when its cheapest version is within the budget; a model enters with at least one fitting year.
+3. Score = use (1 point when the diagnosis use is in the model `usos`; `mixto` needs both `ciudad` and `ruta`) plus
+   priority: `consumo` bajo 2 / medio 1 / alto 0; `seguridad` stars / 5 * 2 (no rating counts 1); **`mantenimiento` and
+   `reventa` are neutral (1 point) for every model** because there is no per-model data for them yet. Ties: more fitting
+   years, then marca, then modelo. At most 9 models (a 3 x 3 page).
+4. Links: one `PortalSearch` per model with the Mercado Libre and Kavak routes, the transmission (unless
+   `indiferente`), the first and last fitting year, the budget as maximum price and the body (`sedan` / `hatchback`
+   only). Never zone, mileage, fuel or doors. Nothing is requested from the portals: the links are only built.
+   Kavak encodes filters as path segments and only the transmission was verified on the real site
+   (`/ar/usados/toyota/etios/automatico`, `.../manual`). Query strings are not safe (`?transmission=` loses the model,
+   `?year=` changes the page) and year ranges and price were not verified, so Kavak gets the model and the
+   transmission only. Its stock is small and an over-specific page can show "0 resultados" ("Por ahora no tenemos el
+   auto que buscas"): that is why nothing else is sent.
+
+Response (`status` is `diagnosis_incomplete` with `modelos: []`, `fuente_precios: null`, `exchange_rate: null` when the
+diagnosis is missing or incomplete; otherwise `ready`, with `modelos: []` when nothing matches):
+
+```json
+{
+  "status": "ready",
+  "modelos": [{
+    "id": 1, "marca": "TOYOTA", "modelo": "Etios", "carroceria": "Hatchback",
+    "anios": { "desde": 2019, "hasta": 2020 },
+    "precio": { "desde_ars": 24000000, "hasta_ars": 26000000, "anio_referencia": 2020 },
+    "motivos": ["Consumo bajo", "Apto para ciudad", "5 plazas"],
+    "filtros": ["Hatchback", "2019–2020", "Hasta $ 25.000.000"],
+    "links": [{ "portal": "mercadolibre", "nombre": "Mercado Libre", "url": "https://autos.mercadolibre.com.ar/..." }],
+    "imagen_url": "https://.../vehiculos/42/cover.jpg"
+  }],
+  "fuente_precios": { "nombre": "Guía de precios ACARA", "fecha": "2026-10-19" },
+  "exchange_rate": { "quote": { "sell": 1000 }, "stale": false, "warning": null }
+}
+```
+
+`imagen_url` is a plain URL (built with `VehiculoFotos::url`, like the dealers cards), or `null`. `precio` is the cheapest and dearest version of the newest fitting year, in whole pesos. `exchange_rate` (same shape as
+the neighbouring endpoint) appears only when a returned model used a converted USD price.
+
+`imagen_url` rule (`ModelPhotoRepository`, two queries for all the returned models): among the vehicles of operative
+dealers that are visible (`origen` concesionaria, `vehiculo_concesionaria.visible`, the same rule as the dealers
+recommendations) and have at least one photo, whose `marca` equals the curated model's and whose `modelo` equals the
+curated `modelo` or one of its `nombres_inventario` (all case-insensitive), take the cover photo (lowest `orden`) of the
+newest one (highest vehicle id, so the choice is deterministic). No match gives `null` and the card shows "Sin fotos".
+
+`nombres_inventario` (nullable json list on `modelo_referencia`, loaded from `portal-models.json` by
+`portales:load-models`, which rejects anything that is not a list of non-empty strings) holds the other names the
+dealers' inventory uses for the same car, because the curated names are the exact ACARA ones and the inventory is not:
+`Fiesta KD` -> `Fiesta`, `EcoSport KD` -> `EcoSport`, `Focus III` -> `Focus`. It is an explicit, reviewed list, never a
+prefix match, which would mix `Corolla` with `Corolla Cross` or `Gol` with `Gol Trend` (a separate curated model).
+Add an alias only when it is clearly the same car. With the demo inventory, 37 of the 40 curated models get a photo;
+`Gol`, `Fox` and `Cobalt` have no vehicle (`Fox` and `Cobalt` are not in `real-demo/models.json`, so
+`php artisan db:local --reales=N` never loads a unit of them) and stay without photo.
+
+Check: `cd backend; php artisan test --filter="ModelRecommendationsTest|ModelPhotoRepositoryTest|ModelRecommenderTest|ModelBudgetFitTest"`
+(all HTTP is faked; the portals are never requested).

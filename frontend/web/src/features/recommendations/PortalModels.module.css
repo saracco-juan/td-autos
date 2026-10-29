@@ -1,0 +1,124 @@
+/* The "Otros portales" panel: a scrolling grid (same 3 / 2 / 1 columns and width as the dealers cards) and the source.
+   The models-not-units message never takes width from the grid: it sits in the empty left margin of the page on wide
+   screens (PortalModelsPanel) and in an info button on the tabs row otherwise (PortalModelsInfoTip). The card itself is the dealers card (VehicleCard.module.css). */
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Loaded: this box is the 1200 px column, the anchor of the wide-screen message. */
+.layout {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Rendered only on wide screens (PORTAL_MESSAGE_WIDE_QUERY, 1800 px): the column is 1200 px and centered, so the free
+   margin at each side is (viewport - 1200) / 2. The message needs its 260 px plus a 16 px gap = 276 px, i.e. a 1752 px
+   viewport; 1800 px leaves room for the scrollbar and some air. Out of the flow, so the grid keeps exactly the dealers
+   width; aligned with the top of the grid (the first thing of the box). */
+.aside {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 16px);
+  width: 260px;
+}
+
+.message {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.frame[data-fill] {
+  min-height: 0;
+}
+
+/* Cards of a row share their height. */
+.panel .grid {
+  align-items: stretch;
+}
+
+/* The info button sits at the right end of the title row. */
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.titleRow > span {
+  flex: none;
+}
+
+/* The tooltip content: reasons, filter chips and the portals note. */
+.reasons,
+.chips {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reasons li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.check {
+  flex: none;
+  margin-top: 1px;
+  color: var(--action-success);
+}
+
+.heading {
+  display: block;
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+
+.heading:first-child {
+  margin-top: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chips li {
+  padding: 1px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.note {
+  display: block;
+  margin-top: 10px;
+}

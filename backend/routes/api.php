@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteController;
 use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\BusquedaController;
 use App\Http\Controllers\BuyerVehicleDetailController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
@@ -15,6 +14,7 @@ use App\Http\Controllers\Mobile\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecomendacionesController;
+use App\Http\Controllers\RecomendacionesModelosController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
 use App\Http\Controllers\VehicleCatalogController;
@@ -39,12 +39,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::put('/user', [ProfileController::class, 'update']);
 
-    Route::get('/busqueda', [BusquedaController::class, 'index']);
-
     Route::get('/diagnostico', [DiagnosticoController::class, 'show']);
     Route::put('/diagnostico', [DiagnosticoController::class, 'save']);
 
     Route::get('/recomendaciones', [RecomendacionesController::class, 'index']);
+    Route::get('/recomendaciones/modelos', [RecomendacionesModelosController::class, 'index']);
 
     Route::get('/favoritos', [FavoritoController::class, 'index']);
     Route::put('/favoritos/{id}', [FavoritoController::class, 'store'])->whereNumber('id');

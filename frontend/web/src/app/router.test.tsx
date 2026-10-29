@@ -14,6 +14,7 @@ import { dealerDetail, directory, receipt } from '../features/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
 import { fetchRecommendations } from '../features/recommendations/matching'
+import { fetchPortalModels } from '../features/recommendations/portalModels'
 import { fetchTransfer } from '../features/transfer/api'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/types'
@@ -62,6 +63,7 @@ vi.mock('../features/admin/api', () => ({
 }))
 
 vi.mock('../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn() }))
+vi.mock('../features/recommendations/portalModels', () => ({ fetchPortalModels: vi.fn() }))
 
 vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
@@ -124,6 +126,8 @@ describe('app routes', () => {
     vi.mocked(fetchTransfer).mockReset()
     vi.mocked(fetchRecommendations).mockReset()
     vi.mocked(fetchRecommendations).mockResolvedValue({ status: 'ready', results: [], exchange_rate: null })
+    vi.mocked(fetchPortalModels).mockReset()
+    vi.mocked(fetchPortalModels).mockResolvedValue({ status: 'ready', modelos: [], fuente_precios: null })
     vi.mocked(fetchSubscription).mockReset()
     vi.mocked(fetchSubscription).mockResolvedValue(suscripcion())
     vi.mocked(fetchVehicles).mockReset()
@@ -276,6 +280,8 @@ describe('app routes', () => {
     const router = renderAt('/recomendaciones')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Mejores opciones para vos' })).toBeInTheDocument()
+    // An empty dealers list opens on the portals tab (HU06); the vehicle list lives in the other one.
+    await userEvent.click(await screen.findByRole('tab', { name: 'Concesionarias' }))
     expect(await screen.findByText('Mostrando 0 vehículos')).toBeInTheDocument()
     expect(fetchRecommendations).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()

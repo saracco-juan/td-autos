@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
@@ -10,6 +10,7 @@ import { formatKilometers, formatPrice } from '../inventory/format'
 import { EQUIPMENT_GROUPS } from '@shared/vehicles/equipment'
 import FavoriteButton from '../favorites/FavoriteButton'
 import type { Recommendation } from './matching'
+import PhotoPlaceholder from './PhotoPlaceholder'
 import styles from './VehicleCard.module.css'
 
 // High v3 Card/Vehicle (2373:7340); computation and eligibility stay in the backend.
@@ -17,6 +18,7 @@ export default function MatchingVehicleCard({ result, comparison }: {
   result: Recommendation; comparison?: { selected: boolean; toggle: () => void }
 }) {
   const titleId = useId()
+  const [photoFailed, setPhotoFailed] = useState(false)
   const location = useLocation()
   const { vehicle, dealer, components } = result
   const title = recommendationTitle(result)
@@ -26,10 +28,11 @@ export default function MatchingVehicleCard({ result, comparison }: {
       <p id={titleId} className={styles.title}>{title}</p>
       <p className={styles.meta}>{formatKilometers(vehicle.kilometraje)} · {vehicle.ubicacion}</p>
       <div className={styles.imageWrapper}>
-        {vehicle.image_url ? (
-          <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image} />
+        {vehicle.image_url && !photoFailed ? (
+          <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image}
+            onError={() => setPhotoFailed(true)} />
         ) : (
-          <div className={`${styles.image} ${styles.placeholder}`}>Sin imagen</div>
+          <PhotoPlaceholder />
         )}
         <div className={styles.favorite}><FavoriteButton vehicleId={result.listing_id}
           vehicleName={title} isFavorite={result.is_favorite ?? false} /></div>
