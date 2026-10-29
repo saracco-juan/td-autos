@@ -7,11 +7,25 @@
   flex: 1;
 }
 
-.tabs {
+/* The tabs and, optionally, a trailing element (aligned right, vertically centered) share one row. */
+.row {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin-bottom: 16px;
+}
+
+.row > :not(.tabs) {
+  flex: none;
+  margin-left: auto;
+}
+
+.tabs {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
 }
 
 .tab {
@@ -46,11 +60,14 @@
 
 /* Compact text tabs on a hairline (HU06 recommendations): left aligned at content width, the active one bold with
    a 2 px underline in the action color. The boxed look above stays the default for the other screens. */
+.row[data-variant='underline'] {
+  margin: 12px 0 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
 .tabs[data-variant='underline'] {
   flex-wrap: wrap;
   gap: 0 24px;
-  margin: 12px 0 20px;
-  border-bottom: 1px solid var(--border-default);
 }
 
 .tabs[data-variant='underline'] .tab {

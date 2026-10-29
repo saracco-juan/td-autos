@@ -18,6 +18,7 @@ import { useComparisonSelection } from '../comparison/useComparisonSelection'
 import { fetchRecommendations } from './matching'
 import MatchingVehicleCard from './MatchingVehicleCard'
 import { fetchPortalModels } from './portalModels'
+import PortalModelsInfoTip from './PortalModelsInfoTip'
 import PortalModelsPanel from './PortalModelsPanel'
 import RecommendationFilters from './RecommendationFilters'
 import { useApiView } from './useApiView'
@@ -122,7 +123,8 @@ export default function MatchingRecommendationsPage() {
         </Link>
       </div>
       <Tabs label="Fuentes de recomendaciones" items={tabs} value={activeTab} variant="underline"
-        onValueChange={setChosenTab} panelClassName={styles.tabPanel}>
+        onValueChange={setChosenTab} panelClassName={styles.tabPanel}
+        trailing={activeTab === PORTALS_TAB ? <PortalModelsInfoTip view={portals.view} /> : null}>
         {(id) => id === PORTALS_TAB ? <PortalModelsPanel view={portals.view} onRetry={portals.retry} /> : dealersPanel}
       </Tabs>
     </div>

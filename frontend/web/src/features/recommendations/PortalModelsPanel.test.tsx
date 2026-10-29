@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { expect, it, vi } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import type { PortalModel, PortalModelsResponse } from '@shared/portals/models'
 import type { PortalModelsView } from './portalModels'
 import PortalModelsPanel from './PortalModelsPanel'
@@ -28,13 +28,19 @@ const renderPanel = (view: PortalModelsView, onRetry = vi.fn()) =>
 const ready = (overrides: Partial<PortalModelsResponse> = {}): PortalModelsView =>
   ({ status: 'ready', response: response(overrides) })
 
+// jsdom has no layout: this makes the 1800 px query match (a wide screen) or not (a narrow one or a phone).
+const stubViewport = (wide: boolean) => vi.stubGlobal('matchMedia', vi.fn().mockImplementation((query: string) => ({
+  matches: wide && query.includes('min-width: 1800px'), media: query, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+})))
+afterEach(() => vi.unstubAllGlobals())
+
 const NOTICE = 'Estos son modelos, no unidades en venta. La foto muestra cómo es el modelo. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.'
 
 it('HU06 shows the models-not-units message in an aside outside the list, one card per model and the dated price source', () => {
+  stubViewport(true)
   renderPanel(ready())
   const notice = screen.getByText(NOTICE)
   expect(notice).toBeVisible()
-  expect(notice.className).toMatch(/notice/)
   const aside = screen.getByRole('complementary', { name: 'Sobre estos modelos' })
   expect(within(aside).getByText(NOTICE)).toBe(notice)
   const list = screen.getByRole('list', { name: 'Modelos en otros portales' })
@@ -43,6 +49,27 @@ it('HU06 shows the models-not-units message in an aside outside the list, one ca
   expect(within(list).getAllByRole('listitem', { name: /Toyota Etios/ })).toHaveLength(2)
   expect(screen.getByText('Precios de referencia: Guía de precios ACARA, 19/10/2026')).toBeVisible()
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
+})
+
+it('HU06 wide screens: the message is a neutral info box with an info icon, never the green notice', () => {
+  stubViewport(true)
+  renderPanel(ready())
+  const box = screen.getByText(NOTICE).closest('p') as HTMLElement
+  expect(box.className).toMatch(/info/)
+  expect(box.className).not.toMatch(/notice|success|alert|warning/)
+  const icon = box.querySelector('svg')
+  expect(icon).not.toBeNull()
+  expect(icon).toHaveAttribute('aria-hidden', 'true')
+  expect(screen.getByRole('complementary', { name: 'Sobre estos modelos' }).contains(box)).toBe(true)
+})
+
+it('HU06 narrow screens and phones: no block above the grid, the message is left to the tabs row info button', () => {
+  stubViewport(false)
+  renderPanel(ready())
+  expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+  expect(screen.queryByText(NOTICE)).not.toBeInTheDocument()
+  expect(screen.getByRole('list', { name: 'Modelos en otros portales' })).toBeVisible()
+  expect(screen.getAllByRole('listitem', { name: /Toyota Etios/ })).toHaveLength(2)
 })
 
 it('HU06 shows no illustrative-photo wording anywhere', () => {
@@ -192,6 +219,7 @@ it('HU06 repeats the exchange-rate notice of the dealers tab only when the API s
 })
 
 it('HU06 explains an empty ready list with a filled info message', () => {
+  stubViewport(true)
   renderPanel(ready({ modelos: [] }))
   expect(screen.getByRole('status')).toHaveTextContent('No encontramos modelos para tu diagnóstico.')
   expect(screen.getByText('Probá ajustando el presupuesto o la carrocería.')).toBeVisible()
@@ -200,6 +228,7 @@ it('HU06 explains an empty ready list with a filled info message', () => {
 })
 
 it('HU06 asks to complete the diagnosis with the dealers-tab copy', () => {
+  stubViewport(true)
   renderPanel(ready({ status: 'diagnosis_incomplete', modelos: [], fuente_precios: null }))
   expect(screen.getByText('Completá tu diagnóstico para ver recomendaciones.')).toBeVisible()
   expect(screen.getByText('Ajustá el diagnóstico para buscar otras opciones.')).toBeVisible()
@@ -208,14 +237,18 @@ it('HU06 asks to complete the diagnosis with the dealers-tab copy', () => {
 })
 
 it('HU06 shows a local loader while the models load', () => {
+  stubViewport(true)
   renderPanel({ status: 'loading' })
   expect(screen.getByRole('status')).toHaveTextContent('Cargando')
+  expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
 })
 
 it.each(['network', 'server'] as const)('HU06 shows the shared error (%s) and retries on demand', async (kind) => {
+  stubViewport(true)
   const onRetry = vi.fn()
   renderPanel({ status: 'error', kind }, onRetry)
   expect(screen.getByRole('alert')).toBeVisible()
+  expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'REINTENTAR' }))
   expect(onRetry).toHaveBeenCalledTimes(1)
 })

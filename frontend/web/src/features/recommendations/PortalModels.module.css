@@ -1,6 +1,6 @@
 /* The "Otros portales" panel: a scrolling grid (same 3 / 2 / 1 columns and width as the dealers cards) and the source.
    The models-not-units message never takes width from the grid: it sits in the empty left margin of the page on wide
-   screens and as a compact block above the grid otherwise. The card itself is the dealers card (VehicleCard.module.css). */
+   screens (PortalModelsPanel) and in an info button on the tabs row otherwise (PortalModelsInfoTip). The card itself is the dealers card (VehicleCard.module.css). */
 .panel {
   display: flex;
   flex: 1;
@@ -10,43 +10,31 @@
   min-height: 0;
 }
 
-/* Loaded: the message and the results stacked; this box is the 1200 px column, the anchor of the wide-screen message. */
+/* Loaded: this box is the 1200 px column, the anchor of the wide-screen message. */
 .layout {
   position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 8px;
   min-width: 0;
   min-height: 0;
 }
 
-/* Compact block above the grid (narrow screens and phones). */
+/* Rendered only on wide screens (PORTAL_MESSAGE_WIDE_QUERY, 1800 px): the column is 1200 px and centered, so the free
+   margin at each side is (viewport - 1200) / 2. The message needs its 260 px plus a 16 px gap = 276 px, i.e. a 1752 px
+   viewport; 1800 px leaves room for the scrollbar and some air. Out of the flow, so the grid keeps exactly the dealers
+   width; aligned with the top of the grid (the first thing of the box). */
 .aside {
-  flex: none;
+  position: absolute;
+  top: 0;
+  right: calc(100% + 16px);
+  width: 260px;
 }
 
 .message {
   margin: 0;
-  padding: 8px 10px;
-  font-size: 12px;
-}
-
-/* Wide screens: the column is 1200 px and centered, so the free margin at each side is (viewport - 1200) / 2. The message
-   needs its 260 px plus a 16 px gap = 276 px, i.e. a 1752 px viewport; 1800 px leaves room for the scrollbar and some air.
-   Out of the flow, so the grid keeps exactly the dealers width; aligned with the top of the grid (the first thing of the box). */
-@media (min-width: 1800px) {
-  .aside {
-    position: absolute;
-    top: 0;
-    right: calc(100% + 16px);
-    width: 260px;
-  }
-
-  .message {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
+  padding: 10px 12px;
+  font-size: 13px;
 }
 
 .results {

@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { apiFetch, HttpError, NetworkError } from '../../lib/http'
 import type { Recommendation } from './matching'
 import MatchingRecommendationsPage from './MatchingRecommendationsPage'
@@ -34,7 +34,15 @@ const renderPage = () => render(<MemoryRouter><MatchingRecommendationsPage /></M
 const tab = (name: string | RegExp) => screen.getByRole('tab', { name })
 const COROLLA = 'Toyota Corolla 1 2021'
 
+// jsdom has no layout: this makes the 1800 px query match (a wide screen) or not (a narrow one or a phone).
+const stubViewport = (wide: boolean) => vi.stubGlobal('matchMedia', vi.fn().mockImplementation((query: string) => ({
+  matches: wide && query.includes('min-width: 1800px'), media: query, addEventListener: vi.fn(), removeEventListener: vi.fn(),
+})))
+const NOTICE = 'Estos son modelos, no unidades en venta. La foto muestra cómo es el modelo. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.'
+const INFO = { name: 'Sobre estos modelos' }
+
 beforeEach(() => { vi.mocked(apiFetch).mockReset(); respond({}) })
+afterEach(() => vi.unstubAllGlobals())
 
 it('HU06 requests both endpoints in parallel and opens on the dealers tab', async () => {
   renderPage()
@@ -211,4 +219,56 @@ it('HU06 renders compact tabs, not full-width boxes, and keeps arrow-key navigat
   tab('Concesionarias').focus()
   await user.keyboard('{ArrowRight}')
   expect(tab(/Otros portales/)).toHaveAttribute('aria-selected', 'true')
+})
+
+it('HU06 narrow screens: an info button at the end of the tabs row holds the models-not-units message', async () => {
+  stubViewport(false)
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByRole('listitem', { name: COROLLA })
+  expect(screen.queryByRole('button', INFO)).not.toBeInTheDocument()
+  await user.click(await screen.findByRole('tab', { name: /Otros portales/ }))
+
+  const info = await screen.findByRole('button', INFO)
+  const tablist = screen.getByRole('tablist')
+  expect(tablist.contains(info)).toBe(false)
+  expect(info.parentElement?.parentElement).toBe(tablist.parentElement)
+  expect(screen.getByRole('tabpanel').contains(info)).toBe(false)
+  expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+  const tooltip = document.getElementById(info.getAttribute('aria-describedby') ?? '') as HTMLElement
+  expect(tooltip).toHaveAttribute('role', 'tooltip')
+  expect(tooltip).not.toBeVisible()
+  await user.hover(info)
+  expect(tooltip).toBeVisible()
+  expect(tooltip).toHaveTextContent(NOTICE)
+  expect(info).toHaveAccessibleDescription(NOTICE)
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1)
+
+  await user.click(tab('Concesionarias'))
+  expect(screen.queryByRole('button', INFO)).not.toBeInTheDocument()
+})
+
+it('HU06 wide screens: the message is the aside box and the tabs row has no info button', async () => {
+  stubViewport(true)
+  const user = userEvent.setup()
+  renderPage()
+  await user.click(await screen.findByRole('tab', { name: /Otros portales/ }))
+  expect(await screen.findByRole('complementary', INFO)).toHaveTextContent(NOTICE)
+  expect(screen.queryByRole('button', INFO)).not.toBeInTheDocument()
+})
+
+it.each([
+  ['an empty list', () => ({ status: 'ready', modelos: [], fuente_precios: null })],
+  ['an incomplete diagnosis', () => ({ status: 'diagnosis_incomplete', modelos: [], fuente_precios: null })],
+  ['a server error', () => { throw new HttpError(500, null) }],
+  ['a pending request', () => new Promise(() => {})],
+])('HU06 narrow screens: no info button with %s', async (_name, portalsResponse) => {
+  stubViewport(false)
+  const user = userEvent.setup()
+  respond({ portals: portalsResponse })
+  renderPage()
+  await screen.findByRole('listitem', { name: COROLLA })
+  await user.click(await screen.findByRole('tab', { name: /Otros portales/ }))
+  await waitFor(() => expect(screen.getByRole('tabpanel')).toBeInTheDocument())
+  expect(screen.queryByRole('button', INFO)).not.toBeInTheDocument()
 })
