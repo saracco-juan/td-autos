@@ -22,6 +22,8 @@ final class DealerLeads
         $vehicles = DB::table('vehiculo_concesionaria as inventory')
             ->join('vehiculo as vehicle', 'vehicle.id', '=', 'inventory.vehiculo_id')
             ->leftJoin('lead', function (JoinClause $join) use ($start, $end) {
+                // Inventory is keyed by vehiculo_id (there is no separate inventory.id).
+                // lead.vehiculo_concesionaria_id references that primary key.
                 $join->on('lead.vehiculo_concesionaria_id', '=', 'inventory.vehiculo_id')
                     ->where('lead.generado_en', '<=', $end);
                 if ($start !== null) {
