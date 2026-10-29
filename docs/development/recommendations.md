@@ -218,11 +218,18 @@ the neighbouring endpoint) appears only when a returned model used a converted U
 
 `imagen_url` rule (`ModelPhotoRepository`, two queries for all the returned models): among the vehicles of operative
 dealers that are visible (`origen` concesionaria, `vehiculo_concesionaria.visible`, the same rule as the dealers
-recommendations) and have at least one photo, whose `marca` and `modelo` equal the curated model's (case-insensitive, so
-the ACARA spelling must match), take the cover photo (lowest `orden`) of the newest one (highest vehicle id, so the
-choice is deterministic). No match gives `null` and the card shows "Sin fotos". Of the 40 curated models, 6 (Gol, Fox,
-Cobalt, Fiesta KD, Focus III, EcoSport KD) are not in `real-demo/models.json`, so `php artisan db:local --reales=N` never
-loads a unit of them and they stay without photo; the other 34 get one once the inventory has a unit of the model.
+recommendations) and have at least one photo, whose `marca` equals the curated model's and whose `modelo` equals the
+curated `modelo` or one of its `nombres_inventario` (all case-insensitive), take the cover photo (lowest `orden`) of the
+newest one (highest vehicle id, so the choice is deterministic). No match gives `null` and the card shows "Sin fotos".
+
+`nombres_inventario` (nullable json list on `modelo_referencia`, loaded from `portal-models.json` by
+`portales:load-models`, which rejects anything that is not a list of non-empty strings) holds the other names the
+dealers' inventory uses for the same car, because the curated names are the exact ACARA ones and the inventory is not:
+`Fiesta KD` -> `Fiesta`, `EcoSport KD` -> `EcoSport`, `Focus III` -> `Focus`. It is an explicit, reviewed list, never a
+prefix match, which would mix `Corolla` with `Corolla Cross` or `Gol` with `Gol Trend` (a separate curated model).
+Add an alias only when it is clearly the same car. With the demo inventory, 37 of the 40 curated models get a photo;
+`Gol`, `Fox` and `Cobalt` have no vehicle (`Fox` and `Cobalt` are not in `real-demo/models.json`, so
+`php artisan db:local --reales=N` never loads a unit of them) and stay without photo.
 
 Check: `cd backend; php artisan test --filter="ModelRecommendationsTest|ModelPhotoRepositoryTest|ModelRecommenderTest|ModelBudgetFitTest"`
 (all HTTP is faked; the portals are never requested).

@@ -4,6 +4,7 @@ namespace Tests\Feature\Portales;
 
 use App\Models\Concesionaria;
 use App\Models\Diagnostico;
+use App\Models\ModeloReferencia;
 use App\Models\Suscripcion;
 use App\Models\TipoCarroceria;
 use App\Models\User;
@@ -271,5 +272,23 @@ class ModelRecommendationsTest extends TestCase
         $photos = collect($response->json('modelos'))->mapWithKeys(fn (array $m) => [$m['modelo'] => $m['imagen_url']])->all();
         $this->assertSame(['Etios' => null, 'Polo' => 'https://example.test/polo.jpg'], $photos);
         $response->assertJsonMissingPath('modelos.0.imagen');
+    }
+
+    public function test_a_model_takes_the_photo_of_a_vehicle_the_inventory_names_differently(): void
+    {
+        $this->seedCatalog();
+        $this->buyer();
+        ModeloReferencia::query()->where('modelo', 'Etios')->firstOrFail()->update(['nombres_inventario' => ['Etios Hatch']]);
+        $dealer = Concesionaria::factory()->active()->create();
+        Suscripcion::factory()->create(['concesionaria_id' => $dealer->id, 'estado' => 'activa',
+            'vigente_hasta' => now()->addMonth()->toDateString()]);
+        $car = Vehiculo::factory()->create(['marca' => 'toyota', 'modelo' => 'ETIOS HATCH']);
+        VehiculoConcesionaria::factory()->create(['vehiculo_id' => $car->id, 'concesionaria_id' => $dealer->id]);
+        $car->fotos()->create(['ubicacion_archivo' => 'https://example.test/etios.jpg', 'orden' => 1]);
+
+        $photos = collect($this->getJson('/api/recomendaciones/modelos')->assertOk()->json('modelos'))
+            ->mapWithKeys(fn (array $m) => [$m['modelo'] => $m['imagen_url']])->all();
+
+        $this->assertSame(['Etios' => 'https://example.test/etios.jpg', 'Polo' => null], $photos);
     }
 }

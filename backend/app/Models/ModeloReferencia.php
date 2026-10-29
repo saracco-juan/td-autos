@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Curated model the recommendations point to (HU06). `marca` and `modelo` are the exact ACARA catalog names.
+ * Curated model the recommendations point to (HU06). `marca` and `modelo` are the exact ACARA catalog names; `nombres_inventario` lists the other model names the dealers' inventory uses for the same car.
  */
 class ModeloReferencia extends Model
 {
@@ -19,7 +19,7 @@ class ModeloReferencia extends Model
      */
     protected $fillable = [
         'marca', 'modelo', 'tipo_carroceria_id', 'plazas', 'tiene_manual', 'tiene_automatica', 'combustibles',
-        'consumo', 'seguridad_estrellas', 'usos', 'ruta_mercadolibre', 'ruta_kavak',
+        'consumo', 'seguridad_estrellas', 'usos', 'ruta_mercadolibre', 'ruta_kavak', 'nombres_inventario',
     ];
 
     /**
@@ -34,6 +34,7 @@ class ModeloReferencia extends Model
             'combustibles' => 'array',
             'seguridad_estrellas' => 'integer',
             'usos' => 'array',
+            'nombres_inventario' => 'array',
         ];
     }
 

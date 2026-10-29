@@ -3,6 +3,7 @@
 namespace App\Services\Portales;
 
 use App\Models\Diagnostico;
+use App\Models\ModeloReferencia;
 use App\Repositories\AcaraModelPriceRepository;
 use App\Repositories\ModeloReferenciaRepository;
 use App\Repositories\ModelPhotoRepository;
@@ -42,9 +43,15 @@ final class PortalModelRecommendations
         $rows = $this->prices->yearRanges(ModelBudgetFit::years($budget, $year));
         $exchange = $rows->contains('currency', 'USD') ? $this->exchange->current() : null;
         $fits = $this->budgetFit->fit($rows, $budget, $exchange['quote']['sell'] ?? null, $year);
-        $recommendations = $this->recommender->recommend($this->models->all(), $fits, $diagnosis);
+        $curated = $this->models->all();
+        $recommendations = $this->recommender->recommend($curated, $fits, $diagnosis);
+        $inventoryNames = $curated->mapWithKeys(fn (ModeloReferencia $m) => [ModelPhotoRepository::key($m->marca, $m->modelo) => $m->nombres_inventario ?? []]);
         $photos = $this->photos->coverUrls(
-            array_map(fn (ModelRecommendation $r) => ['marca' => $r->payload['marca'], 'modelo' => $r->payload['modelo']], $recommendations),
+            array_map(fn (ModelRecommendation $r) => [
+                'marca' => $r->payload['marca'],
+                'modelo' => $r->payload['modelo'],
+                'nombres_inventario' => $inventoryNames[ModelPhotoRepository::key($r->payload['marca'], $r->payload['modelo'])] ?? [],
+            ], $recommendations),
             $this->lifecycle->operativeDealerIds(now()),
         );
 

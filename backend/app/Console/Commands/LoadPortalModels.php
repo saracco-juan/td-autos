@@ -75,6 +75,11 @@ final class LoadPortalModels extends Command
         }
         unset($row['carroceria']);
 
+        $aliases = $row['nombres_inventario'] ?? null;
+        if ($aliases !== null && (! is_array($aliases) || ! array_is_list($aliases) || array_filter($aliases, fn ($name) => ! is_string($name) || trim($name) === '') !== [])) {
+            throw new RuntimeException($label.': nombres_inventario must be a list of non-empty strings.');
+        }
+        $row['nombres_inventario'] = $aliases === [] ? null : $aliases;
         $model = ModeloReferencia::query()->firstOrNew(['marca' => $row['marca'], 'modelo' => $row['modelo']]);
         $exists = $model->exists;
         $model->fill($row + ['tipo_carroceria_id' => $bodyTypes[$bodyType]]);

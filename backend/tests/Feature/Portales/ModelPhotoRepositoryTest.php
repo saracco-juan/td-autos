@@ -38,7 +38,7 @@ class ModelPhotoRepositoryTest extends TestCase
     }
 
     /**
-     * @param  list<array{marca: string, modelo: string}>  $models
+     * @param  list<array{marca: string, modelo: string, nombres_inventario?: list<string>}>  $models
      * @return array<string, string>
      */
     private function resolve(array $models, Concesionaria ...$operative): array
@@ -164,6 +164,71 @@ class ModelPhotoRepositoryTest extends TestCase
         DB::disableQueryLog();
 
         $this->assertCount(9, $urls);
+        $this->assertCount(2, $queries);
+    }
+
+    public function test_a_model_finds_the_photo_of_a_vehicle_named_as_the_inventory_names_it(): void
+    {
+        $dealer = $this->dealer();
+        $this->car('FORD', 'Fiesta', ['https://example.test/fiesta.jpg'], $dealer);
+
+        $urls = $this->resolve([['marca' => 'FORD', 'modelo' => 'Fiesta KD', 'nombres_inventario' => ['Fiesta']]], $dealer);
+
+        $this->assertSame(['https://example.test/fiesta.jpg'], array_values($urls));
+        $this->assertSame('https://example.test/fiesta.jpg', $urls[ModelPhotoRepository::key('FORD', 'Fiesta KD')]);
+    }
+
+    public function test_an_inventory_name_is_matched_ignoring_case(): void
+    {
+        $dealer = $this->dealer();
+        $this->car('Ford', 'ECOSPORT', ['https://example.test/ecosport.jpg'], $dealer);
+
+        $urls = $this->resolve([['marca' => 'FORD', 'modelo' => 'EcoSport KD', 'nombres_inventario' => ['EcoSport']]], $dealer);
+
+        $this->assertSame(['https://example.test/ecosport.jpg'], array_values($urls));
+    }
+
+    public function test_an_inventory_name_does_not_leak_to_another_model_or_brand(): void
+    {
+        $dealer = $this->dealer();
+        $this->car('FORD', 'Fiesta', ['https://example.test/fiesta.jpg'], $dealer);
+        $this->car('VOLKSWAGEN', 'Fiesta', ['https://example.test/other-brand.jpg'], $dealer);
+
+        $urls = $this->resolve([
+            ['marca' => 'FORD', 'modelo' => 'Fiesta KD', 'nombres_inventario' => ['Fiesta']],
+            ['marca' => 'FORD', 'modelo' => 'Focus III', 'nombres_inventario' => ['Focus']],
+            ['marca' => 'FORD', 'modelo' => 'Fiesta Max'],
+        ], $dealer);
+
+        $this->assertSame([ModelPhotoRepository::key('FORD', 'Fiesta KD') => 'https://example.test/fiesta.jpg'], $urls);
+    }
+
+    public function test_the_newest_vehicle_wins_across_the_exact_name_and_its_aliases(): void
+    {
+        $dealer = $this->dealer();
+        $this->car('FORD', 'Focus III', ['https://example.test/exact.jpg'], $dealer);
+        $this->car('FORD', 'Focus', ['https://example.test/alias-newest.jpg'], $dealer);
+
+        $urls = $this->resolve([['marca' => 'FORD', 'modelo' => 'Focus III', 'nombres_inventario' => ['Focus']]], $dealer);
+
+        $this->assertSame(['https://example.test/alias-newest.jpg'], array_values($urls));
+    }
+
+    public function test_aliases_are_resolved_with_the_same_two_queries(): void
+    {
+        $dealer = $this->dealer();
+        $this->car('FORD', 'Fiesta', ['https://example.test/fiesta.jpg'], $dealer);
+        $this->car('FORD', 'Focus', ['https://example.test/focus.jpg'], $dealer);
+
+        DB::enableQueryLog();
+        $urls = $this->resolve([
+            ['marca' => 'FORD', 'modelo' => 'Fiesta KD', 'nombres_inventario' => ['Fiesta', 'Fiesta Kinetic']],
+            ['marca' => 'FORD', 'modelo' => 'Focus III', 'nombres_inventario' => ['Focus']],
+        ], $dealer);
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $this->assertCount(2, $urls);
         $this->assertCount(2, $queries);
     }
 }

@@ -366,7 +366,8 @@
             "ruta"
         ],
         "ruta_mercadolibre": "ford/fiesta",
-        "ruta_kavak": "ford/fiesta"
+        "ruta_kavak": "ford/fiesta",
+        "nombres_inventario": ["Fiesta"]
     },
     {
         "marca": "FORD",
@@ -384,7 +385,8 @@
             "ruta"
         ],
         "ruta_mercadolibre": "ford/focus",
-        "ruta_kavak": "ford/focus"
+        "ruta_kavak": "ford/focus",
+        "nombres_inventario": ["Focus"]
     },
     {
         "marca": "FORD",
@@ -422,7 +424,8 @@
             "ruta"
         ],
         "ruta_mercadolibre": "ford/ecosport",
-        "ruta_kavak": "ford/ecosport"
+        "ruta_kavak": "ford/ecosport",
+        "nombres_inventario": ["EcoSport"]
     },
     {
         "marca": "FORD",

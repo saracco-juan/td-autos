@@ -79,6 +79,38 @@ class PortalModelsSeedTest extends TestCase
         }
     }
 
+    public function test_the_inventory_names_are_distinct_strings_that_do_not_repeat_a_curated_model(): void
+    {
+        $rows = $this->rows();
+        $curated = array_map(fn (array $row) => mb_strtolower($row['marca'].'|'.$row['modelo']), $rows);
+
+        foreach ($rows as $row) {
+            $label = $row['marca'].' '.$row['modelo'];
+            $names = $row['nombres_inventario'] ?? [];
+
+            $this->assertIsArray($names, $label);
+            $this->assertTrue(array_is_list($names), "$label: not a list");
+            $this->assertSame($names, array_values(array_unique($names)), "$label: repeated names");
+            foreach ($names as $name) {
+                $this->assertIsString($name, $label);
+                $this->assertSame(trim($name), $name, "$label: untrimmed name");
+                $this->assertNotSame('', $name, "$label: empty name");
+                $this->assertNotSame(mb_strtolower($row['modelo']), mb_strtolower($name), "$label: repeats the curated name");
+                $this->assertNotContains(mb_strtolower($row['marca'].'|'.$name), $curated, "$label: $name is another curated model");
+            }
+        }
+    }
+
+    public function test_the_ford_models_the_demo_inventory_names_differently_are_aliased(): void
+    {
+        $aliases = collect($this->rows())->mapWithKeys(fn (array $row) => [$row['marca'].'|'.$row['modelo'] => $row['nombres_inventario'] ?? []]);
+
+        $this->assertSame(['Fiesta'], $aliases['FORD|Fiesta KD']);
+        $this->assertSame(['EcoSport'], $aliases['FORD|EcoSport KD']);
+        $this->assertSame(['Focus'], $aliases['FORD|Focus III']);
+        $this->assertSame([], $aliases['VOLKSWAGEN|Gol']);
+    }
+
     public function test_the_shipped_file_loads_with_the_command(): void
     {
         $this->artisan('portales:load-models')->assertSuccessful();

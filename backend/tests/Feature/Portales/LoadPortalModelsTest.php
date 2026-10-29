@@ -4,6 +4,7 @@ namespace Tests\Feature\Portales;
 
 use App\Models\ModeloReferencia;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class LoadPortalModelsTest extends TestCase
@@ -64,6 +65,47 @@ class LoadPortalModelsTest extends TestCase
         $this->artisan('portales:load-models', ['--path' => $this->fixture('missing.json')])
             ->expectsOutputToContain('Portal models not loaded')
             ->assertFailed();
+    }
+
+    public function test_it_stores_the_inventory_names_and_a_second_run_leaves_them_unchanged(): void
+    {
+        $this->artisan('portales:load-models', ['--path' => $this->fixture('with-aliases.json')])->assertSuccessful();
+
+        $this->assertSame(['Etios Hatch', 'Etios X'], ModeloReferencia::query()->where('modelo', 'Etios')->value('nombres_inventario'));
+        $this->assertNull(ModeloReferencia::query()->where('modelo', 'Ranger')->value('nombres_inventario'));
+
+        $this->artisan('portales:load-models', ['--path' => $this->fixture('with-aliases.json')])
+            ->expectsOutputToContain('0 created, 0 updated, 2 unchanged')
+            ->assertSuccessful();
+    }
+
+    public function test_a_changed_alias_list_updates_the_row(): void
+    {
+        $this->artisan('portales:load-models', ['--path' => $this->fixture('valid.json')])->assertSuccessful();
+
+        $this->artisan('portales:load-models', ['--path' => $this->fixture('with-aliases.json')])
+            ->expectsOutputToContain('0 created, 1 updated, 1 unchanged')
+            ->assertSuccessful();
+    }
+
+    #[DataProvider('invalidAliases')]
+    public function test_invalid_inventory_names_fail_and_store_nothing(string $fixture): void
+    {
+        $this->artisan('portales:load-models', ['--path' => $this->fixture($fixture)])
+            ->expectsOutputToContain('Portal models not loaded: TOYOTA Etios: nombres_inventario must be a list of non-empty strings')
+            ->assertFailed();
+
+        $this->assertSame(0, ModeloReferencia::query()->count());
+    }
+
+    /** @return array<string, array{string}> */
+    public static function invalidAliases(): array
+    {
+        return [
+            'not a list' => ['aliases-not-a-list.json'],
+            'blank name' => ['aliases-blank.json'],
+            'non-string name' => ['aliases-non-string.json'],
+        ];
     }
 
     private function fixture(string $name): string
