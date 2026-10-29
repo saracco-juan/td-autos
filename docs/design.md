@@ -52,9 +52,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   feedback. Calendar weeks start Monday; week/month boundaries use the backend
   application timezone (UTC). Hidden inventory remains in the counts; existing
   permanent deletion also removes lead history. No retention policy changes.
-- Figma synchronization is pending explicit user acceptance after implementation.
-  The same counting/copy decision applies to mobile; its dealer frame and native
-  implementation remain pending outside this web story. Do not edit Figma yet.
+- Figma synchronized on 2026-10-29 after explicit user acceptance: High v3
+  `2373:8805` (07 - Métricas) now matches the four-card web dashboard, period
+  controls, contact caveat and ranking pagination. Charts and text are editable;
+  navigation overrides are local to this frame. Other screens and shared masters
+  were not edited. Mobile design and native implementation remain outside this story.
 - Approved dashboard expansion: adapt the supplied analytics reference into four
   cards: total contacts with contacted-vehicle coverage, brand columns at lower
   left, top-three contact concentration gauge, and the existing ranked vehicle
