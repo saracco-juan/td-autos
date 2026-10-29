@@ -129,6 +129,9 @@ export default function AppShell() {
                         Inventario
                       </NavLink>
                     ) : null}
+                    <NavLink to="/concesionaria/leads" className={styles.navAction}>
+                      Métricas
+                    </NavLink>
                   </>
                 ) : null}
                 {isAdmin(user) ? (

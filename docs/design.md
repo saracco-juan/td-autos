@@ -40,6 +40,22 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   in scope; native mobile implementation and Figma synchronization remain
   pending approval. Existing buyer profile layout remains unchanged.
 
+## HU26 lead indicator (2026-10-29)
+
+- High v3 web `2373:8805` uses the user-approved heading/navigation label
+  Métricas instead of Leads, retaining its week/month/all-time
+  filters and card styling. Approved additions: a prominent contact total,
+  descending vehicle ranking with horizontal bars and zero-contact vehicles,
+  and a zero/empty-period state. Contacts mean requests to open WhatsApp;
+  they do not confirm messages, unique buyers, sales or financial ROI.
+- Web adds pagination with the shared page-size control and local loading/error
+  feedback. Calendar weeks start Monday; week/month boundaries use the backend
+  application timezone (UTC). Hidden inventory remains in the counts; existing
+  permanent deletion also removes lead history. No retention policy changes.
+- Figma synchronization is pending explicit user acceptance after implementation.
+  The same counting/copy decision applies to mobile; its dealer frame and native
+  implementation remain pending outside this web story. Do not edit Figma yet.
+
 ## Navbar
 
 - Red bar pinned to the top with a soft shadow: logo mark (the TD monogram of the favicon, red on a white tile) followed by the word "Autos" on the left (the link is named "TD Autos"), role links as pills beside it (subtle hover, a brighter pill for the current page), and on the right the account group: Perfil or Administración as a pill, the dealer name as a chip, Cerrar sesión as an outlined pill with an icon. On phones a MENÚ pill with a hamburger icon opens a panel with full-width pills.
