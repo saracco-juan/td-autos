@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Vehiculo;
+use App\Services\Favorites\BuyerFavorites;
 use App\Services\Subscription\SubscriptionLifecycle;
 use App\Support\BuyerVehicleDetail;
 use App\Support\VehiculoOptions;
@@ -13,7 +14,7 @@ use Illuminate\Http\Request;
 final class BuyerVehicleDetailController extends Controller
 {
     // HU09 / TC-77: availability is evaluated on every read, independently of a saved ranking.
-    public function __invoke(Request $request, string $id, SubscriptionLifecycle $lifecycle): JsonResponse
+    public function __invoke(Request $request, string $id, SubscriptionLifecycle $lifecycle, BuyerFavorites $favorites): JsonResponse
     {
         abort_unless($request->user()->rol === User::ROL_COMPRADOR, 403);
         $dealerIds = $lifecycle->operativeDealerIds(now());
@@ -26,7 +27,7 @@ final class BuyerVehicleDetailController extends Controller
 
         $data = $vehicle === null
             ? ['message' => 'Esta publicación ya no está disponible.']
-            : BuyerVehicleDetail::present($vehicle);
+            : [...BuyerVehicleDetail::present($vehicle), 'is_favorite' => $favorites->isSaved($request->user()->id, (int) $id)];
 
         return response()->json($data, $vehicle === null ? 404 : 200)
             ->header('Cache-Control', 'private, no-store');

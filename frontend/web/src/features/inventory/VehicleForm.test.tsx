@@ -95,15 +95,25 @@ describe('VehicleForm', () => {
     expect(screen.getByLabelText('Versión')).toHaveAccessibleDescription('Elegí la marca, el modelo y la versión del catálogo.')
   })
 
-  it('HU21: preserves legacy identity during a catalog outage', async () => {
+  it('HU21: preserves an existing linked identity during a catalog outage', async () => {
     vi.mocked(fetchVehicleCatalog).mockRejectedValue(new HttpError(503, {}))
-    const saved = vehiculo()
+    const saved = vehiculo({ acara_version_id: 'selected-corolla' })
     const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
     expect(screen.getByText(/El catálogo no está disponible/)).toBeInTheDocument()
     fill('Precio', '20000000')
     await userEvent.setup().click(submitButton())
     expect(submit).toHaveBeenCalledTimes(1)
-    expect(submit.mock.calls[0][0].values.acara_version_id).toBe('')
+    expect(submit.mock.calls[0][0].values.acara_version_id).toBe('selected-corolla')
+  })
+
+  it('HU21: rejects saving an unchanged unlinked vehicle', async () => {
+    const saved = vehiculo({ acara_version_id: '' })
+    const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
+
+    await userEvent.setup().click(submitButton())
+
+    expect(submit).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Versión')).toHaveAccessibleDescription('Elegí la marca, el modelo y la versión del catálogo.')
   })
 
   describe('loading the body types', () => {
@@ -148,9 +158,10 @@ describe('VehicleForm', () => {
     })
 
     it('HU05: requires explicit facts, preserves edits and explains a server rejection', async () => {
+      const saved = vehiculo({ acara_version_id: 'selected-corolla' })
       const submit = await renderForm({
-        values: valuesFromVehicle(vehiculo()),
-        photos: vehiculo().fotos,
+        values: valuesFromVehicle(saved),
+        photos: saved.fotos,
         onSubmit: () => Promise.reject(new HttpError(422, { errors: { plazas: ['Revisá las plazas informadas.'] } })),
       })
       fill('Plazas (incluye conductor)', '')
@@ -256,7 +267,7 @@ describe('VehicleForm', () => {
     })
 
     it('counts the new photos together with the saved ones', async () => {
-      const saved = vehiculo({ fotos: vehiculo().fotos.slice(0, 4) })
+      const saved = vehiculo({ acara_version_id: 'selected-corolla', fotos: vehiculo().fotos.slice(0, 4) })
       const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
 
       await userEvent.setup({ applyAccept: false }).click(submitButton())

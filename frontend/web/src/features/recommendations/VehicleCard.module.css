@@ -35,6 +35,17 @@
   object-fit: cover;
 }
 
+.imageWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.favorite {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
 .placeholder {
   display: flex;
   flex-direction: column;

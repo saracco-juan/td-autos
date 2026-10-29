@@ -17,6 +17,7 @@ export type RecommendationWarning = 'body_mismatch' | 'budget_exceeded' | 'resal
 
 export type Recommendation<Facts extends object = Record<never, never>> = {
   listing_id: number
+  is_favorite?: boolean
   score: number
   components: Record<'usage' | 'body' | 'comfort', number> & { priority: number | null }
   resale?: {

@@ -190,7 +190,7 @@ class LocalDevDatabaseTest extends TestCase
         $this->assertSame('remote_receipts', config('filesystems.receipts_disk'));
     }
 
-    public function test_rf22_seeded_dealer_vehicles_can_be_read_and_updated_through_the_api(): void
+    public function test_rf22_seeded_dealer_vehicles_require_catalog_linkage_for_api_updates(): void
     {
         $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
         $this->inspect();
@@ -212,6 +212,13 @@ class LocalDevDatabaseTest extends TestCase
                         'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
                         'consumo_urbano', 'consumo_ruta', ...array_keys(VehiculoFields::EQUIPMENT_FIELDS),
                     ]);
+                    if ($vehicle->acara_version_id === null) {
+                        $before = $vehicle->getAttributes();
+                        $this->postJson($url, $fields)->assertUnprocessable()->assertJsonValidationErrors('acara_version_id');
+                        $this->assertSame($before, $vehicle->fresh()->getAttributes());
+
+                        continue;
+                    }
                     $this->postJson($url, $fields)->assertOk()->assertJsonCount(7, 'vehiculo.fotos')
                         ->assertJsonPath('vehiculo.plazas', 5)->assertJsonPath('vehiculo.turbo', $vehicle->turbo);
                     foreach ($fields as $field => $value) {

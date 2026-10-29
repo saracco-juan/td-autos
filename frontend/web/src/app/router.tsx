@@ -28,6 +28,8 @@ import RecommendationsPage from '../features/recommendations/MatchingRecommendat
 import SubscriptionPage from '../features/subscription/SubscriptionPage'
 import TransferPage from '../features/transfer/TransferPage'
 import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage'
+import DepreciationPage from '../features/depreciation/DepreciationPage'
+import FavoritesPage from '../features/favorites/FavoritesPage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
 
@@ -55,8 +57,10 @@ export const routes: RouteObject[] = [
                   { path: '/', element: <HomeRoute /> },
                   { path: '/diagnostico', element: <DiagnosisPage /> },
                   { path: '/vehiculos/:id', element: <VehicleDetailPage /> },
+                  { path: '/vehiculos/:id/depreciacion', element: <DepreciationPage /> },
                   { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
                   { path: '/recomendaciones', element: <RecommendationsPage /> },
+                  { path: '/favoritos', element: <FavoritesPage /> },
                   { path: '/comparar', element: <ComparisonPage /> },
                   { path: '/vehiculos/:id/costos', element: <OwnershipCostsPage /> },
                   { path: '/transferencia', element: <TransferPage /> },

@@ -14,7 +14,9 @@ final class VehicleCatalogIdentity
     {
         $labels = array_intersect_key($input, array_flip(['marca', 'modelo', 'version']));
         $id = $input['acara_version_id'] ?? null;
-        if ($this->unchanged($labels, $existing) && ($id === null || $id === '' || $id === $existing->acara_version_id)) {
+        if ($existing?->acara_version_id !== null && $existing->acara_version_id !== ''
+            && $this->unchanged($labels, $existing)
+            && ($id === null || $id === '' || $id === $existing->acara_version_id)) {
             return [...$existing->only(['marca', 'modelo', 'version']), 'acara_version_id' => $existing->acara_version_id];
         }
         if (! is_string($id) || $id === '') {
@@ -42,7 +44,8 @@ final class VehicleCatalogIdentity
     /** Resolve editable workbook labels against one snapshot, without fuzzy matching. */
     public function resolveWorkbook(array $input, ?Vehiculo $existing, array $catalog): array
     {
-        if ($this->unchanged($input, $existing)) {
+        if ($existing?->acara_version_id !== null && $existing->acara_version_id !== ''
+            && $this->unchanged($input, $existing)) {
             return $this->resolve($input, $existing, $catalog);
         }
         if ($catalog['snapshot_id'] === null) {
