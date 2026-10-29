@@ -37,6 +37,7 @@ final class DealerLeads
             ->orderByDesc('leads')->orderBy('vehicle.id')
             ->get()->map(fn ($vehicle) => [
                 'id' => (int) $vehicle->id,
+                'brand' => $vehicle->marca,
                 'label' => implode(' ', array_filter([$vehicle->marca, $vehicle->modelo, $vehicle->version, $vehicle->anio])),
                 'leads' => (int) $vehicle->leads,
             ]);

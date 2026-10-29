@@ -21,7 +21,11 @@ removes its leads; this feature does not change data retention.
 `GET /api/concesionaria/leads?period=month` requires the signed-in dealer session.
 `period` accepts `week`, `month` or `all`; invalid values return 422. The dealer
 is resolved from the session, never from query parameters. The response contains
-`period`, `total`, and `vehicles` (`id`, `label`, `leads`), ordered by count then ID.
+`period`, `total`, and `vehicles` (`id`, `label`, `leads`, optional `brand` metadata), ordered by count then ID.
+The shared summary derives contacted-vehicle coverage, contacts by brand and the
+share of contacts in the top three vehicles. Zero denominators return zero.
+The brand chart groups brands beyond the top five into Otras when there are
+more than six brands; this preserves the total without overcrowding the chart.
 
 Run `php artisan test tests/Feature/Concesionaria/DealerLeadsTest.php` in `backend`.
 It covers TC-67/68, period boundaries, hidden and zero-contact vehicles, future
