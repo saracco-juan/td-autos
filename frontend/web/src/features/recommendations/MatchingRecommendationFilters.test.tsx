@@ -19,10 +19,14 @@ const results = Array.from({ length: 10 }, (_, i) => result(10 - i))
 const renderPage = (entry = '/recomendados') => render(
   <MemoryRouter initialEntries={[entry]}><MatchingRecommendationsPage /></MemoryRouter>,
 )
+// HU06: the page also requests the portal models; these tests only care about the dealers endpoint.
+const dealers = { status: 'ready', results, exchange_rate: {
+  quote: { sell: 1000, source: 'Fixture', updated_at: '2026-10-26T10:00:00Z' }, stale: false, warning: null,
+} }
+const dealerCalls = () => vi.mocked(apiFetch).mock.calls.filter(([path]) => path === '/api/recomendaciones').length
 beforeEach(() => {
-  vi.mocked(apiFetch).mockReset().mockResolvedValue({ status: 'ready', results, exchange_rate: {
-    quote: { sell: 1000, source: 'Fixture', updated_at: '2026-10-26T10:00:00Z' }, stale: false, warning: null,
-  } })
+  vi.mocked(apiFetch).mockReset().mockImplementation(async (path) => (path === '/api/recomendaciones/modelos'
+    ? { status: 'ready', modelos: [], fuente_precios: null } : dealers) as never)
 })
 
 it('HU07 TC-21 applies all criteria to the complete set before paging, retaining matching and ARS prices', async () => {
@@ -44,7 +48,7 @@ it('HU07 TC-21 applies all criteria to the complete set before paging, retaining
   await user.click(screen.getByRole('button', { name: 'Quitar Hasta $ 5.000.000' }))
   expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
   expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('Toyota Auto 10 2020')
-  expect(apiFetch).toHaveBeenCalledTimes(1)
+  expect(dealerCalls()).toBe(1)
   expect(apiFetch).toHaveBeenCalledWith('/api/recomendaciones')
 })
 
@@ -60,7 +64,7 @@ it('HU07 TC-22 keeps filters and diagnosis intact on empty matches and clears im
   expect(screen.queryByRole('list', { name: 'Recomendaciones' })).not.toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'LIMPIAR FILTROS' }))
   expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
-  expect(apiFetch).toHaveBeenCalledTimes(1)
+  expect(dealerCalls()).toBe(1)
 })
 
 it('HU07 restores applied filters after real router navigation and Back, without adding a HU09 screen', async () => {
@@ -88,4 +92,35 @@ it('HU07 ignores invalid filter URL values rather than hiding recommendations', 
   renderPage('/recomendados?maxPrice=oops&minYear=-1&maxKilometers=1.5&transmission=invalid')
   expect(await screen.findByText('Mostrando 10 vehículos')).toBeInTheDocument()
   expect(screen.queryByRole('group', { name: 'Filtros aplicados' })).not.toBeInTheDocument()
+})
+
+it('HU07 opens the filters as a side panel next to the results, not inside the toolbar', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByText('Mostrando 10 vehículos')
+  const toolbar = screen.getByRole('toolbar', { name: 'Filtros y comparación' })
+  const toggle = within(toolbar).getByRole('button', { name: 'FILTROS' })
+  expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.queryByRole('complementary', { name: 'Filtros de recomendaciones' })).not.toBeInTheDocument()
+  await user.click(toggle)
+  expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  const panel = screen.getByRole('complementary', { name: 'Filtros de recomendaciones' })
+  expect(panel).toBeVisible()
+  expect(toolbar).not.toContainElement(panel)
+  expect(panel.parentElement).toContainElement(screen.getByRole('region', { name: 'Resultados' }))
+  await user.click(toggle)
+  expect(screen.queryByRole('complementary', { name: 'Filtros de recomendaciones' })).not.toBeInTheDocument()
+})
+
+it('HU07 keeps the applied chips in the toolbar and closes the side panel on APLICAR', async () => {
+  const user = userEvent.setup()
+  renderPage()
+  await screen.findByText('Mostrando 10 vehículos')
+  const toolbar = screen.getByRole('toolbar', { name: 'Filtros y comparación' })
+  await user.click(within(toolbar).getByRole('button', { name: 'FILTROS' }))
+  await user.selectOptions(screen.getByLabelText('Transmisión'), 'automatica')
+  await user.click(screen.getByRole('button', { name: 'APLICAR' }))
+  expect(screen.queryByRole('complementary', { name: 'Filtros de recomendaciones' })).not.toBeInTheDocument()
+  expect(within(toolbar).getByRole('button', { name: 'Quitar Automática' })).toBeVisible()
+  expect(within(toolbar).getByRole('button', { name: 'FILTROS' })).toHaveFocus()
 })

@@ -67,6 +67,13 @@ Agent memory travels between machines through the repo, one folder per developer
 - Every time a task is finished, the closing message includes how to test it manually: what to start (see `docs/getting-started.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
 - When the task is backend-only and has no screen yet, the manual test comes with ready-to-paste code: a self-contained snippet (browser console or terminal) that authenticates the same way the real client does, one call per case, and the expected status and body of each call. The developer should not have to write or adapt code beyond the host and port.
 
+## Improvements backlog
+
+- The Trello list `Mejoras/Arreglos` holds non-blocking improvements and fixes. A card is short and human, written in Spanish: a title in sentence case, without a period, that says what is wanted; a description of one to three sentences ("Hoy pasa X. Tendría que pasar Y."), plus an optional "Puede requerir…"; and its labels: one type (`Mejora` or `Arreglo`), one or two areas (`UX/UI`, `Frontend`/`Backend`, `WEB`/`MOBILE`) and one priority (`Prioridad-Alta`, `Prioridad-Media` or `Prioridad-Baja`, low by default). One card per topic; long detail goes in a comment.
+- When something non-blocking is noticed while working, offer a card written to that standard instead of fixing it in place; never widen the story.
+- Before starting a story, scan that list and propose the cards that belong to the code the story already touches. Apply only the ones the developer confirms, each in its own commit with the card in the footer (`Refs: Trello #127`). Skip cards that belong to another developer's story or need new requirements.
+- The closing message says which cards were applied, so the developer can move them to Done after the merge.
+
 ## Screen decisions go back to Figma
 
 - Whenever a screen ends up different from its Figma frame (something was missing, was wrong, or was changed), write the decision down when it is made: screen, Figma frame, what Figma shows, what was implemented and why.

@@ -90,6 +90,9 @@ class BuildLocalDatabase extends Command
                 return self::FAILURE;
             }
             app(FixedAcaraCatalog::class)->import($catalogSnapshot);
+            if ($this->call('portales:load-models') !== self::SUCCESS) {
+                return self::FAILURE;
+            }
 
             // Before the volume seeder: it reads the plates already in the database.
             if ($real > 0) {

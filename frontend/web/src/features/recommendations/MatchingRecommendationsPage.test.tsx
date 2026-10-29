@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -22,18 +22,24 @@ const ready = () => ({ status: 'ready', results: [result()], exchange_rate: {
 } })
 const renderPage = () => render(<MemoryRouter><RecommendationsPage /></MemoryRouter>)
 
+// HU06: the page also requests the portal models; these tests only care about the dealers endpoint.
+const NO_PORTALS = { status: 'ready', modelos: [], fuente_precios: null }
+const mockDealers = (value: unknown) => vi.mocked(apiFetch).mockImplementation(async (path) =>
+  (path === '/api/recomendaciones' ? value : NO_PORTALS) as never)
+const dealerCalls = () => vi.mocked(apiFetch).mock.calls.filter(([path]) => path === '/api/recomendaciones').length
+
 beforeEach(() => {
-  vi.mocked(apiFetch).mockReset().mockImplementation(async (path) => path === '/api/recomendaciones'
-    ? ready() : { publicaciones: [], fuentes: [], meta: { total: 0, page: 1, last_page: 1 } })
+  vi.mocked(apiFetch).mockReset()
+  mockDealers(ready())
 })
 
 it('HU05 replaces search with saved-diagnosis matching and preserves API order', async () => {
   renderPage()
   expect(await screen.findByText('90,3% de compatibilidad')).toBeInTheDocument()
   expect(apiFetch).toHaveBeenCalledWith('/api/recomendaciones')
-  expect(apiFetch).toHaveBeenCalledTimes(1)
+  expect(dealerCalls()).toBe(1)
   expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
-  expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+  expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Concesionarias', expect.stringMatching(/^Otros portales/)])
   expect(screen.getByText('Mostrando 1 vehículo')).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'AJUSTAR DIAGNÓSTICO' })).toHaveAttribute('href', '/diagnostico')
   const card = screen.getByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
@@ -51,7 +57,7 @@ it('HU05 replaces search with saved-diagnosis matching and preserves API order',
 })
 
 it('paginates the backend top ten as nine plus one without sorting or requesting more', async () => {
-  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: Array.from({ length: 10 }, (_, i) => result(10 - i)) })
+  mockDealers({ ...ready(), results: Array.from({ length: 10 }, (_, i) => result(10 - i)) })
   renderPage()
   expect(await screen.findByText('Mostrando 10 vehículos')).toBeInTheDocument()
   const cards = () => within(screen.getByRole('list', { name: 'Recomendaciones' })).getAllByRole('listitem')
@@ -62,7 +68,7 @@ it('paginates the backend top ten as nine plus one without sorting or requesting
   expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 1 2021')
   expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
   expect(screen.queryByText('Mostrar')).not.toBeInTheDocument()
-  expect(apiFetch).toHaveBeenCalledTimes(1)
+  expect(dealerCalls()).toBe(1)
 })
 
 it.each([
@@ -70,8 +76,9 @@ it.each([
   ['resale_pending', 'Las recomendaciones por reventa todavía no están disponibles.'],
   ['ready', 'No encontramos vehículos que coincidan con tu diagnóstico.'],
 ])('explains %s without inventing results', async (status, message) => {
-  vi.mocked(apiFetch).mockResolvedValue({ status, results: [], exchange_rate: null })
+  mockDealers({ status, results: [], exchange_rate: null })
   renderPage()
+  await userEvent.click(await screen.findByRole('tab', { name: 'Concesionarias' }))
   expect(await screen.findByText(message)).toBeInTheDocument()
   expect(screen.queryByRole('list')).not.toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'AJUSTAR DIAGNÓSTICO' })).toBeInTheDocument()
@@ -79,7 +86,7 @@ it.each([
 
 it.each([false, true])('explains unavailable/stale quotes (stale=%s)', async (stale) => {
   const response = ready()
-  vi.mocked(apiFetch).mockResolvedValue({ ...response, results: [{ ...result(), price_usd: null }],
+  mockDealers({ ...response, results: [{ ...result(), price_usd: null }],
     exchange_rate: { ...response.exchange_rate, stale, quote: stale ? response.exchange_rate.quote : null } })
   renderPage()
   expect(await screen.findByText(stale ? /Última cotización disponible/ : /Sin cotización disponible/)).toBeInTheDocument()
@@ -88,7 +95,7 @@ it.each([false, true])('explains unavailable/stale quotes (stale=%s)', async (st
 })
 
 it('HU05 explains missing resale without inventing a zero or hiding partial scores below70', async () => {
-  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(), score: 62.5,
+  mockDealers({ ...ready(), results: [{ ...result(), score: 62.5,
     components: { usage: 64, body: 100, priority: null, comfort: 20 }, warnings: ['resale_unavailable'],
   }] })
   renderPage()
@@ -99,7 +106,7 @@ it('HU05 explains missing resale without inventing a zero or hiding partial scor
 })
 
 it('HU05 shows dated resale sources and retained stale evidence', async () => {
-  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(), warnings: ['resale_stale'],
+  mockDealers({ ...ready(), results: [{ ...result(), warnings: ['resale_stale'],
     resale: { activity_score: 100, retention_score: 80, source_date: '2026-10-19', window_start: '2026-04', window_end: '2026-09', stale: true },
   }] })
   renderPage()
@@ -110,7 +117,7 @@ it('HU05 shows dated resale sources and retained stale evidence', async () => {
 })
 
 it('explains annualized estimates separately from observed year prices', async () => {
-  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(),
+  mockDealers({ ...ready(), results: [{ ...result(),
     resale: { activity_score: 80, retention_score: 75.5, source_date: '2026-10-19',
       window_start: '2026-04', window_end: '2026-09', stale: false,
       estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: 8.9, years_used: [2017, 2018, 2019] } },
@@ -123,7 +130,7 @@ it('explains annualized estimates separately from observed year prices', async (
 })
 
 it('shows grouped uncertainty and raw appreciation separately from the capped score', async () => {
-  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(),
+  mockDealers({ ...ready(), results: [{ ...result(),
     resale: { activity_score: 80, retention_score: 100, source_date: '2026-10-19',
       window_start: '2026-04', window_end: '2026-09', stale: false,
       estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: -10,
@@ -137,11 +144,16 @@ it('shows grouped uncertainty and raw appreciation separately from the capped sc
 })
 
 it.each([new NetworkError(new Error()), new HttpError(500, null)])('retries failures without showing stale results', async (error) => {
-  vi.mocked(apiFetch).mockRejectedValueOnce(error).mockResolvedValueOnce(ready())
+  let dealerAttempts = 0
+  vi.mocked(apiFetch).mockImplementation(async (path) => {
+    if (path !== '/api/recomendaciones') return NO_PORTALS as never
+    if (dealerAttempts++ === 0) throw error
+    return ready() as never
+  })
   renderPage()
   await userEvent.click(await screen.findByRole('button', { name: 'REINTENTAR' }))
   expect(await screen.findByRole('list')).toBeInTheDocument()
-  expect(apiFetch).toHaveBeenCalledTimes(2)
+  expect(dealerCalls()).toBe(2)
 })
 
 it('loads only the results area and recalculates when the page is revisited', async () => {
@@ -152,11 +164,11 @@ it('loads only the results area and recalculates when the page is revisited', as
   first.unmount()
   renderPage()
   expect(await screen.findByRole('list')).toBeInTheDocument()
-  expect(apiFetch).toHaveBeenCalledTimes(2)
+  expect(dealerCalls()).toBe(2)
 })
 
 it('keeps a USD publication distinct from its ARS equivalent and shows its actual photo', async () => {
-  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(), published_price: 20000,
+  mockDealers({ ...ready(), results: [{ ...result(), published_price: 20000,
     published_currency: 'USD', vehicle: { ...result().vehicle, image_url: '/demo/corolla.webp' } }] })
   renderPage()
   expect(await screen.findByText('Publicado: US$ 20.000')).toBeInTheDocument()
@@ -172,7 +184,7 @@ it('leaves the cost estimate to the vehicle detail instead of the card', async (
 })
 
 it('identifies inferred model families as approximate rather than exact', async () => {
-  vi.mocked(apiFetch).mockResolvedValue({ ...ready(), results: [{ ...result(),
+  mockDealers({ ...ready(), results: [{ ...result(),
     resale: { activity_score: 80, retention_score: 75, source_date: '2026-10-19',
       window_start: '2026-04', window_end: '2026-09', stale: false,
       model_match: { approximate: true, listing_model: 'Example', reference_model: 'Example Extended' } },
@@ -181,4 +193,16 @@ it('identifies inferred model families as approximate rather than exact', async 
   await screen.findByRole('list')
   await userEvent.click(screen.getByText('Ver atributos y motivos'))
   expect(screen.getByText(/Referencia aproximada.*Example Extended.*Example.*No confirma/)).toBeVisible()
+})
+
+it('shows a neutral "Sin fotos" placeholder when the vehicle has no photo or the photo fails to load', async () => {
+  mockDealers({ ...ready(), results: [result(1), { ...result(2), vehicle: { ...result(2).vehicle, image_url: '/missing.webp' } }] })
+  renderPage()
+  const first = await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
+  expect(within(first).getByText('Sin fotos')).toBeVisible()
+  expect(within(first).queryByRole('img', { name: /Foto de/ })).not.toBeInTheDocument()
+  const second = screen.getByRole('listitem', { name: 'Toyota Corolla XEI 2 2021' })
+  fireEvent.error(within(second).getByRole('img', { name: /Foto de/ }))
+  expect(within(second).getByText('Sin fotos')).toBeVisible()
+  expect(within(second).queryByRole('img', { name: /Foto de/ })).not.toBeInTheDocument()
 })

@@ -128,6 +128,7 @@ Render's free plan has no shell to run `catalog:import-acara` with a PDF, so the
 no catalog it loads the bundled fixed snapshot (`database/seeders/assets/acara-2026-10-19.json.gz`, the
 same data `db:local` uses); when any catalog is already loaded it changes nothing. A failure is logged and
 the API still starts, with the catalog endpoint answering 503 until the next start.
+The same script runs `php artisan portales:load-models` right after the migrations: a fast upsert of the curated models (HU06) from `database/seeders/assets/portal-models.json`, independent of the catalog.
 The PostgreSQL migration enables RLS and denies direct anonymous/authenticated Data
 API access to these tables; Laravel's database owner connection serves the existing
 protected API. No automatic ACARA update job is installed.

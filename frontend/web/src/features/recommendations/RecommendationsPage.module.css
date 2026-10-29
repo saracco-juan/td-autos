@@ -13,30 +13,40 @@
   padding-top: 16px;
 }
 
-/* HU07 keeps the existing header/grid and adds the High v3 filter sidebar. */
+/* HU07 keeps the existing header/grid and adds the High v3 filter sidebar (inside the dealers tab, HU06). */
 .filterPage {
-  display: grid;
   /* The real shell has min-height, not a fixed height: sidebar content must not size the page. */
   contain: size;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  column-gap: 24px;
 }
 
-.filterPage > .headerRow {
-  grid-column: 1 / -1;
-}
-
-.filterPage > .results {
-  grid-column: 2;
+.tabPanel {
   min-width: 0;
+}
+
+.dealersLayout {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
   min-height: 0;
 }
 
-.filterPage > aside {
-  min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
+.comparison {
+  flex: none;
+  max-width: 100%;
+}
+
+/* The exchange-rate notice: small secondary text under the toolbar. */
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.notice p {
+  margin: 0;
 }
 
 .filterPage .filteredFrame[data-fill] {
@@ -44,16 +54,17 @@
 }
 
 @media (max-width: 800px) {
-  .filterPage {
-    display: flex;
+  /* Filters first, the comparison group below at full width. */
+  .comparison {
+    width: 100%;
   }
 
-  .filterPage > aside {
-    max-height: 45dvh;
+  .comparison > section > div {
+    justify-content: space-between;
   }
 }
 
-/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right; the search box goes under them. */
+/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right. */
 .headerRow {
   display: flex;
   align-items: flex-end;
@@ -87,26 +98,14 @@
   width: clamp(180px, 20%, 236px);
 }
 
-/* Full-width search field under the header; it searches on Enter. */
-.search {
-  min-width: 0;
-}
-
-/* The loader and the states live here and are centered in it; the header and the search stay in place. */
+/* The loader and the states live here and are centered in it, the header stays in place. */
 .results {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  min-width: 0;
   min-height: 240px;
-}
-
-/* Where the cards were while the next page loads: the loader is centered in the space of the grid. */
-.gridLoading {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
 }
 
 /* Room for the card shadows, which the scroll box would clip. */

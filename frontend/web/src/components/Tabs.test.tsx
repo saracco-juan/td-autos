@@ -54,3 +54,25 @@ it('supports synchronized controlled instances without moving focus to the other
   expect(screen.getAllByRole('tab', { name: 'General', selected: true })).toHaveLength(2)
   expect(screen.getAllByRole('tabpanel', { name: 'General' })).toHaveLength(2)
 })
+
+it('keeps the boxed look by default and only the underline variant is flagged', () => {
+  const { unmount } = mount()
+  expect(screen.getByRole('tablist')).not.toHaveAttribute('data-variant')
+  unmount()
+  render(<Tabs label="Example sections" items={items} variant="underline">{(id) => <p>{id}</p>}</Tabs>)
+  expect(screen.getByRole('tablist')).toHaveAttribute('data-variant', 'underline')
+})
+
+it('renders a trailing element on the tabs row, outside the tablist, only when given', () => {
+  const { unmount } = mount()
+  expect(screen.queryByRole('button', { name: 'Extra' })).not.toBeInTheDocument()
+  unmount()
+  render(<Tabs label="Example sections" items={items} trailing={<button type="button">Extra</button>}>
+    {(id) => <p>{id}</p>}
+  </Tabs>)
+  const extra = screen.getByRole('button', { name: 'Extra' })
+  const tablist = screen.getByRole('tablist')
+  expect(tablist.contains(extra)).toBe(false)
+  expect(extra.parentElement).toBe(tablist.parentElement)
+  expect(screen.getByRole('tabpanel').contains(extra)).toBe(false)
+})
