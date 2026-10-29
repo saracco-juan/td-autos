@@ -40,6 +40,31 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   in scope; native mobile implementation and Figma synchronization remain
   pending approval. Existing buyer profile layout remains unchanged.
 
+## HU26 lead indicator (2026-10-29)
+
+- High v3 web `2373:8805` uses the user-approved heading/navigation label
+  Métricas instead of Leads, retaining its week/month/all-time
+  filters and card styling. Approved additions: a prominent contact total,
+  descending vehicle ranking with horizontal bars and zero-contact vehicles,
+  and a zero/empty-period state. Contacts mean requests to open WhatsApp;
+  they do not confirm messages, unique buyers, sales or financial ROI.
+- Web adds pagination with the shared page-size control and local loading/error
+  feedback. Calendar weeks start Monday; week/month boundaries use the backend
+  application timezone (UTC). Hidden inventory remains in the counts; existing
+  permanent deletion also removes lead history. No retention policy changes.
+- Figma synchronized on 2026-10-29 after explicit user acceptance: High v3
+  `2373:8805` (07 - Métricas) now matches the four-card web dashboard, period
+  controls, contact caveat and ranking pagination. Charts and text are editable;
+  navigation overrides are local to this frame. Other screens and shared masters
+  were not edited. Mobile design and native implementation remain outside this story.
+- Approved dashboard expansion: adapt the supplied analytics reference into four
+  cards: total contacts with contacted-vehicle coverage, brand columns at lower
+  left, top-three contact concentration gauge, and the existing ranked vehicle
+  bars at right. Keep the current light surfaces, red accent, fonts and controls;
+  a general style refactor is deferred. All cards share the existing period filter.
+  Tablet and phone layouts stack inside the dashboard scroll region; vehicle
+  pagination and its internal list scroll remain independent. No new dependency.
+
 ## Navbar
 
 - Red bar pinned to the top with a soft shadow: logo mark (the TD monogram of the favicon, red on a white tile) followed by the word "Autos" on the left (the link is named "TD Autos"), role links as pills beside it (subtle hover, a brighter pill for the current page), and on the right the account group: Perfil or Administración as a pill, the dealer name as a chip, Cerrar sesión as an outlined pill with an icon. On phones a MENÚ pill with a hamburger icon opens a panel with full-width pills.
