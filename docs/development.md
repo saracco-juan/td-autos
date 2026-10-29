@@ -4,6 +4,7 @@ Technical setup beyond the basics, split by topic so each note can be read on it
 
 | Topic | File |
 | --- | --- |
+| Dealership lead totals, periods and vehicle ranking (HU26 / RF31). | [`leads.md`](development/leads.md) |
 | Confirmed dealership WhatsApp contact and local test data. | [`whatsapp-contact.md`](development/whatsapp-contact.md) |
 | Local demo database, Google sign-in from a phone, shared web/mobile code and maintenance scripts. | [`local-environment.md`](development/local-environment.md) |
 | Resale demo listings, resale ranking, DNRPA activity (reader, calculation, acquisition, history) and resale activity score. | [`resale-activity.md`](development/resale-activity.md) |
