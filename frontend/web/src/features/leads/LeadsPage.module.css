@@ -1,6 +1,6 @@
 .page {
   contain: size;
-  gap: 24px;
+  gap: 20px;
 }
 
 .header p {
@@ -11,6 +11,10 @@
 .header {
   display: grid;
   gap: 8px;
+}
+
+.header .hint {
+  font-size: 12px;
 }
 
 .filters {
@@ -33,6 +37,41 @@
   gap: 16px;
 }
 
+.dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.3fr);
+  grid-template-rows: minmax(185px, 0.8fr) minmax(230px, 1.2fr);
+  grid-template-areas: 'total total ranking' 'brands concentration ranking';
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.dashboard[data-empty] {
+  display: flex;
+  flex-direction: column;
+}
+
+.rankingPanel {
+  grid-area: ranking;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.rankingPanel .row {
+  background: var(--surface-raised);
+  border-color: transparent;
+  padding: 12px;
+}
+
+.rankingPanel .bar::-webkit-meter-bar {
+  background: var(--surface-default);
+}
+
 .card, .row {
   background: var(--surface-default);
   border: 1px solid var(--border-default);
@@ -49,12 +88,6 @@
   color: var(--text-secondary);
   margin: 8px 0 0;
   font-size: 14px;
-}
-
-.total {
-  display: inline-block;
-  font-size: 36px;
-  margin-top: 8px;
 }
 
 .ranking[data-fill] {
@@ -127,5 +160,30 @@
 
   .filters button {
     padding: 8px 12px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .dashboard {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(230px, auto) minmax(300px, 1fr);
+    grid-template-areas: 'total total' 'brands concentration' 'ranking ranking';
+    gap: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  .dashboard > section {
+    flex: 0 0 auto;
+  }
+
+  .rankingPanel {
+    min-height: min(360px, 65svh);
   }
 }

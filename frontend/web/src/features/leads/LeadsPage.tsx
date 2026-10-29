@@ -9,6 +9,7 @@ import screenStyles from '../../components/screen.module.css'
 import { NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import { fetchLeads } from './api'
+import MetricsOverview from './MetricsOverview'
 import styles from './LeadsPage.module.css'
 
 const PERIODS: { value: LeadPeriod; label: string }[] = [
@@ -51,6 +52,7 @@ export default function LeadsPage() {
         <p className={screenStyles.eyebrow}>MÉTRICAS</p>
         <h1 className={screenStyles.title}>Métricas</h1>
         <p>Cada contacto es una solicitud para abrir el WhatsApp de uno de tus autos.</p>
+        <p className={styles.hint}>No confirma mensajes enviados, compradores únicos ni ventas.</p>
       </header>
       <div role="group" aria-label="Período de consulta" className={styles.filters}>
         {PERIODS.map(({ value, label }) => (
@@ -66,18 +68,13 @@ export default function LeadsPage() {
           setView({ status: 'loading' })
           setAttempt((value) => value + 1)
         }} /> : null}
-        {data ? <>
-          <section className={styles.card} aria-labelledby="contacts-title">
-            <h2 id="contacts-title">{PERIODS.find(({ value }) => value === period)?.label}</h2>
-            <strong className={styles.total} aria-label="Total de contactos">{data.total.toLocaleString('es-AR')}</strong>
-            <span> contactos solicitados</span>
-            <p>Indicador de interés en tus vehículos. No confirma mensajes enviados, compradores únicos ni ventas.</p>
-          </section>
+        {data ? <div className={styles.dashboard} data-empty={data.total === 0 || undefined}>
+          <MetricsOverview data={data} />
           {data.total === 0 ? <div className={styles.empty}>
             <h2>Sin contactos en este período</h2>
             <p>Cuando alguien solicite contactarte por un vehículo, lo vas a ver acá.</p>
-          </div> : <>
-            <h2 className={styles.rankingTitle}>Vehículos por contactos</h2>
+          </div> : <section className={`${styles.card} ${styles.rankingPanel}`} aria-labelledby="ranking-title">
+            <h2 id="ranking-title" className={styles.rankingTitle}>Vehículos por contactos</h2>
             <ScrollArea fill label="Ranking de vehículos" className={styles.ranking}>
               <ol aria-label="Vehículos por contactos" className={styles.list} start={(page - 1) * pageSize + 1}>
                 {vehicles.slice((page - 1) * pageSize, page * pageSize).map((vehicle) => (
@@ -95,8 +92,8 @@ export default function LeadsPage() {
               <Pagination page={page} lastPage={Math.ceil(vehicles.length / pageSize)} onChange={setPage}
                 pageSize={pageSize} onPageSizeChange={(size) => { setPageSize(size); setPage(1) }} />
             </ListFooter> : null}
-          </>}
-        </> : null}
+          </section>}
+        </div> : null}
       </div>
     </section>
   )

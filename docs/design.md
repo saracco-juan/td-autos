@@ -55,6 +55,13 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Figma synchronization is pending explicit user acceptance after implementation.
   The same counting/copy decision applies to mobile; its dealer frame and native
   implementation remain pending outside this web story. Do not edit Figma yet.
+- Approved dashboard expansion: adapt the supplied analytics reference into four
+  cards: total contacts with contacted-vehicle coverage, brand columns at lower
+  left, top-three contact concentration gauge, and the existing ranked vehicle
+  bars at right. Keep the current light surfaces, red accent, fonts and controls;
+  a general style refactor is deferred. All cards share the existing period filter.
+  Tablet and phone layouts stack inside the dashboard scroll region; vehicle
+  pagination and its internal list scroll remain independent. No new dependency.
 
 ## Navbar
 
