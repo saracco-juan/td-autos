@@ -4,9 +4,6 @@ import type { ExchangeRate } from '../recommendations/matching'
 // nothing here knows how a portal URL is made.
 export type PortalLink = { portal: string; nombre: string; url: string }
 
-/** Credited photo of the model (Wikimedia Commons); `pagina` is the file page that holds the license. */
-export type PortalPhoto = { url: string; autor: string; licencia: string; pagina: string }
-
 export type PortalModel = {
   id: number
   /** Catalog brand, uppercase (TOYOTA). */
@@ -20,7 +17,8 @@ export type PortalModel = {
   /** The filters the Mercado Libre link applies, ready to show as chips. */
   filtros: string[]
   links: PortalLink[]
-  imagen: PortalPhoto | null
+  /** Cover photo of the newest matching vehicle in the dealers' inventory, or null when there is none. */
+  imagen_url: string | null
 }
 
 export type PortalModelsStatus = 'ready' | 'diagnosis_incomplete'

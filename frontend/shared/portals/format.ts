@@ -1,14 +1,11 @@
 import { formatPrice } from '../recommendations/format'
-import type { PortalLink, PortalModel, PortalPhoto, PortalPriceSource } from './models'
+import type { PortalLink, PortalModel, PortalPriceSource } from './models'
 
 export const OTHER_PORTALS_TAB = 'Otros portales'
-export const PORTAL_MODELS_NOTICE = 'Estos son modelos, no unidades en venta: la foto es ilustrativa. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.'
-export const PORTAL_PHOTO_PILL = 'Foto ilustrativa'
-export const PORTAL_DETAILS_SUMMARY = 'Ver motivos y filtros'
+export const PORTAL_MODELS_NOTICE = 'Estos son modelos, no unidades en venta. La foto muestra cómo es el modelo. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.'
+export const PORTAL_REASONS_HEADING = 'Por qué te lo recomendamos'
 export const PORTAL_FILTERS_HEADING = 'Filtros que aplicamos en Mercado Libre'
 export const PORTAL_KAVAK_NOTE = 'Las unidades y sus precios reales son del portal. En Kavak aplicamos solo la transmisión.'
-export const PORTAL_CREDITS_SUMMARY = 'Créditos de las fotos'
-export const PORTAL_CREDITS_SOURCE = 'Wikimedia Commons'
 export const PORTAL_EMPTY_COPY = {
   title: 'No encontramos modelos para tu diagnóstico.',
   hint: 'Probá ajustando el presupuesto o la carrocería.',
@@ -56,9 +53,9 @@ export function portalSourceLabel({ nombre, fecha }: PortalPriceSource): string 
   return `Precios de referencia: ${nombre}, ${day}/${month}/${year}`
 }
 
-// The attribution the photo license asks for, listed per model; the file page it links to holds the license text.
-export function portalPhotoCredit(model: Pick<PortalModel, 'marca' | 'modelo'>, { autor, licencia }: PortalPhoto): string {
-  return `${portalModelTitle(model)}: ${autor} · ${licencia}`
+// Accessible name of the info button on a card.
+export function portalInfoLabel(model: Pick<PortalModel, 'marca' | 'modelo'>): string {
+  return `Más información sobre ${portalModelTitle(model)}`
 }
 
 export function portalButtonLabel({ nombre }: Pick<PortalLink, 'nombre'>): string {

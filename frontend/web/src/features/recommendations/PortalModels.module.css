@@ -1,6 +1,22 @@
-/* The "Otros portales" panel: the models message, a scrolling grid (same 3 / 2 / 1 columns as the dealers cards)
+/* The "Otros portales" panel: the message in a left aside (the layout of the dealers filters, from
+   RecommendationFilters.module.css), and next to it a scrolling grid (same 3 / 2 / 1 columns as the dealers cards)
    and the source. The card itself is the dealers card (VehicleCard.module.css); only what is specific lives here. */
 .panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Loaded: the aside and the results side by side (stacked on phones by the filters' own media query). */
+.layout {
+  flex: 1;
+  min-width: 0;
+}
+
+.results {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -22,25 +38,20 @@
   align-items: stretch;
 }
 
-/* The photo block of the dealers card with the "Foto ilustrativa" pill over its top-left corner. */
-.media {
-  position: relative;
+/* The info button sits at the right end of the title row. */
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
 }
 
-.pill {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 2px 10px;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 999px;
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 500;
+.titleRow > span {
+  flex: none;
 }
 
+/* The tooltip content: reasons, filter chips and the portals note. */
 .reasons,
 .chips {
   margin: 8px 0 0;
@@ -67,8 +78,13 @@
 }
 
 .heading {
+  display: block;
   margin: 12px 0 0;
   font-weight: 600;
+}
+
+.heading:first-child {
+  margin-top: 0;
 }
 
 .chips {
@@ -85,33 +101,7 @@
   font-size: 11px;
 }
 
-/* Photo credits: one discreet disclosure next to the price source. */
-.credits {
-  margin: 0;
-}
-
-.credits summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.credits p {
-  margin: 6px 0 0;
-}
-
-/* Open, the list scrolls on its own so it never squeezes the cards. */
-.credits ul {
-  max-height: 72px;
-  margin: 4px 0 0;
-  padding-left: 18px;
-  overflow-y: auto;
-}
-
-.credits a {
-  color: inherit;
-  overflow-wrap: anywhere;
-}
-
-.chips + p {
-  margin: 10px 0 0;
+.note {
+  display: block;
+  margin-top: 10px;
 }

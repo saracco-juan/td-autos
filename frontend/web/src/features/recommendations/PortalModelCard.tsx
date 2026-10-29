@@ -1,10 +1,11 @@
 import { useId, useState } from 'react'
 import {
-  PORTAL_DETAILS_SUMMARY, PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_PHOTO_PILL, portalButtonLabel,
+  PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_REASONS_HEADING, portalButtonLabel, portalInfoLabel,
   portalLinkName, portalModelTitle, portalPriceRange, portalPriceYear, portalYearsLabel,
 } from '@shared/portals/format'
 import type { PortalModel } from '@shared/portals/models'
 import buttonStyles from '../../components/button.module.css'
+import InfoTip from '../../components/InfoTip'
 import PhotoPlaceholder from './PhotoPlaceholder'
 import cardStyles from './VehicleCard.module.css'
 import styles from './PortalModels.module.css'
@@ -20,20 +21,29 @@ function CheckIcon() {
 // Mirrors MatchingVehicleCard (same classes, same order); the listings stay in the portals.
 export default function PortalModelCard({ model }: { model: PortalModel }) {
   const titleId = useId()
-  const headingId = useId()
+  const filtersId = useId()
   const [photoFailed, setPhotoFailed] = useState(false)
   const title = portalModelTitle(model)
-  const photo = photoFailed ? null : model.imagen
   return (
     <li className={cardStyles.card} aria-labelledby={titleId}>
-      <p id={titleId} className={cardStyles.title}>{title}</p>
+      <div className={styles.titleRow}>
+        <p id={titleId} className={cardStyles.title}>{title}</p>
+        <InfoTip label={portalInfoLabel(model)}>
+          <strong className={styles.heading}>{PORTAL_REASONS_HEADING}</strong>
+          <ul className={styles.reasons} aria-label="Motivos">
+            {model.motivos.map((reason) => <li key={reason}><CheckIcon />{reason}</li>)}
+          </ul>
+          <strong id={filtersId} className={styles.heading}>{PORTAL_FILTERS_HEADING}</strong>
+          <ul className={styles.chips} aria-labelledby={filtersId}>
+            {model.filtros.map((filter) => <li key={filter}>{filter}</li>)}
+          </ul>
+          <span className={styles.note}>{PORTAL_KAVAK_NOTE}</span>
+        </InfoTip>
+      </div>
       <p className={cardStyles.meta}>{portalYearsLabel(model.anios)}</p>
-      {photo ? (
-        <div className={styles.media}>
-          <img src={photo.url} alt={title} loading="lazy" className={cardStyles.image}
-            onError={() => setPhotoFailed(true)} />
-          <span className={styles.pill}>{PORTAL_PHOTO_PILL}</span>
-        </div>
+      {model.imagen_url && !photoFailed ? (
+        <img src={model.imagen_url} alt={title} loading="lazy" className={cardStyles.image}
+          onError={() => setPhotoFailed(true)} />
       ) : <PhotoPlaceholder />}
       <strong>{portalPriceRange(model.precio)}</strong>
       <p className={cardStyles.meta}>{portalPriceYear(model.precio)}</p>
@@ -46,17 +56,6 @@ export default function PortalModelCard({ model }: { model: PortalModel }) {
           </a>
         ))}
       </div>
-      <details className={cardStyles.meta}>
-        <summary>{PORTAL_DETAILS_SUMMARY}</summary>
-        <ul className={styles.reasons} aria-label="Motivos">
-          {model.motivos.map((reason) => <li key={reason}><CheckIcon />{reason}</li>)}
-        </ul>
-        <p id={headingId} className={styles.heading}>{PORTAL_FILTERS_HEADING}</p>
-        <ul className={styles.chips} aria-labelledby={headingId}>
-          {model.filtros.map((filter) => <li key={filter}>{filter}</li>)}
-        </ul>
-        <p>{PORTAL_KAVAK_NOTE}</p>
-      </details>
     </li>
   )
 }

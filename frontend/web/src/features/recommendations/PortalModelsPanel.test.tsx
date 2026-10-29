@@ -15,13 +15,10 @@ const model = (id: number, overrides: Partial<PortalModel> = {}): PortalModel =>
     { portal: 'mercadolibre', nombre: 'Mercado Libre', url: 'https://autos.mercadolibre.com.ar/etios' },
     { portal: 'kavak', nombre: 'Kavak', url: 'https://www.kavak.com/ar/usado/toyota-etios' },
   ],
-  imagen: null,
+  imagen_url: null,
   ...overrides,
 })
-const photo = {
-  url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Etios.jpg/500px-Etios.jpg',
-  autor: 'Maxi-Napo-99', licencia: 'CC BY 4.0', pagina: 'https://commons.wikimedia.org/wiki/File:Etios.jpg',
-}
+const photo = 'https://example.test/vehiculos/42/cover.jpg'
 const response = (overrides: Partial<PortalModelsResponse> = {}): PortalModelsResponse => ({
   status: 'ready', modelos: [model(1), model(2)], exchange_rate: null,
   fuente_precios: { nombre: 'Guía de precios ACARA', fecha: '2026-10-19' }, ...overrides,
@@ -31,17 +28,26 @@ const renderPanel = (view: PortalModelsView, onRetry = vi.fn()) =>
 const ready = (overrides: Partial<PortalModelsResponse> = {}): PortalModelsView =>
   ({ status: 'ready', response: response(overrides) })
 
-const NOTICE = 'Estos son modelos, no unidades en venta: la foto es ilustrativa. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.'
+const NOTICE = 'Estos son modelos, no unidades en venta. La foto muestra cómo es el modelo. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.'
 
-it('HU06 shows the models-not-units message, one card per model and the dated price source', () => {
+it('HU06 shows the models-not-units message in a side aside, one card per model and the dated price source', () => {
   renderPanel(ready())
   const notice = screen.getByText(NOTICE)
   expect(notice).toBeVisible()
   expect(notice.className).toMatch(/notice/)
+  const aside = screen.getByRole('complementary', { name: 'Sobre estos modelos' })
+  expect(within(aside).getByText(NOTICE)).toBe(notice)
   const list = screen.getByRole('list', { name: 'Modelos en otros portales' })
+  expect(aside.contains(list)).toBe(false)
+  expect(aside.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   expect(within(list).getAllByRole('listitem', { name: /Toyota Etios/ })).toHaveLength(2)
   expect(screen.getByText('Precios de referencia: Guía de precios ACARA, 19/10/2026')).toBeVisible()
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
+})
+
+it('HU06 shows no illustrative-photo wording anywhere', () => {
+  renderPanel(ready({ modelos: [model(1, { imagen_url: photo })] }))
+  expect(screen.queryByText(/ilustrativa/i)).not.toBeInTheDocument()
 })
 
 it('HU06 renders nine models in one list with no pager', () => {
@@ -58,80 +64,84 @@ it('HU06 card mirrors the dealers card: title, models line, no-photo placeholder
   expect(within(card).getByText('Modelos 2017–2025')).toBeVisible()
   expect(within(card).getByText('$ 24.662.900 – $ 32.670.000')).toBeVisible()
   expect(within(card).getByText('Precio de referencia del modelo 2025')).toBeVisible()
-  expect(within(card).getAllByText('Hatchback')[0]).toBeVisible()
+  expect(within(card).getAllByText('Hatchback').at(-1)).toBeVisible()
   expect(within(card).queryByRole('img')).not.toBeInTheDocument()
   expect(within(card).getByText('Sin fotos')).toBeVisible()
   expect(within(card).queryByText('Foto ilustrativa')).not.toBeInTheDocument()
   expect(within(card).getAllByRole('link')).toHaveLength(2)
 })
 
-it('HU06 keeps reasons, filter chips and the Kavak note inside a "Ver motivos y filtros" disclosure', async () => {
+it('HU06 has no "Ver motivos y filtros" disclosure on the card', () => {
   renderPanel(ready({ modelos: [model(1)] }))
   const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
-  const summary = within(card).getByText('Ver motivos y filtros')
-  const details = summary.closest('details') as HTMLDetailsElement
-  expect(details.open).toBe(false)
-  await userEvent.click(summary)
-  expect(details.open).toBe(true)
-  const reasons = within(details).getByRole('list', { name: 'Motivos' })
-  expect(within(reasons).getAllByRole('listitem').map((item) => item.textContent))
-    .toEqual(['Consumo bajo', 'Apto para ciudad', '5 plazas'])
-  expect(within(details).getByText('Filtros que aplicamos en Mercado Libre')).toBeInTheDocument()
-  const chips = within(details).getByRole('list', { name: 'Filtros que aplicamos en Mercado Libre' })
-  expect(within(chips).getAllByRole('listitem').map((item) => item.textContent))
-    .toEqual(['Hatchback', '2017–2025', 'Hasta $ 33.000.000'])
-  expect(within(details).getByText('Las unidades y sus precios reales son del portal. En Kavak aplicamos solo la transmisión.')).toBeInTheDocument()
+  expect(within(card).queryByText('Ver motivos y filtros')).not.toBeInTheDocument()
+  expect(card.querySelector('details')).toBeNull()
 })
 
-it('HU06 shows the model photo with its alt, lazy loading and the "Foto ilustrativa" pill, without a per-card credit', () => {
-  renderPanel(ready({ modelos: [model(1, { imagen: photo })] }))
+it('HU06 puts reasons, filter chips and the Kavak note in an info tooltip at the end of the title row', async () => {
+  renderPanel(ready({ modelos: [model(1)] }))
+  const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
+  const info = within(card).getByRole('button', { name: 'Más información sobre Toyota Etios 1' })
+  const tooltip = within(card).getByRole('tooltip', { hidden: true })
+  expect(tooltip).not.toBeVisible()
+  expect(info.parentElement?.parentElement).toBe(within(card).getByText('Toyota Etios 1').parentElement)
+
+  await userEvent.hover(info)
+
+  expect(tooltip).toBeVisible()
+  expect(within(tooltip).getByText('Por qué te lo recomendamos')).toBeInTheDocument()
+  const reasons = within(tooltip).getByRole('list', { name: 'Motivos' })
+  expect(within(reasons).getAllByRole('listitem').map((item) => item.textContent))
+    .toEqual(['Consumo bajo', 'Apto para ciudad', '5 plazas'])
+  expect(within(tooltip).getByText('Filtros que aplicamos en Mercado Libre')).toBeInTheDocument()
+  const chips = within(tooltip).getByRole('list', { name: 'Filtros que aplicamos en Mercado Libre' })
+  expect(within(chips).getAllByRole('listitem').map((item) => item.textContent))
+    .toEqual(['Hatchback', '2017–2025', 'Hasta $ 33.000.000'])
+  expect(within(tooltip).getByText('Las unidades y sus precios reales son del portal. En Kavak aplicamos solo la transmisión.')).toBeInTheDocument()
+  expect(info).toHaveAccessibleDescription(/Por qué te lo recomendamos/)
+})
+
+it('HU06 opens the info tooltip with the keyboard focus and closes it with Escape', async () => {
+  renderPanel(ready({ modelos: [model(1)] }))
+  const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
+  const tooltip = within(card).getByRole('tooltip', { hidden: true })
+
+  await userEvent.tab() // The scroll region comes first.
+  await userEvent.tab()
+  expect(within(card).getByRole('button', { name: 'Más información sobre Toyota Etios 1' })).toHaveFocus()
+  expect(tooltip).toBeVisible()
+
+  await userEvent.keyboard('{Escape}')
+  expect(tooltip).not.toBeVisible()
+})
+
+it('HU06 shows the model photo from imagen_url with its alt and lazy loading, no pill and no credit', () => {
+  renderPanel(ready({ modelos: [model(1, { imagen_url: photo })] }))
   const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
   const image = within(card).getByRole('img', { name: 'Toyota Etios 1' })
-  expect(image).toHaveAttribute('src', photo.url)
+  expect(image).toHaveAttribute('src', photo)
   expect(image).toHaveAttribute('loading', 'lazy')
   expect(within(card).queryByText('Sin fotos')).not.toBeInTheDocument()
-  expect(within(card).getByText('Foto ilustrativa')).toBeVisible()
-  expect(within(card).queryByText(/Wikimedia Commons/)).not.toBeInTheDocument()
-  expect(within(card).queryByText(/Maxi-Napo-99/)).not.toBeInTheDocument()
+  expect(within(card).queryByText('Foto ilustrativa')).not.toBeInTheDocument()
   expect(within(card).getAllByRole('link')).toHaveLength(2)
 })
 
-it('HU06 falls back to the placeholder, without the pill, when the photo fails to load', () => {
-  renderPanel(ready({ modelos: [model(1, { imagen: photo })] }))
+it('HU06 falls back to the placeholder when the photo fails to load', () => {
+  renderPanel(ready({ modelos: [model(1, { imagen_url: photo })] }))
   const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
 
   fireEvent.error(within(card).getByRole('img', { name: 'Toyota Etios 1' }))
 
   expect(within(card).queryByRole('img')).not.toBeInTheDocument()
   expect(within(card).getByText('Sin fotos')).toBeVisible()
-  expect(within(card).queryByText('Foto ilustrativa')).not.toBeInTheDocument()
   expect(within(card).getAllByRole('link')).toHaveLength(2)
 })
 
-it('HU06 credits the photos once, in a disclosure with a link per model that has a photo', async () => {
-  const other = { ...photo, autor: 'Otro Autor', licencia: 'CC BY-SA 3.0', pagina: 'https://commons.wikimedia.org/wiki/File:Otro.jpg' }
-  renderPanel(ready({ modelos: [model(1, { imagen: photo }), model(2), model(3, { imagen: other })] }))
-  const summary = screen.getByText('Créditos de las fotos')
-  const details = summary.closest('details') as HTMLDetailsElement
-  expect(details.open).toBe(false)
-  await userEvent.click(summary)
-  expect(within(details).getByText(/Wikimedia Commons/)).toBeInTheDocument()
-  const links = within(details).getAllByRole('link')
-  expect(links.map((link) => link.textContent)).toEqual([
-    'Toyota Etios 1: Maxi-Napo-99 · CC BY 4.0', 'Toyota Etios 3: Otro Autor · CC BY-SA 3.0',
-  ])
-  expect(links[0]).toHaveAttribute('href', photo.pagina)
-  expect(links[1]).toHaveAttribute('href', other.pagina)
-  for (const link of links) {
-    expect(link).toHaveAttribute('target', '_blank')
-    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-  }
-  expect(within(details).queryByText(/Etios 2/)).not.toBeInTheDocument()
-})
-
-it('HU06 has no credits disclosure when no model has a photo', () => {
-  renderPanel(ready())
+it('HU06 has no photo credits, whatever the models carry', () => {
+  renderPanel(ready({ modelos: [model(1, { imagen_url: photo }), model(2), model(3, { imagen_url: photo })] }))
   expect(screen.queryByText('Créditos de las fotos')).not.toBeInTheDocument()
+  expect(screen.queryByText(/Wikimedia/)).not.toBeInTheDocument()
+  expect(document.querySelector('details')).toBeNull()
 })
 
 it('HU06 gives both portal links the same class so they share width and height', () => {
@@ -186,6 +196,7 @@ it('HU06 explains an empty ready list with a filled info message', () => {
   expect(screen.getByRole('status')).toHaveTextContent('No encontramos modelos para tu diagnóstico.')
   expect(screen.getByText('Probá ajustando el presupuesto o la carrocería.')).toBeVisible()
   expect(screen.queryByRole('list')).not.toBeInTheDocument()
+  expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
 })
 
 it('HU06 asks to complete the diagnosis with the dealers-tab copy', () => {
@@ -193,6 +204,7 @@ it('HU06 asks to complete the diagnosis with the dealers-tab copy', () => {
   expect(screen.getByText('Completá tu diagnóstico para ver recomendaciones.')).toBeVisible()
   expect(screen.getByText('Ajustá el diagnóstico para buscar otras opciones.')).toBeVisible()
   expect(screen.queryByRole('list')).not.toBeInTheDocument()
+  expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
 })
 
 it('HU06 shows a local loader while the models load', () => {

@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
-  OTHER_PORTALS_TAB, PORTAL_CREDITS_SOURCE, PORTAL_CREDITS_SUMMARY, PORTAL_DETAILS_SUMMARY, PORTAL_EMPTY_COPY,
-  PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_MODELS_NOTICE, PORTAL_PHOTO_PILL, portalButtonLabel, portalCountLabel, portalLinkName, portalModelTitle, portalPriceRange,
-  portalPhotoCredit, portalPriceYear, portalSourceLabel, portalTabLabel,
-  portalYearsLabel, titleCaseBrand,
+  OTHER_PORTALS_TAB, PORTAL_EMPTY_COPY, PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_MODELS_NOTICE,
+  PORTAL_REASONS_HEADING, portalButtonLabel, portalCountLabel, portalInfoLabel, portalLinkName, portalModelTitle,
+  portalPriceRange, portalPriceYear, portalSourceLabel, portalTabLabel, portalYearsLabel, titleCaseBrand,
 } from './format'
 import type { PortalModel } from './models'
 
@@ -13,7 +12,7 @@ const model: PortalModel = {
   precio: { desde_ars: 24662900, hasta_ars: 32670000, anio_referencia: 2025 },
   motivos: ['Consumo bajo'], filtros: ['Hatchback'],
   links: [{ portal: 'mercadolibre', nombre: 'Mercado Libre', url: 'https://autos.mercadolibre.com.ar/x' }],
-  imagen: null,
+  imagen_url: null,
 }
 
 describe('HU06 portal models formatting shared by web and mobile', () => {
@@ -28,11 +27,8 @@ describe('HU06 portal models formatting shared by web and mobile', () => {
     expect(portalModelTitle(model)).toBe('Toyota Etios')
   })
 
-  it('credits each photo under its model with the author and the license', () => {
-    expect(portalPhotoCredit(model, {
-      url: 'https://upload.wikimedia.org/a.jpg', autor: 'Maxi-Napo-99', licencia: 'CC BY 4.0',
-      pagina: 'https://commons.wikimedia.org/wiki/File:a.jpg',
-    })).toBe('Toyota Etios: Maxi-Napo-99 · CC BY 4.0')
+  it('names the info button of a card after its model', () => {
+    expect(portalInfoLabel(model)).toBe('Más información sobre Toyota Etios')
   })
 
   it('labels a year range or a single year', () => {
@@ -70,11 +66,8 @@ describe('HU06 portal models formatting shared by web and mobile', () => {
   })
 
   it('keeps the fixed copy in one place', () => {
-    expect(PORTAL_MODELS_NOTICE).toBe('Estos son modelos, no unidades en venta: la foto es ilustrativa. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.')
-    expect(PORTAL_PHOTO_PILL).toBe('Foto ilustrativa')
-    expect(PORTAL_DETAILS_SUMMARY).toBe('Ver motivos y filtros')
-    expect(PORTAL_CREDITS_SUMMARY).toBe('Créditos de las fotos')
-    expect(PORTAL_CREDITS_SOURCE).toBe('Wikimedia Commons')
+    expect(PORTAL_MODELS_NOTICE).toBe('Estos son modelos, no unidades en venta. La foto muestra cómo es el modelo. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.')
+    expect(PORTAL_REASONS_HEADING).toBe('Por qué te lo recomendamos')
     expect(PORTAL_FILTERS_HEADING).toBe('Filtros que aplicamos en Mercado Libre')
     expect(PORTAL_KAVAK_NOTE).toBe('Las unidades y sus precios reales son del portal. En Kavak aplicamos solo la transmisión.')
     expect(PORTAL_EMPTY_COPY).toEqual({
