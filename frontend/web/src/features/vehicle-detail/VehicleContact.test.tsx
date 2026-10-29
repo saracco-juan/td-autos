@@ -35,7 +35,7 @@ it('TC65/TC66 persists contact before opening only WhatsApp, without relying on 
   expect(window.open).toHaveBeenCalledExactlyOnceWith(url, '_self', 'noopener,noreferrer')
 })
 
-it('shows unavailable and never creates a lead for an unconfirmed destination', async () => {
+it('shows unavailable and never creates a lead when the public phone cannot be used', async () => {
   vi.mocked(apiFetch).mockReset().mockResolvedValue({ ...response, whatsapp_available: false })
   mount()
   expect(await screen.findByText('WhatsApp no disponible')).toBeInTheDocument()

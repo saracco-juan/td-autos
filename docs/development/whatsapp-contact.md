@@ -3,21 +3,22 @@
 RF29 / TC65 opens WhatsApp for the selected listing. RF30 / TC66 records the
 buyer's lead when the contact is requested, regardless of sending the message.
 
-No schema change is required. Edit the existing public phone from the admin
-dealer form and confirm separately that the number uses WhatsApp. Configure
-`DEALER_WHATSAPP_NUMBERS` with the confirmed international numbers (8–15 digits,
-no punctuation, comma-separated). Empty configuration disables all contacts.
-The service normalizes spaces, parentheses, plus and hyphen from the public
-phone, then requires an exact match in that list. A phone alone is never proof
-of a WhatsApp account. Restart the local backend after changing environment
-configuration; refresh Laravel's configuration cache where it is used.
+Each dealership uses its existing `telefono_publico`; there is no environment
+allowlist and no additional phone field or schema migration. The dealership
+owner can edit or clear it in Verificación → EDITAR CONTACTO under CONTACTO DE LA CONCESIONARIA.
+The existing administrator editor and dealership registration still use that
+same public phone. Enter an international number that uses WhatsApp; the system
+validates syntax but does not check whether WhatsApp has registered the number.
 
-Removing a number from the list disables contact for it without changing the
-public phone. No WhatsApp account lookup or messaging API is involved.
-
-Personal test numbers belong only in local demo data, never source or fixtures.
-Use a disposable SQLite copy and explicit connection settings for manual tests;
-do not rebuild an existing database with `db:local`.
+`GET /api/concesionaria/contacto` returns the authenticated owner's public phone.
+`PUT` accepts `{ "telefono_publico": "+54 9 11 ..." }`, normalizes spaces,
+parentheses, plus and hyphens, and saves 8–15 digits or null for an empty field.
+Both routes require the existing dealer middleware and resolve ownership from
+the session, never a client-supplied dealership ID. Pending dealerships can
+maintain their contact details; buyer contact still requires an operative listing.
+Clearing the public phone disables WhatsApp contact. Changes apply immediately.
+Existing DEALER_WHATSAPP_NUMBERS environment entries can be removed; they are ignored.
+Personal test numbers belong only in local data, never source or fixtures.
 
 The authenticated buyer calls `POST /api/vehiculos/{id}/contacto` with
 `{ "attempt_id": "<UUID>" }`. The web keeps that UUID after an uncertain response
@@ -37,8 +38,10 @@ The web button navigates in the same tab after persistence, so popup blocking
 cannot prevent the handoff. WhatsApp supplies the final editable message; only
 the user sends it. No delivery callback or automatic retry is needed.
 
-Manual check: start backend and web per `getting-started.md`, configure a demo
-dealer's public phone and confirm it in the local environment, sign in as buyer, open its vehicle and click
-CONTACTAR POR WHATSAPP. Check recipient and all message facts. Close WhatsApp
-without sending: the lead must already exist. Remove the number from the confirmation list and
-reload the ficha: it must show WhatsApp no disponible.
+Manual check: start backend and web per `getting-started.md`, sign in as a
+dealership and open Verificación → EDITAR CONTACTO. Edit and save its public WhatsApp phone, then reload
+to check persistence. As buyer, open a vehicle belonging to that dealership and
+click CONTACTAR POR WHATSAPP. Check recipient and message facts; the lead must
+exist even without sending. Clear the phone as the dealership and reload the
+buyer ficha: it must show WhatsApp no disponible. Another dealership's number
+must remain unchanged; buyers and administrators cannot use the owner endpoint.

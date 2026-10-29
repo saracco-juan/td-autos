@@ -7,6 +7,7 @@ use App\Http\Controllers\BuyerVehicleContactController;
 use App\Http\Controllers\BuyerVehicleDetailController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
+use App\Http\Controllers\DealerContactController;
 use App\Http\Controllers\DiagnosticoController;
 use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\InspeccionController;
@@ -39,6 +40,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::put('/user', [ProfileController::class, 'update']);
+
+    Route::middleware('dealer')->prefix('concesionaria/contacto')->group(function () {
+        Route::get('/', [DealerContactController::class, 'show']);
+        Route::put('/', [DealerContactController::class, 'update']);
+    });
 
     Route::get('/diagnostico', [DiagnosticoController::class, 'show']);
     Route::put('/diagnostico', [DiagnosticoController::class, 'save']);

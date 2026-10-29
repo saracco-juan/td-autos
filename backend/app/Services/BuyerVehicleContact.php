@@ -17,8 +17,7 @@ final class BuyerVehicleContact
     {
         $number = preg_replace('/[\s()+-]/u', '', $dealer->telefono_publico ?? '');
 
-        return preg_match('/^[1-9][0-9]{7,14}$/D', $number) === 1
-            && in_array($number, config('whatsapp.confirmed_numbers', []), true) ? $number : null;
+        return preg_match('/^[1-9][0-9]{7,14}$/D', $number) === 1 ? $number : null;
     }
 
     public function create(User $buyer, int $vehicleId, ?string $attemptId = null): string

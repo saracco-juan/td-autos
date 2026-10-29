@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import alertStyles from '../../components/alert.module.css'
 import FlowLayout from '../../components/FlowLayout'
+import buttonStyles from '../../components/button.module.css'
 import { formatDay, retentionReached } from '../admin/format'
 import { DEALER_STATE_ACTIVE } from '../auth/roles'
 import { useAuth } from '../auth/session/useAuth'
@@ -8,6 +9,7 @@ import { fetchSubscription } from '../subscription/api'
 import type { VigenciaSuscripcion } from '../subscription/types'
 import { accountStatusText } from './accountStatus'
 import styles from './DealerStatusPage.module.css'
+import DealerContact from './DealerContact'
 
 type Status = { text: string; detail?: string; tone?: 'warning' | 'error' }
 
@@ -58,6 +60,7 @@ function useSubscriptionStatus(active: boolean): { loading: boolean; status: Sta
 // The receipt review card and the inventory button arrive with their own stories.
 export default function DealerStatusPage() {
   const { user } = useAuth()
+  const [editingContact, setEditingContact] = useState(false)
   const estadoAlta = user?.concesionaria?.estado_alta
   const { loading, status } = useSubscriptionStatus(estadoAlta === DEALER_STATE_ACTIVE)
   const toneClass = status?.tone === 'error' ? alertStyles.alert : status?.tone === 'warning' ? alertStyles.warning : styles.status
@@ -88,6 +91,11 @@ export default function DealerStatusPage() {
           <p className={styles.status}>{accountStatusText(estadoAlta)}</p>
         )}
       </section>
+      {user?.rol === 'concesionaria' ? editingContact ? <DealerContact key={user.id} /> : (
+        <button type="button" className={buttonStyles.button} onClick={() => setEditingContact(true)}>
+          EDITAR CONTACTO
+        </button>
+      ) : null}
     </FlowLayout>
   )
 }
