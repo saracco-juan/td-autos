@@ -186,7 +186,7 @@ Rules, in order:
 3. Score = use (1 point when the diagnosis use is in the model `usos`; `mixto` needs both `ciudad` and `ruta`) plus
    priority: `consumo` bajo 2 / medio 1 / alto 0; `seguridad` stars / 5 * 2 (no rating counts 1); **`mantenimiento` and
    `reventa` are neutral (1 point) for every model** because there is no per-model data for them yet. Ties: more fitting
-   years, then marca, then modelo. At most 8 models.
+   years, then marca, then modelo. At most 9 models (a 3 x 3 page).
 4. Links: one `PortalSearch` per model with the Mercado Libre and Kavak routes, the transmission (unless
    `indiferente`), the first and last fitting year, the budget as maximum price and the body (`sedan` / `hatchback`
    only). Never zone, mileage, fuel or doors. Nothing is requested from the portals: the links are only built.

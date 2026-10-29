@@ -129,7 +129,7 @@ class ModelRecommenderTest extends TestCase
         $this->assertSame(['C Old', 'A Z', 'B A', 'B Z'], $this->names($this->recommend(array_reverse($models))));
     }
 
-    public function test_it_returns_at_most_eight_models(): void
+    public function test_it_returns_at_most_nine_models(): void
     {
         $models = [];
         foreach (range(1, 11) as $number) {
@@ -138,7 +138,7 @@ class ModelRecommenderTest extends TestCase
 
         $names = $this->names($this->recommend($models));
 
-        $this->assertCount(8, $names);
+        $this->assertCount(9, $names);
         $this->assertSame('A M01', $names[0]);
     }
 

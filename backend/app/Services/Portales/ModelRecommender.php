@@ -10,7 +10,7 @@ use App\Models\ModeloReferencia;
  */
 final class ModelRecommender
 {
-    private const LIMIT = 8;
+    private const LIMIT = 9;
 
     /** Body type name => key of the portal link filters. The portals filter by these two only. */
     private const BODY_KEYS = ['Sedán' => 'sedan', 'Hatchback' => 'hatchback'];
