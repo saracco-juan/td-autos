@@ -19,11 +19,10 @@ class ModeloReferenciaTest extends TestCase
         $this->assertSame([
             'id', 'marca', 'modelo', 'tipo_carroceria_id', 'plazas', 'tiene_manual', 'tiene_automatica',
             'combustibles', 'consumo', 'seguridad_estrellas', 'usos', 'ruta_mercadolibre', 'ruta_kavak',
-            'imagen_url', 'imagen_autor', 'imagen_licencia', 'imagen_pagina',
         ], Schema::getColumnListing('modelo_referencia'));
 
         $nullable = collect(Schema::getColumns('modelo_referencia'))->where('nullable', true)->pluck('name')->all();
-        $this->assertEqualsCanonicalizing(['seguridad_estrellas', 'ruta_kavak', 'imagen_url', 'imagen_autor', 'imagen_licencia', 'imagen_pagina'], $nullable);
+        $this->assertEqualsCanonicalizing(['seguridad_estrellas', 'ruta_kavak'], $nullable);
 
         $unique = collect(Schema::getIndexes('modelo_referencia'))
             ->filter(fn (array $index) => $index['unique'] && ! $index['primary'])->pluck('columns')->all();

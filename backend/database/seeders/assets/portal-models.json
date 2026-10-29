@@ -17,11 +17,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "volkswagen/gol",
-        "ruta_kavak": "volkswagen/gol",
-        "imagen_url": null,
-        "imagen_autor": null,
-        "imagen_licencia": null,
-        "imagen_pagina": null
+        "ruta_kavak": "volkswagen/gol"
     },
     {
         "marca": "VOLKSWAGEN",
@@ -41,11 +37,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "volkswagen/gol-trend",
-        "ruta_kavak": "volkswagen/gol-trend",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/2015_Volkswagen_Gol_Trend_1.6_Pack_III%2C_I-Motion_%28front%29.jpg/500px-2015_Volkswagen_Gol_Trend_1.6_Pack_III%2C_I-Motion_%28front%29.jpg",
-        "imagen_autor": "Maxi-Napo-99",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2015_Volkswagen_Gol_Trend_1.6_Pack_III,_I-Motion_(front).jpg"
+        "ruta_kavak": "volkswagen/gol-trend"
     },
     {
         "marca": "VOLKSWAGEN",
@@ -64,11 +56,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "volkswagen/polo",
-        "ruta_kavak": "volkswagen/polo",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Volkswagen_Polo.jpg/500px-Volkswagen_Polo.jpg",
-        "imagen_autor": "Rutger van der Maar",
-        "imagen_licencia": "CC BY 2.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Volkswagen_Polo.jpg"
+        "ruta_kavak": "volkswagen/polo"
     },
     {
         "marca": "VOLKSWAGEN",
@@ -86,11 +74,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "volkswagen/vento",
-        "ruta_kavak": "volkswagen/vento",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/2019_Volkswagen_Vento_1.4_Comfortline.jpg/500px-2019_Volkswagen_Vento_1.4_Comfortline.jpg",
-        "imagen_autor": "Just a Man",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2019_Volkswagen_Vento_1.4_Comfortline.jpg"
+        "ruta_kavak": "volkswagen/vento"
     },
     {
         "marca": "VOLKSWAGEN",
@@ -110,11 +94,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "volkswagen/amarok",
-        "ruta_kavak": "volkswagen/amarok",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/2014_Volkswagen_Amarok_CD_2.0_TDI_4x2%2C_Carrefour.jpg/500px-2014_Volkswagen_Amarok_CD_2.0_TDI_4x2%2C_Carrefour.jpg",
-        "imagen_autor": "Maxi-Napo-99",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2014_Volkswagen_Amarok_CD_2.0_TDI_4x2,_Carrefour.jpg"
+        "ruta_kavak": "volkswagen/amarok"
     },
     {
         "marca": "VOLKSWAGEN",
@@ -135,11 +115,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "volkswagen/suran",
-        "ruta_kavak": "volkswagen/suran",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Volkswagen_Suran_2010_-_blue_front.jpg/500px-Volkswagen_Suran_2010_-_blue_front.jpg",
-        "imagen_autor": "NaBUru38",
-        "imagen_licencia": "CC BY 3.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Volkswagen_Suran_2010_-_blue_front.jpg"
+        "ruta_kavak": "volkswagen/suran"
     },
     {
         "marca": "VOLKSWAGEN",
@@ -158,11 +134,7 @@
             "ciudad"
         ],
         "ruta_mercadolibre": "volkswagen/fox",
-        "ruta_kavak": "volkswagen/fox",
-        "imagen_url": null,
-        "imagen_autor": null,
-        "imagen_licencia": null,
-        "imagen_pagina": null
+        "ruta_kavak": "volkswagen/fox"
     },
     {
         "marca": "CHEVROLET",
@@ -182,11 +154,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "chevrolet/onix",
-        "ruta_kavak": "chevrolet/onix",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/2019_SAIC-GM_Chevrolet_Onix_%28front%29.jpg/500px-2019_SAIC-GM_Chevrolet_Onix_%28front%29.jpg",
-        "imagen_autor": "User3204",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2019_SAIC-GM_Chevrolet_Onix_(front).jpg"
+        "ruta_kavak": "chevrolet/onix"
     },
     {
         "marca": "CHEVROLET",
@@ -205,11 +173,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "chevrolet/cruze",
-        "ruta_kavak": "chevrolet/cruze",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/2012_Chevrolet_Cruze_1LT%2C_front_left.jpg/500px-2012_Chevrolet_Cruze_1LT%2C_front_left.jpg",
-        "imagen_autor": "MercurySable99",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2012_Chevrolet_Cruze_1LT,_front_left.jpg"
+        "ruta_kavak": "chevrolet/cruze"
     },
     {
         "marca": "CHEVROLET",
@@ -229,11 +193,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "chevrolet/prisma",
-        "ruta_kavak": "chevrolet/prisma",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/2018_Chevrolet_Prisma_Joy_1.4.jpg/500px-2018_Chevrolet_Prisma_Joy_1.4.jpg",
-        "imagen_autor": "Just a Man",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2018_Chevrolet_Prisma_Joy_1.4.jpg"
+        "ruta_kavak": "chevrolet/prisma"
     },
     {
         "marca": "CHEVROLET",
@@ -252,11 +212,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "chevrolet/tracker",
-        "ruta_kavak": "chevrolet/tracker",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Chevrolet_Tracker_LT_1.8_2014_%2815313986917%29.jpg/500px-Chevrolet_Tracker_LT_1.8_2014_%2815313986917%29.jpg",
-        "imagen_autor": "order_242 from Chile",
-        "imagen_licencia": "CC BY-SA 2.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Chevrolet_Tracker_LT_1.8_2014_(15313986917).jpg"
+        "ruta_kavak": "chevrolet/tracker"
     },
     {
         "marca": "CHEVROLET",
@@ -275,11 +231,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "chevrolet/s10",
-        "ruta_kavak": "chevrolet/s10",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Chevrolet_S10.jpg",
-        "imagen_autor": "IFCAR",
-        "imagen_licencia": "Public domain",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Chevrolet_S10.jpg"
+        "ruta_kavak": "chevrolet/s10"
     },
     {
         "marca": "CHEVROLET",
@@ -298,11 +250,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "chevrolet/cobalt",
-        "ruta_kavak": "chevrolet/cobalt",
-        "imagen_url": null,
-        "imagen_autor": null,
-        "imagen_licencia": null,
-        "imagen_pagina": null
+        "ruta_kavak": "chevrolet/cobalt"
     },
     {
         "marca": "CHEVROLET",
@@ -322,11 +270,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "chevrolet/spin",
-        "ruta_kavak": "chevrolet/spin",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/2025_Chevrolet_Spin_1.8_LT_%28front%29.jpg/500px-2025_Chevrolet_Spin_1.8_LT_%28front%29.jpg",
-        "imagen_autor": "Just a Man",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2025_Chevrolet_Spin_1.8_LT_(front).jpg"
+        "ruta_kavak": "chevrolet/spin"
     },
     {
         "marca": "TOYOTA",
@@ -346,11 +290,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "toyota/etios",
-        "ruta_kavak": "toyota/etios",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/2018_Toyota_Etios_1.5_XLS_5-door.jpg/500px-2018_Toyota_Etios_1.5_XLS_5-door.jpg",
-        "imagen_autor": "Maxi-Napo-99",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2018_Toyota_Etios_1.5_XLS_5-door.jpg"
+        "ruta_kavak": "toyota/etios"
     },
     {
         "marca": "TOYOTA",
@@ -368,11 +308,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "toyota/corolla",
-        "ruta_kavak": "toyota/corolla",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Toyota_Corolla_%28E170%29_Washington_DC_Metro_Area%2C_USA_%2818%29.jpg/500px-Toyota_Corolla_%28E170%29_Washington_DC_Metro_Area%2C_USA_%2818%29.jpg",
-        "imagen_autor": "OWS Photography",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Toyota_Corolla_(E170)_Washington_DC_Metro_Area,_USA_(18).jpg"
+        "ruta_kavak": "toyota/corolla"
     },
     {
         "marca": "TOYOTA",
@@ -392,11 +328,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "toyota/hilux",
-        "ruta_kavak": "toyota/hilux",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/2024_Toyota_Hilux_2.8_GR_Sport_4x4_in_Super_White_II%2C_front_right%2C_05-11-2024.jpg/500px-2024_Toyota_Hilux_2.8_GR_Sport_4x4_in_Super_White_II%2C_front_right%2C_05-11-2024.jpg",
-        "imagen_autor": "Ethan Llamas",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2024_Toyota_Hilux_2.8_GR_Sport_4x4_in_Super_White_II,_front_right,_05-11-2024.jpg"
+        "ruta_kavak": "toyota/hilux"
     },
     {
         "marca": "TOYOTA",
@@ -415,11 +347,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "toyota/yaris",
-        "ruta_kavak": "toyota/yaris",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Toyota_Yaris_L_hatch_facelift_China_2017-04-05.jpg/500px-Toyota_Yaris_L_hatch_facelift_China_2017-04-05.jpg",
-        "imagen_autor": "Navigator84",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Toyota_Yaris_L_hatch_facelift_China_2017-04-05.jpg"
+        "ruta_kavak": "toyota/yaris"
     },
     {
         "marca": "FORD",
@@ -438,11 +366,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "ford/fiesta",
-        "ruta_kavak": "ford/fiesta",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/2011_Ford_Fiesta_SEL_in_Lime_Squeeze_Metallic%2C_Front_Right%2C_04-03-2022.jpg/500px-2011_Ford_Fiesta_SEL_in_Lime_Squeeze_Metallic%2C_Front_Right%2C_04-03-2022.jpg",
-        "imagen_autor": "Elise240SX",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2011_Ford_Fiesta_SEL_in_Lime_Squeeze_Metallic,_Front_Right,_04-03-2022.jpg"
+        "ruta_kavak": "ford/fiesta"
     },
     {
         "marca": "FORD",
@@ -460,11 +384,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "ford/focus",
-        "ruta_kavak": "ford/focus",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/The_frontview_of_Ford_Focus_III_Sports.JPG/500px-The_frontview_of_Ford_Focus_III_Sports.JPG",
-        "imagen_autor": "Tokumeigakarinoaoshima",
-        "imagen_licencia": "CC0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:The_frontview_of_Ford_Focus_III_Sports.JPG"
+        "ruta_kavak": "ford/focus"
     },
     {
         "marca": "FORD",
@@ -482,11 +402,7 @@
             "ciudad"
         ],
         "ruta_mercadolibre": "ford/ka",
-        "ruta_kavak": "ford/ka",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/2018_Ford_KA%2B_facelift_Front.jpg/500px-2018_Ford_KA%2B_facelift_Front.jpg",
-        "imagen_autor": "Vauxford",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2018_Ford_KA%2B_facelift_Front.jpg"
+        "ruta_kavak": "ford/ka"
     },
     {
         "marca": "FORD",
@@ -506,11 +422,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "ford/ecosport",
-        "ruta_kavak": "ford/ecosport",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/2017_Ford_Ecosport.jpg/500px-2017_Ford_Ecosport.jpg",
-        "imagen_autor": "Vauxford",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2017_Ford_Ecosport.jpg"
+        "ruta_kavak": "ford/ecosport"
     },
     {
         "marca": "FORD",
@@ -530,11 +442,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "ford/ranger",
-        "ruta_kavak": "ford/ranger",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/2025_Ford_Ranger_Wildtrak_Ecoblue_4x4_Auto.jpg/500px-2025_Ford_Ranger_Wildtrak_Ecoblue_4x4_Auto.jpg",
-        "imagen_autor": "Calreyn88",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2025_Ford_Ranger_Wildtrak_Ecoblue_4x4_Auto.jpg"
+        "ruta_kavak": "ford/ranger"
     },
     {
         "marca": "RENAULT",
@@ -554,11 +462,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "renault/sandero",
-        "ruta_kavak": "renault/sandero",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Renault_Sandero_R.S._2020_-_BugWarp_01.jpg/500px-Renault_Sandero_R.S._2020_-_BugWarp_01.jpg",
-        "imagen_autor": "BugWarp",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Renault_Sandero_R.S._2020_-_BugWarp_01.jpg"
+        "ruta_kavak": "renault/sandero"
     },
     {
         "marca": "RENAULT",
@@ -579,11 +483,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "renault/logan",
-        "ruta_kavak": "renault/logan",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Renault_Logan_002.jpg/500px-Renault_Logan_002.jpg",
-        "imagen_autor": "DestinationFearFan",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Renault_Logan_002.jpg"
+        "ruta_kavak": "renault/logan"
     },
     {
         "marca": "RENAULT",
@@ -604,11 +504,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "renault/kangoo",
-        "ruta_kavak": "renault/kangoo",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/2008_Renault_Kangoo_Expression_Automatic_1.6_Front.jpg/500px-2008_Renault_Kangoo_Expression_Automatic_1.6_Front.jpg",
-        "imagen_autor": "Vauxford",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2008_Renault_Kangoo_Expression_Automatic_1.6_Front.jpg"
+        "ruta_kavak": "renault/kangoo"
     },
     {
         "marca": "RENAULT",
@@ -628,11 +524,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "renault/duster",
-        "ruta_kavak": "renault/duster",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Renault_Duster_Mk1_-_Front_View.jpg/500px-Renault_Duster_Mk1_-_Front_View.jpg",
-        "imagen_autor": "(G)jabz",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Renault_Duster_Mk1_-_Front_View.jpg"
+        "ruta_kavak": "renault/duster"
     },
     {
         "marca": "FIAT",
@@ -652,11 +544,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "fiat/cronos",
-        "ruta_kavak": "fiat/cronos",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/2021_Fiat_Cronos_1.3_Drive.jpg/500px-2021_Fiat_Cronos_1.3_Drive.jpg",
-        "imagen_autor": "Maxi-Napo-99",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2021_Fiat_Cronos_1.3_Drive.jpg"
+        "ruta_kavak": "fiat/cronos"
     },
     {
         "marca": "FIAT",
@@ -675,11 +563,7 @@
             "ciudad"
         ],
         "ruta_mercadolibre": "fiat/argo",
-        "ruta_kavak": "fiat/argo",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Fiat_Argo_2020_Trekking_in_Uruguay_%28front%29.jpg/500px-Fiat_Argo_2020_Trekking_in_Uruguay_%28front%29.jpg",
-        "imagen_autor": "NaBUru38",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Fiat_Argo_2020_Trekking_in_Uruguay_(front).jpg"
+        "ruta_kavak": "fiat/argo"
     },
     {
         "marca": "FIAT",
@@ -699,11 +583,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "fiat/palio",
-        "ruta_kavak": "fiat/palio",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/2013_Fiat_Palio_1.4_Sporting.jpg/500px-2013_Fiat_Palio_1.4_Sporting.jpg",
-        "imagen_autor": "Maxi-Napo-99",
-        "imagen_licencia": "CC BY 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2013_Fiat_Palio_1.4_Sporting.jpg"
+        "ruta_kavak": "fiat/palio"
     },
     {
         "marca": "FIAT",
@@ -723,11 +603,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "fiat/toro",
-        "ruta_kavak": "fiat/toro",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Fiat_Toro_2022_1.8_Freedom_in_Punta_del_Este_%28front%29.jpg/500px-Fiat_Toro_2022_1.8_Freedom_in_Punta_del_Este_%28front%29.jpg",
-        "imagen_autor": "NaBUru38",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Fiat_Toro_2022_1.8_Freedom_in_Punta_del_Este_(front).jpg"
+        "ruta_kavak": "fiat/toro"
     },
     {
         "marca": "PEUGEOT",
@@ -746,11 +622,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "peugeot/208",
-        "ruta_kavak": "peugeot/208",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Peugeot_208_en_Mar%C3%ADn.jpg/500px-Peugeot_208_en_Mar%C3%ADn.jpg",
-        "imagen_autor": "Bene Riobó",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Peugeot_208_en_Mar%C3%ADn.jpg"
+        "ruta_kavak": "peugeot/208"
     },
     {
         "marca": "PEUGEOT",
@@ -769,11 +641,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "peugeot/308",
-        "ruta_kavak": "peugeot/308",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/2019_Peugeot_308_THP_%2840%29.jpg/500px-2019_Peugeot_308_THP_%2840%29.jpg",
-        "imagen_autor": "Bindydad123",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2019_Peugeot_308_THP_(40).jpg"
+        "ruta_kavak": "peugeot/308"
     },
     {
         "marca": "PEUGEOT",
@@ -792,11 +660,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "peugeot/2008",
-        "ruta_kavak": "peugeot/2008",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Peugeot_2008_front.JPG/500px-Peugeot_2008_front.JPG",
-        "imagen_autor": "Luc106",
-        "imagen_licencia": "Public domain",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Peugeot_2008_front.JPG"
+        "ruta_kavak": "peugeot/2008"
     },
     {
         "marca": "CITROEN",
@@ -815,11 +679,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "citroen/c3",
-        "ruta_kavak": "citroen/c3",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Citro%C3%ABn_C3_%284th_generation%29_DSC_7106_%28retouched%29.jpg/500px-Citro%C3%ABn_C3_%284th_generation%29_DSC_7106_%28retouched%29.jpg",
-        "imagen_autor": "Original photo by Alexander Migl, retouched by NearEMPTiness",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:Citro%C3%ABn_C3_(4th_generation)_DSC_7106_(retouched).jpg"
+        "ruta_kavak": "citroen/c3"
     },
     {
         "marca": "CITROEN",
@@ -838,11 +698,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "citroen/c4-cactus",
-        "ruta_kavak": "citroen/c4-cactus",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/2016_Citro%C3%ABn_C4_Cactus_%28MY16%29_Exclusive_wagon_%2826065998025%29.jpg/500px-2016_Citro%C3%ABn_C4_Cactus_%28MY16%29_Exclusive_wagon_%2826065998025%29.jpg",
-        "imagen_autor": "TuRbO_J from Adelaide, Australia",
-        "imagen_licencia": "CC BY 2.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2016_Citro%C3%ABn_C4_Cactus_(MY16)_Exclusive_wagon_(26065998025).jpg"
+        "ruta_kavak": "citroen/c4-cactus"
     },
     {
         "marca": "NISSAN",
@@ -861,11 +717,7 @@
             "trabajo"
         ],
         "ruta_mercadolibre": "nissan/frontier",
-        "ruta_kavak": "nissan/frontier",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/25_Nissan_Frontier_SV.jpg/500px-25_Nissan_Frontier_SV.jpg",
-        "imagen_autor": "HJUdall",
-        "imagen_licencia": "CC0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:25_Nissan_Frontier_SV.jpg"
+        "ruta_kavak": "nissan/frontier"
     },
     {
         "marca": "NISSAN",
@@ -884,11 +736,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "nissan/kicks",
-        "ruta_kavak": "nissan/kicks",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/2021_Nissan_Kicks_SR%2C_Front_Right%2C_09-06-2021.jpg/500px-2021_Nissan_Kicks_SR%2C_Front_Right%2C_09-06-2021.jpg",
-        "imagen_autor": "Elise240SX",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2021_Nissan_Kicks_SR,_Front_Right,_09-06-2021.jpg"
+        "ruta_kavak": "nissan/kicks"
     },
     {
         "marca": "HONDA",
@@ -907,11 +755,7 @@
             "ruta"
         ],
         "ruta_mercadolibre": "honda/hr-v",
-        "ruta_kavak": "honda/hr-v",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/2023_Honda_HR-V_1.5_S_in_Ignite_Red_Metallic%2C_front_right.jpg/500px-2023_Honda_HR-V_1.5_S_in_Ignite_Red_Metallic%2C_front_right.jpg",
-        "imagen_autor": "Ethan Llamas",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:2023_Honda_HR-V_1.5_S_in_Ignite_Red_Metallic,_front_right.jpg"
+        "ruta_kavak": "honda/hr-v"
     },
     {
         "marca": "HONDA",
@@ -929,10 +773,6 @@
             "ruta"
         ],
         "ruta_mercadolibre": "honda/civic",
-        "ruta_kavak": "honda/civic",
-        "imagen_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/White_Honda_Civic_02.jpg/500px-White_Honda_Civic_02.jpg",
-        "imagen_autor": "Sonny doe",
-        "imagen_licencia": "CC BY-SA 4.0",
-        "imagen_pagina": "https://commons.wikimedia.org/wiki/File:White_Honda_Civic_02.jpg"
+        "ruta_kavak": "honda/civic"
     }
 ]

@@ -2,9 +2,13 @@
 
 namespace Tests\Feature\Portales;
 
+use App\Models\Concesionaria;
 use App\Models\Diagnostico;
+use App\Models\Suscripcion;
 use App\Models\TipoCarroceria;
 use App\Models\User;
+use App\Models\Vehiculo;
+use App\Models\VehiculoConcesionaria;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -59,12 +63,7 @@ class ModelRecommendationsTest extends TestCase
         DB::table('catalog_import')->insert(['id' => 1, 'source_date' => '2026-10-19', 'sha256' => str_repeat('a', 64),
             'snapshot_id' => 'acara:test', 'imported_at' => now()]);
         $this->makeModel('TOYOTA', 'Etios', ['consumo' => 'bajo', 'usos' => ['ciudad', 'ruta'], 'tiene_automatica' => false]);
-        $this->makeModel('VOLKSWAGEN', 'Polo', [
-            'consumo' => 'medio', 'usos' => ['ciudad'],
-            'imagen_url' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Polo.jpg/500px-Polo.jpg',
-            'imagen_autor' => 'Ana', 'imagen_licencia' => 'CC BY-SA 4.0',
-            'imagen_pagina' => 'https://commons.wikimedia.org/wiki/File:Polo.jpg',
-        ]);
+        $this->makeModel('VOLKSWAGEN', 'Polo', ['consumo' => 'medio', 'usos' => ['ciudad']]);
         $this->makeModel('RENAULT', 'Sandero', ['consumo' => 'alto']);
         $this->makeModel('TOYOTA', 'Corolla', ['tipo' => 'Sedán', 'consumo' => 'medio']);
 
@@ -145,7 +144,7 @@ class ModelRecommendationsTest extends TestCase
                     'url' => 'https://autos.mercadolibre.com.ar/toyota/etios/2019-2020/_PriceRange_0ARS-25000000ARS_VEHICLE*BODY*TYPE_479344'],
                 ['portal' => 'kavak', 'nombre' => 'Kavak', 'url' => 'https://www.kavak.com/ar/usados/toyota/etios'],
             ],
-            'imagen' => null,
+            'imagen_url' => null,
         ], array_diff_key($etios, ['id' => 0]));
         $this->assertIsInt($etios['id']);
         // USD prices are converted with the official sell rate: 20.000 and 30.000 USD at 1.000.
@@ -254,5 +253,23 @@ class ModelRecommendationsTest extends TestCase
 
         $this->assertSame(['TOYOTA Etios'], $this->names($json));
         $this->assertArrayNotHasKey('exchange_rate', $json);
+    }
+
+    public function test_each_model_takes_its_photo_from_the_dealers_inventory_or_is_null(): void
+    {
+        $this->seedCatalog();
+        $this->buyer();
+        $dealer = Concesionaria::factory()->active()->create();
+        Suscripcion::factory()->create(['concesionaria_id' => $dealer->id, 'estado' => 'activa',
+            'vigente_hasta' => now()->addMonth()->toDateString()]);
+        $car = Vehiculo::factory()->create(['marca' => 'Volkswagen', 'modelo' => 'POLO']);
+        VehiculoConcesionaria::factory()->create(['vehiculo_id' => $car->id, 'concesionaria_id' => $dealer->id]);
+        $car->fotos()->create(['ubicacion_archivo' => 'https://example.test/polo.jpg', 'orden' => 1]);
+
+        $response = $this->getJson('/api/recomendaciones/modelos')->assertOk();
+
+        $photos = collect($response->json('modelos'))->mapWithKeys(fn (array $m) => [$m['modelo'] => $m['imagen_url']])->all();
+        $this->assertSame(['Etios' => null, 'Polo' => 'https://example.test/polo.jpg'], $photos);
+        $response->assertJsonMissingPath('modelos.0.imagen');
     }
 }

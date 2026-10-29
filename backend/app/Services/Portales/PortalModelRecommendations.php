@@ -5,12 +5,14 @@ namespace App\Services\Portales;
 use App\Models\Diagnostico;
 use App\Repositories\AcaraModelPriceRepository;
 use App\Repositories\ModeloReferenciaRepository;
+use App\Repositories\ModelPhotoRepository;
 use App\Services\ExchangeRates\DolarApi;
 use App\Services\Matching\DealershipRanker;
+use App\Services\Subscription\SubscriptionLifecycle;
 
 /**
- * HU06: the curated models a buyer can afford, with filtered links to the portals. Reads the saved
- * diagnosis, the stored ACARA prices and (only when a price is in USD) the cached exchange rate.
+ * HU06: the curated models a buyer can afford, with filtered links to the portals and a photo taken from the dealers'
+ * inventory. Reads the saved diagnosis, the stored ACARA prices and (only when a price is in USD) the cached exchange rate.
  */
 final class PortalModelRecommendations
 {
@@ -21,6 +23,8 @@ final class PortalModelRecommendations
         private readonly DolarApi $exchange,
         private readonly ModelBudgetFit $budgetFit,
         private readonly ModelRecommender $recommender,
+        private readonly ModelPhotoRepository $photos,
+        private readonly SubscriptionLifecycle $lifecycle,
     ) {}
 
     /**
@@ -39,10 +43,16 @@ final class PortalModelRecommendations
         $exchange = $rows->contains('currency', 'USD') ? $this->exchange->current() : null;
         $fits = $this->budgetFit->fit($rows, $budget, $exchange['quote']['sell'] ?? null, $year);
         $recommendations = $this->recommender->recommend($this->models->all(), $fits, $diagnosis);
+        $photos = $this->photos->coverUrls(
+            array_map(fn (ModelRecommendation $r) => ['marca' => $r->payload['marca'], 'modelo' => $r->payload['modelo']], $recommendations),
+            $this->lifecycle->operativeDealerIds(now()),
+        );
 
         $response = [
             'status' => 'ready',
-            'modelos' => array_map(fn (ModelRecommendation $recommendation) => $recommendation->payload, $recommendations),
+            'modelos' => array_map(fn (ModelRecommendation $r) => $r->payload + [
+                'imagen_url' => $photos[ModelPhotoRepository::key($r->payload['marca'], $r->payload['modelo'])] ?? null,
+            ], $recommendations),
             'fuente_precios' => ['nombre' => 'Guía de precios ACARA', 'fecha' => $this->prices->sourceDate()],
         ];
         if ($exchange !== null && array_filter($recommendations, fn (ModelRecommendation $r) => $r->usedUsd) !== []) {

@@ -21,40 +21,7 @@ class LoadPortalModelsTest extends TestCase
         $this->assertSame(['nafta', 'diesel'], $ranger->combustibles);
         $this->assertSame(4, $ranger->seguridad_estrellas);
         $this->assertNull($ranger->ruta_kavak);
-        $this->assertNull($ranger->imagen_url);
-        $this->assertNull($ranger->imagen_autor);
         $this->assertSame(2, ModeloReferencia::query()->count());
-    }
-
-    public function test_it_stores_the_photo_credit_of_a_model_that_has_one(): void
-    {
-        $this->artisan('portales:load-models', ['--path' => $this->fixture('valid.json')])->assertSuccessful();
-
-        $etios = ModeloReferencia::query()->where('modelo', 'Etios')->firstOrFail();
-        $this->assertSame('https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Etios.jpg/500px-Etios.jpg', $etios->imagen_url);
-        $this->assertSame('Maxi-Napo-99', $etios->imagen_autor);
-        $this->assertSame('CC BY 4.0', $etios->imagen_licencia);
-        $this->assertSame('https://commons.wikimedia.org/wiki/File:Etios.jpg', $etios->imagen_pagina);
-    }
-
-    public function test_a_photo_needs_all_four_fields_or_none_and_nothing_is_stored(): void
-    {
-        $this->artisan('portales:load-models', ['--path' => $this->fixture('partial-image.json')])
-            ->expectsOutputToContain('Portal models not loaded: TOYOTA Etios: the photo needs imagen_url, imagen_autor, imagen_licencia and imagen_pagina, or none')
-            ->assertFailed();
-
-        $this->assertSame(0, ModeloReferencia::query()->count());
-    }
-
-    public function test_a_removed_photo_is_cleared_on_the_next_run(): void
-    {
-        $this->artisan('portales:load-models', ['--path' => $this->fixture('valid.json')])->assertSuccessful();
-        ModeloReferencia::query()->where('modelo', 'Ranger')->update(['imagen_url' => 'x', 'imagen_autor' => 'x', 'imagen_licencia' => 'x', 'imagen_pagina' => 'x']);
-
-        $this->artisan('portales:load-models', ['--path' => $this->fixture('valid.json')])
-            ->expectsOutputToContain('0 created, 1 updated, 1 unchanged')->assertSuccessful();
-
-        $this->assertNull(ModeloReferencia::query()->where('modelo', 'Ranger')->value('imagen_url'));
     }
 
     public function test_a_second_run_changes_nothing(): void

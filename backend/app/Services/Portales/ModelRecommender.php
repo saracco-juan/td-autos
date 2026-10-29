@@ -81,12 +81,6 @@ final class ModelRecommender
                 fn (PortalLink $link) => ['portal' => $link->portal, 'nombre' => $link->name, 'url' => $link->url],
                 $this->links->build($search),
             ),
-            'imagen' => $model->imagen_url === null ? null : [
-                'url' => $model->imagen_url,
-                'autor' => $model->imagen_autor,
-                'licencia' => $model->imagen_licencia,
-                'pagina' => $model->imagen_pagina,
-            ],
         ], $fit->usedUsd);
     }
 }

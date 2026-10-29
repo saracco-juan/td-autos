@@ -20,7 +20,6 @@ class ModeloReferencia extends Model
     protected $fillable = [
         'marca', 'modelo', 'tipo_carroceria_id', 'plazas', 'tiene_manual', 'tiene_automatica', 'combustibles',
         'consumo', 'seguridad_estrellas', 'usos', 'ruta_mercadolibre', 'ruta_kavak',
-        'imagen_url', 'imagen_autor', 'imagen_licencia', 'imagen_pagina',
     ];
 
     /**

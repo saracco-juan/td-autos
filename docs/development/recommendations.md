@@ -160,11 +160,8 @@ so the catalog and this table can load in any order. The source is `backend/data
 upserts on (marca, modelo) and prints how many rows were created, updated or unchanged. `docker/start.sh` and
 `php artisan db:local` run it, and a test checks that every row exists in the bundled ACARA catalog.
 
-Each model can carry a photo for the recommendation card (the web shows it with a "Foto ilustrativa" pill and lists its author and license in one "Créditos de las fotos" disclosure under the grid): `imagen_url`, `imagen_autor`, `imagen_licencia` and
-`imagen_pagina`, all four or none (the loader rejects a partial photo, and clears the four when a row loses it). The
-photos are hotlinked from Wikimedia Commons (free licenses only: CC BY, CC BY-SA, CC0, public domain) at the standard
-`500px` thumbnail width, taken from `real-demo/models.json` and credited with author, license and file page. Models
-without a safe match (Gol, Fox, Cobalt) have no photo and the card shows the "Sin fotos" placeholder.
+The models store no photo and no credit. The photo of a recommended model comes from the vehicles the dealers already
+loaded (see `imagen_url` in the API below), so there is nothing to license or credit.
 
 ## HU06 model recommendations API
 
@@ -172,7 +169,7 @@ without a safe match (Gol, Fox, Cobalt) have no photo and the card shows the "Si
 rules: no user identity is accepted (the authenticated user's saved diagnosis is used), the same readiness check
 decides `diagnosis_incomplete`, there is no role restriction, and responses are `private, no-store`. Flow:
 `RecomendacionesModelosController` -> `Portales\PortalModelRecommendations` -> `AcaraModelPriceRepository` /
-`ModeloReferenciaRepository`, with the pure `ModelBudgetFit`, `ModelScorer` and `ModelRecommender` doing the work.
+`ModeloReferenciaRepository` / `ModelPhotoRepository`, with the pure `ModelBudgetFit`, `ModelScorer` and `ModelRecommender` doing the work.
 
 Rules, in order:
 
@@ -209,15 +206,23 @@ diagnosis is missing or incomplete; otherwise `ready`, with `modelos: []` when n
     "motivos": ["Consumo bajo", "Apto para ciudad", "5 plazas"],
     "filtros": ["Hatchback", "2019–2020", "Hasta $ 25.000.000"],
     "links": [{ "portal": "mercadolibre", "nombre": "Mercado Libre", "url": "https://autos.mercadolibre.com.ar/..." }],
-    "imagen": { "url": "https://upload.wikimedia.org/...", "autor": "Maxi-Napo-99", "licencia": "CC BY 4.0", "pagina": "https://commons.wikimedia.org/wiki/File:..." }
+    "imagen_url": "https://.../vehiculos/42/cover.jpg"
   }],
   "fuente_precios": { "nombre": "Guía de precios ACARA", "fecha": "2026-10-19" },
   "exchange_rate": { "quote": { "sell": 1000 }, "stale": false, "warning": null }
 }
 ```
 
-`imagen` is the credited photo of the model, or `null` when it has none. `precio` is the cheapest and dearest version of the newest fitting year, in whole pesos. `exchange_rate` (same shape as
+`imagen_url` is a plain URL (built with `VehiculoFotos::url`, like the dealers cards), or `null`. `precio` is the cheapest and dearest version of the newest fitting year, in whole pesos. `exchange_rate` (same shape as
 the neighbouring endpoint) appears only when a returned model used a converted USD price.
 
-Check: `cd backend; php artisan test --filter="ModelRecommendationsTest|ModelRecommenderTest|ModelBudgetFitTest"`
+`imagen_url` rule (`ModelPhotoRepository`, two queries for all the returned models): among the vehicles of operative
+dealers that are visible (`origen` concesionaria, `vehiculo_concesionaria.visible`, the same rule as the dealers
+recommendations) and have at least one photo, whose `marca` and `modelo` equal the curated model's (case-insensitive, so
+the ACARA spelling must match), take the cover photo (lowest `orden`) of the newest one (highest vehicle id, so the
+choice is deterministic). No match gives `null` and the card shows "Sin fotos". Of the 40 curated models, 6 (Gol, Fox,
+Cobalt, Fiesta KD, Focus III, EcoSport KD) are not in `real-demo/models.json`, so `php artisan db:local --reales=N` never
+loads a unit of them and they stay without photo; the other 34 get one once the inventory has a unit of the model.
+
+Check: `cd backend; php artisan test --filter="ModelRecommendationsTest|ModelPhotoRepositoryTest|ModelRecommenderTest|ModelBudgetFitTest"`
 (all HTTP is faked; the portals are never requested).
