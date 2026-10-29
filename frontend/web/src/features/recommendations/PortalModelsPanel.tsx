@@ -6,7 +6,6 @@ import ScrollArea from '../../components/ScrollArea'
 import SessionLoading from '../auth/session/SessionLoading'
 import PortalModelCard from './PortalModelCard'
 import type { PortalModelsView } from './portalModels'
-import filterStyles from './RecommendationFilters.module.css'
 import pageStyles from './RecommendationsPage.module.css'
 import styles from './PortalModels.module.css'
 
@@ -31,8 +30,8 @@ export default function PortalModelsPanel({ view, onRetry }: { view: PortalModel
   // Present only when a returned model used a converted USD price; absent means nothing to explain.
   const notice = response.exchange_rate ? exchangeRateNotice(response.exchange_rate) : { summary: null, warning: null }
   return (
-    <div className={`${filterStyles.body} ${styles.layout}`}>
-      <aside className={filterStyles.panel} aria-label="Sobre estos modelos">
+    <div className={styles.layout}>
+      <aside className={styles.aside} aria-label="Sobre estos modelos">
         <p className={`${alertStyles.notice} ${styles.message}`}>{PORTAL_MODELS_NOTICE}</p>
       </aside>
       <div className={styles.results}>

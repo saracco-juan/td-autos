@@ -30,7 +30,7 @@ const ready = (overrides: Partial<PortalModelsResponse> = {}): PortalModelsView 
 
 const NOTICE = 'Estos son modelos, no unidades en venta. La foto muestra cómo es el modelo. Elegí un portal y te llevamos a la búsqueda ya armada para que veas las unidades reales.'
 
-it('HU06 shows the models-not-units message in a side aside, one card per model and the dated price source', () => {
+it('HU06 shows the models-not-units message in an aside outside the list, one card per model and the dated price source', () => {
   renderPanel(ready())
   const notice = screen.getByText(NOTICE)
   expect(notice).toBeVisible()
