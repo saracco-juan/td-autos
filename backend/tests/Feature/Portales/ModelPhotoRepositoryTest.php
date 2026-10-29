@@ -7,6 +7,7 @@ use App\Models\Suscripcion;
 use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
 use App\Repositories\ModelPhotoRepository;
+use App\Support\VehiculoFotos;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -64,8 +65,9 @@ class ModelPhotoRepositoryTest extends TestCase
 
         $url = array_values($this->resolve([['marca' => 'TOYOTA', 'modelo' => 'Etios']], $dealer))[0];
 
+        // The disk decides whether the URL is absolute (APP_URL set) or relative (`/storage/...`), so compare with it.
+        $this->assertSame(VehiculoFotos::url('vehiculos/1/a.jpg'), $url);
         $this->assertStringEndsWith('/vehiculos/1/a.jpg', $url);
-        $this->assertStringStartsWith('http', $url);
     }
 
     public function test_a_vehicle_of_a_dealer_that_is_not_operative_is_ignored(): void
