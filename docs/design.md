@@ -79,6 +79,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   without an error or graph. Keep loading, retryable network/server failures and
   unavailable listings distinct. Source date, approximate/stale references,
   unknown mileage and appreciation remain visible when applicable.
+- Recommendation warnings distinguish an available ACARA value projection from
+  a missing combined resale score (which also requires DNRPA market activity).
+  An available projection must not be labelled as missing. Keep the existing
+  partial compatibility and 10-point missing-data adjustment; apply this copy
+  rule to web and mobile through the shared formatter.
 
 ## Navbar
 

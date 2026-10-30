@@ -40,7 +40,9 @@ export function warningMessages(result: Recommendation): string[] {
   }
   if (result.warnings.includes('body_mismatch')) messages.push('No coincide con la carrocería elegida.')
   if (result.warnings.includes('resale_unavailable')) {
-    messages.push('Sin estimación de reventa: compatibilidad parcial sobre los factores conocidos, con descuento de 10 puntos por falta de datos, no por mala reventa.')
+    messages.push(result.resale?.estimate
+      ? 'Hay proyección de valor, pero faltan datos de actividad del mercado para evaluar la reventa. Compatibilidad parcial: descuento de 10 puntos por falta de datos, no por mala reventa.'
+      : 'Sin estimación de reventa: compatibilidad parcial sobre los factores conocidos, con descuento de 10 puntos por falta de datos, no por mala reventa.')
   }
   if (result.warnings.includes('resale_stale')) {
     messages.push('Reventa calculada con la última evidencia disponible; actualización pendiente.')

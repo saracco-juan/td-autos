@@ -62,6 +62,21 @@ describe('RecommendationsScreen', () => {
     expect(screen.getByText('Mejores opciones para vos')).toBeOnTheScreen()
   })
 
+  it('keeps the partial score but acknowledges an available depreciation projection', async () => {
+    await open(ready([recommendation(1, { score: 62.5,
+      components: { usage: 64, body: 100, priority: null, comfort: 20 }, warnings: ['resale_unavailable'],
+      resale: { activity_score: null, retention_score: 81.5, source_date: '2026-10-19',
+        window_start: null, window_end: null, stale: false,
+        estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: 6.6,
+          retained_percent: 81.5, years_used: [2020, 2021] } },
+    })]))
+    expect(await screen.findByText('62,5% de compatibilidad')).toBeOnTheScreen()
+    expect(screen.getByText(/Hay proyección de valor.*faltan datos de actividad.*10 puntos/)).toBeOnTheScreen()
+    expect(screen.queryByText(/^Sin estimación de reventa/)).not.toBeOnTheScreen()
+    await fireEvent.press(screen.getByRole('button', { name: 'Ver atributos y motivos' }))
+    expect(screen.getByText(/Prioridad: no disponible/)).toBeOnTheScreen()
+  })
+
   it('TC-15 / scenario 1: lists the ranking in backend order, the best match first', async () => {
     await open(ready(THREE))
 
