@@ -376,6 +376,14 @@
       "sessions": 1,
       "memories": 7,
       "prompts": 8
+    },
+    {
+      "id": "1a770357",
+      "created_by": "Compumar",
+      "created_at": "2026-10-30T19:35:55.2649075Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 2
     }
   ]
 }
