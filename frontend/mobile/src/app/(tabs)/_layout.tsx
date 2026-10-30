@@ -54,6 +54,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="vehiculos/[id]/index" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/inspeccion" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/costos" options={HIDDEN} />
+      <Tabs.Screen name="vehiculos/[id]/depreciacion" options={HIDDEN} />
       <Tabs.Screen name="comparar" options={HIDDEN} />
     </Tabs></ComparisonSelectionProvider>
   )

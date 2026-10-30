@@ -44,6 +44,23 @@ describe('HU05 recommendation formatting shared by web and mobile', () => {
       ])
   })
 
+  it('distinguishes an available value projection from a missing combined resale score', () => {
+    const partial: Recommendation = { ...result, warnings: ['resale_unavailable'], resale: {
+      activity_score: null, retention_score: 81.5, source_date: '2026-10-19',
+      window_start: null, window_end: null, stale: false,
+      estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: 6.6,
+        retained_percent: 81.5, years_used: [2020, 2021] },
+    } }
+    expect(warningMessages(partial)).toEqual([
+      'Hay proyección de valor, pero faltan datos de actividad del mercado para evaluar la reventa. Compatibilidad parcial: descuento de 10 puntos por falta de datos, no por mala reventa.',
+    ])
+    expect(partial.score).toBe(result.score)
+    expect(partial.components.priority).toBeNull()
+    expect(warningMessages({ ...partial, warnings: [] })).toEqual([])
+    expect(warningMessages({ ...partial, resale: { ...partial.resale!, estimate: null } })[0])
+      .toMatch(/^Sin estimación de reventa/)
+  })
+
   it('explains a missing or stale quote', () => {
     const quote = { sell: 1000, source: 'DolarAPI', updated_at: '2026-10-20T15:00:00Z' }
     expect(exchangeRateNotice({ quote, stale: false, warning: null }))
