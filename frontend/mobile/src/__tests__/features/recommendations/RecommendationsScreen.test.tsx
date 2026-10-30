@@ -4,6 +4,9 @@ import * as authApi from '../../../features/auth/api'
 import * as diagnosisApi from '../../../features/diagnosis/api'
 import * as recommendationsApi from '../../../features/recommendations/api'
 import * as vehicleDetailApi from '../../../features/vehicle-detail/api'
+import * as costsApi from '../../../features/costs/api'
+import { vehicle } from '@shared/vehicles/fixtures'
+import { costs } from '../../../test-utils/costs'
 import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import { renderApp } from '../../../test-utils/renderApp'
@@ -14,6 +17,7 @@ jest.mock('../../../features/auth/api')
 jest.mock('../../../features/diagnosis/api')
 jest.mock('../../../features/recommendations/api')
 jest.mock('../../../features/vehicle-detail/api')
+jest.mock('../../../features/costs/api')
 jest.mock('../../../lib/tokenStorage')
 
 const auth = jest.mocked(authApi)
@@ -76,10 +80,65 @@ describe('RecommendationsScreen', () => {
     expect(first.getByText('Autos Sur · Buenos Aires')).toBeOnTheScreen()
     expect(within(cards()[1]).queryByText('MEJOR COINCIDENCIA')).not.toBeOnTheScreen()
     expect(screen.getByText(/^Dólar oficial venta · DolarAPI · \$ 1\.000/)).toBeOnTheScreen()
-    // The comparison does not exist on mobile yet; the sheet does.
-    expect(screen.queryByText('COMPARAR')).not.toBeOnTheScreen()
+    expect(first.getByRole('button', { name: 'COMPARAR' })).toBeOnTheScreen()
     expect(first.getByRole('button', { name: 'VER FICHA' })).toBeOnTheScreen()
     expect(api.fetchRecommendations).toHaveBeenCalledTimes(1)
+  })
+
+  it('HU08 TC-23/24/25: compares two, rejects a third, preserves filters and replaces only the removed vehicle', async () => {
+    jest.mocked(vehicleDetailApi).fetchVehicleDetail.mockImplementation(async (_request, id) => ({
+      vehicle: { ...vehicle, id, modelo: `Modelo ${id}` }, dealer: THREE[0].dealer,
+    }))
+    jest.mocked(costsApi).fetchCosts.mockResolvedValue(costs())
+    const view = await open(ready(THREE))
+    await screen.findByText('Mostrando 3 vehículos')
+    await applyFilters({ 'Precio máximo': '23000000' })
+    await fireEvent.press(within(cards()[0]).getByRole('button', { name: 'COMPARAR' }))
+    await fireEvent.press(within(cards()[1]).getByRole('button', { name: 'COMPARAR' }))
+    await fireEvent.press(within(cards()[2]).getByRole('button', { name: 'COMPARAR' }))
+    expect(screen.getByText('La comparación admite exactamente dos vehículos.')).toBeOnTheScreen()
+    expect(screen.getAllByRole('button', { name: 'QUITAR' })).toHaveLength(2)
+    await fireEvent.press(within(cards()[2]).getByRole('button', { name: 'VER FICHA' }))
+    await screen.findByText('FICHA TÉCNICA')
+    await fireEvent.press(button('COMPARAR'))
+    expect(view.getPathname()).toBe('/vehiculos/3')
+    expect(screen.getByText('La comparación admite exactamente dos vehículos.')).toBeOnTheScreen()
+    await fireEvent.press(screen.getByRole('link', { name: 'Volver a recomendados' }))
+    await screen.findByText('Mostrando 3 vehículos')
+    await fireEvent.press(button('COMPARAR (2/2)'))
+    expect(await screen.findAllByLabelText(/^Vehículo comparado:/)).toHaveLength(2)
+    expect(view.getPathname()).toBe('/comparar')
+    await fireEvent.press(screen.getAllByRole('button', { name: 'QUITAR' })[0])
+    expect(screen.getByText('Conservás el vehículo 2.')).toBeOnTheScreen()
+    expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
+    await fireEvent.press(screen.getByRole('link', { name: 'Volver a recomendados' }))
+    await screen.findByText('Mostrando 3 vehículos')
+    expect(screen.queryByText('Sin filtros aplicados')).not.toBeOnTheScreen()
+    expect(within(cards()[1]).getByRole('button', { name: 'QUITAR' })).toBeOnTheScreen()
+    await fireEvent.press(within(cards()[2]).getByRole('button', { name: 'COMPARAR' }))
+    await fireEvent.press(button('COMPARAR (2/2)'))
+    expect(await screen.findAllByLabelText(/^Vehículo comparado:/)).toHaveLength(2)
+    expect(jest.mocked(vehicleDetailApi).fetchVehicleDetail.mock.calls.map((call) => call[1])).toEqual([3, 1, 2, 2, 3])
+    await fireEvent.press(screen.getByRole('link', { name: 'Volver a recomendados' }))
+    await screen.findByText('Mostrando 3 vehículos')
+    api.fetchRecommendations.mockResolvedValue(ready([recommendation(2)]))
+    await fireEvent.press(button('COMPARAR (2/2)'))
+    expect(await screen.findByText(/Algún vehículo ya no está disponible/)).toBeOnTheScreen()
+    expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
+  })
+
+  it('HU08 TC-76 allows requesting comparison with zero or one selection and asks to complete it', async () => {
+    await open(ready(THREE))
+    await screen.findByText('Mostrando 3 vehículos')
+    await fireEvent.press(button('COMPARAR (0/2)'))
+    expect(await screen.findByText(/Seleccioná exactamente dos/)).toBeOnTheScreen()
+    await fireEvent.press(screen.getByRole('link', { name: 'Volver a recomendados' }))
+    await screen.findByText('Mostrando 3 vehículos')
+    await fireEvent.press(within(cards()[0]).getByRole('button', { name: 'COMPARAR' }))
+    await fireEvent.press(button('COMPARAR (1/2)'))
+    expect(await screen.findByText(/Seleccioná exactamente dos/)).toBeOnTheScreen()
+    expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
+    expect(costsApi.fetchCosts).not.toHaveBeenCalled()
   })
 
   it('shows the warnings and, on demand, the score breakdown of a card', async () => {

@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router'
 import type { ColorValue } from 'react-native'
 
 import AppBar from '../../components/AppBar'
+import { ComparisonSelectionProvider } from '../../features/comparison/ComparisonSelection'
 import { colors } from '../../theme/tokens'
 
 type IconName = keyof typeof Ionicons.glyphMap
@@ -36,7 +37,7 @@ const HIDDEN = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' as
 
 export default function TabsLayout() {
   return (
-    <Tabs
+    <ComparisonSelectionProvider><Tabs
       screenOptions={{
         header: renderHeader,
         sceneStyle: { backgroundColor: colors.background },
@@ -53,6 +54,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="vehiculos/[id]/index" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/inspeccion" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/costos" options={HIDDEN} />
-    </Tabs>
+      <Tabs.Screen name="comparar" options={HIDDEN} />
+    </Tabs></ComparisonSelectionProvider>
   )
 }

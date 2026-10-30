@@ -5,6 +5,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import Alert from '../../components/Alert'
 import Button from '../../components/Button'
 import { colors, radii, shadows } from '../../theme/tokens'
+import { useComparisonSelection } from '../comparison/ComparisonSelection'
 import {
   budgetPenaltyNote,
   compatibilityLabel,
@@ -19,10 +20,10 @@ import type { Recommendation } from '@shared/recommendations/matching'
 
 type Props = { result: Recommendation; best: boolean }
 
-// Figma "02 - Recomendaciones" (2373:9914) card with the web matching content. VER FICHA opens the vehicle sheet;
-// COMPARAR is not rendered: the comparison screen does not exist on mobile yet.
+// Figma "02 - Recomendaciones" (2373:9914), with the same vehicle actions as web.
 export default function RecommendationCard({ result, best }: Readonly<Props>) {
   const router = useRouter()
+  const { ids, toggle } = useComparisonSelection()
   const [expanded, setExpanded] = useState(false)
   const { vehicle, dealer } = result
   const title = recommendationTitle(result)
@@ -71,7 +72,10 @@ export default function RecommendationCard({ result, best }: Readonly<Props>) {
           <Text style={styles.meta}>{budgetPenaltyNote(result)}</Text>
         </View>
       ) : null}
-      <Button label="VER FICHA" variant="primary" onPress={() => router.push(`/vehiculos/${result.listing_id}`)} />
+      <View style={styles.actions}>
+        <Button label={ids.includes(result.listing_id) ? 'QUITAR' : 'COMPARAR'} onPress={() => toggle(result.listing_id)} />
+        <Button label="VER FICHA" variant="primary" onPress={() => router.push(`/vehiculos/${result.listing_id}`)} />
+      </View>
     </View>
   )
 }
@@ -112,4 +116,5 @@ const styles = StyleSheet.create({
   toggle: { alignSelf: 'flex-start', paddingVertical: 4 },
   toggleText: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
   details: { gap: 6 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 })
