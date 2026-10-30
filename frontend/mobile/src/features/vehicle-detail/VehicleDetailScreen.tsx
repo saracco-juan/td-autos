@@ -115,6 +115,7 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
             <Text style={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</Text>
             <Button label="CHECKLIST DE INSPECCIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/inspeccion`)} />
             <Button label="CALCULAR COSTOS" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/costos`)} />
+            <Button label="VER DEPRECIACIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/depreciacion`)} />
             <Button label="COMPARAR" onPress={() => {
               if (!ids.includes(data.vehicle.id) && ids.length === 2) {
                 toggle(data.vehicle.id)

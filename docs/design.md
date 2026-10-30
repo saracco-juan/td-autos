@@ -65,6 +65,21 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Tablet and phone layouts stack inside the dashboard scroll region; vehicle
   pagination and its internal list scroll remain independent. No new dependency.
 
+## HU15-MOBILE depreciation (2026-10-30)
+
+- High v3 mobile `2373:10051` (full content `2537:11653`) and insufficient-data
+  `2537:11568` are approved. VER DEPRECIACIÓN in the vehicle sheet opens
+  `/vehiculos/{id}/depreciacion`; Volver a la ficha returns to the same vehicle.
+  The existing top and bottom navigation stay visible while the content scrolls.
+- Stack the projection chart, current/1/3/5-year values and calculation explanation.
+  Reuse the web response, chart geometry, formatting and caveats from
+  `frontend/shared/depreciation`. Preserve the listing currency and server values.
+  No client forecast, segment comparison or mileage adjustment is added.
+- Missing projection or references is a normal insufficient-data card (TC-41),
+  without an error or graph. Keep loading, retryable network/server failures and
+  unavailable listings distinct. Source date, approximate/stale references,
+  unknown mileage and appreciation remain visible when applicable.
+
 ## Navbar
 
 - Red bar pinned to the top with a soft shadow: logo mark (the TD monogram of the favicon, red on a white tile) followed by the word "Autos" on the left (the link is named "TD Autos"), role links as pills beside it (subtle hover, a brighter pill for the current page), and on the right the account group: Perfil or Administración as a pill, the dealer name as a chip, Cerrar sesión as an outlined pill with an icon. On phones a MENÚ pill with a hamburger icon opens a panel with full-width pills.
