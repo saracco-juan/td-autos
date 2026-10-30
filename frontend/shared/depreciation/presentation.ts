@@ -31,10 +31,13 @@ export function referenceLines(reference: DepreciationReference): string[] {
 }
 
 // Both clients draw the server's projection; no forecast is calculated on the client.
-export function chartGeometry(projection: DepreciationProjection) {
+export function chartGeometry(projection: DepreciationProjection, width = 740, height = 240) {
   const values = [{ years: 0, value: projection.current_value }, ...projection.points]
   const maximum = Math.max(...values.map(({ value }) => value))
-  const coordinates = values.map(({ years, value }) => ({ x: 30 + years / 5 * 680, y: 200 - value / maximum * 160 }))
+  const coordinates = values.map(({ years, value }) => ({
+    x: (30 + years / 5 * 680) * (width / 740),
+    y: (200 - value / maximum * 160) * (height / 240),
+  }))
   const path = coordinates.map(({ x, y }, index) => `${index === 0 ? 'M' : 'L'}${x},${y}`).join(' ')
   return { values, coordinates, path }
 }

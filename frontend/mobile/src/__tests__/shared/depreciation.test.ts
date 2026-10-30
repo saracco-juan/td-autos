@@ -29,3 +29,10 @@ it('keeps appreciation inside the chart and all reference disclosures', () => {
     'Referencia aproximada de un modelo similar: Corolla.',
   ])
 })
+
+it('scales the same server values to the native chart canvas', () => {
+  const chart = chartGeometry(projection, 316, 190)
+  expect(chart.coordinates[0].x).toBeCloseTo(12.81)
+  expect(chart.coordinates[0].y).toBeCloseTo(31.67)
+  expect(chart.coordinates[3].x).toBeCloseTo(303.19)
+})
