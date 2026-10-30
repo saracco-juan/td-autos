@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router'
 import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import type { DepreciationResponse } from '@shared/depreciation/types'
+import { depreciationCopy } from '@shared/depreciation/presentation'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import screenStyles from '../../components/screen.module.css'
 import { apiFetch, HttpError, NetworkError } from '../../lib/http'
@@ -57,13 +58,13 @@ function DepreciationScreen({ id, returnState }: { id: number | null; returnStat
         <header>
           <p className={screenStyles.eyebrow}>DEPRECIACIÓN Y REVENTA</p>
           <h1 ref={heading} tabIndex={-1} className={screenStyles.title}>{vehicleTitle(view.data.vehicle)}</h1>
-          <p className={styles.muted}>Estimación a partir del precio publicado y de referencias de vehículos comparables.</p>
+          <p className={styles.muted}>{depreciationCopy.subtitle}</p>
         </header>
         {view.data.projection && view.data.reference ? <DepreciationResult projection={view.data.projection}
           reference={view.data.reference} kilometers={view.data.vehicle.kilometraje} />
           : <section role="status" className={styles.summary}>
-            <h2>No hay datos suficientes para estimar la depreciación.</h2>
-            <p>Necesitamos un precio publicado válido y referencias comparables suficientes. Podés volver a la ficha o consultar otro vehículo.</p>
+            <h2>{depreciationCopy.insufficient}</h2>
+            <p>{depreciationCopy.insufficientHint}</p>
           </section>}
       </> : null}
     </div>
