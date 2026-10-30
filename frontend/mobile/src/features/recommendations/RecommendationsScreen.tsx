@@ -10,6 +10,7 @@ import Pagination from '../../components/Pagination'
 import { NetworkError } from '../../lib/http'
 import { colors, radii, shadows } from '../../theme/tokens'
 import { useAuth } from '../auth/useAuth'
+import { useComparisonSelection } from '../comparison/ComparisonSelection'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { appliedFilterChips, filterRecommendations, type RecommendationFilters } from '@shared/recommendations/filters'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
@@ -25,6 +26,7 @@ type ScreenState = { status: 'loading' } | { status: 'error'; kind: LoadErrorKin
 export default function RecommendationsScreen() {
   const router = useRouter()
   const { authFetch } = useAuth()
+  const { ids, notice: selectionNotice } = useComparisonSelection()
   const [view, setView] = useState<ScreenState>({ status: 'loading' })
   const [filters, setFilters] = useState<RecommendationFilters>({})
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -84,6 +86,8 @@ export default function RecommendationsScreen() {
           {isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
         </View>
         <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
+        {isReady ? <Button label={`COMPARAR (${ids.length}/2)`} onPress={() => router.push('/comparar')} /> : null}
+        {selectionNotice ? <Alert variant="warning">{selectionNotice}</Alert> : null}
 
         {isReady && all.length > 0 ? (
           <View style={styles.filterRow}>

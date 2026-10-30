@@ -57,7 +57,8 @@ export default function ComparisonCards({ entries, onRemove, onCosts }: Readonly
         const selected = groups.find((group) => group.title === section) ?? groups[1]
         return <View key={id} accessibilityLabel={`Vehículo comparado: ${title}`} style={styles.card}>
           <Photo key={vehicle.fotos[0]?.url} url={vehicle.fotos[0]?.url} title={title} />
-          <View style={styles.intro}>
+          <View style={[styles.intro, { minHeight: heights.intro ?? 120 }]}
+            onLayout={({ nativeEvent }) => measure('intro', nativeEvent.layout.height)}>
             <Text accessibilityRole="header" style={styles.title}>{title}</Text>
             <Button label="QUITAR" onPress={() => onRemove(id)} />
           </View>

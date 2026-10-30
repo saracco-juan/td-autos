@@ -55,9 +55,20 @@ describe('VehicleDetailScreen', () => {
     expect(screen.getByRole('tab', { name: 'Información general' })).toBeSelected()
     expect(screen.getByText('Único dueño')).toBeOnTheScreen()
     expect(screen.getByRole('button', { name: /^Diagnóstico,/ })).toBeOnTheScreen()
-    for (const retired of ['VER PUBLICACIÓN', 'COMPARAR']) {
+    expect(screen.getByRole('button', { name: 'COMPARAR' })).toBeOnTheScreen()
+    for (const retired of ['VER PUBLICACIÓN']) {
       expect(screen.queryByRole('button', { name: retired })).not.toBeOnTheScreen()
     }
+  })
+
+  it('HU08 adds the current vehicle from its sheet and requests a second selection', async () => {
+    api.fetchVehicleDetail.mockResolvedValue(response())
+    const view = await renderApp(URL)
+    await fireEvent.press(await screen.findByRole('button', { name: 'COMPARAR' }))
+    await waitFor(() => expect(view.getPathname()).toBe('/comparar'))
+    expect(await screen.findByText('1 vehículo seleccionado')).toBeOnTheScreen()
+    expect(screen.getByText(/Seleccioná exactamente dos/)).toBeOnTheScreen()
+    expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
   })
 
   it('shows a local loader while the sheet loads', async () => {

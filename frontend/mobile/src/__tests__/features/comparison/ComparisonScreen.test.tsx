@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native'
 import { Button, View } from 'react-native'
+import { useEffect as mockUseEffect } from 'react'
 
 import { vehicle } from '@shared/vehicles/fixtures'
 import ComparisonScreen from '../../../features/comparison/ComparisonScreen'
@@ -18,7 +19,10 @@ jest.mock('../../../features/auth/useAuth', () => ({ useAuth: () => ({ authFetch
 const mockRequest = jest.fn()
 const mockNavigate = jest.fn()
 const mockPush = jest.fn()
-jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: mockNavigate, push: mockPush }) }))
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ navigate: mockNavigate, push: mockPush }),
+  useFocusEffect: (effect: () => void) => mockUseEffect(effect, [effect]),
+}))
 const ranking = jest.mocked(recommendationsApi).fetchRecommendations
 const detail = jest.mocked(detailApi).fetchVehicleDetail
 const cost = jest.mocked(costsApi).fetchCosts

@@ -11,6 +11,8 @@ import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehic
 import { formatPrice } from '@shared/recommendations/format'
 import { UNKNOWN_FACT, specificationGroups } from '@shared/vehicles/detail'
 import { useAuth } from '../auth/useAuth'
+import { useComparisonSelection } from '../comparison/ComparisonSelection'
+import Alert from '../../components/Alert'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { fetchVehicleDetail } from './api'
 import type { VehicleDetailResponse } from './types'
@@ -39,6 +41,7 @@ function subtitle(vehicle: VehicleDetailResponse['vehicle']): string {
 
 function Detail({ id }: Readonly<{ id: number | null }>) {
   const { authFetch } = useAuth()
+  const { ids, toggle, notice } = useComparisonSelection()
   const router = useRouter()
   const [view, setView] = useState<DetailState>({ status: id === null ? 'unavailable' : 'loading' })
   const [attempt, setAttempt] = useState(0)
@@ -112,6 +115,15 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
             <Text style={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</Text>
             <Button label="CHECKLIST DE INSPECCIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/inspeccion`)} />
             <Button label="CALCULAR COSTOS" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/costos`)} />
+            <Button label="COMPARAR" onPress={() => {
+              if (!ids.includes(data.vehicle.id) && ids.length === 2) {
+                toggle(data.vehicle.id)
+                return
+              }
+              if (!ids.includes(data.vehicle.id)) toggle(data.vehicle.id)
+              router.push('/comparar')
+            }} />
+            {notice ? <Alert variant="warning">{notice}</Alert> : null}
           </View>
           <VehicleSpecifications vehicle={data.vehicle} />
         </>

@@ -180,6 +180,15 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## HU08 vehicle comparison (2026-10-27)
 
+- HU08-MOBILE follows the existing High v3 mobile frame `2373:10014`: 280px
+  cards with a 12px horizontal gap, 160px covers, and six synchronized sections.
+  The existing native header and bottom navigation remain in place. Buyer-tab
+  state keeps selection IDs across recommendations, detail and comparison;
+  fresh API requests supply facts and calculator defaults on each comparison
+  visit. Removal requests a replacement while retaining the other ID and the
+  recommendations filters. Native gestures and safe-area rendering require the
+  user's Expo Go QA; automated checks do not claim visual device verification.
+
 - Shared web `components/Tabs` accepts domain-independent `{id, label}` items and a render callback for the active panel. It owns selected state, unique ARIA IDs, roving focus, ArrowLeft/Right wrap, Home/End and automatic activation. Styling follows the vehicle-detail tabs. Comparison uses controlled selection; vehicle detail uses independent selection with its original appearance, facts, explanations and persistent description. Vehicle-entry form adoption remains deferred. Do not put vehicle/cost/form logic in this primitive.
 
 - Follow High v3 desktop `2373:7368` / mobile `2373:10014`: two separate white vehicle cards with 14px corners, 32px gap, 160px photos and compact label/value rows. Each card is a named article with definition lists; CSS subgrid aligns corresponding rows even when values wrap. Keep both columns in a keyboard-focusable internal scroll viewport, never horizontal page scroll. Reuse the shell, back icon and explanation tooltips. Dynamic listing images retain explicit missing/broken fallbacks.
