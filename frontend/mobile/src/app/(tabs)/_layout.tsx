@@ -4,6 +4,7 @@ import type { ColorValue } from 'react-native'
 
 import AppBar from '../../components/AppBar'
 import { ComparisonSelectionProvider } from '../../features/comparison/ComparisonSelection'
+import { FavoriteProvider } from '../../features/favorites/FavoriteButton'
 import { colors } from '../../theme/tokens'
 
 type IconName = keyof typeof Ionicons.glyphMap
@@ -37,7 +38,7 @@ const HIDDEN = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' as
 
 export default function TabsLayout() {
   return (
-    <ComparisonSelectionProvider><Tabs
+    <FavoriteProvider><ComparisonSelectionProvider><Tabs
       screenOptions={{
         header: renderHeader,
         sceneStyle: { backgroundColor: colors.background },
@@ -56,6 +57,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="vehiculos/[id]/costos" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/depreciacion" options={HIDDEN} />
       <Tabs.Screen name="comparar" options={HIDDEN} />
-    </Tabs></ComparisonSelectionProvider>
+    </Tabs></ComparisonSelectionProvider></FavoriteProvider>
   )
 }

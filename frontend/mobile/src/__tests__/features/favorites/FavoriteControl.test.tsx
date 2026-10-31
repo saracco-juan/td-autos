@@ -73,3 +73,23 @@ it('TC-31: uses the same heart from recommendations without changing existing co
   expect(screen.getByRole('button', { name: 'VER FICHA' })).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'COMPARAR' })).toBeOnTheScreen()
 })
+
+it.each([true, false])('keeps both hearts consistent across navigation while saving (success=%s)', async (success) => {
+  let finish!: () => void
+  request.mockReturnValue(new Promise<void>((resolve, reject) => {
+    finish = () => success ? resolve() : reject(new Error('offline'))
+  }))
+  jest.mocked(recommendationsApi).fetchRecommendations.mockResolvedValue(ready([recommendation(7)]))
+  await renderApp('/recomendados')
+  await fireEvent.press(await screen.findByRole('button', { name: /Guardar .* en favoritos/ }))
+  await fireEvent.press(screen.getByRole('button', { name: 'VER FICHA' }))
+  const heart = await screen.findByRole('button', { name: removeLabel })
+  expect(heart).toBeSelected()
+  expect(heart).toBeDisabled()
+  await fireEvent.press(heart)
+  expect(request).toHaveBeenCalledTimes(1)
+  await act(async () => finish())
+  expect(screen.getByRole('button', { name: success ? removeLabel : saveLabel })).toBeEnabled()
+  await fireEvent.press(screen.getByRole('link', { name: 'Volver a recomendados' }))
+  expect(await screen.findByRole('button', { name: success ? /Quitar .* de favoritos/ : /Guardar .* en favoritos/ })).toBeEnabled()
+})

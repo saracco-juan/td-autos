@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 
@@ -7,38 +7,49 @@ import Alert from '../../components/Alert'
 import { colors, radii, shadows } from '../../theme/tokens'
 import { useAuth } from '../auth/useAuth'
 
+type State = { saved: boolean; pending: boolean; error: boolean }
+const Context = createContext<{
+  states: Record<number, State>; toggle: (id: number, saved: boolean) => Promise<void>
+} | null>(null)
+
+// Buyer navigation owns mutations so both hearts share pending, success and rollback.
+export function FavoriteProvider({ children }: { children: ReactNode }) {
+  const { authFetch } = useAuth()
+  const [states, setStates] = useState<Record<number, State>>({})
+  const active = useRef(new Set<number>())
+  const update = (id: number, saved: boolean, pending: boolean, error: boolean) => {
+    setStates((previous) => ({ ...previous, [id]: { saved, pending, error } }))
+  }
+  const toggle = async (id: number, saved: boolean) => {
+    if (active.current.has(id)) return
+    active.current.add(id)
+    update(id, !saved, true, false)
+    try {
+      await createFavoritesApi(authFetch).setFavorite(id, !saved)
+      update(id, !saved, false, false)
+    } catch {
+      update(id, saved, false, true)
+    } finally {
+      active.current.delete(id)
+    }
+  }
+  return <Context.Provider value={{ states, toggle }}>{children}</Context.Provider>
+}
+
 // Shared by the recommendation card and sheet; Figma FavoriteButton 2506:10157.
 export default function FavoriteButton({ vehicleId, vehicleName, isFavorite = false }: Readonly<{
   vehicleId: number; vehicleName: string; isFavorite?: boolean
 }>) {
-  const { authFetch } = useAuth()
-  const [saved, setSaved] = useState(isFavorite)
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState(false)
-  const active = useRef(false)
-  const toggle = async () => {
-    if (active.current) return
-    active.current = true
-    setPending(true)
-    setError(false)
-    setSaved(!saved)
-    try {
-      await createFavoritesApi(authFetch).setFavorite(vehicleId, !saved)
-    } catch {
-      setSaved(saved)
-      setError(true)
-    } finally {
-      active.current = false
-      setPending(false)
-    }
-  }
+  const store = useContext(Context)
+  if (!store) throw new Error('Favorite controls require the buyer navigation provider')
+  const { saved, pending, error } = store.states[vehicleId] ?? { saved: isFavorite, pending: false, error: false }
 
   return (
     <View style={styles.control}>
       <Pressable accessibilityRole="button" accessibilityLabel={saved
         ? `Quitar ${vehicleName} de favoritos` : `Guardar ${vehicleName} en favoritos`}
       accessibilityState={{ selected: saved, disabled: pending }} disabled={pending}
-      onPress={() => { void toggle() }} style={styles.button}>
+      onPress={() => { void store.toggle(vehicleId, saved) }} style={styles.button}>
         <Svg width={22} height={22} viewBox="0 0 24 24" accessibilityElementsHidden>
           <Path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"
             fill={saved ? colors.errorBorder : 'none'} stroke={saved ? colors.errorBorder : colors.textSecondary} strokeWidth={1.8} />
