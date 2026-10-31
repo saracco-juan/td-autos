@@ -143,3 +143,26 @@ it('does not open a late contact on another screen and permits reopening the sav
   await waitFor(() => expect(Linking.openURL).toHaveBeenCalledWith(APP_LINK))
   expect(fetch).toHaveBeenCalledTimes(1)
 })
+
+it.each([false, true])('isolates contacts when changing vehicle, pending response: %s', async (pending) => {
+  let resolve!: (response: Response) => void
+  if (pending) jest.mocked(fetch).mockReturnValueOnce(new Promise((done) => { resolve = done }))
+  else jest.mocked(Linking.openURL).mockRejectedValueOnce(new Error('No app'))
+  const view = await open()
+  await fireEvent.press(screen.getByRole('button', { name: ACTION }))
+  if (!pending) await screen.findByText('No pudimos abrir WhatsApp. Verificá que esté instalado e intentá nuevamente.')
+  jest.mocked(detailApi.fetchVehicleDetail).mockResolvedValueOnce({
+    vehicle: { ...vehicle, id: 8 }, dealer: { id: 4, nombre: 'Autos Norte', provincia: null }, whatsapp_available: true,
+  } as Awaited<ReturnType<typeof detailApi.fetchVehicleDetail>>)
+  await act(() => router.navigate('/vehiculos/8'))
+  await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/8'))
+  const button = await screen.findByRole('button', { name: ACTION })
+  if (pending) await act(async () => resolve(reply()))
+  expect(Linking.openURL).toHaveBeenCalledTimes(pending ? 0 : 1)
+  const nextLink = LINK.replace('5491155550101', '5492255550102')
+  jest.mocked(fetch).mockResolvedValueOnce({ ...reply(), text: async () => JSON.stringify({ url: nextLink }) })
+  await fireEvent.press(button)
+  await waitFor(() => expect(Linking.openURL).toHaveBeenLastCalledWith(APP_LINK.replace('5491155550101', '5492255550102')))
+  expect(fetch).toHaveBeenLastCalledWith(expect.stringContaining('/api/vehiculos/8/contacto'), expect.any(Object))
+  expect(uuid.v4).toHaveBeenCalledTimes(2)
+})
