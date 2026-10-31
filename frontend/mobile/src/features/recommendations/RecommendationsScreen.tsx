@@ -18,6 +18,9 @@ import { RECOMMENDATIONS_PER_PAGE, type RecommendationsResponse } from '@shared/
 import { fetchRecommendations } from './api'
 import FiltersSheet from './FiltersSheet'
 import RecommendationCard from './RecommendationCard'
+import PortalModelsPanel from './PortalModelsPanel'
+import PortalTabs from './PortalTabs'
+import { portalCountLabel } from '@shared/portals/format'
 
 type ScreenState = { status: 'loading' } | { status: 'error'; kind: LoadErrorKind } | { status: 'ready'; response: RecommendationsResponse }
 
@@ -31,6 +34,8 @@ export default function RecommendationsScreen() {
   const [filters, setFilters] = useState<RecommendationFilters>({})
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [page, setPage] = useState(1)
+  const [portals, setPortals] = useState(false)
+  const [modelCount, setModelCount] = useState<number | null>(null)
   // Only the latest request may update the screen.
   const request = useRef(0)
 
@@ -83,9 +88,12 @@ export default function RecommendationsScreen() {
           <Text accessibilityRole="header" style={styles.title}>
             Mejores opciones para vos
           </Text>
-          {isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
+          {portals ? (modelCount !== null ? <Text style={styles.subtitle}>{portalCountLabel(modelCount)}</Text> : null)
+            : isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
         </View>
         <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
+        <PortalTabs portals={portals} count={modelCount} onChange={setPortals} />
+        {portals ? <PortalModelsPanel onCount={setModelCount} onDiagnosis={goToDiagnosis} /> : <>
         {isReady ? <Button label={`COMPARAR (${ids.length}/2)`} onPress={() => router.push('/comparar')} /> : null}
         {selectionNotice ? <Alert variant="warning">{selectionNotice}</Alert> : null}
 
@@ -159,15 +167,16 @@ export default function RecommendationsScreen() {
         {results.slice((page - 1) * RECOMMENDATIONS_PER_PAGE, page * RECOMMENDATIONS_PER_PAGE).map((result) => (
           <RecommendationCard key={result.listing_id} result={result} best={result.listing_id === all[0]?.listing_id} />
         ))}
+        </>}
       </ScrollView>
 
-      {lastPage > 1 ? (
+      {!portals && lastPage > 1 ? (
         <View style={styles.pager}>
           <Pagination page={page} lastPage={lastPage} onChange={setPage} />
         </View>
       ) : null}
 
-      {filtersOpen ? (
+      {!portals && filtersOpen ? (
         <FiltersSheet
           applied={filters}
           onClose={() => setFiltersOpen(false)}

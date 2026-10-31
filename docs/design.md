@@ -243,6 +243,15 @@ User-approved design for `Recomendados` on web; types, copy and formatters live 
 | Empty and incomplete states of the tab | Reuse the dealers copy and the page's AJUSTAR DIAGNÓSTICO action | Implemented | Pending HU06-MOBILE |
 | "Sin fotos" placeholder on dealer cards | A missing or broken photo shows a neutral block with an icon | Implemented | Pending HU06-MOBILE |
 
+## HU06-MOBILE portal recommendations (2026-10-31)
+
+- The current High v3 frames `2521:11027` and `2521:11278` supersede the historical pending mobile portal layout above: two underline tabs, model count in the subtitle, model cards and an empty state. The existing mobile navigation shell and design tokens are reused.
+- Concesionarias remains the initial tab and retains its filters, comparison selection and pagination. Opening Otros portales loads `/api/recomendaciones/modelos` through the signed-in session; each visit refreshes the saved diagnosis. Its loading, retry, empty and incomplete states are independent of the dealers response. Leaving or changing focus invalidates pending model responses.
+- Portal cards use the shared title, year range, reference price, body, reasons, filters and portal labels. Photos come from the API; missing or broken photos show Sin fotos. There is no portal pagination: the backend returns up to nine recommended models.
+- The tab-row information icon explains that these are models, not units for sale. The card information icon displays reasons, Mercado Libre filters and the supported Kavak filter explanation. Native information actions open a dismissible modal, including Android back support, so explanations do not move the cards.
+- Each portal action hands its backend HTTPS URL unchanged to the operating system through expo-linking. Compatible installed portal apps may open it; otherwise the normal web handler opens it. This is the user-approved mobile adaptation of TC-18/TC-88's browser-tab wording. No custom portal scheme, WebView, portal API or dependency is introduced. A rejected opening shows a recoverable message on the card.
+- App/browser routing and preservation of the search filters inside third-party apps require physical-device QA with the portal app installed and absent. Automated tests verify the exact URL passed to the operating system, not third-party behavior.
+
 ## HU05-MOBILE recommendation screen (2026-10-28)
 
 Native mobile `Recomendados` tab, High v3 `2373:9914` and its states `2373:9930`–`2373:9982`. Same data, order, filters and states as the web page; copy, types and formatting come from `frontend/shared/recommendations`. Figma sync pending approval; no Figma edits were made.
