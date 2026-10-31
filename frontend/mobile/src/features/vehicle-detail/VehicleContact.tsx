@@ -1,4 +1,3 @@
-import { uuid } from 'expo'
 import * as Linking from 'expo-linking'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
@@ -10,10 +9,11 @@ import { HttpError } from '../../lib/http'
 import { colors } from '../../theme/tokens'
 import { useAuth } from '../auth/useAuth'
 import { contactVehicle } from './api'
+import { clearPendingContact, pendingContactAttempt } from './pendingContact'
 
 // HU25 / TC-65/66: the shared backend commits the lead before the app handoff.
 export default function VehicleContact({ vehicleId, available }: Readonly<{ vehicleId: number; available: boolean }>) {
-  const { authFetch } = useAuth()
+  const { authFetch, user } = useAuth()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const active = useRef(true)
@@ -28,13 +28,13 @@ export default function VehicleContact({ vehicleId, available }: Readonly<{ vehi
   }, []))
 
   async function contact() {
-    if (pending.current || !available) return
+    if (pending.current || !available || user === null) return
     pending.current = true
     setBusy(true)
     setError(null)
     try {
       if (destination.current === null) {
-        attempt.current ??= uuid.v4()
+        attempt.current ??= await pendingContactAttempt(user.id, vehicleId)
         const { url } = await contactVehicle(authFetch, vehicleId, attempt.current)
         const link = new URL(url)
         // Keep the server's recipient and encoded message, with no browser fallback.
@@ -43,12 +43,20 @@ export default function VehicleContact({ vehicleId, available }: Readonly<{ vehi
       if (!active.current) return
       try {
         await Linking.openURL(destination.current)
-        destination.current = null
-        attempt.current = null
       } catch {
         // Retain the committed contact so reopening never records a second lead.
         if (active.current) setError('No pudimos abrir WhatsApp. Verificá que esté instalado e intentá nuevamente.')
+        return
       }
+      try {
+        await clearPendingContact(user.id, vehicleId)
+      } catch {
+        // Keep the saved attempt if cleanup fails after the OS has opened WhatsApp.
+        if (active.current) setError('WhatsApp se abrió. Si reintentás, se abrirá el mismo contacto.')
+        return
+      }
+      destination.current = null
+      attempt.current = null
     } catch (failure) {
       if (active.current) setError(failure instanceof HttpError && failure.status === 409
         ? 'WhatsApp no disponible'
