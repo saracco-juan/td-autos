@@ -9,7 +9,7 @@ import { useAuth } from '../auth/useAuth'
 
 type State = { saved: boolean; pending: boolean; error: boolean }
 const Context = createContext<{
-  states: Record<number, State>; toggle: (id: number, saved: boolean) => Promise<void>
+  states: Record<number, State>; toggle: (id: number, saved: boolean) => Promise<boolean | undefined>
 } | null>(null)
 
 // Buyer navigation owns mutations so both hearts share pending, success and rollback.
@@ -27,8 +27,10 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
     try {
       await createFavoritesApi(authFetch).setFavorite(id, !saved)
       update(id, !saved, false, false)
+      return true
     } catch {
       update(id, saved, false, true)
+      return false
     } finally {
       active.current.delete(id)
     }

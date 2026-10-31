@@ -1,9 +1,10 @@
 import { act, fireEvent, screen } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
-import { apiFetch, NetworkError } from '../../../lib/http'
+import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import * as matchingApi from '../../../features/recommendations/api'
+import * as detailApi from '../../../features/vehicle-detail/api'
 import { vehicle } from '@shared/vehicles/fixtures'
 import type { FavoritesResponse } from '@shared/favorites/types'
 import { renderApp } from '../../../test-utils/renderApp'
@@ -11,6 +12,7 @@ import { ready, recommendation } from '../../../test-utils/recommendations'
 
 jest.mock('../../../features/auth/api')
 jest.mock('../../../features/recommendations/api')
+jest.mock('../../../features/vehicle-detail/api')
 jest.mock('../../../lib/tokenStorage')
 jest.mock('../../../lib/http', () => ({ ...jest.requireActual('../../../lib/http'), apiFetch: jest.fn() }))
 
@@ -26,6 +28,8 @@ beforeEach(() => {
     email: 'ana@example.com', rol: 'comprador', tiene_diagnostico: true })
   jest.mocked(matchingApi).fetchRecommendations.mockReturnValue(new Promise(() => {}))
   request.mockResolvedValue(response())
+  jest.mocked(detailApi).fetchVehicleDetail.mockResolvedValue({ vehicle,
+    dealer: { id: 3, nombre: 'Autos Sur', provincia: null }, is_favorite: true })
 })
 
 it('RF10: reads persisted favorites with the session token without waiting for matching', async () => {
@@ -132,4 +136,120 @@ it('failed pending save settles before favorites reads persisted empty list', as
   await act(async () => failSave(new Error('offline')))
   expect(await screen.findByText('Todavía no guardaste vehículos')).toBeOnTheScreen()
   expect(request).toHaveBeenCalledWith('/api/favoritos?page=1&per_page=6', { token: 'tok' })
+})
+
+it('TC-32: removes a saved vehicle and persists Deshacer through the same API', async () => {
+  let items = [saved]
+  request.mockImplementation((_, options) => {
+    if (options?.method === 'DELETE') items = []
+    if (options?.method === 'PUT') items = [saved]
+    return Promise.resolve(options?.method ? undefined : response(items))
+  })
+  await renderApp('/favoritos')
+  await fireEvent.press(await screen.findByRole('button', { name: 'QUITAR' }))
+  expect(await screen.findByText('Todavía no guardaste vehículos')).toBeOnTheScreen()
+  expect(request).toHaveBeenCalledWith('/api/favoritos/7', { method: 'DELETE', token: 'tok' })
+  await fireEvent.press(screen.getByRole('button', { name: 'DESHACER' }))
+  expect(await screen.findByRole('header', { name: 'Toyota Corolla XEI 2021' })).toBeOnTheScreen()
+  expect(request).toHaveBeenCalledWith('/api/favoritos/7', { method: 'PUT', token: 'tok' })
+})
+
+it('keeps Deshacer available when restoring the removed vehicle fails', async () => {
+  let items = [saved]
+  request.mockImplementation((_, options) => {
+    if (options?.method === 'DELETE') items = []
+    if (options?.method === 'PUT') items = [saved]
+    return Promise.resolve(options?.method ? undefined : response(items))
+  })
+  await renderApp('/favoritos')
+  await fireEvent.press(await screen.findByRole('button', { name: 'QUITAR' }))
+  await screen.findByText('Todavía no guardaste vehículos')
+  request.mockRejectedValueOnce(new Error('unavailable'))
+  await fireEvent.press(screen.getByRole('button', { name: 'DESHACER' }))
+  expect(await screen.findByText('No pudimos actualizar tus favoritos. Intentá nuevamente.')).toBeOnTheScreen()
+  expect(screen.getByRole('button', { name: 'DESHACER' })).toBeEnabled()
+  await fireEvent.press(screen.getByRole('button', { name: 'DESHACER' }))
+  expect(await screen.findByRole('header', { name: 'Toyota Corolla XEI 2021' })).toBeOnTheScreen()
+})
+
+it('keeps the saved vehicle after a failed list removal and permits retry', async () => {
+  await renderApp('/favoritos')
+  await screen.findByText('1 vehículo guardado')
+  request.mockRejectedValueOnce(new Error('offline'))
+  await fireEvent.press(screen.getByRole('button', { name: 'QUITAR' }))
+  expect(await screen.findByText('No pudimos actualizar tus favoritos. Intentá nuevamente.')).toBeOnTheScreen()
+  expect(await screen.findByRole('header', { name: 'Toyota Corolla XEI 2021' })).toBeOnTheScreen()
+  expect(screen.queryByRole('button', { name: 'DESHACER' })).not.toBeOnTheScreen()
+  request.mockResolvedValueOnce(undefined).mockResolvedValueOnce(response([]))
+  await fireEvent.press(screen.getByRole('button', { name: 'QUITAR' }))
+  expect(await screen.findByText('Todavía no guardaste vehículos')).toBeOnTheScreen()
+})
+
+it('pages and changes size, then returns to the previous page when removing its last item', async () => {
+  let items = Array.from({ length: 7 }, (_, index) => ({ ...saved, id: index + 1, modelo: `Modelo ${index + 1}` }))
+  request.mockImplementation((path, options) => {
+    if (options?.method === 'DELETE') {
+      items = items.filter((item) => item.id !== Number(path.split('/').at(-1)))
+      return Promise.resolve(undefined)
+    }
+    const query = new URLSearchParams(path.split('?')[1])
+    const page = Number(query.get('page'))
+    const size = Number(query.get('per_page'))
+    return Promise.resolve({ data: items.slice((page - 1) * size, page * size),
+      meta: { current_page: page, per_page: size, total: items.length, last_page: Math.ceil(items.length / size) } })
+  })
+  await renderApp('/favoritos')
+  await fireEvent.press(await screen.findByRole('button', { name: 'Página 2' }))
+  expect(await screen.findByRole('header', { name: 'Toyota Modelo 7 XEI 2021' })).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 6' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 12 vehículos' }))
+  expect(await screen.findByRole('header', { name: 'Toyota Modelo 1 XEI 2021' })).toBeOnTheScreen()
+  expect(request).toHaveBeenCalledWith('/api/favoritos?page=1&per_page=12', { token: 'tok' })
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 12' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 24 vehículos' }))
+  expect(await screen.findByRole('header', { name: 'Toyota Modelo 1 XEI 2021' })).toBeOnTheScreen()
+  expect(request).toHaveBeenCalledWith('/api/favoritos?page=1&per_page=24', { token: 'tok' })
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 24' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 6 vehículos' }))
+  await fireEvent.press(await screen.findByRole('button', { name: 'Página 2' }))
+  await screen.findByRole('header', { name: 'Toyota Modelo 7 XEI 2021' })
+  await fireEvent.press(screen.getByRole('button', { name: 'QUITAR' }))
+  expect(await screen.findByText('6 vehículos guardados')).toBeOnTheScreen()
+  expect(await screen.findByRole('header', { name: 'Toyota Modelo 1 XEI 2021' })).toBeOnTheScreen()
+  expect(screen.queryByRole('button', { name: 'Página 2' })).not.toBeOnTheScreen()
+})
+
+it('shows local loading instead of the previous visit cards while refreshing', async () => {
+  const view = await renderApp('/favoritos')
+  await screen.findByText('1 vehículo guardado')
+  await fireEvent.press(screen.getByRole('button', { name: 'VER RECOMENDADOS' }))
+  request.mockReturnValueOnce(new Promise(() => {}))
+  await fireEvent.press(screen.getByRole('button', { name: /^Favoritos,/ }))
+  expect(view.getPathname()).toBe('/favoritos')
+  expect(screen.getByLabelText('Cargando')).toBeOnTheScreen()
+  expect(screen.queryByRole('header', { name: 'Toyota Corolla XEI 2021' })).not.toBeOnTheScreen()
+})
+
+it('opens the saved sheet and returns to favorites, preserving the recommendations return flow', async () => {
+  jest.mocked(matchingApi).fetchRecommendations.mockResolvedValue(ready([recommendation(7, { is_favorite: true })]))
+  const view = await renderApp('/favoritos')
+  await fireEvent.press(await screen.findByRole('button', { name: 'VER FICHA' }))
+  expect(view.getPathname()).toBe('/vehiculos/7')
+  expect(await screen.findByRole('button', { name: 'Quitar Toyota Corolla XEI 2021 de favoritos' })).toBeSelected()
+  await fireEvent.press(screen.getByRole('link', { name: 'Volver a favoritos' }))
+  expect(view.getPathname()).toBe('/favoritos')
+  await screen.findByText('1 vehículo guardado')
+  await fireEvent.press(screen.getByRole('button', { name: 'VER RECOMENDADOS' }))
+  await fireEvent.press(await screen.findByRole('button', { name: 'VER FICHA' }))
+  await fireEvent.press(await screen.findByRole('link', { name: 'Volver a recomendados' }))
+  expect(view.getPathname()).toBe('/recomendados')
+})
+
+it('returns unavailable saved listings to favorites without redirecting to recommendations', async () => {
+  jest.mocked(detailApi).fetchVehicleDetail.mockRejectedValue(new HttpError(404, {}))
+  const view = await renderApp('/vehiculos/7?from=favoritos')
+  expect(await screen.findByText('Esta publicación ya no está disponible.')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('link', { name: 'Volver a favoritos' }))
+  expect(view.getPathname()).toBe('/favoritos')
+  expect(await screen.findByText('1 vehículo guardado')).toBeOnTheScreen()
 })

@@ -9,8 +9,8 @@ import type { Recommendation } from '@shared/recommendations/matching'
 import Button from '../../components/Button'
 import { colors, radii, shadows } from '../../theme/tokens'
 
-export default function FavoriteCard({ vehicle, match, best }: Readonly<{
-  vehicle: FavoriteVehicle; match?: Recommendation; best: boolean
+export default function FavoriteCard({ vehicle, match, best, pending, onRemove }: Readonly<{
+  vehicle: FavoriteVehicle; match?: Recommendation; best: boolean; pending: boolean; onRemove: () => void
 }>) {
   const router = useRouter()
   const title = vehicleTitle(vehicle)
@@ -37,7 +37,8 @@ export default function FavoriteCard({ vehicle, match, best }: Readonly<{
       </View>
       <Text style={styles.meta}>{details.filter(Boolean).join(' · ')}</Text>
       <View style={styles.actions}>
-        <Button label="VER FICHA" onPress={() => router.push(`/vehiculos/${vehicle.id}`)} />
+        <Button label="QUITAR" disabled={pending} onPress={onRemove} />
+        <Button label="VER FICHA" onPress={() => router.push(`/vehiculos/${vehicle.id}?from=favoritos`)} />
       </View>
     </View>
   )
@@ -52,5 +53,5 @@ const styles = StyleSheet.create({
     borderColor: colors.borderDefault, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   badge: { position: 'absolute', left: 12, top: 0, borderRadius: 999,
     paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#ffea00', fontSize: 10, fontWeight: '700' },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8 },
+  actions: { flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
 })
