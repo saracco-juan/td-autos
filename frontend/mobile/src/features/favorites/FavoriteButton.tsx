@@ -36,12 +36,17 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
   return <Context.Provider value={{ states, toggle }}>{children}</Context.Provider>
 }
 
+export function useFavoriteState() {
+  const store = useContext(Context)
+  if (!store) throw new Error('Favorite controls require the buyer navigation provider')
+  return store
+}
+
 // Shared by the recommendation card and sheet; Figma FavoriteButton 2506:10157.
 export default function FavoriteButton({ vehicleId, vehicleName, isFavorite = false }: Readonly<{
   vehicleId: number; vehicleName: string; isFavorite?: boolean
 }>) {
-  const store = useContext(Context)
-  if (!store) throw new Error('Favorite controls require the buyer navigation provider')
+  const store = useFavoriteState()
   const { saved, pending, error } = store.states[vehicleId] ?? { saved: isFavorite, pending: false, error: false }
 
   return (
