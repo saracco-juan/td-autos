@@ -253,3 +253,22 @@ it('returns unavailable saved listings to favorites without redirecting to recom
   expect(view.getPathname()).toBe('/favoritos')
   expect(await screen.findByText('1 vehículo guardado')).toBeOnTheScreen()
 })
+
+it('keeps page 2 when selecting the already active page size', async () => {
+  const items = Array.from({ length: 7 }, (_, index) =>
+    ({ ...saved, id: index + 1, modelo: 'Modelo ' + (index + 1) }))
+  request.mockImplementation((path) => {
+    const query = new URLSearchParams(path.split('?')[1])
+    const page = Number(query.get('page'))
+    const size = Number(query.get('per_page'))
+    return Promise.resolve({ data: items.slice((page - 1) * size, page * size),
+      meta: { current_page: page, per_page: size, total: items.length, last_page: Math.ceil(items.length / size) } })
+  })
+  await renderApp('/favoritos')
+  await fireEvent.press(await screen.findByRole('button', { name: 'Página 2' }))
+  expect(await screen.findByRole('header', { name: 'Toyota Modelo 7 XEI 2021' })).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 6' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Mostrar 6 vehículos' }))
+  expect(await screen.findByRole('header', { name: 'Toyota Modelo 7 XEI 2021' })).toBeOnTheScreen()
+  expect(request).toHaveBeenLastCalledWith('/api/favoritos?page=2&per_page=6', { token: 'tok' })
+})

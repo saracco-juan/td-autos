@@ -97,7 +97,11 @@ export default function FavoritesScreen() {
       </ScrollView>
       <View style={styles.footer}>
         {total !== undefined && total > 6 ? <FavoritesPager page={page} lastPage={Math.max(1, data?.meta.last_page ?? 1)}
-          size={size} onPage={setPage} onSize={(value) => { setPage(1); setSize(value) }} /> : null}
+          size={size} onPage={setPage} onSize={(value) => {
+            if (value === size) return
+            setPage(1)
+            setSize(value)
+          }} /> : null}
         <Button label="VER RECOMENDADOS" onPress={() => router.navigate('/recomendados')} />
       </View>
     </View>

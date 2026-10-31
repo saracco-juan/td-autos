@@ -27,6 +27,7 @@ must return with an error; restart the backend and retry.
 With seven or more saved vehicles, open Favoritos and move to page two. Choose
 Mostrar 12 and Mostrar 24: the list returns to page one and keeps the selected
 size. Remove the last vehicle on a page: the previous valid page must load.
+Choosing the already-selected size keeps the current page.
 QUITAR updates the count; DESHACER restores the last successful removal. If
 restoring fails, the list remains removed and DESHACER stays available to retry.
 
