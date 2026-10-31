@@ -1,5 +1,5 @@
-import ComingSoon from '../../components/ComingSoon'
+import FavoritesScreen from '../../features/favorites/FavoritesScreen'
 
 export default function FavoritosTab() {
-  return <ComingSoon title="Favoritos" />
+  return <FavoritesScreen />
 }

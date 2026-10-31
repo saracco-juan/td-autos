@@ -6,6 +6,7 @@ import Alert from '../../components/Alert'
 import Button from '../../components/Button'
 import { colors, radii, shadows } from '../../theme/tokens'
 import { useComparisonSelection } from '../comparison/ComparisonSelection'
+import FavoriteButton from '../favorites/FavoriteButton'
 import {
   budgetPenaltyNote,
   compatibilityLabel,
@@ -32,9 +33,13 @@ export default function RecommendationCard({ result, best }: Readonly<Props>) {
   return (
     <View accessibilityLabel={`Recomendación: ${title}`} style={styles.card}>
       <View style={styles.heading}>
-        <Text accessibilityRole="header" style={styles.title}>
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text accessibilityRole="header" style={styles.title}>
+            {title}
+          </Text>
+          <FavoriteButton key={`${result.listing_id}:${result.is_favorite}`} vehicleId={result.listing_id}
+            vehicleName={title} isFavorite={result.is_favorite} />
+        </View>
         <Text style={styles.meta}>{meta.join(' · ')}</Text>
       </View>
       <View style={styles.image}>
@@ -91,7 +96,8 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   heading: { gap: 4 },
-  title: { color: colors.textPrimary, fontSize: 17, fontWeight: '600' },
+  titleRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  title: { flex: 1, color: colors.textPrimary, fontSize: 17, fontWeight: '600' },
   meta: { color: colors.textSecondary, fontSize: 13 },
   // 16:10 image area, as on web (docs/design.md "Lists and tables").
   image: {

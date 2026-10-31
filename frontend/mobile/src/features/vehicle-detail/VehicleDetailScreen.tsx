@@ -12,6 +12,7 @@ import { formatPrice } from '@shared/recommendations/format'
 import { UNKNOWN_FACT, specificationGroups } from '@shared/vehicles/detail'
 import { useAuth } from '../auth/useAuth'
 import { useComparisonSelection } from '../comparison/ComparisonSelection'
+import FavoriteButton from '../favorites/FavoriteButton'
 import Alert from '../../components/Alert'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { fetchVehicleDetail } from './api'
@@ -26,9 +27,11 @@ const BACK_LABEL = 'Volver a recomendados'
 const SUBTITLE_LABELS = ['Transmisión', 'Combustible', 'Kilometraje', 'Ubicación']
 
 // Vehicle sheet (HU09-MOBILE, RF08), Figma "Ficha técnica" 2373:9996. Same content as the web detail.
-export default function VehicleDetailScreen({ rawId }: Readonly<{ rawId: string | undefined }>) {
+export default function VehicleDetailScreen({ rawId, fromFavorites = false }: Readonly<{
+  rawId: string | undefined; fromFavorites?: boolean
+}>) {
   // The key restarts the whole screen when the route points to another vehicle.
-  return <Detail key={rawId} id={parseVehicleId(rawId)} />
+  return <Detail key={rawId} id={parseVehicleId(rawId)} fromFavorites={fromFavorites} />
 }
 
 // "Automática · Nafta · 62.000 km · CABA": unreported facts are left out of the line (they show in the sections).
@@ -39,7 +42,7 @@ function subtitle(vehicle: VehicleDetailResponse['vehicle']): string {
     .join(' · ')
 }
 
-function Detail({ id }: Readonly<{ id: number | null }>) {
+function Detail({ id, fromFavorites }: Readonly<{ id: number | null; fromFavorites: boolean }>) {
   const { authFetch } = useAuth()
   const { ids, toggle, notice } = useComparisonSelection()
   const router = useRouter()
@@ -67,14 +70,14 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
     setView({ status: 'loading' })
     setAttempt((value) => value + 1)
   }, [])
-  // The sheet is opened from the recommendations. Explicit target: the tabs navigator's back goes to its first tab.
-  const goBack = () => router.navigate('/recomendados')
+  // Hidden tabs need an explicit return destination instead of the navigator's first tab.
+  const goBack = () => router.navigate(fromFavorites ? '/favoritos' : '/recomendados')
   const data = view.status === 'ready' ? view.response : null
   const title = data ? vehicleTitle(data.vehicle) : ''
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <BackChip label={BACK_LABEL} onPress={goBack} />
+      <BackChip label={fromFavorites ? 'Volver a favoritos' : BACK_LABEL} onPress={goBack} />
 
       {view.status === 'loading' ? (
         <View style={styles.section}>
@@ -86,7 +89,8 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
           <Text accessibilityRole="header" style={styles.unavailableTitle}>
             Esta publicación ya no está disponible.
           </Text>
-          <Text style={styles.muted}>Volvé a tus recomendaciones para elegir otro vehículo.</Text>
+          <Text style={styles.muted}>{fromFavorites ? 'Volvé a tus favoritos para elegir otro vehículo.'
+            : 'Volvé a tus recomendaciones para elegir otro vehículo.'}</Text>
         </View>
       ) : null}
       {view.status === 'error' ? (
@@ -107,11 +111,14 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
           </View>
           <VehicleGallery photos={data.vehicle.fotos} title={title} />
           <View style={styles.summary}>
-            <Text style={styles.price}>
-              {data.vehicle.precio === null || data.vehicle.moneda === null
-                ? 'Precio no disponible.'
-                : formatPrice(data.vehicle.precio, data.vehicle.moneda)}
-            </Text>
+            <View style={styles.summaryHeading}>
+              <Text style={styles.price}>
+                {data.vehicle.precio === null || data.vehicle.moneda === null
+                  ? 'Precio no disponible.'
+                  : formatPrice(data.vehicle.precio, data.vehicle.moneda)}
+              </Text>
+              <FavoriteButton vehicleId={data.vehicle.id} vehicleName={title} isFavorite={data.is_favorite} />
+            </View>
             <Text style={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</Text>
             <Button label="CHECKLIST DE INSPECCIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/inspeccion`)} />
             <Button label="CALCULAR COSTOS" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/costos`)} />
@@ -153,5 +160,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...shadows.card,
   },
-  price: { color: colors.textPrimary, fontSize: 24, fontWeight: '700' },
+  summaryHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  price: { flex: 1, color: colors.textPrimary, fontSize: 24, fontWeight: '700' },
 })
