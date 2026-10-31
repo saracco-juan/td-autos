@@ -12,6 +12,7 @@ import { formatPrice } from '@shared/recommendations/format'
 import { UNKNOWN_FACT, specificationGroups } from '@shared/vehicles/detail'
 import { useAuth } from '../auth/useAuth'
 import { useComparisonSelection } from '../comparison/ComparisonSelection'
+import FavoriteButton from '../favorites/FavoriteButton'
 import Alert from '../../components/Alert'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { fetchVehicleDetail } from './api'
@@ -107,11 +108,14 @@ function Detail({ id }: Readonly<{ id: number | null }>) {
           </View>
           <VehicleGallery photos={data.vehicle.fotos} title={title} />
           <View style={styles.summary}>
-            <Text style={styles.price}>
-              {data.vehicle.precio === null || data.vehicle.moneda === null
-                ? 'Precio no disponible.'
-                : formatPrice(data.vehicle.precio, data.vehicle.moneda)}
-            </Text>
+            <View style={styles.summaryHeading}>
+              <Text style={styles.price}>
+                {data.vehicle.precio === null || data.vehicle.moneda === null
+                  ? 'Precio no disponible.'
+                  : formatPrice(data.vehicle.precio, data.vehicle.moneda)}
+              </Text>
+              <FavoriteButton vehicleId={data.vehicle.id} vehicleName={title} isFavorite={data.is_favorite} />
+            </View>
             <Text style={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</Text>
             <Button label="CHECKLIST DE INSPECCIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/inspeccion`)} />
             <Button label="CALCULAR COSTOS" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/costos`)} />
@@ -153,5 +157,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...shadows.card,
   },
-  price: { color: colors.textPrimary, fontSize: 24, fontWeight: '700' },
+  summaryHeading: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  price: { flex: 1, color: colors.textPrimary, fontSize: 24, fontWeight: '700' },
 })
