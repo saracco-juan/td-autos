@@ -93,3 +93,23 @@ it.each([true, false])('keeps both hearts consistent across navigation while sav
   await fireEvent.press(screen.getByRole('link', { name: 'Volver a recomendados' }))
   expect(await screen.findByRole('button', { name: success ? /Quitar .* de favoritos/ : /Guardar .* en favoritos/ })).toBeEnabled()
 })
+
+it('restores a rejected removal and permits one retry without duplicate requests', async () => {
+  let fail!: (error: Error) => void
+  request.mockReturnValueOnce(new Promise<void>((_, reject) => { fail = reject }))
+  jest.mocked(detailApi).fetchVehicleDetail.mockResolvedValue({ vehicle,
+    dealer: { id: 3, nombre: 'Autos Sur', provincia: null }, is_favorite: true })
+  await renderApp('/vehiculos/7')
+  await fireEvent.press(await screen.findByRole('button', { name: removeLabel }))
+  const unsaved = screen.getByRole('button', { name: saveLabel })
+  expect(unsaved).toBeDisabled()
+  await fireEvent.press(unsaved)
+  expect(request).toHaveBeenCalledTimes(1)
+  expect(request).toHaveBeenCalledWith('/api/favoritos/7', { method: 'DELETE', token: 'tok' })
+  await act(async () => fail(new Error('offline')))
+  expect(await screen.findByText('No se pudo actualizar el favorito. Intentá de nuevo.')).toBeOnTheScreen()
+  const restored = screen.getByRole('button', { name: removeLabel })
+  expect(restored).toBeSelected()
+  await fireEvent.press(restored)
+  await waitFor(() => expect(request).toHaveBeenCalledTimes(2))
+})

@@ -82,3 +82,54 @@ it('waits for an ongoing save before reading favorites after navigation', async 
   await act(async () => finish())
   expect(await screen.findByRole('header', { name: 'Toyota Corolla XEI 2021' })).toBeOnTheScreen()
 })
+
+it('an earlier response cannot overwrite a newer visit', async () => {
+  let oldResolve!: (value: FavoritesResponse) => void
+  let newResolve!: (value: FavoritesResponse) => void
+  let count = 0
+  request.mockImplementation((path) => {
+    if (!path.startsWith('/api/favoritos?')) return Promise.resolve(response())
+    count += 1
+    return new Promise<FavoritesResponse>((resolve) => {
+      if (count === 1) oldResolve = resolve
+      else newResolve = resolve
+    })
+  })
+  const view = await renderApp('/favoritos')
+  expect(await screen.findByLabelText('Cargando')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'VER RECOMENDADOS' }))
+  expect(view.getPathname()).toBe('/recomendados')
+  await fireEvent.press(screen.getByRole('button', { name: /^Favoritos,/ }))
+  expect(view.getPathname()).toBe('/favoritos')
+  expect(count).toBe(2)
+  await act(async () => newResolve(response([])))
+  expect(await screen.findByText('Todavía no guardaste vehículos')).toBeOnTheScreen()
+  await act(async () => oldResolve(response([saved])))
+  expect(screen.getByText('Todavía no guardaste vehículos')).toBeOnTheScreen()
+  expect(screen.queryByRole('header', { name: 'Toyota Corolla XEI 2021' })).not.toBeOnTheScreen()
+})
+
+it('optional ranking failure leaves persisted favorites usable', async () => {
+  jest.mocked(matchingApi).fetchRecommendations.mockRejectedValue(new Error('ranking unavailable'))
+  await renderApp('/favoritos')
+  expect(await screen.findByRole('header', { name: 'Toyota Corolla XEI 2021' })).toBeOnTheScreen()
+  expect(screen.getByText('Compatibilidad no disponible')).toBeOnTheScreen()
+  expect(screen.getByRole('button', { name: 'VER FICHA' })).toBeOnTheScreen()
+  expect(screen.queryByRole('alert')).not.toBeOnTheScreen()
+})
+
+it('failed pending save settles before favorites reads persisted empty list', async () => {
+  let failSave!: (error: Error) => void
+  request.mockImplementation((path) => path.endsWith('/7')
+    ? new Promise<void>((_, reject) => { failSave = reject })
+    : Promise.resolve(response([])))
+  jest.mocked(matchingApi).fetchRecommendations.mockResolvedValue(ready([recommendation(7)]))
+  await renderApp('/recomendados')
+  await fireEvent.press(await screen.findByRole('button', { name: /Guardar .* en favoritos/ }))
+  await fireEvent.press(screen.getByRole('button', { name: /^Favoritos,/ }))
+  expect(request).not.toHaveBeenCalledWith('/api/favoritos?page=1&per_page=6', { token: 'tok' })
+  expect(screen.getByLabelText('Cargando')).toBeOnTheScreen()
+  await act(async () => failSave(new Error('offline')))
+  expect(await screen.findByText('Todavía no guardaste vehículos')).toBeOnTheScreen()
+  expect(request).toHaveBeenCalledWith('/api/favoritos?page=1&per_page=6', { token: 'tok' })
+})
