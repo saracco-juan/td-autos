@@ -27,9 +27,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Approved addition to High v3 web detail `2373:7348`: CONTACTAR POR WHATSAPP
   immediately below the dealership name, using the existing success button.
   An unconfigured destination shows WhatsApp no disponible. Errors stay inline.
-- The contact decision applies to web and mobile; native mobile implementation
-  is pending outside this web story. Figma synchronization for the detail
-  is pending final approval; no Figma files were changed.
+- Mobile HU25 follows High v3 `2373:9996` and its Save button `2373:6927`:
+  the same action appears below the dealership name, 40px high, with the green
+  label and light green border. It opens only the WhatsApp app; opening failures
+  stay inline and preserve the recorded contact for retry. Leads share the web
+  dealership metrics. The existing Figma CTA needs no layout change.
 
 ## HU25 dealership contact settings (2026-10-29)
 

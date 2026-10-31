@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { colors, radii, shadows } from '../theme/tokens'
 
-type Variant = 'primary' | 'secondary' | 'danger'
+type Variant = 'primary' | 'secondary' | 'danger' | 'success'
 
 type Props = {
   label: string
@@ -20,6 +20,7 @@ const BORDER: Record<Variant, string> = {
   primary: colors.borderInput,
   secondary: colors.borderDefault,
   danger: colors.errorBorder,
+  success: colors.successBorder,
 }
 
 // Soft look for every variant (docs/design.md "Buttons"): white surface, thin border, soft shadow, dark label.
@@ -49,6 +50,7 @@ export default function Button({
             styles.label,
             variant !== 'secondary' && styles.strong,
             variant === 'danger' && { color: colors.actionDanger },
+            variant === 'success' && { color: colors.actionSuccess },
           ]}
         >
           {busy ? (busyLabel ?? label) : label}

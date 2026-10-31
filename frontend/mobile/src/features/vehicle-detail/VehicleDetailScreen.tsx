@@ -18,6 +18,7 @@ import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { fetchVehicleDetail } from './api'
 import type { VehicleDetailResponse } from './types'
 import VehicleGallery from './VehicleGallery'
+import VehicleContact from './VehicleContact'
 import VehicleSpecifications from './VehicleSpecifications'
 
 type DetailState = { status: 'loading' | 'unavailable' } | { status: 'error'; kind: LoadErrorKind } | { status: 'ready'; response: VehicleDetailResponse }
@@ -120,6 +121,7 @@ function Detail({ id, fromFavorites }: Readonly<{ id: number | null; fromFavorit
               <FavoriteButton vehicleId={data.vehicle.id} vehicleName={title} isFavorite={data.is_favorite} />
             </View>
             <Text style={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</Text>
+            <VehicleContact vehicleId={data.vehicle.id} available={data.whatsapp_available === true} />
             <Button label="CHECKLIST DE INSPECCIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/inspeccion`)} />
             <Button label="CALCULAR COSTOS" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/costos`)} />
             <Button label="VER DEPRECIACIÓN" onPress={() => router.push(`/vehiculos/${data.vehicle.id}/depreciacion`)} />

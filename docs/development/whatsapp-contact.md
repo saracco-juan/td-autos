@@ -38,6 +38,26 @@ The web button navigates in the same tab after persistence, so popup blocking
 cannot prevent the handoff. WhatsApp supplies the final editable message; only
 the user sends it. No delivery callback or automatic retry is needed.
 
+## Mobile contact (HU25-MOBILE)
+
+The vehicle sheet uses the same authenticated contact endpoint and database as
+the web. Its leads appear in the dealership's web Métricas, even if the buyer
+closes WhatsApp without sending (TC-66). The mobile requirement sheet calls
+these rules RF18/RF19; the Trello card uses the web RF29/RF30 identifiers.
+
+The full-width green outlined CONTACTAR POR WHATSAPP action follows High v3
+`2373:9996`, below the dealership name. It opens `whatsapp://send` using the
+server's recipient and message (TC-65), with no browser fallback. An opening
+failure shows an inline installation/retry notice and retains the committed
+contact for reopening without a second lead. Uncertain API failures reuse the
+same attempt UUID. Missing public phones show WhatsApp no disponible.
+
+Manual mobile check: start the backend and Expo as in `getting-started.md`.
+Open a dealership vehicle from recommendations or favorites, tap contact, and
+check the WhatsApp recipient/message. Close without sending and refresh that
+dealership's web Métricas: its contact count must increase. Without WhatsApp,
+the sheet must show an inline notice and never open a browser.
+
 Manual check: start backend and web per `getting-started.md`, sign in as a
 dealership and open Verificación → EDITAR CONTACTO. Edit and save its public WhatsApp phone, then reload
 to check persistence. As buyer, open a vehicle belonging to that dealership and
