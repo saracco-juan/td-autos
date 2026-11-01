@@ -38,6 +38,38 @@ The web button navigates in the same tab after persistence, so popup blocking
 cannot prevent the handoff. WhatsApp supplies the final editable message; only
 the user sends it. No delivery callback or automatic retry is needed.
 
+## Mobile contact (HU25-MOBILE)
+
+The vehicle sheet uses the same authenticated contact endpoint and database as
+the web. Its leads appear in the dealership's web Métricas, even if the buyer
+closes WhatsApp without sending (TC-66). The mobile requirement sheet calls
+these rules RF18/RF19; the Trello card uses the web RF29/RF30 identifiers.
+
+The full-width green outlined CONTACTAR POR WHATSAPP action follows High v3
+`2373:9996`, below the dealership name. It opens `whatsapp://send` using the
+server's recipient and message (TC-65), with no browser fallback. An opening
+failure shows an inline installation/retry notice and retains the committed
+contact for reopening without a second lead. Uncertain API failures reuse the
+same attempt UUID. Missing public phones show WhatsApp no disponible.
+
+Pending attempt UUIDs are saved with the existing SecureStore dependency before
+the POST, separately for each buyer and vehicle. Closing the app therefore
+preserves the retry identifier; reopening and contacting again uses the backend's
+existing deduplication. Only the UUID is stored, never the phone or message.
+Read/write failures stop the POST. A successful WhatsApp opening clears the saved
+attempt; if cleanup fails, it remains available for a safe retry. A later new
+contact after successful cleanup gets a new UUID and counts as a new request.
+
+Manual mobile check: start the backend and Expo as in `getting-started.md`.
+Open a dealership vehicle from recommendations or favorites, tap contact, and
+check the WhatsApp recipient/message. Close without sending and refresh that
+dealership's web Métricas: its contact count must increase. Without WhatsApp,
+the sheet must show an inline notice and never open a browser.
+To check restart recovery, interrupt a contact after the server saves it but
+before the response arrives, close TD Autos, reopen the same vehicle as the same
+buyer, and tap contact again: WhatsApp must open and web Métricas must count one
+lead for that attempt. An additional contact after successful opening counts anew.
+
 Manual check: start backend and web per `getting-started.md`, sign in as a
 dealership and open Verificación → EDITAR CONTACTO. Edit and save its public WhatsApp phone, then reload
 to check persistence. As buyer, open a vehicle belonging to that dealership and

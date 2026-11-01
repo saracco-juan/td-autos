@@ -9,6 +9,7 @@ export const colors = {
   textSecondary: '#666666',
   onColor: '#ffffff',
   actionDanger: '#da291c',
+  actionSuccess: '#17803a',
   borderDefault: '#e4dcd7',
   borderInput: '#c8c8c8',
   success: '#1e7f45',

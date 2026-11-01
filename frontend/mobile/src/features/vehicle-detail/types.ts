@@ -6,6 +6,7 @@ export type BuyerVehicle = DetailVehicle & EquipmentFacts
 
 export type VehicleDetailResponse = {
   is_favorite?: boolean
+  whatsapp_available?: boolean
   vehicle: BuyerVehicle
   dealer: { id: number; nombre: string; provincia: string | null }
 }
