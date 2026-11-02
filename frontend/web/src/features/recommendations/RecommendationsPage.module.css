@@ -72,10 +72,25 @@
 
 .comparison button,
 .adjust {
-  min-height: 44px;
-  border-radius: 999px;
+  height: 36px;
+  min-height: 36px;
+  border-radius: 10px;
   box-shadow: none;
   font-size: 12px;
+}
+
+.comparison > section > div {
+  justify-content: flex-end;
+  min-height: 36px;
+}
+
+.comparison [role='alert'] {
+  max-width: 360px;
+  margin: 8px 0 0;
+}
+
+@media (pointer: coarse) {
+  .comparison button, .adjust { min-height: 44px; }
 }
 
 .comparison button:last-child {
