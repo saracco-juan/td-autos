@@ -107,17 +107,22 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   red accents; that refinement remains pending on the header branch.
 - Recommendations override the internal-scroll rules below: both source tabs use
   document scrolling, with natural-height cards and pagination after the grid.
-  Keep the 1200 px column, nine dealership results per page and 3/2/1 columns.
+  Use a catalog column up to 1600 px, nine dealership results per page and 3/2/1 columns.
   Preserve the approved photographic cards, existing actions and source notices.
 - Continue using CSS Modules and shared CSS variables; do not introduce Tailwind
   or a second styling system. Keep global CSS limited to base styles and tokens.
-- Catalog controls use 44 px targets, 14 px corners, charcoal selected page
+- Catalog controls use 44 px targets, fully rounded compact controls, charcoal selected page
   numbers and red primary actions. Source tabs retain the approved minimal text
   and underline treatment, without capsules or filled backgrounds.
   Filters expand above the grid, preserving card
   width; fields wrap to two columns and then one on smaller screens. Applied
   filters stay removable, and pagination includes its current/total page label.
   Shared tabs and pagination retain their existing appearance on other routes.
+- Filter disclosure opens and closes with a short interruptible CSS accordion
+  transition. Keyboard activation is immediate; reduced motion removes the layout
+  transition. Closed fields are inert and excluded from the accessibility tree.
+  Wider spacing separates sections and cards. The wide-screen portal note stays
+  inside the content column rather than occupying the old external margin.
 - These changes implement the user's approved references in the real frontend.
   Figma synchronization remains pending approval.
 

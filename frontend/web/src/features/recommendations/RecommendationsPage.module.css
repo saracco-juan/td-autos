@@ -1,12 +1,12 @@
-/* A centered column up to 1200 px keeps the header, controls, cards and pager aligned. */
+/* A broad catalog column keeps controls and cards aligned on large displays. */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1600px;
   margin-inline: auto;
-  padding-top: 24px;
+  padding-top: 40px;
 }
 
 .tabPanel {
@@ -42,7 +42,7 @@
   min-width: 44px;
   height: 44px;
   border: 1px solid var(--border-default);
-  border-radius: 14px;
+  border-radius: 999px;
   background: var(--surface-default);
   font-size: 14px;
 }
@@ -62,7 +62,7 @@
 .dealersLayout {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 
 .comparison {
@@ -73,7 +73,7 @@
 .comparison button,
 .adjust {
   min-height: 44px;
-  border-radius: 14px;
+  border-radius: 999px;
   box-shadow: none;
   font-size: 12px;
 }
@@ -169,7 +169,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
-  gap: 24px;
+  gap: 32px;
   margin: 0;
   padding: 2px 4px 10px;
   list-style: none;

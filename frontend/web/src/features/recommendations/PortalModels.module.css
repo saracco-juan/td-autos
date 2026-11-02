@@ -1,5 +1,5 @@
 /* The "Otros portales" panel: a natural-flow grid (same 3 / 2 / 1 columns and width as the dealers cards) and the source.
-   The models-not-units message never takes width from the grid: it sits in the empty left margin of the page on wide
+   The models-not-units message never takes width from the grid: it sits above the cards on wide
    screens (PortalModelsPanel) and in an info button on the tabs row otherwise (PortalModelsInfoTip). The card itself is the dealers card (VehicleCard.module.css). */
 .panel {
   display: flex;
@@ -8,28 +8,25 @@
   min-width: 0;
 }
 
-/* Loaded: this box is the 1200 px column, the anchor of the wide-screen message. */
+/* The notice and grid share the broader catalog column. */
 .layout {
-  position: relative;
   display: flex;
   flex-direction: column;
+  gap: 24px;
   min-width: 0;
 }
 
-/* Rendered only on wide screens (PORTAL_MESSAGE_WIDE_QUERY, 1800 px): the column is 1200 px and centered, so the free
-   margin at each side is (viewport - 1200) / 2. The message needs its 260 px plus a 16 px gap = 276 px, i.e. a 1752 px
-   viewport; 1800 px leaves room for the scrollbar and some air. Out of the flow, so the grid keeps exactly the dealers
-   width; aligned with the top of the grid (the first thing of the box). */
+/* Wide screens show the note inline; smaller screens retain the existing info control. */
 .aside {
-  position: absolute;
-  top: 0;
-  right: calc(100% + 16px);
-  width: 260px;
+  max-width: 75ch;
 }
 
 .message {
   margin: 0;
-  padding: 10px 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
