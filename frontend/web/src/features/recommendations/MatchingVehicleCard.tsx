@@ -13,7 +13,7 @@ import type { Recommendation } from './matching'
 import PhotoPlaceholder from './PhotoPlaceholder'
 import styles from './VehicleCard.module.css'
 
-// High v3 Card/Vehicle (2373:7340); computation and eligibility stay in the backend.
+// Photo-led redesign of High v3 Card/Vehicle (2373:7340); matching stays in the backend.
 export default function MatchingVehicleCard({ result, comparison }: {
   result: Recommendation; comparison?: { selected: boolean; toggle: () => void }
 }) {
@@ -25,35 +25,41 @@ export default function MatchingVehicleCard({ result, comparison }: {
 
   return (
     <li className={styles.card} aria-labelledby={titleId}>
-      <p id={titleId} className={styles.title}>{title}</p>
-      <p className={styles.meta}>{formatKilometers(vehicle.kilometraje)} · {vehicle.ubicacion}</p>
-      <div className={styles.imageWrapper}>
-        {vehicle.image_url && !photoFailed ? (
-          <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image}
-            onError={() => setPhotoFailed(true)} />
-        ) : (
-          <PhotoPlaceholder />
-        )}
-        <div className={styles.favorite}><FavoriteButton vehicleId={result.listing_id}
-          vehicleName={title} isFavorite={result.is_favorite ?? false} /></div>
-      </div>
-      <strong>{compatibilityLabel(result)}</strong>
-      <p className={styles.meta}>Publicado: {formatPrice(result.published_price, result.published_currency)}</p>
-      <p className={styles.meta}>{equivalentPriceLabel(result)}</p>
-      <span className={styles.source}>{dealer.nombre} · {dealer.provincia}</span>
-      <div className={styles.actions} role="group" aria-label={`Acciones de ${title}`}>
-        {comparison ? <button type="button" className={buttonStyles.button} aria-pressed={comparison.selected}
-          aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
-          {comparison.selected ? 'QUITAR' : 'COMPARAR'}
-        </button> : null}
-        <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${buttonStyles.primary}`}
-          state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
-            factors: components, returnTo: `${location.pathname}${location.search}` } }}>
-          VER FICHA
-        </Link>
+      <div className={styles.surface}>
+        <div className={styles.imageWrapper}>
+          {vehicle.image_url && !photoFailed ? (
+            <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image}
+              onError={() => setPhotoFailed(true)} />
+          ) : (
+            <PhotoPlaceholder className={styles.placeholder} />
+          )}
+        </div>
+        <div className={styles.topline}>
+          <strong className={styles.compatibility}>{compatibilityLabel(result)}</strong>
+          <div className={styles.favorite}><FavoriteButton vehicleId={result.listing_id}
+            vehicleName={title} isFavorite={result.is_favorite ?? false} /></div>
+        </div>
+        <div className={styles.content}>
+          <p id={titleId} className={styles.title}>{title}</p>
+          <p className={styles.meta}>{formatKilometers(vehicle.kilometraje)} · {vehicle.ubicacion}</p>
+          <p className={styles.price}>Publicado: {formatPrice(result.published_price, result.published_currency)}</p>
+          <p className={styles.meta}>{equivalentPriceLabel(result)}</p>
+          <p className={styles.source}>{dealer.nombre} · {dealer.provincia}</p>
+          <div className={styles.actions} role="group" aria-label={`Acciones de ${title}`}>
+            {comparison ? <button type="button" className={`${buttonStyles.button} ${styles.compare}`} aria-pressed={comparison.selected}
+              aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
+              {comparison.selected ? 'QUITAR' : 'COMPARAR'}
+            </button> : null}
+            <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${styles.detail}`}
+              state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
+                factors: components, returnTo: `${location.pathname}${location.search}` } }}>
+              VER FICHA
+            </Link>
+          </div>
+        </div>
       </div>
       {warningMessages(result).map((message) => <p key={message} className={alertStyles.warning}>{message}</p>)}
-      <details className={styles.meta}>
+      <details className={styles.explanation}>
         <summary>Ver atributos y motivos</summary>
         <p>{componentsSummary(result)}</p>
         {result.resale ? <p>Reventa: actividad DNRPA {result.resale.window_start ?? 'no disponible'} a {result.resale.window_end ?? 'no disponible'} ({result.resale.activity_score === null ? 'sin puntaje' : displayScore(result.resale.activity_score)}); puntaje de retención ACARA al {result.resale.source_date ?? 'no disponible'} ({result.resale.retention_score === null ? 'sin puntaje' : displayScore(result.resale.retention_score)}). Cada factor pesa 50% de la prioridad. Son referencias por antigüedad, no precios futuros garantizados.</p> : null}

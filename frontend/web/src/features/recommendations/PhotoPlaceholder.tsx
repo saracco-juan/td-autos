@@ -1,6 +1,6 @@
 import styles from './VehicleCard.module.css'
 
-// Neutral block shown where a photo is missing or failed to load; takes the 16:10 box of the photo.
+// Neutral block shown where a card photo is missing or failed to load.
 export default function PhotoPlaceholder({ className }: { className?: string }) {
   return (
     <div className={[styles.image, styles.placeholder, className].filter(Boolean).join(' ')}>

@@ -120,6 +120,23 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Recommendations show a 3 x 3 page (9 cards, fixed) in a centered column up to 1200 px. Moving between pages keeps the count ("Mostrando N vehículos") and the pager in place; only the cards are replaced by the loader. Cards are as tall as their content, with a 16:10 image; what does not fit scrolls inside the list box. Tablets show two columns, phones one card per row. (Decided 2026-10-16 over stretching two rows to fill the screen.)
 - Scroll containers keep their rounded box: the frame clips, the inner region scrolls, slim inset scrollbar in the border color.
 
+## Web recommendation cards redesign (2026-11-02)
+
+- The approved photo-card direction applies to both Concesionarias and Otros
+  portales: edge-to-edge photography, 28 px corners, a charcoal lower fade,
+  existing Inter typography, and TD Autos red for the main action. A shared
+  card stylesheet keeps the two sources consistent without changing other buttons.
+- Keep actual publication currencies, reference-price labels, compatibility,
+  warnings, favorites, comparison, explanations, and missing-photo feedback.
+  Dealer cards open VER FICHA; portal cards retain their named external links
+  (VER EN MERCADO LIBRE / VER EN KAVAK), including the new-tab announcement.
+- The list layout, filtering and pagination remain unchanged. No new photo
+  carousel is included. Mobile app redesign is pending; the web layout still
+  supports desktop, tablet and phone widths.
+- Figma update pending review: High v3 Card/Vehicle `2373:7340` on `2373:7641`
+  shows the previous inset 16:10 photo. The approved direction supersedes that
+  card treatment only; its business states remain applicable.
+
 ## Buttons
 
 - The actions of a flow screen share one row in the pinned bottom bar; they stack only on phones.

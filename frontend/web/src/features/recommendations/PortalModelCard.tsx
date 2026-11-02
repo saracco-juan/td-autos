@@ -18,7 +18,7 @@ function CheckIcon() {
   )
 }
 
-// Mirrors MatchingVehicleCard (same classes, same order); the listings stay in the portals.
+// Shares the photo treatment with dealership cards; the listings stay in the portals.
 export default function PortalModelCard({ model }: { model: PortalModel }) {
   const titleId = useId()
   const filtersId = useId()
@@ -26,35 +26,41 @@ export default function PortalModelCard({ model }: { model: PortalModel }) {
   const title = portalModelTitle(model)
   return (
     <li className={cardStyles.card} aria-labelledby={titleId}>
-      <div className={styles.titleRow}>
-        <p id={titleId} className={cardStyles.title}>{title}</p>
-        <InfoTip label={portalInfoLabel(model)}>
-          <strong className={styles.heading}>{PORTAL_REASONS_HEADING}</strong>
-          <ul className={styles.reasons} aria-label="Motivos">
-            {model.motivos.map((reason) => <li key={reason}><CheckIcon />{reason}</li>)}
-          </ul>
-          <strong id={filtersId} className={styles.heading}>{PORTAL_FILTERS_HEADING}</strong>
-          <ul className={styles.chips} aria-labelledby={filtersId}>
-            {model.filtros.map((filter) => <li key={filter}>{filter}</li>)}
-          </ul>
-          <span className={styles.note}>{PORTAL_KAVAK_NOTE}</span>
-        </InfoTip>
-      </div>
-      <p className={cardStyles.meta}>{portalYearsLabel(model.anios)}</p>
-      {model.imagen_url && !photoFailed ? (
-        <img src={model.imagen_url} alt={title} loading="lazy" className={cardStyles.image}
-          onError={() => setPhotoFailed(true)} />
-      ) : <PhotoPlaceholder />}
-      <strong>{portalPriceRange(model.precio)}</strong>
-      <p className={cardStyles.meta}>{portalPriceYear(model.precio)}</p>
-      {model.carroceria ? <span className={cardStyles.source}>{model.carroceria}</span> : null}
-      <div className={cardStyles.actions} role="group" aria-label={`Acciones de ${title}`}>
-        {model.links.map((link) => (
-          <a key={link.portal} href={link.url} target="_blank" rel="noopener noreferrer"
-            className={`${buttonStyles.button} ${buttonStyles.secondary}`} aria-label={portalLinkName(link, model)}>
-            {portalButtonLabel(link)}
-          </a>
-        ))}
+      <div className={cardStyles.surface}>
+        <div className={cardStyles.imageWrapper}>
+          {model.imagen_url && !photoFailed ? (
+            <img src={model.imagen_url} alt={title} loading="lazy" className={cardStyles.image}
+              onError={() => setPhotoFailed(true)} />
+          ) : <PhotoPlaceholder />}
+        </div>
+        <div className={cardStyles.content}>
+          <div className={styles.titleRow}>
+            <p id={titleId} className={cardStyles.title}>{title}</p>
+            <InfoTip label={portalInfoLabel(model)}>
+              <strong className={styles.heading}>{PORTAL_REASONS_HEADING}</strong>
+              <ul className={styles.reasons} aria-label="Motivos">
+                {model.motivos.map((reason) => <li key={reason}><CheckIcon />{reason}</li>)}
+              </ul>
+              <strong id={filtersId} className={styles.heading}>{PORTAL_FILTERS_HEADING}</strong>
+              <ul className={styles.chips} aria-labelledby={filtersId}>
+                {model.filtros.map((filter) => <li key={filter}>{filter}</li>)}
+              </ul>
+              <span className={styles.note}>{PORTAL_KAVAK_NOTE}</span>
+            </InfoTip>
+          </div>
+          <p className={cardStyles.meta}>{portalYearsLabel(model.anios)}</p>
+          <p className={cardStyles.price}>{portalPriceRange(model.precio)}</p>
+          <p className={cardStyles.meta}>{portalPriceYear(model.precio)}</p>
+          {model.carroceria ? <p className={cardStyles.source}>{model.carroceria}</p> : null}
+          <div className={`${cardStyles.actions} ${cardStyles.portalActions}`} role="group" aria-label={`Acciones de ${title}`}>
+            {model.links.map((link) => (
+              <a key={link.portal} href={link.url} target="_blank" rel="noopener noreferrer"
+                className={`${buttonStyles.button} ${cardStyles.detail}`} aria-label={portalLinkName(link, model)}>
+                {portalButtonLabel(link)}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </li>
   )

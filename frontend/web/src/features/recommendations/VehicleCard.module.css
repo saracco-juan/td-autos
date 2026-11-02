@@ -1,92 +1,196 @@
-/* Figma "Card/Vehicle" (2044:233): white surface, 14 radius, 16 padding, 8 between its parts. */
 .card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+  position: relative;
   min-width: 0;
-  padding: 16px;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
-}
-
-.title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  color: var(--text-primary);
   overflow-wrap: anywhere;
 }
 
-.meta {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 12px;
-}
-
-/* Figma "Image" on the raised surface, 16:10 like a listing photo; a real photo fills it. */
-.image {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  box-sizing: border-box;
-  border: 1px solid var(--border-default);
-  object-fit: cover;
+/* One photo treatment for dealership listings and external portal models. */
+.surface {
+  position: relative;
+  border-radius: 28px;
+  background: var(--palette-charcoal);
+  color: var(--surface-default);
+  box-shadow: 0 12px 24px rgb(36 31 28 / 12%);
 }
 
 .imageWrapper {
-  position: relative;
-  width: 100%;
-}
-
-.favorite {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  inset: 0 0 auto;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 28px 28px 0 0;
 }
 
-.placeholder {
+.imageWrapper::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(180deg, transparent 45%, var(--palette-charcoal) 100%);
+  pointer-events: none;
+}
+
+.image,
+.imageWrapper .placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.imageWrapper .placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  padding-bottom: 24%;
   background: var(--surface-raised);
   color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.topline {
+  position: absolute;
+  inset: 16px 16px auto;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compatibility {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-default);
+  color: var(--palette-charcoal);
   font-size: 12px;
-  font-weight: 500;
+  line-height: 1.5;
+  font-weight: 600;
 }
 
-/* Where the listing comes from; same size as the Figma match line it replaces. */
+.favorite {
+  flex: 0 0 44px;
+}
+
+.favorite > button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.favorite > [role='alert'] {
+  position: absolute;
+  inset: 52px 0 auto;
+  font-size: 14px;
+}
+
+.content {
+  position: relative;
+  padding: 62% 20px 20px;
+}
+
+.portalActions {
+  flex-direction: column;
+}
+
+.actions.portalActions > a {
+  flex-basis: auto;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.meta,
 .source {
-  padding: 2px 10px;
-  background: var(--surface-raised);
-  border: 1px solid var(--border-default);
-  border-radius: 999px;
-  color: var(--text-secondary);
-  font-size: 11px;
+  margin: 0;
+  color: var(--surface-raised);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.card details {
-  max-width: 100%;
-  overflow-wrap: anywhere;
+.price {
+  margin: 20px 0 2px;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.source {
+  margin-top: 16px;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  width: 100%;
+  margin-top: 20px;
 }
 
 .actions > a,
 .actions > button {
-  flex: 1;
-  min-width: 0;
-  padding: 0 8px;
+  flex: 1 1 100px;
+  min-height: 46px;
+  height: auto;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow: none;
 }
 
-.card summary {
+.actions .compare {
+  border-color: var(--surface-raised);
+  background: transparent;
+  color: var(--surface-default);
+}
+
+.actions .detail {
+  border-color: transparent;
+  background: var(--palette-red);
+  color: var(--surface-default);
+}
+
+.actions .compare:hover:not(:disabled):not([aria-busy='true']) {
+  background: var(--surface-raised);
+  color: var(--palette-charcoal);
+}
+
+.actions .detail:hover:not(:disabled):not([aria-busy='true']) {
+  background: color-mix(in srgb, var(--palette-red), var(--palette-charcoal) 18%);
+}
+
+.card > p {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.explanation {
+  margin: 16px 4px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.explanation summary {
+  padding-block: 10px;
+  color: var(--text-primary);
   cursor: pointer;
   font-weight: 600;
+}
+
+.explanation p {
+  margin: 12px 0 0;
 }
