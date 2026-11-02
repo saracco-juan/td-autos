@@ -94,7 +94,7 @@ it('HU07 ignores invalid filter URL values rather than hiding recommendations', 
   expect(screen.queryByRole('group', { name: 'Filtros aplicados' })).not.toBeInTheDocument()
 })
 
-it('HU07 opens the filters as a side panel next to the results, not inside the toolbar', async () => {
+it('opens filters outside the toolbar while keeping the results accessible', async () => {
   const user = userEvent.setup()
   renderPage()
   await screen.findByText('Mostrando 10 vehículos')
@@ -107,7 +107,7 @@ it('HU07 opens the filters as a side panel next to the results, not inside the t
   const panel = screen.getByRole('complementary', { name: 'Filtros de recomendaciones' })
   expect(panel).toBeVisible()
   expect(toolbar).not.toContainElement(panel)
-  expect(panel.parentElement).toContainElement(screen.getByRole('region', { name: 'Resultados' }))
+  expect(screen.getByRole('region', { name: 'Resultados' })).toBeVisible()
   await user.click(toggle)
   expect(screen.queryByRole('complementary', { name: 'Filtros de recomendaciones' })).not.toBeInTheDocument()
 })

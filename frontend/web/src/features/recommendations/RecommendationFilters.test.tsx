@@ -10,6 +10,25 @@ function Harness({ changed = vi.fn() }) {
   return <RecommendationFilters value={value} onChange={(next) => { setValue(next); changed(next) }} />
 }
 
+it('excludes collapsed filters from accessibility while preserving an unapplied draft', async () => {
+  const user = userEvent.setup()
+  const changed = vi.fn()
+  render(<Harness changed={changed} />)
+  const toggle = screen.getByRole('button', { name: 'FILTROS' })
+  expect(screen.queryByRole('complementary', { name: 'Filtros de recomendaciones' })).not.toBeInTheDocument()
+  await user.click(toggle)
+  const panel = screen.getByRole('complementary', { name: 'Filtros de recomendaciones' })
+  expect(panel).not.toHaveAttribute('inert')
+  await user.type(screen.getByLabelText('Año desde'), '2020')
+  await user.click(toggle)
+  expect(panel).toHaveAttribute('inert')
+  expect(screen.queryByRole('complementary', { name: 'Filtros de recomendaciones' })).not.toBeInTheDocument()
+  await user.keyboard('{Enter}')
+  expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  expect(screen.getByLabelText('Año desde')).toHaveValue(2020)
+  expect(changed).not.toHaveBeenCalled()
+})
+
 it('HU07 keeps edits as drafts until APPLY and shows removable applied chips', async () => {
   const user = userEvent.setup()
   const changed = vi.fn()
