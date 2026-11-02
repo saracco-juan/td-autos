@@ -68,6 +68,11 @@
   flex: none;
 }
 
+.titleRow button {
+  width: 44px;
+  height: 44px;
+}
+
 /* The tooltip content: reasons, filter chips and the portals note. */
 .reasons,
 .chips {

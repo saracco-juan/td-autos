@@ -136,6 +136,9 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Figma update pending review: High v3 Card/Vehicle `2373:7340` on `2373:7641`
   shows the previous inset 16:10 photo. The approved direction supersedes that
   card treatment only; its business states remain applicable.
+- Card controls have visible keyboard focus, at least 44 px targets, and brief
+  pointer press feedback that respects reduced motion. Comparison keeps its
+  explicit QUITAR label and a filled selected state; no selection uses color alone.
 
 ## Buttons
 

@@ -185,6 +185,7 @@
 }
 
 .explanation summary {
+  min-height: 44px;
   padding-block: 10px;
   color: var(--text-primary);
   cursor: pointer;
@@ -193,4 +194,35 @@
 
 .explanation p {
   margin: 12px 0 0;
+}
+
+.card ::selection {
+  background: var(--palette-red);
+  color: var(--surface-default);
+}
+
+.card :is(a, button) {
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease;
+}
+
+.card :is(a, button, summary):focus-visible {
+  outline: 3px solid var(--surface-default);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--palette-charcoal);
+}
+
+.card :is(a, button):active:not(:focus-visible):not(:disabled) {
+  transform: scale(0.98);
+}
+
+.actions .compare[aria-pressed='true'] {
+  background: var(--surface-default);
+  color: var(--palette-charcoal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card :is(a, button) {
+    transition: none;
+    transform: none !important;
+  }
 }
