@@ -92,8 +92,8 @@ export default function AppShell() {
   }, [menuOpen])
 
   return (
-    <div className={`${styles.shell} ${isBuyer(user) ? styles.buyerShell : ''}`}>
-      <header className={`${styles.nav} ${isBuyer(user) ? styles.buyerNav : ''}`}>
+    <div className={styles.shell}>
+      <header className={styles.nav}>
         {/* The TD monogram reads as "TD", so the wordmark only adds "Autos"; the link keeps the full brand name. */}
         <Link to="/" className={styles.logo} aria-label="TD Autos">
           <LogoMark />
@@ -197,9 +197,7 @@ export default function AppShell() {
         ) : null}
         <Outlet />
       </main>
-      <footer className={`${styles.footer} ${isBuyer(user) ? styles.buyerFooter : ''}`}>
-        © 2026 TD Autos. Todos los derechos reservados.
-      </footer>
+      <footer className={styles.footer}>© 2026 TD Autos. Todos los derechos reservados.</footer>
     </div>
   )
 }

@@ -4,11 +4,6 @@
   min-height: 100svh;
 }
 
-.buyerShell {
-  --bg-base: var(--surface-default);
-  background: var(--bg-base);
-}
-
 /* Nav/Top (Guest, Buyer, Dealer, Admin): red bar pinned to the top with a soft shadow; logo mark and wordmark on the
    left, role links as pills beside it, the account group on the right. */
 .nav {
@@ -24,16 +19,6 @@
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 6px 16px rgba(120, 16, 0, 0.22);
 }
 
-/* Buyer header: three columns keep the navigation centered independently of the side groups. */
-.buyerNav {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  min-height: 76px;
-  padding-inline: max(clamp(16px, 3vw, 40px), calc((100% - 1200px) / 2));
-  background: var(--bg-base);
-  box-shadow: none;
-}
-
 .logo {
   display: inline-flex;
   align-items: center;
@@ -43,12 +28,6 @@
   font-weight: 800;
   letter-spacing: -0.01em;
   text-decoration: none;
-}
-
-.buyerNav .logo {
-  grid-column: 1;
-  justify-self: start;
-  color: var(--palette-red);
 }
 
 /* White rounded tile with the TD monogram in the brand red (the favicon, inverted). */
@@ -81,10 +60,6 @@
   display: none;
 }
 
-.buyerNav .menuPanel {
-  display: contents;
-}
-
 /* Role links, beside the logo. */
 .navLinks {
   display: flex;
@@ -93,27 +68,12 @@
   margin-left: 28px;
 }
 
-.buyerNav .navLinks {
-  grid-column: 2;
-  grid-row: 1;
-  justify-content: center;
-  gap: clamp(8px, 1.4vw, 24px);
-  margin-left: 0;
-}
-
 /* Right group: "Perfil" (buyer) or "Administración" (admin), the dealer's name, and "Cerrar sesión". */
 .navActions {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-left: auto;
-}
-
-.buyerNav .navActions {
-  grid-column: 3;
-  grid-row: 1;
-  justify-self: end;
-  margin-left: 0;
 }
 
 /* A link is a pill: soft white text, a translucent white fill on hover. */
@@ -143,50 +103,6 @@
   background: rgba(255, 255, 255, 0.22);
   color: var(--text-on-color);
   font-weight: 700;
-}
-
-.buyerNav .navAction {
-  position: relative;
-  padding: 21px 2px 19px;
-  border-radius: 0;
-  color: var(--palette-red);
-}
-
-.buyerNav .navAction:hover {
-  background: none;
-  color: var(--text-primary);
-}
-
-.buyerNav .navAction[aria-current='page'] {
-  background: none;
-  color: var(--palette-red);
-}
-
-.buyerNav .navLinks .navAction[aria-current='page']::after {
-  position: absolute;
-  right: 0;
-  bottom: 12px;
-  left: 0;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--palette-red);
-  content: '';
-}
-
-.buyerNav .logout {
-  border-color: var(--border-default);
-  color: var(--text-primary);
-}
-
-.buyerNav .logout:hover:not(:disabled) {
-  background: var(--surface-raised);
-}
-
-.buyerNav .logo:focus-visible,
-.buyerNav .navAction:focus-visible,
-.buyerNav .logout:focus-visible,
-.buyerNav .menuToggle:focus-visible {
-  outline-color: var(--palette-charcoal);
 }
 
 /* Dealer nav: the dealer's name as a chip, not interactive. */
@@ -261,86 +177,7 @@
   font-size: 11px;
 }
 
-.buyerFooter {
-  min-height: 88px;
-  margin-top: auto;
-  padding: 24px max(clamp(16px, 3vw, 40px), calc((100% - 1200px) / 2));
-  border-top: 1px solid var(--border-default);
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-/* Buyer links move into the menu before the centered desktop layout becomes crowded. */
-@media (max-width: 1040px) {
-  .buyerNav {
-    display: flex;
-  }
-
-  .buyerNav .menuToggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: auto;
-    padding: 7px 12px;
-    border: 1px solid var(--border-default);
-    border-radius: 999px;
-    background: none;
-    color: var(--text-primary);
-    font: 700 12px/1 var(--font-sans);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    cursor: pointer;
-  }
-
-  .buyerNav .menuPanel {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    left: 0;
-    z-index: 10;
-    display: none;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    padding: 8px clamp(16px, 3vw, 40px) 16px;
-    background: var(--bg-base);
-    box-shadow: 0 10px 16px rgba(36, 31, 28, 0.12);
-  }
-
-  .buyerNav .menuPanelOpen {
-    display: flex;
-  }
-
-  .buyerNav .navLinks,
-  .buyerNav .navActions {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-    grid-column: auto;
-    grid-row: auto;
-    margin-left: 0;
-  }
-
-  .buyerNav .navActions {
-    padding-top: 8px;
-    border-top: 1px solid var(--border-default);
-  }
-
-  .buyerNav .navAction {
-    padding: 12px 14px;
-    border-radius: 0;
-  }
-
-  .buyerNav .navLinks .navAction[aria-current='page']::after {
-    right: auto;
-    bottom: 8px;
-    left: 14px;
-    width: 24px;
-  }
-}
-
-/* Other roles keep their existing 800px breakpoint. */
+/* Phones and small tablets: the bar keeps logo + MENÚ in one row; links and logout drop down from it as full-width pills. */
 @media (max-width: 800px) {
   .menuToggle {
     display: inline-flex;

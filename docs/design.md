@@ -100,11 +100,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - The approved Carent reference supplies catalog distribution; Devialet supplies
   spacing and hierarchy. Oversized hero typography belongs to the future landing.
-- Buyer navigation uses a shared white page background, a centered group of red text links,
-  a red active underline, and account actions on the right. The sticky header has
-  quiet opaque surface without a dividing line or shadow, following the later
-  Flash reference. The footer follows the content on the same white ground.
-  Dealer, administrator and guest navigation retain their existing presentation.
+- Header and footer redesign belong to the separate local
+  `feature-rediseno-header` branch. Recommendations retain the existing shared
+  shell until that work is reviewed and integrated. The latest header direction
+  uses edge-aligned logo/account groups, centered neutral navigation and restrained
+  red accents; that refinement remains pending on the header branch.
 - Recommendations override the internal-scroll rules below: both source tabs use
   document scrolling, with natural-height cards and pagination after the grid.
   Keep the 1200 px column, nine dealership results per page and 3/2/1 columns.
