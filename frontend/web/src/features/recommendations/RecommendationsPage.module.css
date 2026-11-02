@@ -15,6 +15,50 @@
   min-height: auto;
 }
 
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-block: 20px;
+  border-top: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pager nav > div {
+  gap: 6px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pager nav ul { gap: 6px; }
+
+.pager nav button {
+  min-width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-default);
+  font-size: 14px;
+}
+
+.pager nav button[aria-current='page'] {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+  color: var(--text-on-color);
+}
+
+.pager nav button:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
 .dealersLayout {
   display: flex;
   flex-direction: column;
@@ -24,6 +68,32 @@
 .comparison {
   flex: none;
   max-width: 100%;
+}
+
+.comparison button,
+.adjust {
+  min-height: 44px;
+  border-radius: 14px;
+  box-shadow: none;
+  font-size: 12px;
+}
+
+.comparison button:last-child {
+  border-color: var(--palette-red);
+  background: var(--palette-red);
+  color: var(--text-on-action);
+}
+
+.comparison button:last-child:hover:not(:disabled):not([aria-busy='true']) {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+}
+
+.comparison button:focus-visible,
+.adjust:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
+  box-shadow: none;
 }
 
 /* Exchange-rate details stay secondary to the recommendations. */

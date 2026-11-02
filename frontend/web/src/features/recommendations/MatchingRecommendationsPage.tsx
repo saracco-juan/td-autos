@@ -7,7 +7,6 @@ import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/ma
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import ErrorState from '../../components/ErrorState'
-import ListFooter from '../../components/ListFooter'
 import Pagination from '../../components/Pagination'
 import Tabs from '../../components/Tabs'
 import SessionLoading from '../auth/session/SessionLoading'
@@ -89,9 +88,10 @@ export default function MatchingRecommendationsPage() {
             ))}
           </ul>
           {results.length > PER_PAGE ? (
-            <ListFooter>
+            <div className={styles.pager}>
+              <span>Página {page} de {Math.ceil(results.length / PER_PAGE)}</span>
               <Pagination page={page} lastPage={Math.ceil(results.length / PER_PAGE)} onChange={setPage} />
-            </ListFooter>
+            </div>
           ) : null}
         </>
       ) : null}

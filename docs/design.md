@@ -111,6 +111,13 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Preserve the approved photographic cards, existing actions and source notices.
 - Continue using CSS Modules and shared CSS variables; do not introduce Tailwind
   or a second styling system. Keep global CSS limited to base styles and tokens.
+- Catalog controls use 44 px targets, 14 px corners, charcoal selected page
+  numbers and red primary actions. Source tabs retain the approved minimal text
+  and underline treatment, without capsules or filled backgrounds.
+  Filters expand above the grid, preserving card
+  width; fields wrap to two columns and then one on smaller screens. Applied
+  filters stay removable, and pagination includes its current/total page label.
+  Shared tabs and pagination retain their existing appearance on other routes.
 - These changes implement the user's approved references in the real frontend.
   Figma synchronization remains pending approval.
 
