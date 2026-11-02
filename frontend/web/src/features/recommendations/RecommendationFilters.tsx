@@ -8,7 +8,7 @@ type Props = {
   onChange: (value: Filters) => void
   /** Rendered at the right of the toolbar (the comparison group). */
   actions?: ReactNode
-  /** The results; the side panel opens as a column next to them. */
+  /** The results follow the expandable filter form. */
   children?: ReactNode
 }
 const NUMERIC_FIELDS = [
@@ -28,7 +28,14 @@ export default function RecommendationFilters({ value, onChange, actions, childr
       <div className={styles.toolbar} role="toolbar" aria-label="Filtros y comparación">
         <div className={styles.controls}>
           <button ref={toggle} type="button" className={`${buttonStyles.button} ${styles.toggle}`}
-            aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(!open)}>FILTROS</button>
+            aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(!open)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M4 7h6m4 0h6M4 17h10m4 0h2" />
+              <circle cx="12" cy="7" r="2" /><circle cx="16" cy="17" r="2" />
+            </svg>
+            FILTROS
+            {chips.length > 0 ? <span className={styles.count} aria-hidden="true">{chips.length}</span> : null}
+          </button>
           {chips.length > 0 ? (
             <div role="group" aria-label="Filtros aplicados" className={styles.chips}>
               {chips.map(({ key, label }) => (
@@ -37,7 +44,7 @@ export default function RecommendationFilters({ value, onChange, actions, childr
                   {label} <span aria-hidden="true">×</span>
                 </button>
               ))}
-              <button className={buttonStyles.button} type="button" onClick={() => onChange({})}>LIMPIAR FILTROS</button>
+              <button className={`${buttonStyles.button} ${styles.clear}`} type="button" onClick={() => onChange({})}>LIMPIAR FILTROS</button>
             </div>
           ) : null}
         </div>

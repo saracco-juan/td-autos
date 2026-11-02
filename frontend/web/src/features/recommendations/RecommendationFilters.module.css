@@ -20,54 +20,85 @@
 
 .toggle {
   flex: none;
-  width: 96px;
+  width: auto;
+  min-height: 44px;
+  padding-inline: 18px;
+  border-radius: 14px;
+  box-shadow: none;
+  font-size: 12px;
 }
 
-/* Below the toolbar: the collapsible side panel as a left column next to the results. */
+.toggle[aria-expanded='true'] {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+  color: var(--text-on-color);
+}
+
+.toggle[aria-expanded='true']:hover:not(:disabled):not([aria-busy='true']) {
+  background: var(--text-primary);
+}
+
+.count {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--palette-red);
+  color: var(--text-on-color);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Filters expand above the grid without changing card widths. */
 .body {
   display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
 .panel {
   flex: none;
   box-sizing: border-box;
-  width: clamp(220px, 24vw, 312px);
+  width: 100%;
   min-height: 0;
-  overflow: auto;
-  scrollbar-width: thin;
+  padding: 24px;
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  background: var(--surface-default);
 }
 
 .form {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  align-items: end;
   gap: 16px;
-  padding: 4px 0 20px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 14px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .field input,
 .field select {
   width: 100%;
   min-width: 0;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 44px;
+  padding: 10px 12px;
   border: 1px solid var(--border-default);
-  border-radius: 10px;
-  background: var(--surface-default);
+  border-radius: 12px;
+  background: var(--bg-base);
   color: var(--text-primary);
   font: inherit;
 }
 
 .field input:focus-visible,
 .field select:focus-visible {
-  outline: 2px solid var(--border-input);
+  outline: 2px solid var(--palette-charcoal);
   outline-offset: 2px;
 }
 
@@ -81,13 +112,56 @@
 .chip {
   width: auto;
   height: auto;
-  min-height: 40px;
+  min-height: 44px;
   padding: 8px 12px;
+  border-radius: 14px;
+  box-shadow: none;
   text-align: left;
 }
 
+.clear {
+  width: auto;
+  min-height: 44px;
+  padding-inline: 8px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.form button[type='submit'] {
+  height: 44px;
+  border-radius: 14px;
+  border-color: var(--palette-red);
+  background: var(--palette-red);
+  color: var(--text-on-action);
+  box-shadow: none;
+  font-size: 12px;
+}
+
+.form button[type='submit']:hover:not(:disabled):not([aria-busy='true']) {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+}
+
+.toggle:focus-visible,
+.chip:focus-visible,
+.clear:focus-visible,
+.form button:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+@media (max-width: 1000px) {
+  .form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form button[type='submit'] { justify-self: end; width: auto; grid-column: 1 / -1; }
+}
+
 @media (max-width: 800px) {
-  /* Stacked mobile-width controls: the panel goes above the results with its own scroll. */
+  /* Controls wrap while the filter form stays in the document flow. */
   .toolbar,
   .controls {
     width: 100%;
@@ -99,7 +173,11 @@
   }
 
   .panel {
-    width: 100%;
-    max-height: 45dvh;
+    padding: 20px;
   }
+}
+
+@media (max-width: 480px) {
+  .form { grid-template-columns: minmax(0, 1fr); }
+  .form button[type='submit'] { width: 100%; }
 }
