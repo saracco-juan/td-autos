@@ -96,6 +96,24 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## Page layout
 
+### Buyer catalog redesign (2026-11-02)
+
+- The approved Carent reference supplies catalog distribution; Devialet supplies
+  spacing and hierarchy. Oversized hero typography belongs to the future landing.
+- Buyer navigation uses a shared white page background, a centered group of red text links,
+  a red active underline, and account actions on the right. The sticky header has
+  quiet opaque surface without a dividing line or shadow, following the later
+  Flash reference. The footer follows the content on the same white ground.
+  Dealer, administrator and guest navigation retain their existing presentation.
+- Recommendations override the internal-scroll rules below: both source tabs use
+  document scrolling, with natural-height cards and pagination after the grid.
+  Keep the 1200 px column, nine dealership results per page and 3/2/1 columns.
+  Preserve the approved photographic cards, existing actions and source notices.
+- Continue using CSS Modules and shared CSS variables; do not introduce Tailwind
+  or a second styling system. Keep global CSS limited to base styles and tokens.
+- These changes implement the user's approved references in the real frontend.
+  Figma synchronization remains pending approval.
+
 - Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text, the admin dashboard (1040 px), the buyer profile (760 px, the width of its form card), recommendations (1200 px) and the flows that do not need the width (diagnosis, inspection, transfer and dealer verification: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width.
 - Every screen fills the viewport height: header on top, footer at the bottom, content in between with no empty band under the actions.
 - On flow and form screens (diagnosis, transfer and inspection checklists, subscription, vehicle form, CSV import, dealer edit), the primary actions sit in a bar pinned to the bottom of the content area, never in the middle of the page. If the content is taller than the screen, the content scrolls and the action bar stays visible.

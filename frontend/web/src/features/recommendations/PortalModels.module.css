@@ -1,23 +1,19 @@
-/* The "Otros portales" panel: a scrolling grid (same 3 / 2 / 1 columns and width as the dealers cards) and the source.
+/* The "Otros portales" panel: a natural-flow grid (same 3 / 2 / 1 columns and width as the dealers cards) and the source.
    The models-not-units message never takes width from the grid: it sits in the empty left margin of the page on wide
    screens (PortalModelsPanel) and in an info button on the tabs row otherwise (PortalModelsInfoTip). The card itself is the dealers card (VehicleCard.module.css). */
 .panel {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
-  min-height: 0;
 }
 
 /* Loaded: this box is the 1200 px column, the anchor of the wide-screen message. */
 .layout {
   position: relative;
   display: flex;
-  flex: 1;
   flex-direction: column;
   min-width: 0;
-  min-height: 0;
 }
 
 /* Rendered only on wide screens (PORTAL_MESSAGE_WIDE_QUERY, 1800 px): the column is 1200 px and centered, so the free
@@ -39,15 +35,9 @@
 
 .results {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
-  min-height: 0;
-}
-
-.frame[data-fill] {
-  min-height: 0;
 }
 
 /* Cards of a row share their height. */

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { OTHER_PORTALS_TAB, portalCountLabel, portalTabLabel } from '@shared/portals/format'
 import { filterRecommendations } from '@shared/recommendations/filters'
@@ -9,8 +9,6 @@ import buttonStyles from '../../components/button.module.css'
 import ErrorState from '../../components/ErrorState'
 import ListFooter from '../../components/ListFooter'
 import Pagination from '../../components/Pagination'
-import ScrollArea from '../../components/ScrollArea'
-import screenStyles from '../../components/screen.module.css'
 import Tabs from '../../components/Tabs'
 import SessionLoading from '../auth/session/SessionLoading'
 import ComparisonControls from '../comparison/ComparisonControls'
@@ -34,11 +32,17 @@ export default function MatchingRecommendationsPage() {
   const { view, retry } = useApiView(fetchRecommendations)
   const portals = useApiView(fetchPortalModels)
   const [page, setPage] = useState(1)
+  const title = useRef<HTMLHeadingElement>(null)
+  const previousPage = useRef(page)
   const [chosenTab, setChosenTab] = useState<string | null>(null)
   // Whether the first dealers load came back empty; decided once, so the page never switches tabs on its own later.
   const [firstLoadEmpty, setFirstLoadEmpty] = useState<boolean | null>(null)
   const { filters, applyFilters } = useRecommendationFilters()
   const comparison = useComparisonSelection()
+  useEffect(() => {
+    if (previousPage.current !== page) title.current?.scrollIntoView?.({ block: 'start' })
+    previousPage.current = page
+  }, [page])
   if (firstLoadEmpty === null && view.status === 'ready') setFirstLoadEmpty(view.response.results.length === 0)
 
   const response = view.status === 'ready' ? view.response : null
@@ -77,15 +81,13 @@ export default function MatchingRecommendationsPage() {
       ) : null}
       {results.length > 0 ? (
         <>
-          <ScrollArea key={page} label="Recomendaciones" fill className={styles.filteredFrame} viewportClassName={styles.gridArea}>
-            <ul className={styles.grid} aria-label="Recomendaciones">
-              {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
-                <MatchingVehicleCard key={result.listing_id} result={result} comparison={{
-                  selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
-                }} />
-              ))}
-            </ul>
-          </ScrollArea>
+          <ul className={styles.grid} aria-label="Recomendaciones">
+            {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
+              <MatchingVehicleCard key={result.listing_id} result={result} comparison={{
+                selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
+              }} />
+            ))}
+          </ul>
           {results.length > PER_PAGE ? (
             <ListFooter>
               <Pagination page={page} lastPage={Math.ceil(results.length / PER_PAGE)} onChange={setPage} />
@@ -111,11 +113,10 @@ export default function MatchingRecommendationsPage() {
   )
 
   return (
-    <div className={`${styles.page} ${styles.filterPage}`}>
+    <div className={styles.page}>
       <div className={styles.headerRow}>
         <div className={styles.header}>
-          <p className={screenStyles.eyebrow}>AUTOS RECOMENDADOS</p>
-          <h1 className={styles.title}>Mejores opciones para vos</h1>
+          <h1 ref={title} className={styles.title}>Mejores opciones para vos</h1>
           {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
         </div>
         <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.adjust}`}>

@@ -133,7 +133,6 @@ it('HU06 opens the info tooltip with the keyboard focus and closes it with Escap
   const card = screen.getByRole('listitem', { name: 'Toyota Etios 1' })
   const tooltip = within(card).getByRole('tooltip', { hidden: true })
 
-  await userEvent.tab() // The scroll region comes first.
   await userEvent.tab()
   expect(within(card).getByRole('button', { name: 'Más información sobre Toyota Etios 1' })).toHaveFocus()
   expect(tooltip).toBeVisible()

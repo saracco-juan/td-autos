@@ -3,7 +3,6 @@ import { emptyStateCopy, exchangeRateNotice } from '@shared/recommendations/form
 import alertStyles from '../../components/alert.module.css'
 import ErrorState from '../../components/ErrorState'
 import InfoIcon from '../../components/InfoIcon'
-import ScrollArea from '../../components/ScrollArea'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import SessionLoading from '../auth/session/SessionLoading'
 import PortalModelCard from './PortalModelCard'
@@ -44,11 +43,9 @@ export default function PortalModelsPanel({ view, onRetry }: { view: PortalModel
         </aside>
       ) : null}
       <div className={styles.results}>
-        <ScrollArea fill label="Modelos recomendados" className={styles.frame} viewportClassName={pageStyles.gridArea}>
-          <ul className={`${pageStyles.grid} ${styles.grid}`} aria-label="Modelos en otros portales">
-            {response.modelos.map((model) => <PortalModelCard key={model.id} model={model} />)}
-          </ul>
-        </ScrollArea>
+        <ul className={`${pageStyles.grid} ${styles.grid}`} aria-label="Modelos en otros portales">
+          {response.modelos.map((model) => <PortalModelCard key={model.id} model={model} />)}
+        </ul>
         <div className={pageStyles.notice}>
           {response.fuente_precios ? <p>{portalSourceLabel(response.fuente_precios)}</p> : null}
           {notice.summary ? <p>{notice.summary}</p> : null}

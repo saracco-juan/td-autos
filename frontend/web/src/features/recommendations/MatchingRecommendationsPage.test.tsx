@@ -57,18 +57,32 @@ it('HU05 replaces search with saved-diagnosis matching and preserves API order',
 })
 
 it('paginates the backend top ten as nine plus one without sorting or requesting more', async () => {
+  const originalScrollIntoView = HTMLElement.prototype.scrollIntoView
+  const scrollIntoView = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView })
   mockDealers({ ...ready(), results: Array.from({ length: 10 }, (_, i) => result(10 - i)) })
-  renderPage()
-  expect(await screen.findByText('Mostrando 10 vehículos')).toBeInTheDocument()
-  const cards = () => within(screen.getByRole('list', { name: 'Recomendaciones' })).getAllByRole('listitem')
-  expect(cards()).toHaveLength(9)
-  expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 10 2021')
-  await userEvent.click(screen.getByRole('button', { name: 'Página siguiente' }))
-  expect(cards()).toHaveLength(1)
-  expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 1 2021')
-  expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
-  expect(screen.queryByText('Mostrar')).not.toBeInTheDocument()
-  expect(dealerCalls()).toBe(1)
+  try {
+    renderPage()
+    expect(await screen.findByText('Mostrando 10 vehículos')).toBeInTheDocument()
+    const cards = () => within(screen.getByRole('list', { name: 'Recomendaciones' })).getAllByRole('listitem')
+    expect(cards()).toHaveLength(9)
+    expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 10 2021')
+    const nextPage = screen.getByRole('button', { name: 'Página siguiente' })
+    await userEvent.click(nextPage)
+    expect(cards()).toHaveLength(1)
+    expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 1 2021')
+    expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
+    expect(screen.queryByText('Mostrar')).not.toBeInTheDocument()
+    expect(dealerCalls()).toBe(1)
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
+    expect(nextPage).toHaveFocus()
+  } finally {
+    if (originalScrollIntoView) {
+      Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: originalScrollIntoView })
+    } else {
+      delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView
+    }
+  }
 })
 
 it.each([
