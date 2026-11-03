@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { expect, it, vi } from 'vitest'
@@ -14,14 +14,14 @@ const vehicle = (id: number) => ({ id, marca: 'Toyota', modelo: `Auto ${id}`, ve
 const response = (ids: number[]) => ({ data: ids.map(vehicle),
   meta: { current_page: 1, per_page: 6, last_page: 1, total: ids.length } })
 function Destination() { return <p>{useLocation().search}</p> }
-function mount() {
-  render(<MemoryRouter initialEntries={['/favoritos']}><Routes>
+function mount(path = '/favoritos') {
+  render(<MemoryRouter initialEntries={[path]}><Routes>
     <Route path="/favoritos" element={<FavoritesPage />} />
     <Route path="/comparar" element={<Destination />} />
   </Routes></MemoryRouter>)
 }
 
-it('keeps the recommendations action in the header and compares exactly two saved vehicles', async () => {
+it('waits for the second selected card before automatically comparing saved vehicles', async () => {
   vi.mocked(listFavorites).mockResolvedValue(response([1, 2, 3]))
   mount()
   const user = userEvent.setup()
@@ -31,11 +31,29 @@ it('keeps the recommendations action in the header and compares exactly two save
   await user.click(screen.getByRole('button', { name: 'COMPARAR' }))
   expect(screen.getByRole('alert')).toHaveTextContent('Seleccioná exactamente dos vehículos')
   await user.click(screen.getByRole('button', { name: 'Comparar Toyota Auto 2 2021' }))
-  await user.click(screen.getByRole('button', { name: 'Comparar Toyota Auto 3 2021' }))
-  expect(screen.getByRole('alert')).toHaveTextContent('La comparación admite exactamente dos vehículos')
-  expect(screen.getByRole('button', { name: 'Comparar Toyota Auto 3 2021' })).toHaveAttribute('aria-pressed', 'false')
-  await user.click(screen.getByRole('button', { name: 'COMPARAR' }))
+  expect(screen.queryByText('?compare=1%2C2&source=favorites')).not.toBeInTheDocument()
+  fireEvent.transitionEnd(screen.getByRole('button', { name: 'Dejar de comparar Toyota Auto 2 2021' }).closest('[data-position]')!, { propertyName: 'transform' })
   expect(await screen.findByText('?compare=1%2C2&source=favorites')).toBeInTheDocument()
+})
+
+it('does not automatically reopen comparison when returning with two selected vehicles', async () => {
+  vi.mocked(listFavorites).mockResolvedValue(response([1, 2]))
+  mount('/favoritos?compare=1,2')
+  await screen.findByText('2/2 seleccionados')
+  await new Promise((resolve) => setTimeout(resolve, 750))
+  expect(screen.getByRole('heading', { name: 'Vehículos guardados' })).toBeInTheDocument()
+})
+
+it('cancels automatic comparison when either selected vehicle is deselected', async () => {
+  vi.mocked(listFavorites).mockResolvedValue(response([1, 2]))
+  mount()
+  const user = userEvent.setup()
+  await user.click(await screen.findByRole('button', { name: 'Comparar Toyota Auto 1 2021' }))
+  await user.click(screen.getByRole('button', { name: 'Comparar Toyota Auto 2 2021' }))
+  await user.click(screen.getByRole('button', { name: 'Dejar de comparar Toyota Auto 1 2021' }))
+  await new Promise((resolve) => setTimeout(resolve, 750))
+  expect(screen.getByText('1/2 seleccionados')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Vehículos guardados' })).toBeInTheDocument()
 })
 
 it('clears a removed favorite from comparison without conflating selection and saved state', async () => {

@@ -1,0 +1,182 @@
+.carousel {
+  outline: none;
+}
+
+.carousel:focus-visible {
+  border-radius: 20px;
+  box-shadow: 0 0 0 3px var(--surface-raised);
+}
+
+.stage {
+  position: relative;
+  --stage-height: clamp(760px, 74vw, 820px);
+  height: var(--stage-height);
+  touch-action: pan-y;
+  overflow: hidden;
+  perspective: 1400px;
+  perspective-origin: 50% 48%;
+}
+
+.deck {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(82vw, 380px);
+  transform: translate(-50%, -48%) translateZ(-180px) scale(.72);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: top center;
+  transition: transform 550ms cubic-bezier(.77, 0, .175, 1), opacity 350ms ease;
+}
+
+.card li {
+  list-style: none;
+}
+
+.card[data-position='front'] {
+  z-index: 5;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -48%) translateZ(110px) rotateY(0) scale(1);
+}
+
+.card[data-position='side--1'] {
+  z-index: 3;
+  opacity: .78;
+  pointer-events: auto;
+  transform: translate(-93%, -46%) translateZ(-40px) rotateY(28deg) scale(.82);
+}
+
+.card[data-position='side-1'] {
+  z-index: 3;
+  opacity: .78;
+  pointer-events: auto;
+  transform: translate(-7%, -46%) translateZ(-40px) rotateY(-28deg) scale(.82);
+}
+
+.card[data-position='side--2'] {
+  z-index: 1;
+  opacity: .38;
+  pointer-events: auto;
+  transform: translate(-130%, -44%) translateZ(-220px) rotateY(44deg) scale(.68);
+}
+
+.card[data-position='side-2'] {
+  z-index: 1;
+  opacity: .38;
+  pointer-events: auto;
+  transform: translate(30%, -44%) translateZ(-220px) rotateY(-44deg) scale(.68);
+}
+
+.card[data-position^='selected-'] {
+  z-index: 8;
+  opacity: 1;
+  pointer-events: auto;
+  transform-origin: top center;
+}
+
+.card[data-position='selected-0'] {
+  transform: translate(calc(-50% - 130px), calc(var(--stage-height) / -2 + 45px)) translateZ(0) rotateY(0) scale(.58);
+}
+
+.card[data-position='selected-1'] {
+  transform: translate(calc(-50% + 130px), calc(var(--stage-height) / -2 + 45px)) translateZ(0) rotateY(0) scale(.58);
+}
+
+.hasSelected .card[data-position='front'] {
+  transform: translate(-50%, -8%) translateZ(0) rotateY(0) scale(.88);
+}
+
+.card[data-position='hidden'] {
+  visibility: hidden;
+}
+
+.sideTarget {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+}
+
+.sideTarget:focus-visible {
+  outline: 3px solid var(--border-input);
+  outline-offset: 3px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 8px 0;
+  color: var(--text-secondary);
+}
+
+.arrow {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.arrow svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.instant .card {
+  transition: none;
+}
+
+@media (max-width: 600px) {
+  .stage {
+    --stage-height: 760px;
+  }
+
+  .card {
+    width: min(86vw, 360px);
+  }
+
+  .card[data-position='front'] {
+    transform: translate(-50%, -48%) translateZ(0) scale(1);
+  }
+
+  .card[data-position='side--1'] {
+    transform: translate(-80%, -46%) translateZ(-40px) rotateY(20deg) scale(.72);
+  }
+
+  .card[data-position='side-1'] {
+    transform: translate(-20%, -46%) translateZ(-40px) rotateY(-20deg) scale(.72);
+  }
+
+  .card[data-position='selected-0'] {
+    transform: translate(calc(-50% - 85px), calc(var(--stage-height) / -2 + 30px)) translateZ(0) scale(.46);
+  }
+
+  .card[data-position='selected-1'] {
+    transform: translate(calc(-50% + 85px), calc(var(--stage-height) / -2 + 30px)) translateZ(0) scale(.46);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}

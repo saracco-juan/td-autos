@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { useCallback, useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import ErrorState from '../../components/ErrorState'
@@ -8,7 +8,7 @@ import Pagination from '../../components/Pagination'
 import screenStyles from '../../components/screen.module.css'
 import SessionLoading from '../auth/session/SessionLoading'
 import { fetchRecommendations, type Recommendation } from '../recommendations/matching'
-import FavoriteCard from './FavoriteCard'
+import FavoritesCarousel from './FavoritesCarousel'
 import styles from './FavoritesPage.module.css'
 import { useFavoritesList } from './useFavoritesList'
 import ComparisonControls from '../comparison/ComparisonControls'
@@ -19,6 +19,8 @@ const PAGE_SIZES = [6, 12, 24]
 export default function FavoritesPage() {
   const favorites = useFavoritesList()
   const comparison = useComparisonSelection()
+  const navigate = useNavigate()
+  const [pendingComparison, setPendingComparison] = useState<string | null>(null)
   const [matches, setMatches] = useState<Recommendation[]>([])
   useEffect(() => {
     let active = true
@@ -28,6 +30,26 @@ export default function FavoritesPage() {
     return () => { active = false }
   }, [])
   const { view, items, total, page, perPage, lastPage, pendingIds, actionError, removed } = favorites
+  const selectionKey = comparison.ids.join(',')
+  const comparisonSearch = comparison.search.toString()
+  const openComparison = useCallback(() => {
+    if (!pendingComparison || pendingComparison !== selectionKey || view.status !== 'ready') return
+    const params = new URLSearchParams(comparisonSearch)
+    params.set('source', 'favorites')
+    setPendingComparison(null)
+    navigate(`/comparar?${params}`)
+  }, [pendingComparison, selectionKey, view.status, comparisonSearch, navigate])
+  useEffect(() => {
+    if (!pendingComparison || pendingComparison !== selectionKey || view.status !== 'ready') return
+    // Transition events can be skipped when the browser interrupts motion.
+    const timer = window.setTimeout(openComparison, 700)
+    return () => window.clearTimeout(timer)
+  }, [pendingComparison, selectionKey, view.status, openComparison])
+  const toggleComparison = (id: number) => {
+    if (comparison.ids.includes(id)) setPendingComparison(null)
+    else if (comparison.ids.length === 1) setPendingComparison([...comparison.ids, id].join(','))
+    comparison.toggle(id)
+  }
   useEffect(() => {
     if (removed && comparison.ids.includes(removed.vehicle.id)) comparison.toggle(removed.vehicle.id)
   }, [removed, comparison])
@@ -46,7 +68,7 @@ export default function FavoritesPage() {
         {total > 0 ? recommendationsLink : null}
       </header>
       {view.status === 'ready' && total > 0 ? <div className={styles.comparison}>
-        <ComparisonControls selection={comparison} source="favorites" />
+        <ComparisonControls selection={{ ...comparison, toggle: toggleComparison }} source="favorites" />
       </div> : null}
       {actionError ? (
         <p role="alert" className={alertStyles.alert}>
@@ -74,24 +96,18 @@ export default function FavoritesPage() {
           </div>
         ) : null}
         {view.status === 'ready' && items.length > 0 ? (
-          <>
-            <div key={`${page}-${perPage}`} role="region" aria-label="Favoritos" className={styles.gridArea}>
-              <ul className={styles.grid}>
-                {items.map((vehicle) => <FavoriteCard key={vehicle.id} vehicle={vehicle}
-                  score={matches.find((match) => match.listing_id === vehicle.id)?.score}
-                  bestMatch={matches[0]?.listing_id === vehicle.id}
-                  comparison={{ selected: comparison.ids.includes(vehicle.id), toggle: () => comparison.toggle(vehicle.id) }}
-                  busy={pendingIds.includes(vehicle.id)} onRemove={() => void favorites.remove(vehicle)} />)}
-              </ul>
-            </div>
-          </>
+          <FavoritesCarousel key={`${page}-${perPage}`} items={items} matches={matches}
+            selectedIds={comparison.ids} pendingIds={pendingIds}
+            onToggle={toggleComparison}
+            onRemove={(vehicle) => { setPendingComparison(null); void favorites.remove(vehicle) }}
+            onSelectionSettled={(id) => { if (comparison.ids.at(-1) === id) openComparison() }} />
         ) : null}
         {total > PAGE_SIZES[0] ? (
           <ListFooter>
             <div className={styles.pager}>
-              <Pagination page={page} lastPage={lastPage} onChange={favorites.setPage} />
+              <Pagination page={page} lastPage={lastPage} onChange={(nextPage) => { setPendingComparison(null); favorites.setPage(nextPage) }} />
               <label className={styles.pageSize}>Mostrar
-                <select aria-label="Mostrar" value={perPage} onChange={(event) => favorites.changePageSize(Number(event.target.value))}>
+                <select aria-label="Mostrar" value={perPage} onChange={(event) => { setPendingComparison(null); favorites.changePageSize(Number(event.target.value)) }}>
                   {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
                 </select>
               </label>
