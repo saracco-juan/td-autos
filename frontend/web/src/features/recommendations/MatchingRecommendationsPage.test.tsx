@@ -216,6 +216,11 @@ it('changes inventory photos without navigating and keeps body warnings in an in
   expect(photo()).toHaveAttribute('src', '/four.jpg')
   await userEvent.click(within(card).getByRole('button', { name: 'Foto siguiente' }))
   expect(photo()).toHaveAttribute('src', '/one.jpg')
+  for (let step = 0; step < 12; step++) {
+    await userEvent.click(within(card).getByRole('button', { name: 'Foto anterior' }))
+    const expected = [4, 3, 2, 1][step % 4]
+    expect(within(card).getByRole('button', { name: `Ver foto ${expected} de 4`, pressed: true })).toBeInTheDocument()
+  }
   expect(within(card).getByText('No coincide con la carrocería elegida.')).not.toBeVisible()
   await userEvent.click(within(card).getByRole('button', { name: /Advertencia de carrocería/ }))
   expect(within(card).getByRole('tooltip')).toHaveTextContent('No coincide con la carrocería elegida.')

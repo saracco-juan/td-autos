@@ -260,11 +260,12 @@
   bottom: 25%;
   left: 50%;
   transform: translateX(-50%);
+  width: calc(100% - 40px);
   display: flex;
   align-items: center;
-  padding: 0 4px;
+  justify-content: space-between;
+  padding: 3px 6px;
   border-radius: 999px;
-  background: rgb(36 31 28 / 75%);
 }
 .photoControls button {
   display: grid;
@@ -279,12 +280,30 @@
   font-size: 24px;
   cursor: pointer;
 }
-.photoControls .photoDot { width: 24px; }
-.photoDot span { width: 5px; height: 5px; border-radius: 50%; background: rgb(255 255 255 / 50%); }
-.photoDot[aria-pressed='true'] span { background: white; transform: scale(1.4); }
+.photoWindow { width: 120px; overflow: hidden; }
+.photoTrack { position: relative; height: 32px; }
+.photoControls .photoDot { position: absolute; top: 0; width: 24px; }
+.photoControls button:focus-visible { outline: 2px solid white; outline-offset: -2px; box-shadow: none; }
+.photoControls svg { filter: drop-shadow(0 1px 2px rgb(36 31 28 / 65%)); }
+.photoDot span {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: transparent;
+}
+.photoDot span::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 5px; height: 5px; border-radius: 50%; background: white; box-shadow: 0 1px 2px rgb(36 31 28 / 65%); }
+.photoDot[aria-pressed='true'] span { background: var(--palette-red); }
+.photoDot[aria-pressed='true'] span::after { background: white; }
+.photoControls[data-animate='true'] .photoTrack { transition: transform 450ms cubic-bezier(0.32, 0.72, 0, 1); }
+.photoControls[data-animate='true'] .photoTrack .photoDot span { transition: transform 450ms cubic-bezier(0.32, 0.72, 0, 1), opacity 450ms ease, background-color 450ms ease; }
 .photoStatus { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.photoEnter { opacity: 1; transition: opacity 200ms ease; }
-@starting-style { .photoEnter { opacity: 0; } }
+.photoLayer { position: absolute; inset: 0; }
+.photoCurrent { opacity: 0; }
+.photoCurrent[data-ready='true'] { opacity: 1; }
+.photoCurrent[data-animate='true'] { transition: opacity 450ms ease; }
+@media (hover: hover) and (pointer: fine) { .photoControls button:hover { color: var(--palette-red); } }
 .bodyWarning button {
   --button-hover-fill: var(--palette-red);
   color: var(--palette-red);
@@ -292,5 +311,9 @@
   background: var(--surface-default);
 }
 @media (hover: hover) and (pointer: fine) { .bodyWarning button:hover { color: white; } }
-@media (pointer: coarse) { .photoControls button { min-width: 32px; height: 44px; } }
-@media (prefers-reduced-motion: reduce) { .photoEnter { transition: none; } }
+@media (pointer: coarse) { .photoControls button, .photoTrack { height: 44px; } }
+@media (prefers-reduced-motion: reduce) {
+  .photoCurrent[data-animate='true'],
+  .photoControls[data-animate='true'] .photoTrack,
+  .photoControls[data-animate='true'] .photoTrack .photoDot span { transition: none; }
+}
