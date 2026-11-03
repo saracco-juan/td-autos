@@ -15,6 +15,7 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
+  min-height: 44px;
   max-width: 100%;
 }
 

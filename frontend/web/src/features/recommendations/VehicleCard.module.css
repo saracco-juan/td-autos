@@ -146,7 +146,9 @@
 
 .actions > a,
 .actions > button {
-  flex: 1 1 100px;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 46px;
   height: auto;
   padding: 12px;
@@ -157,14 +159,17 @@
 }
 
 .actions .compare {
-  --button-hover-fill: var(--palette-charcoal);
+  --button-hover-fill: var(--surface-default);
+  --button-hover-color: var(--palette-charcoal);
   border-color: var(--surface-raised);
   background: transparent;
   color: var(--surface-default);
 }
 
 .actions .detail {
-  --button-hover-fill: var(--palette-charcoal);
+  --button-hover-fill: var(--surface-default);
+  --button-hover-color: var(--palette-red);
+  --button-hover-border: var(--palette-red);
   border-color: transparent;
   background: var(--palette-red);
   color: var(--surface-default);
@@ -172,7 +177,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .actions .compare:hover:not(:disabled):not([aria-busy='true']) {
-    color: var(--text-on-color);
+    color: var(--palette-charcoal);
   }
 }
 

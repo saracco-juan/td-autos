@@ -26,8 +26,8 @@
 
 @media (hover: hover) and (pointer: fine) {
   .button:hover:not(:disabled):not([aria-disabled='true']):not([aria-busy='true']):not([aria-current]):not([aria-selected='true']) {
-    color: var(--text-on-color);
-    border-color: var(--button-hover-fill);
+    color: var(--button-hover-color, var(--text-on-color));
+    border-color: var(--button-hover-border, var(--button-hover-fill));
   }
 }
 
