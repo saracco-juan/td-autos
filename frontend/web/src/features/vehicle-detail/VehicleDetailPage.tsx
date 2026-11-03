@@ -80,7 +80,7 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
           </header>
           <div className={styles.body}>
             <div className={styles.gallery}><VehicleGallery photos={data.vehicle.fotos} title={title} /></div>
-            <div className={styles.sidebar} role="region" aria-label="Información y acciones del vehículo" tabIndex={0}>
+            <div className={styles.sidebar}>
               <aside className={styles.summary} aria-label="Resumen de la publicación">
                 <div className={styles.priceRow}>
                   <p className={styles.price}>{data.vehicle.precio === null || data.vehicle.moneda === null

@@ -30,6 +30,16 @@
   margin: 0;
 }
 
+.specificationsPanel {
+  max-height: clamp(240px, 50dvh, 440px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--border-default) transparent;
+  padding: 2px 12px 2px 2px;
+}
+
 .row {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);

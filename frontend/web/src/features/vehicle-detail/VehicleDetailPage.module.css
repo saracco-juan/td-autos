@@ -132,20 +132,6 @@
   .summary > button { transition: color 120ms ease; }
 }
 
-@media (min-width: 900px) and (hover: hover) and (pointer: fine) {
-  .sidebar {
-    max-height: calc(100dvh - 128px);
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-default) transparent;
-    padding: 4px 16px 4px 4px;
-    margin: -4px -16px -4px -4px;
-  }
-}
-
-.sidebar:focus-visible { outline: 2px solid var(--border-input); outline-offset: 4px; }
-
 .summary > a {
   --button-hover-fill: var(--surface-raised);
   justify-content: flex-start;

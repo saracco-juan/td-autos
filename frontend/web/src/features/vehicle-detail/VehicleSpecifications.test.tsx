@@ -4,6 +4,15 @@ import { expect, it } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
 import VehicleSpecifications from './VehicleSpecifications'
 
+it('starts each selected specification tab at the top without moving the surrounding content', async () => {
+  render(<VehicleSpecifications vehicle={vehicle} />)
+  await userEvent.click(screen.getByRole('tab', { name: 'Seguridad' }))
+  screen.getByRole('tabpanel').scrollTop = 240
+  await userEvent.click(screen.getByRole('tab', { name: 'Confort' }))
+  expect(screen.getByRole('tabpanel', { name: 'Confort' }).scrollTop).toBe(0)
+  expect(screen.getByRole('region', { name: 'Descripción de la concesionaria' }).closest('[role="tabpanel"]')).toBeNull()
+})
+
 it('keeps separate specification instances independent with unique tab and panel IDs', async () => {
   render(<><VehicleSpecifications vehicle={vehicle} /><VehicleSpecifications vehicle={vehicle} /></>)
   const sections = screen.getAllByRole('region', { name: 'Especificaciones técnicas' })
