@@ -29,7 +29,7 @@ describe('HomePage', () => {
       'diagnostico', 'busqueda', 'comparacion', 'costos', 'checklists', 'concesionarias',
     ])
     expect(screen.getAllByRole('img')).toHaveLength(1)
-    expect(screen.getByRole('img')).toHaveAttribute('src', '/images/home-vehicles.webp')
+    expect(screen.getByRole('img')).toHaveAttribute('src', '/images/home-vehicles-headlights.webp')
     expect(screen.queryByText(/Imagen conceptual generada/)).not.toBeInTheDocument()
   })
   it('provides the existing dealer login and registration destinations', () => {

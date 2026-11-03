@@ -9,7 +9,7 @@ export default function HomePage() {
   return (
     <div className={styles.home}>
       <section className={styles.hero} aria-labelledby="home-title">
-        <img className={styles.heroImage} src="/images/home-vehicles.webp" alt="Ferrari oscura entre un hatchback y un SUV, rodeados de humo con iluminación roja" width="1536" height="1024" fetchPriority="high" />
+        <img className={styles.heroImage} src="/images/home-vehicles-headlights.webp" alt="Ferrari oscura entre un hatchback y un SUV, rodeados de humo con iluminación roja" width="1536" height="1024" fetchPriority="high" />
         <div className={styles.heroContent}>
           <h1 id="home-title">Tu próximo auto. <br /><span>Tu próxima historia.</span></h1>
           <p>Descubrí el vehículo que acompaña tu forma de vivir. <br />Compará tus opciones y elegí con más información.</p>
