@@ -70,11 +70,14 @@ export default function AppShell() {
   const setMenuOpen = (open: boolean) => setMenuOpenedAt(open ? locationKey : null)
   const menuId = useId()
 
-  // Router anchors select a section without reloading the landing.
+  // Router anchors share one scroll path; native links would jump before this effect.
   useEffect(() => {
-    if (pathname !== '/' || status === 'authenticated' || !hash) return
-    document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' })
-  }, [pathname, hash, status, locationKey])
+    if (!hash || (pathname !== '/' && hash !== '#root')) return
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    document.getElementById(hash.slice(1))?.scrollIntoView({
+      block: 'start', behavior: reduceMotion ? 'instant' : 'smooth',
+    })
+  }, [pathname, hash, locationKey])
 
   const handleLogout = async () => {
     setLogoutFailed(false)

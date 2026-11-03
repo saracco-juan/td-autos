@@ -69,6 +69,35 @@ describe('AppShell', () => {
   })
 
   describe('menu toggle (phones)', () => {
+    it.each([false, true])('scrolls to a section respecting reduced motion (%s)', async (reduceMotion) => {
+      mockAuth('guest')
+      renderShell()
+      const target = screen.getByRole('main')
+      target.id = 'diagnostico'
+      target.scrollIntoView = vi.fn()
+      vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: reduceMotion }))
+      try {
+        await userEvent.setup().click(screen.getByRole('link', { name: 'Diagnóstico' }))
+        expect(target.scrollIntoView).toHaveBeenCalledWith({
+          block: 'start', behavior: reduceMotion ? 'instant' : 'smooth',
+        })
+      } finally {
+        vi.unstubAllGlobals()
+      }
+    })
+
+    it('smoothly returns to the top from the footer without losing the page query', async () => {
+      mockAuth('authenticated')
+      renderShell('/comparar?vehiculos=1,2')
+      const target = screen.getByRole('main')
+      target.id = 'root'
+      target.scrollIntoView = vi.fn()
+      const backToTop = screen.getByRole('link', { name: 'Volver arriba' })
+      expect(backToTop).toHaveAttribute('href', '/comparar?vehiculos=1,2#root')
+      await userEvent.setup().click(backToTop)
+      expect(target.scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'smooth' })
+    })
+
     it('updates the selected guest section on navigation and starts from the URL anchor', async () => {
       mockAuth('guest')
       renderShell('/#diagnostico')

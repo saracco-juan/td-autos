@@ -34,8 +34,6 @@
 .heroBottom { position: absolute; bottom: 40px; left: clamp(24px, 5vw, 96px); right: clamp(24px, 5vw, 96px); display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 24px; }
 .action { display: inline-flex; width: fit-content; height: auto; min-height: 46px; padding: 14px 22px; gap: 32px; font-size: 13px; }
 .heroButton { --button-hover-fill: #fff; --button-hover-color: var(--palette-red); --button-hover-border: #fff; border-color: var(--palette-red); background: var(--palette-red); color: #fff; }
-.explore { color: #fff; text-decoration: none; display: flex; align-items: center; gap: 18px; font-size: 12px; min-height: 46px; }
-.explore span { font-size: 22px; }
 .journey { background: #fff; }
 .step { scroll-margin-top: 88px; }
 .stepInner { max-width: 1600px; margin: 0 auto; padding: 136px clamp(24px, 5vw, 80px); display: grid; grid-template-columns: 1.3fr 1fr; gap: 72px 10%; align-items: center; }
@@ -62,19 +60,20 @@
 .dealerContent li { padding: 14px 0; border-top: 1px solid #3b302d; }
 .dealerActions { display: flex; flex-direction: column; align-items: start; gap: 24px; margin-top: 32px; }
 .dealerLogin { color: #e8dcd9; font-size: 13px; text-underline-offset: 5px; }
-.explore:focus-visible, .dealerLogin:focus-visible { outline: 2px solid currentColor; outline-offset: 6px; }
+.dealerLogin:focus-visible { outline: 2px solid currentColor; outline-offset: 6px; }
 @keyframes cameraSettle { from { transform: scale(1.06); } to { transform: scale(1); } }
-/* Progress follows the element's position, without a timed visibility reset. */
+/* Both viewport edges reveal content; the center stays still and fully readable. */
 @keyframes scrollReveal {
-  from { opacity: 0; transform: translateY(44px); }
-  to { opacity: 1; transform: translateY(0); }
+  0% { opacity: 0; transform: translateY(44px); }
+  30%, 80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-44px); }
 }
-@supports (animation-timeline: view()) and (animation-range: entry 0% cover 40%) {
+@supports (animation-timeline: view()) and (animation-range: cover 0% cover 100%) {
   @media (prefers-reduced-motion: no-preference) {
     .home [data-reveal] {
       animation: scrollReveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 40%;
+      animation-timeline: view(block 88px 0px);
+      animation-range: cover 0% cover 100%;
     }
     .home [data-reveal]:focus-within { animation: none; }
   }
@@ -94,7 +93,6 @@
   .heroContent p br { display: none; }
   .heroImage { inset: 250px auto auto -7.5%; width: 115%; max-width: none; height: auto; object-fit: contain; mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent); }
   .heroBottom { bottom: 24px; grid-template-columns: 1fr; gap: 12px; }
-  .explore { min-height: 36px; }
   .stepInner { grid-template-columns: 1fr; padding: 72px 24px; gap: 32px; }
   .stepTitle { font-size: clamp(38px, 10vw, 50px); }
   .stepCopy h3 { font-size: 21px; }

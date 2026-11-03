@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { useAuth } from '../auth/session/useAuth'
 import buttonStyles from '../../components/button.module.css'
 import styles from './HomePage.module.css'
+import ScrollCue from '../../components/ScrollCue'
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -18,7 +19,7 @@ export default function HomePage() {
             {user ? 'Ver mis recomendados' : 'Encontrar mi auto'}
             <Arrow />
           </Link>
-          <a className={styles.explore} href="#diagnostico">Descubrí TD Autos <span aria-hidden="true">↓</span></a>
+          <ScrollCue to="#diagnostico">Descubrí TD Autos</ScrollCue>
         </div>
       </section>
 
