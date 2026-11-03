@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { canCompare } from '@shared/comparison/selection'
+import BackLink from '../../components/BackLink'
 import screenStyles from '../../components/screen.module.css'
 import ErrorState from '../../components/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
@@ -20,24 +21,33 @@ type View = { status: 'loading' } | { status: 'unavailable' }
 
 export default function ComparisonPage() {
   const { ids, search, toggle } = useComparisonSelection()
+  const fromFavorites = search.get('source') === 'favorites'
+  const favoriteReturnParams = new URLSearchParams()
+  if (search.has('compare')) favoriteReturnParams.set('compare', search.get('compare')!)
+  if (fromFavorites) favoriteReturnParams.set('source', 'favorites')
+  const favoriteReturnTo = `/favoritos${favoriteReturnParams.size ? `?${favoriteReturnParams}` : ''}`
   return <div className={styles.page}>
-    <Link className={detailStyles.back} to={`/recomendaciones${search.size ? `?${search}` : ''}`}>
-      <span className={detailStyles.backIcon}><img src={backIcon} alt="" /></span>Volver a recomendados
-    </Link>
+    {fromFavorites ? <BackLink to={favoriteReturnTo}>Volver a favoritos</BackLink>
+      : <Link className={detailStyles.back} to={`/recomendaciones${search.size ? `?${search}` : ''}`}>
+        <span className={detailStyles.backIcon}><img src={backIcon} alt="" /></span>Volver a recomendados
+      </Link>}
     <header>
       <p className={screenStyles.eyebrow}>COMPARAR UNIDADES</p>
       <h1 className={screenStyles.title}>Comparar vehículos</h1>
       <p>{ids.length} {ids.length === 1 ? 'vehículo seleccionado' : 'vehículos seleccionados'}</p>
     </header>
-    {canCompare(ids) ? <ReadyComparison key={ids.join(',')} ids={ids as [number, number]} onRemove={toggle} />
+    {canCompare(ids) ? <ReadyComparison key={ids.join(',')} ids={ids as [number, number]} onRemove={toggle} fromFavorites={fromFavorites} />
       : <section role="status">
-        <p>Seleccioná exactamente dos vehículos recomendados para completar la comparación.</p>
+        <p>{fromFavorites ? 'Seleccioná exactamente dos vehículos favoritos para completar la comparación.'
+          : 'Seleccioná exactamente dos vehículos recomendados para completar la comparación.'}</p>
         {ids.map((id) => <p key={id}>Conservás el vehículo {id}. <Link to={`/vehiculos/${id}`}>Ver ficha</Link></p>)}
       </section>}
   </div>
 }
 
-function ReadyComparison({ ids, onRemove }: { ids: [number, number]; onRemove: (id: number) => void }) {
+function ReadyComparison({ ids, onRemove, fromFavorites }: {
+  ids: [number, number]; onRemove: (id: number) => void; fromFavorites: boolean
+}) {
   const [view, setView] = useState<View>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
   const ready = useRef<HTMLDivElement>(null)
@@ -45,6 +55,18 @@ function ReadyComparison({ ids, onRemove }: { ids: [number, number]; onRemove: (
   useEffect(() => {
     let active = true
     async function load() {
+      if (fromFavorites) {
+        const recommendationsPromise = fetchRecommendations().catch(() => null)
+        const entries = await Promise.all([first, second].map(async (id) => {
+          const [detail, costs] = await Promise.all([fetchVehicleDetail(id), fetchCosts(id)])
+          return { id, detail, costs }
+        }))
+        const recommendations = await recommendationsPromise
+        const withRecommendations = entries.map((entry) => ({ ...entry, recommendation: recommendations?.status === 'ready'
+          ? recommendations.results.find((result) => result.listing_id === entry.id) ?? null : null }))
+        if (active) setView({ status: 'ready', entries: [withRecommendations[0], withRecommendations[1]] })
+        return
+      }
       const recommendations = await fetchRecommendations()
       const selected = [first, second].map((id) => recommendations.results.find((result) => result.listing_id === id))
       if (recommendations.status !== 'ready' || selected.some((result) => !result)) {
@@ -62,10 +84,12 @@ function ReadyComparison({ ids, onRemove }: { ids: [number, number]; onRemove: (
         : { status: 'error', network: error instanceof NetworkError })
     })
     return () => { active = false }
-  }, [first, second, attempt])
+  }, [first, second, attempt, fromFavorites])
   useEffect(() => { if (view.status === 'ready') ready.current?.focus() }, [view.status])
   if (view.status === 'loading') return <SessionLoading />
-  if (view.status === 'unavailable') return <p role="status">Algún vehículo ya no está disponible entre tus recomendaciones. Volvé y corregí la selección.</p>
+  if (view.status === 'unavailable') return <p role="status">{fromFavorites
+    ? 'Algún vehículo ya no está disponible. Volvé y corregí la selección.'
+    : 'Algún vehículo ya no está disponible entre tus recomendaciones. Volvé y corregí la selección.'}</p>
   if (view.status === 'error') return <ErrorState kind={view.network ? 'network' : 'server'} onRetry={() => {
     setView({ status: 'loading' })
     setAttempt((value) => value + 1)

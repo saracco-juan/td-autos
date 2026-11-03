@@ -5,7 +5,9 @@ import alertStyles from '../../components/alert.module.css'
 import type { useComparisonSelection } from './useComparisonSelection'
 import styles from './ComparisonPage.module.css'
 
-export default function ComparisonControls({ selection }: { selection: ReturnType<typeof useComparisonSelection> }) {
+export default function ComparisonControls({ selection, source }: {
+  selection: ReturnType<typeof useComparisonSelection>; source?: 'favorites'
+}) {
   const navigate = useNavigate()
   const { ids, search, toggle, notice, setNotice } = selection
   return <section aria-label="Selección para comparar">
@@ -14,7 +16,11 @@ export default function ComparisonControls({ selection }: { selection: ReturnTyp
       {ids.map((id) => <button type="button" className={buttonStyles.button} key={id}
         onClick={() => toggle(id)} aria-label={`Quitar vehículo ${id}`}>QUITAR #{id}</button>)}
       <button type="button" className={`${buttonStyles.button} ${buttonStyles.primary}`} onClick={() => {
-        if (canCompare(ids)) navigate(`/comparar?${search}`)
+        if (canCompare(ids)) {
+          const params = new URLSearchParams(search)
+          if (source) params.set('source', source)
+          navigate(`/comparar?${params}`)
+        }
         else setNotice('Seleccioná exactamente dos vehículos para comparar.')
       }}>COMPARAR</button>
     </div>

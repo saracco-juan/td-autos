@@ -26,6 +26,26 @@ it('HU08 TC-23 loads current facts and both existing calculator endpoints withou
   expect(screen.getByRole('link', { name: /Volver a recomendados/ })).toHaveAttribute('href', '/recomendaciones?compare=7%2C8')
 })
 
+it('compares favorite vehicles without recommendation membership or compatibility scores', async () => {
+  vi.mocked(apiFetch).mockImplementation(async (path) => {
+    if (path === '/api/recomendaciones') throw new Error('recommendations unavailable')
+    return respond(path)
+  })
+  mount('compare=7,8&source=favorites')
+  expect(await screen.findByRole('region', { name: 'Comparación de vehículos' })).toBeVisible()
+  expect(screen.getByRole('link', { name: 'Volver a favoritos' })).toHaveAttribute('href', '/favoritos?compare=7%2C8&source=favorites')
+  expect(screen.getAllByText('No disponible').length).toBeGreaterThan(0)
+  expect(vi.mocked(apiFetch).mock.calls.map(([path]) => path)).toContain('/api/vehiculos/7')
+  expect(vi.mocked(apiFetch).mock.calls.map(([path]) => path)).toContain('/api/vehiculos/8/costos')
+})
+
+it('requires exactly two favorites and explains the favorite selection context', () => {
+  mount('compare=7&source=favorites')
+  expect(screen.getByRole('status')).toHaveTextContent('exactamente dos vehículos favoritos')
+  expect(screen.getByRole('link', { name: 'Volver a favoritos' })).toHaveAttribute('href', '/favoritos?compare=7&source=favorites')
+  expect(apiFetch).not.toHaveBeenCalled()
+})
+
 it.each(['', 'compare=7', 'compare=7,7', 'compare=7,8,9'])('HU08 TC-76 blocks incomplete/invalid selection (%s) before requesting comparison data', (query) => {
   mount(query)
   expect(screen.queryByRole('region', { name: 'Comparación de vehículos' })).not.toBeInTheDocument()

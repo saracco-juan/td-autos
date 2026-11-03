@@ -11,11 +11,14 @@ import { fetchRecommendations, type Recommendation } from '../recommendations/ma
 import FavoriteCard from './FavoriteCard'
 import styles from './FavoritesPage.module.css'
 import { useFavoritesList } from './useFavoritesList'
+import ComparisonControls from '../comparison/ComparisonControls'
+import { useComparisonSelection } from '../comparison/useComparisonSelection'
 
 const PAGE_SIZES = [6, 12, 24]
 
 export default function FavoritesPage() {
   const favorites = useFavoritesList()
+  const comparison = useComparisonSelection()
   const [matches, setMatches] = useState<Recommendation[]>([])
   useEffect(() => {
     let active = true
@@ -25,17 +28,26 @@ export default function FavoritesPage() {
     return () => { active = false }
   }, [])
   const { view, items, total, page, perPage, lastPage, pendingIds, actionError, removed } = favorites
+  useEffect(() => {
+    if (removed && comparison.ids.includes(removed.vehicle.id)) comparison.toggle(removed.vehicle.id)
+  }, [removed, comparison])
   const recommendationsLink = <Link to="/recomendaciones" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.footerAction}`}>
     VER RECOMENDADOS
   </Link>
   return (
     <section className={styles.page}>
       <header className={styles.header}>
-        <p className={screenStyles.eyebrow}>FAVORITOS</p>
-        <h1 className={screenStyles.title}>Vehículos guardados</h1>
-        <p className={styles.subtitle}>{total === 0 ? 'Sin vehículos guardados'
-          : `${total} ${total === 1 ? 'vehículo guardado' : 'vehículos guardados'}`}</p>
+        <div className={styles.heading}>
+          <p className={screenStyles.eyebrow}>FAVORITOS</p>
+          <h1 className={screenStyles.title}>Vehículos guardados</h1>
+          <p className={styles.subtitle}>{total === 0 ? 'Sin vehículos guardados'
+            : `${total} ${total === 1 ? 'vehículo guardado' : 'vehículos guardados'}`}</p>
+        </div>
+        {total > 0 ? recommendationsLink : null}
       </header>
+      {view.status === 'ready' && total > 0 ? <div className={styles.comparison}>
+        <ComparisonControls selection={comparison} source="favorites" />
+      </div> : null}
       {actionError ? (
         <p role="alert" className={alertStyles.alert}>
           No pudimos actualizar tus favoritos. Intentá nuevamente.
@@ -68,23 +80,22 @@ export default function FavoritesPage() {
                 {items.map((vehicle) => <FavoriteCard key={vehicle.id} vehicle={vehicle}
                   score={matches.find((match) => match.listing_id === vehicle.id)?.score}
                   bestMatch={matches[0]?.listing_id === vehicle.id}
+                  comparison={{ selected: comparison.ids.includes(vehicle.id), toggle: () => comparison.toggle(vehicle.id) }}
                   busy={pendingIds.includes(vehicle.id)} onRemove={() => void favorites.remove(vehicle)} />)}
               </ul>
             </div>
           </>
         ) : null}
-        {total > 0 ? (
-          <ListFooter actions={total > PAGE_SIZES[0] ? recommendationsLink : undefined}>
-            {total > PAGE_SIZES[0] ? (
-                <div className={styles.pager}>
-                  <Pagination page={page} lastPage={lastPage} onChange={favorites.setPage} />
-                  <label className={styles.pageSize}>Mostrar
-                    <select aria-label="Mostrar" value={perPage} onChange={(event) => favorites.changePageSize(Number(event.target.value))}>
-                      {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
-                    </select>
-                  </label>
-                </div>
-            ) : recommendationsLink}
+        {total > PAGE_SIZES[0] ? (
+          <ListFooter>
+            <div className={styles.pager}>
+              <Pagination page={page} lastPage={lastPage} onChange={favorites.setPage} />
+              <label className={styles.pageSize}>Mostrar
+                <select aria-label="Mostrar" value={perPage} onChange={(event) => favorites.changePageSize(Number(event.target.value))}>
+                  {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
+                </select>
+              </label>
+            </div>
           </ListFooter>
         ) : null}
       </div>

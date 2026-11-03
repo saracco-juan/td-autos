@@ -11,8 +11,20 @@
 
 .header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.heading {
+  display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.comparison {
+  composes: comparison from '../recommendations/RecommendationsPage.module.css';
 }
 
 .header p,
@@ -94,7 +106,8 @@
 
 .footerAction {
   width: auto;
-  margin-left: auto;
+  border-radius: 999px;
+  min-height: 44px;
 }
 
 .pageSize {

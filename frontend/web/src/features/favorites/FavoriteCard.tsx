@@ -13,8 +13,9 @@ function title(vehicle: FavoriteVehicle) {
     .filter((part) => part !== null && part !== '').join(' ')
 }
 
-export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch = false }: {
+export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch = false, comparison }: {
   vehicle: FavoriteVehicle; busy: boolean; onRemove: () => void; score?: number; bestMatch?: boolean
+  comparison?: { selected: boolean; toggle: () => void }
 }) {
   const name = title(vehicle)
   const titleId = useId()
@@ -41,6 +42,11 @@ export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch
             ? 'Precio no disponible' : <>Publicado: <span>{formatPrice(vehicle.precio, vehicle.moneda).replace('US$', 'USD')}</span></>}</p>
           <p className={styles.meta}>{vehicle.ubicacion || 'Ubicación no disponible'}</p>
           <div className={styles.actions} role="group" aria-label={`Acciones de ${name}`}>
+            {comparison ? <button type="button" className={`${buttonStyles.button} ${styles.compare}`}
+              aria-pressed={comparison.selected} disabled={busy}
+              aria-label={`${comparison.selected ? 'Dejar de comparar' : 'Comparar'} ${name}`} onClick={comparison.toggle}>
+              {comparison.selected ? 'SELECCIONADO' : 'COMPARAR'}
+            </button> : null}
             <button type="button" className={`${buttonStyles.button} ${styles.compare}`}
               onClick={onRemove} disabled={busy} aria-busy={busy}>
               QUITAR
