@@ -25,7 +25,8 @@ const renderPage = () => render(<MemoryRouter><RecommendationsPage /></MemoryRou
 // HU06: the page also requests the portal models; these tests only care about the dealers endpoint.
 const NO_PORTALS = { status: 'ready', modelos: [], fuente_precios: null }
 const mockDealers = (value: unknown) => vi.mocked(apiFetch).mockImplementation(async (path) =>
-  (path === '/api/recomendaciones' ? value : NO_PORTALS) as never)
+  (path === '/api/recomendaciones' ? value : path === '/api/diagnostico'
+    ? { diagnostico: { prioridad: 'reventa' }, carrocerias: [] } : NO_PORTALS) as never)
 const dealerCalls = () => vi.mocked(apiFetch).mock.calls.filter(([path]) => path === '/api/recomendaciones').length
 
 beforeEach(() => {
@@ -48,11 +49,9 @@ it('HU05 replaces search with saved-diagnosis matching and preserves API order',
   expect(within(card).getByText(/Autos del Sur/)).toBeInTheDocument()
   expect(within(card).getByText(/Supera tu presupuesto en 3/)).toBeInTheDocument()
   expect(within(card).getByText(/No coincide con la carrocería/)).toBeInTheDocument()
-  await userEvent.click(within(card).getByText('Ver atributos y motivos'))
-  expect(within(card).getByText(/Uso: 100.*Prioridad: 100/)).toBeVisible()
-  expect(within(card).getByText(/5 plazas/)).toBeVisible()
-  expect(within(card).getByText(/Seguridad: Frenos ABS/)).toBeVisible()
-  expect(within(card).getByText(/Confort: Android Auto o Apple CarPlay/)).toBeVisible()
+  await userEvent.click(within(card).getByRole('button', { name: /Por qué recomendamos/ }))
+  expect(within(card).getByRole('tooltip')).toHaveTextContent('Uso100/100')
+  expect(within(card).queryByText(/5 plazas/)).not.toBeInTheDocument()
   const quote = screen.getByText(/Cotización USD:.*1.030/)
   expect(quote).toHaveTextContent('Actualizada: 20/10/2026')
 })
@@ -116,47 +115,15 @@ it('HU05 explains missing resale without inventing a zero or hiding partial scor
   renderPage()
   expect(await screen.findByText('62,5% de compatibilidad')).toBeInTheDocument()
   expect(screen.getByText(/Sin estimación de reventa.*10 puntos/)).toBeVisible()
-  await userEvent.click(screen.getByText('Ver atributos y motivos'))
-  expect(screen.getByText(/Prioridad: no disponible/)).toBeVisible()
+  await userEvent.click(screen.getByRole('button', { name: /Por qué recomendamos/ }))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('Buena reventaSin datos')
 })
 
-it('HU05 shows dated resale sources and retained stale evidence', async () => {
-  mockDealers({ ...ready(), results: [{ ...result(), warnings: ['resale_stale'],
-    resale: { activity_score: 100, retention_score: 80, source_date: '2026-10-19', window_start: '2026-04', window_end: '2026-09', stale: true },
-  }] })
-  renderPage()
-  expect(await screen.findByText(/Reventa calculada con la última evidencia/)).toBeVisible()
-  await userEvent.click(screen.getByText('Ver atributos y motivos'))
-  expect(screen.getByText(/actividad DNRPA 2026-04 a 2026-09.*retención ACARA al 2026-10-19/)).toBeVisible()
-  expect(screen.getByText(/no precios futuros garantizados/)).toBeVisible()
-})
 
-it('explains annualized estimates separately from observed year prices', async () => {
-  mockDealers({ ...ready(), results: [{ ...result(),
-    resale: { activity_score: 80, retention_score: 75.5, source_date: '2026-10-19',
-      window_start: '2026-04', window_end: '2026-09', stale: false,
-      estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: 8.9, years_used: [2017, 2018, 2019] } },
-  }] })
-  renderPage()
-  await screen.findByRole('list')
-  await userEvent.click(screen.getByText('Ver atributos y motivos'))
-  expect(screen.getByText(/Depreciación anual estimada: 8,9%.*2017, 2018, 2019/)).toBeVisible()
-  expect(screen.getByText(/Retención estimada a 3 años: 75,5/)).toBeVisible()
-})
 
-it('shows grouped uncertainty and raw appreciation separately from the capped score', async () => {
-  mockDealers({ ...ready(), results: [{ ...result(),
-    resale: { activity_score: 80, retention_score: 100, source_date: '2026-10-19',
-      window_start: '2026-04', window_end: '2026-09', stale: false,
-      estimate: { method: 'annualized', horizon_years: 3, annual_depreciation_percent: -10,
-        years_used: [2023, 2025], retained_percent: 133.1, reference_count: 2, retention_range: [130, 136] } },
-  }] })
-  renderPage()
-  await screen.findByRole('list')
-  await userEvent.click(screen.getByText('Ver atributos y motivos'))
-  expect(screen.getByText(/Retención estimada a 3 años: 133,1%/)).toBeVisible()
-  expect(screen.getByText(/Estimación por grupo: 2 referencias compatibles.*130.*136/)).toBeVisible()
-})
+
+
+
 
 it.each([new NetworkError(new Error()), new HttpError(500, null)])('retries failures without showing stale results', async (error) => {
   let dealerAttempts = 0
@@ -198,17 +165,7 @@ it('leaves the cost estimate to the vehicle detail instead of the card', async (
   expect(within(card).queryByRole('link', { name: 'CALCULAR COSTOS' })).not.toBeInTheDocument()
 })
 
-it('identifies inferred model families as approximate rather than exact', async () => {
-  mockDealers({ ...ready(), results: [{ ...result(),
-    resale: { activity_score: 80, retention_score: 75, source_date: '2026-10-19',
-      window_start: '2026-04', window_end: '2026-09', stale: false,
-      model_match: { approximate: true, listing_model: 'Example', reference_model: 'Example Extended' } },
-  }] })
-  renderPage()
-  await screen.findByRole('list')
-  await userEvent.click(screen.getByText('Ver atributos y motivos'))
-  expect(screen.getByText(/Referencia aproximada.*Example Extended.*Example.*No confirma/)).toBeVisible()
-})
+
 
 it('shows a neutral "Sin fotos" placeholder when the vehicle has no photo or the photo fails to load', async () => {
   mockDealers({ ...ready(), results: [result(1), { ...result(2), vehicle: { ...result(2).vehicle, image_url: '/missing.webp' } }] })
@@ -220,4 +177,23 @@ it('shows a neutral "Sin fotos" placeholder when the vehicle has no photo or the
   fireEvent.error(within(second).getByRole('img', { name: /Foto de/ }))
   expect(within(second).getByText('Sin fotos')).toBeVisible()
   expect(within(second).queryByRole('img', { name: /Foto de/ })).not.toBeInTheDocument()
+})
+
+it('keeps concise reasons in an optional info tip instead of expanding the card', async () => {
+  renderPage()
+  const card = await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
+  expect(within(card).queryByText('Ver atributos y motivos')).not.toBeInTheDocument()
+  expect(within(card).queryByRole('tooltip')).not.toBeInTheDocument()
+  const info = within(card).getByRole('button', { name: /Por qué recomendamos/ })
+  await userEvent.click(info)
+  const tip = within(card).getByRole('tooltip')
+  expect(tip).toHaveTextContent('Por qué se recomienda')
+  expect(tip).toHaveTextContent('Buena reventa100/100')
+  expect(tip).not.toHaveTextContent('Prioridad')
+  expect(tip).toHaveTextContent('Confort60/100')
+  expect(tip).toHaveTextContent('Presupuesto: −6 puntos')
+  expect(tip).not.toHaveTextContent('Motor y capacidad')
+  await userEvent.keyboard('{Escape}')
+  expect(tip).not.toBeVisible()
+  expect(info).toHaveFocus()
 })

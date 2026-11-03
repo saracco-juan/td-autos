@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { OTHER_PORTALS_TAB, portalCountLabel, portalTabLabel } from '@shared/portals/format'
 import { filterRecommendations } from '@shared/recommendations/filters'
+import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
 import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
 import alertStyles from '../../components/alert.module.css'
@@ -12,6 +13,7 @@ import Tabs from '../../components/Tabs'
 import SessionLoading from '../auth/session/SessionLoading'
 import ComparisonControls from '../comparison/ComparisonControls'
 import { useComparisonSelection } from '../comparison/useComparisonSelection'
+import { fetchDiagnosis } from '../diagnosis/api'
 import { fetchRecommendations } from './matching'
 import MatchingVehicleCard from './MatchingVehicleCard'
 import ExchangeRateCaption from './ExchangeRateCaption'
@@ -31,6 +33,11 @@ const PORTALS_TAB = 'portals'
 export default function MatchingRecommendationsPage() {
   const { view, retry } = useApiView(fetchRecommendations)
   const portals = useApiView(fetchPortalModels)
+  const diagnosis = useApiView(fetchDiagnosis)
+  const priority = diagnosis.view.status === 'ready' ? diagnosis.view.response.diagnostico?.prioridad : undefined
+  const priorityStep = DIAGNOSIS_STEPS.find((step) => step.field === 'prioridad')
+  const priorityLabel = priorityStep?.kind === 'single'
+    ? priorityStep.options.find((option) => option.code === priority)?.label : undefined
   const [page, setPage] = useState(1)
   const title = useRef<HTMLHeadingElement>(null)
   const previousPage = useRef(page)
@@ -82,7 +89,7 @@ export default function MatchingRecommendationsPage() {
         <>
           <ul className={styles.grid} aria-label="Recomendaciones">
             {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
-              <MatchingVehicleCard key={result.listing_id} result={result} comparison={{
+              <MatchingVehicleCard key={result.listing_id} result={result} priorityLabel={priorityLabel} comparison={{
                 selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
               }} />
             ))}

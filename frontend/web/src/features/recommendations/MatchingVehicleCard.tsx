@@ -2,20 +2,20 @@ import { useId, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
+import InfoTip from '../../components/InfoTip'
 import {
-  budgetPenaltyNote, compatibilityLabel, componentsSummary, displayScore, equivalentPriceLabel, recommendationTitle,
+  compatibilityLabel, displayScore, equivalentPriceLabel, recommendationTitle,
   warningMessages,
 } from '@shared/recommendations/format'
 import { formatKilometers, formatPrice } from '../inventory/format'
-import { EQUIPMENT_GROUPS } from '@shared/vehicles/equipment'
 import FavoriteButton from '../favorites/FavoriteButton'
 import type { Recommendation } from './matching'
 import PhotoPlaceholder from './PhotoPlaceholder'
 import styles from './VehicleCard.module.css'
 
 // Photo-led redesign of High v3 Card/Vehicle (2373:7340); matching stays in the backend.
-export default function MatchingVehicleCard({ result, comparison }: {
-  result: Recommendation; comparison?: { selected: boolean; toggle: () => void }
+export default function MatchingVehicleCard({ result, comparison, priorityLabel }: {
+  result: Recommendation; comparison?: { selected: boolean; toggle: () => void }; priorityLabel?: string
 }) {
   const titleId = useId()
   const [photoFailed, setPhotoFailed] = useState(false)
@@ -35,7 +35,23 @@ export default function MatchingVehicleCard({ result, comparison }: {
           )}
         </div>
         <div className={styles.topline}>
-          <strong className={styles.compatibility}>{compatibilityLabel(result)}</strong>
+          <div className={styles.matchingInfo}>
+            <strong className={styles.compatibility}>{compatibilityLabel(result)}</strong>
+            <InfoTip label={`Por qué recomendamos ${title}`}>
+              <strong>Por qué se recomienda</strong>
+              <p className={styles.reasonIntro}>Coincidencia con tu diagnóstico:</p>
+              <dl className={styles.reasonScores}>
+                {([
+                  ['Uso', components.usage], ['Carrocería', components.body],
+                  [priorityLabel, components.priority], ['Confort', components.comfort],
+                ] as const).map(([label, score]) => label ? (
+                  <div key={label}><dt>{label}</dt><dd>{score === null ? 'Sin datos' : `${displayScore(score)}/100`}</dd></div>
+                ) : null)}
+              </dl>
+              {result.budget_penalty > 0 ? <p className={styles.reasonNote}>Presupuesto: −{displayScore(result.budget_penalty)} puntos.</p> : null}
+              <p className={styles.reasonNote}>Atributos y detalle de la evaluación en la ficha.</p>
+            </InfoTip>
+          </div>
           <div className={styles.favorite}><FavoriteButton vehicleId={result.listing_id}
             vehicleName={title} isFavorite={result.is_favorite ?? false} /></div>
         </div>
@@ -59,20 +75,7 @@ export default function MatchingVehicleCard({ result, comparison }: {
         </div>
       </div>
       {warningMessages(result).map((message) => <p key={message} className={alertStyles.warning}>{message}</p>)}
-      <details className={styles.explanation}>
-        <summary>Ver atributos y motivos</summary>
-        <p>{componentsSummary(result)}</p>
-        {result.resale ? <p>Reventa: actividad DNRPA {result.resale.window_start ?? 'no disponible'} a {result.resale.window_end ?? 'no disponible'} ({result.resale.activity_score === null ? 'sin puntaje' : displayScore(result.resale.activity_score)}); puntaje de retención ACARA al {result.resale.source_date ?? 'no disponible'} ({result.resale.retention_score === null ? 'sin puntaje' : displayScore(result.resale.retention_score)}). Cada factor pesa 50% de la prioridad. Son referencias por antigüedad, no precios futuros garantizados.</p> : null}
-        {result.resale?.model_match?.approximate ? <p>Referencia aproximada: {result.resale.model_match.reference_model}, inferida para {result.resale.model_match.listing_model} por compatibilidad técnica. No confirma que sean el mismo modelo; la retención usa esta referencia y la actividad DNRPA corresponde a la familia publicada.</p> : null}
-        {result.resale?.estimate ? <p>Depreciación anual estimada: {displayScore(result.resale.estimate.annual_depreciation_percent)}%. Años de referencia: {result.resale.estimate.years_used.join(', ')}. Retención estimada a {result.resale.estimate.horizon_years} años: {displayScore(result.resale.estimate.retained_percent ?? result.resale.retention_score ?? 0)}%. Es una proyección con precios del catálogo, no una evolución histórica observada ni un precio futuro garantizado.</p> : null}
-        {result.resale?.estimate?.retention_range ? <p>Estimación por grupo: {result.resale.estimate.reference_count} referencias compatibles. Rango estimado de retención: {displayScore(result.resale.estimate.retention_range[0])}% a {displayScore(result.resale.estimate.retention_range[1])}%. No identifica una versión exacta.</p> : null}
-        <p>{budgetPenaltyNote(result)}</p>
-        <p>Motor y capacidad: {vehicle.plazas} plazas · {vehicle.carroceria} · {vehicle.transmision === 'automatica' ? 'Automática' : 'Manual'} · {vehicle.combustible} · {vehicle.motor}{vehicle.turbo ? ' turbo' : ''} · {vehicle.potencia} {vehicle.potencia_unidad}</p>
-        <p>Consumo: {vehicle.combustible === 'gnc' ? 'GNC: valoración de costo de uso, sin consumo físico comparable.' : `Urbano ${vehicle.consumo_urbano} / ruta ${vehicle.consumo_ruta} L/100 km`}</p>
-        {Object.entries(EQUIPMENT_GROUPS).map(([group, fields]) => (
-          <p key={group}>{group}: {fields.filter(([key]) => vehicle[key] === true).map(([, label]) => label).join(', ') || 'Ninguno de estos elementos'}</p>
-        ))}
-      </details>
+
     </li>
   )
 }
