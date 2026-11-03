@@ -1,8 +1,11 @@
-/* "Button" (Figma v3): height 40, radius 10, 11px uppercase label. Every variant shares the soft look: white surface,
-   thin light border, soft shadow, dark grey label, a subtle hover in the table header tone and a soft focus ring
-   (docs/design.md "Buttons"). The variant only changes the border and the label. */
+/* Action buttons use the recommendations filter's shape and shared 550ms reveal. */
 .button {
   composes: fill from './buttonHover.module.css';
+}
+
+/* Feature layouts can set width and height regardless of stylesheet load order. */
+:where(.button) {
+  --button-hover-fill: var(--palette-charcoal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,7 +21,14 @@
   font: 600 11px/normal var(--font-sans);
   text-decoration: none;
   cursor: pointer;
-  transition: color 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
+  transition: color 550ms ease, border-color 550ms ease, box-shadow 550ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled):not([aria-disabled='true']):not([aria-busy='true']):not([aria-current]):not([aria-selected='true']) {
+    color: var(--text-on-color);
+    border-color: var(--button-hover-fill);
+  }
 }
 
 .button:focus-visible {

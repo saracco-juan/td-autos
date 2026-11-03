@@ -39,7 +39,7 @@
   min-height: 44px;
   height: auto;
   padding: 12px 24px;
-  border-radius: 999px;
+  border-radius: 10px;
   box-shadow: none;
   font-size: 13px;
   color: var(--palette-charcoal);

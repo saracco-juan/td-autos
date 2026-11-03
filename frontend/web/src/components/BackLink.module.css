@@ -9,7 +9,7 @@
   min-height: 44px;
   padding: 10px 18px 10px 14px;
   border: 1px solid var(--border-default);
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--surface-default);
   color: var(--palette-charcoal);
   font-size: 13px;

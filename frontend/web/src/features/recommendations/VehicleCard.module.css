@@ -150,21 +150,21 @@
   min-height: 46px;
   height: auto;
   padding: 12px;
-  border-radius: 14px;
+  border-radius: 10px;
   font-size: 12px;
   line-height: 1.5;
   box-shadow: none;
 }
 
 .actions .compare {
-  --button-hover-fill: var(--surface-raised);
+  --button-hover-fill: var(--palette-charcoal);
   border-color: var(--surface-raised);
   background: transparent;
   color: var(--surface-default);
 }
 
 .actions .detail {
-  --button-hover-fill: color-mix(in srgb, var(--palette-red), var(--palette-charcoal) 18%);
+  --button-hover-fill: var(--palette-charcoal);
   border-color: transparent;
   background: var(--palette-red);
   color: var(--surface-default);
@@ -172,7 +172,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .actions .compare:hover:not(:disabled):not([aria-busy='true']) {
-    color: var(--palette-charcoal);
+    color: var(--text-on-color);
   }
 }
 

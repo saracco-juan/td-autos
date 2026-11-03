@@ -85,7 +85,7 @@
   --button-hover-fill: var(--action-success);
   min-height: 48px;
   border-color: var(--action-success);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--surface-default);
   color: var(--action-success);
   transition: color 550ms ease;
@@ -96,14 +96,13 @@
 }
 
 .summary > a {
-  --button-hover-fill: var(--surface-raised);
+  --button-hover-fill: var(--palette-charcoal);
   justify-content: flex-start;
   min-height: 44px;
   height: auto;
-  padding: 12px 0;
-  border: 0;
-  border-bottom: 1px solid var(--border-default);
-  border-radius: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
   background: transparent;
   color: var(--palette-charcoal);
   box-shadow: none;

@@ -29,15 +29,15 @@
   width: auto;
   height: 44px;
   padding-inline: 18px 10px;
-  border-radius: 999px;
-  background: var(--palette-charcoal);
-  border-color: var(--palette-charcoal);
-  color: var(--text-on-action);
-  --button-hover-fill: var(--palette-red);
+  border-radius: 10px;
+  background: var(--surface-default);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+  --button-hover-fill: var(--palette-charcoal);
 }
-.count { display: grid; place-items: center; width: 24px; height: 24px; overflow: hidden; border-radius: 50%; background: #ffffff20; font-variant-numeric: tabular-nums; }
+.count { display: grid; place-items: center; width: 24px; height: 24px; overflow: hidden; border-radius: 50%; background: var(--palette-charcoal); color: var(--text-on-color); font-variant-numeric: tabular-nums; }
 .count > span { animation: count-in 200ms cubic-bezier(.23, 1, .32, 1); }
-.remove { flex: none; width: 32px; height: 32px; padding: 8px; border: 0; border-radius: 50%; background: transparent; box-shadow: none; }
+.remove { flex: none; width: 32px; height: 32px; padding: 8px; border: 0; border-radius: 10px; background: transparent; box-shadow: none; }
 .remove svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 .caption { margin: 6px 0 0; text-align: center; font-size: 12px; color: var(--text-secondary); }
 .notice { margin: 8px 0 0; }

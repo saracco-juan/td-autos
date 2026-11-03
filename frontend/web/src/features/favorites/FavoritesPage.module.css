@@ -94,7 +94,7 @@
 
 .footerAction {
   width: auto;
-  border-radius: 999px;
+  border-radius: 10px;
   min-height: 44px;
 }
 
@@ -130,12 +130,21 @@
   font-size: 14px;
 }
 
+.undo {
+  composes: button from '../../components/button.module.css';
+}
+
+.retryAction {
+  composes: button from '../../components/button.module.css';
+}
+
 .undo,
 .retryAction {
   flex: none;
+  width: auto;
   padding: 8px 12px;
   border: 1px solid var(--border-default);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface-default);
   color: var(--text-primary);
   font: 600 12px/1 var(--font-sans);

@@ -115,7 +115,7 @@
   width: auto;
   min-width: 180px;
   height: 44px;
-  border-radius: 999px;
+  border-radius: 10px;
   box-shadow: none;
   transition: color 550ms ease;
 }
