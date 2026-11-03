@@ -25,9 +25,8 @@
 }
 
 .button:focus-visible {
-  outline: none;
-  border-color: var(--border-input);
-  box-shadow: 0 0 0 3px var(--surface-raised);
+  outline: 2px solid var(--text-primary);
+  outline-offset: 3px;
 }
 
 /* Fixed and clamped by the component, so a row near the screen edge never overflows (375 px included). */
