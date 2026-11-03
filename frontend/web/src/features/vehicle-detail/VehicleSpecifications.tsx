@@ -11,7 +11,7 @@ export default function VehicleSpecifications({ vehicle }: { vehicle: BuyerVehic
   return (
     <section className={styles.card} aria-labelledby={`${id}-heading`}>
       <h2 id={`${id}-heading`}>Especificaciones técnicas</h2>
-      <Tabs label="Secciones de especificaciones" items={groups.map(({ title }) => ({ id: title, label: title }))}>
+      <Tabs variant="underline" label="Secciones de especificaciones" items={groups.map(({ title }) => ({ id: title, label: title }))}>
         {(section) => groups.filter(({ title }) => title === section).map(({ title, rows }) => (
           <dl className={styles.rows} key={title}>
             {rows.map(({ label, value, explanation }) => (

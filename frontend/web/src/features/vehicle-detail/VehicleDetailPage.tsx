@@ -54,7 +54,7 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
   const title = data ? vehicleTitle(data.vehicle) : ''
   const subtitle = data ? specificationGroups(data.vehicle)[0].rows
     .filter(({ label }) => ['Kilometraje', 'Ubicación', 'Transmisión', 'Combustible'].includes(label))
-    .map(({ label, value }) => `${label}: ${value}`).join(' · ') : ''
+    .map(({ value }) => value).join(' · ') : ''
   return (
     <div className={styles.page}>
       <Link className={styles.back} to={returnTo.to}>
@@ -74,18 +74,19 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
       }} /> : null}
       {data ? (
         <>
-          <header>
-            <p className={screenStyles.eyebrow}>FICHA TÉCNICA</p>
-            <h1 ref={heading} tabIndex={-1} className={screenStyles.title}>{title}</h1>
+          <header className={styles.heading}>
+            <h1 ref={heading} tabIndex={-1} className={styles.title}>{title}</h1>
             <p className={styles.muted}>{subtitle}</p>
           </header>
           <div className={styles.body}>
             <div className={styles.gallery}><VehicleGallery photos={data.vehicle.fotos} title={title} /></div>
             <div className={styles.sidebar}>
               <aside className={styles.summary} aria-label="Resumen de la publicación">
-                <p className={styles.price}>{data.vehicle.precio === null || data.vehicle.moneda === null
-                  ? 'Precio no disponible.' : formatPrice(data.vehicle.precio, data.vehicle.moneda)}</p>
-                <FavoriteButton vehicleId={data.vehicle.id} vehicleName={title} isFavorite={data.is_favorite ?? false} />
+                <div className={styles.priceRow}>
+                  <p className={styles.price}>{data.vehicle.precio === null || data.vehicle.moneda === null
+                    ? 'Precio no disponible.' : formatPrice(data.vehicle.precio, data.vehicle.moneda).replace('US$', 'USD')}</p>
+                  <FavoriteButton vehicleId={data.vehicle.id} vehicleName={title} isFavorite={data.is_favorite ?? false} />
+                </div>
                 <p className={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</p>
                 <VehicleContact vehicleId={data.vehicle.id} available={data.whatsapp_available === true} />
                 <VehicleCostShortcut vehicleId={data.vehicle.id} context={context} />
@@ -96,10 +97,10 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
                   CHECKLIST DE INSPECCIÓN
                 </Link>
               </aside>
-              <VehicleCompatibility context={context} />
+              <VehicleSpecifications vehicle={data.vehicle} />
             </div>
-            <div className={styles.specifications}><VehicleSpecifications vehicle={data.vehicle} /></div>
           </div>
+          <div className={styles.compatibility}><VehicleCompatibility context={context} /></div>
         </>
       ) : null}
     </div>
