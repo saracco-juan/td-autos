@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef, type KeyboardEvent } from 'react'
+import { useCallback, useLayoutEffect, useRef, type KeyboardEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { stepPanelId, stepTabId } from './ids'
+import { checklistSurface } from './checklistSurface'
 import styles from './ChecklistStepList.module.css'
 import type { ChecklistStep } from '@shared/checklist/types'
 
@@ -38,22 +39,23 @@ export default function ChecklistStepList({
 }: Props) {
   const tabs = useRef(new Map<number, HTMLButtonElement>())
   const motion = useRef<Animation | null>(null)
+  const surfaceMotion = useRef<ReturnType<typeof checklistSurface>>(null)
 
-  useLayoutEffect(() => () => {
+  const cancelMotion = useCallback(() => {
     motion.current?.cancel()
     motion.current = null
-  }, [selected])
+    surfaceMotion.current?.animation.cancel()
+    surfaceMotion.current?.surface.remove()
+    surfaceMotion.current = null
+  }, [])
+  useLayoutEffect(() => cancelMotion, [selected, cancelMotion])
 
   const select = (numero: number, animate = false) => {
     const panel = document.getElementById(stepPanelId(idPrefix, selected))
     const current = panel ? getComputedStyle(panel) : null
-    const from = {
-      clipPath: current?.clipPath === 'none' ? 'inset(0 0% 0 0)' : current?.clipPath,
-      opacity: current?.opacity ?? '1',
-      transform: current?.transform ?? 'none',
-    }
-    motion.current?.cancel()
-    motion.current = null
+    const from = { opacity: current?.opacity ?? '1' }
+    const interruptedBounds = surfaceMotion.current?.surface.getBoundingClientRect()
+    cancelMotion()
 
     if (numero === selected) return
     if (!animate || !panel?.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -61,9 +63,10 @@ export default function ChecklistStepList({
       return
     }
 
-    const folded = { clipPath: 'inset(0 100% 0 0)', opacity: 0, transform: 'translateX(-12px)' }
     const easing = 'cubic-bezier(0.23, 1, 0.32, 1)'
-    const exit = panel.animate([from, folded], { duration: 140, easing, fill: 'forwards' })
+    const previousTab = tabs.current.get(selected)
+    if (previousTab) surfaceMotion.current = checklistSurface(panel, previousTab, false, interruptedBounds)
+    const exit = panel.animate([from, { opacity: 0 }], { duration: 160, easing, fill: 'forwards' })
     motion.current = exit
     exit.onfinish = () => {
       // Commit only the latest requested tab, then reveal its real content without scaling text.
@@ -71,10 +74,26 @@ export default function ChecklistStepList({
       flushSync(() => onSelect(numero))
       exit.cancel()
       const next = document.getElementById(stepPanelId(idPrefix, numero))
+      const nextTab = tabs.current.get(numero)
+      if (next && nextTab) surfaceMotion.current = checklistSurface(next, nextTab, true)
+      const surface = surfaceMotion.current
       motion.current = next?.animate([
-        folded,
-        { clipPath: 'inset(0 0% 0 0)', opacity: 1, transform: 'none' },
-      ], { duration: 280, easing }) ?? null
+        { opacity: 0 },
+        { opacity: 1 },
+      ], { delay: surface ? 320 : 0, duration: 140, easing, fill: 'backwards' }) ?? null
+      if (surface) {
+        surface.animation.onfinish = () => {
+          if (surfaceMotion.current !== surface) return
+          surface.animation.cancel()
+          surface.animation = surface.surface.animate([{ opacity: 1 }, { opacity: 0 }], {
+            duration: 140, easing, fill: 'forwards',
+          })
+          surface.animation.onfinish = () => {
+            surface.surface.remove()
+            if (surfaceMotion.current === surface) surfaceMotion.current = null
+          }
+        }
+      }
     }
   }
 
@@ -85,6 +104,8 @@ export default function ChecklistStepList({
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Tab can move focus into the panel before its pointer animation has finished.
+    cancelMotion()
     const index = steps.findIndex((step) => step.numero === selected)
     const keys = KEYS[orientation]
     let target: number | undefined

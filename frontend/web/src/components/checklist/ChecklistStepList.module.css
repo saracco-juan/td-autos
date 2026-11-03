@@ -8,6 +8,16 @@
   border-radius: 20px;
 }
 
+.motionSurface {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  transform-origin: top left;
+  border-radius: 14px;
+  background: #f6f5f4;
+  box-shadow: 0 8px 24px rgb(36 31 28 / 6%);
+}
+
 .tab {
   composes: fill from '../buttonHover.module.css';
   --button-hover-fill: #eae7e4;

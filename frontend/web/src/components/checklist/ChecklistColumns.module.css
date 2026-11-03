@@ -1,5 +1,7 @@
 /* Shared step navigation and content; the optional advisor stays below the navigation. */
 .columns {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: clamp(260px, 25%, 340px) minmax(0, 1fr);
   grid-template-areas: 'list panel';
