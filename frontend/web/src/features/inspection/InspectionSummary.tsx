@@ -37,7 +37,7 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
 
   return (
     <FlowLayout
-      className={checklistStyles.layout}
+      className={`${checklistStyles.layout} ${checklistStyles.summary}`}
       actions={
         <div className={barStyles.actions}>
           <Link

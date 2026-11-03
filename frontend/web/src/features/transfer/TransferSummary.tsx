@@ -33,7 +33,7 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
 
   return (
     <FlowLayout
-      className={checklistStyles.layout}
+      className={`${checklistStyles.layout} ${checklistStyles.summary}`}
       actions={
         <div className={barStyles.actions}>
           <button

@@ -5,6 +5,21 @@
 
 .layout > :first-child { gap: 40px; padding-bottom: 40px; }
 
+/* Reveal the summary content while the action bar stays in place. */
+.summary > :first-child {
+  opacity: 1;
+  transform: none;
+  transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .summary > :first-child {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
 .header { display: flex; flex-direction: column; gap: 40px; }
 .titles { display: grid; gap: 16px; }
 .title {
@@ -42,6 +57,10 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .layout > [role='group'] :is(button, a) { transition: none; }
+  .summary > :first-child { transition: opacity 120ms ease; }
+  @starting-style {
+    .summary > :first-child { transform: none; }
+  }
 }
 @media (max-width: 767px) {
   .layout { padding-top: 8px; }
