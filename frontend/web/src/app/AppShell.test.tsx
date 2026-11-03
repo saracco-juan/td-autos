@@ -1,6 +1,6 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../features/auth/session/useAuth'
 import type { User } from '../features/auth/types'
@@ -54,6 +54,16 @@ function renderShell(path = '/') {
   )
 }
 
+function LandingSections() {
+  const location = useLocation()
+  return <>
+    <output aria-label="Current address">{location.pathname}{location.hash}</output>
+    {['diagnostico', 'busqueda', 'comparacion', 'costos', 'checklists', 'concesionarias'].map(id => (
+      <section key={id} id={id} aria-label={id}>{id}</section>
+    ))}
+  </>
+}
+
 describe('AppShell', () => {
   beforeEach(() => {
     vi.mocked(useAuth).mockReset()
@@ -98,17 +108,65 @@ describe('AppShell', () => {
       expect(target.scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'smooth' })
     })
 
-    it('updates the selected guest section on navigation and starts from the URL anchor', async () => {
+    it('follows the visible section in both directions without changing the clicked anchor', async () => {
       mockAuth('guest')
-      renderShell('/#diagnostico')
-      const diagnosis = screen.getByRole('link', { name: 'Diagnóstico' })
-      const comparison = screen.getByRole('link', { name: 'Comparación' })
-      expect(diagnosis).toHaveAttribute('aria-current', 'location')
-      await userEvent.setup().click(comparison)
-      expect(comparison).toHaveAttribute('aria-current', 'location')
-      expect(diagnosis).not.toHaveAttribute('aria-current')
-      await userEvent.setup().click(screen.getByRole('link', { name: 'TD Autos' }))
-      expect(comparison).not.toHaveAttribute('aria-current')
+      let position = 0
+      const ids = ['diagnostico', 'busqueda', 'comparacion', 'costos', 'checklists', 'concesionarias']
+      const geometry = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+        return DOMRect.fromRect({ y: (ids.indexOf(this.id) + 1) * 1000 - position, height: 1000 })
+      })
+      const scrollIntoView = vi.fn()
+      vi.useFakeTimers()
+      try {
+        render(<MemoryRouter initialEntries={['/']}><Routes><Route element={<AppShell />}>
+          <Route index element={<LandingSections />} />
+        </Route></Routes></MemoryRouter>)
+        ids.forEach(id => { document.getElementById(id)!.scrollIntoView = scrollIntoView })
+        const navigation = screen.getByRole('navigation', { name: 'Principal' })
+        const selected = () => navigation.querySelector('[aria-current="location"]')
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toBeNull()
+
+        fireEvent.click(within(navigation).getByRole('link', { name: 'Comparación' }))
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'smooth' })
+        position = 1000
+        fireEvent.scroll(window)
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toHaveTextContent('Comparación')
+        position = 3000
+        fireEvent.scroll(window)
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toHaveTextContent('Comparación')
+
+        position = 2000
+        fireEvent.scroll(window)
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toHaveTextContent('Búsqueda')
+        expect(screen.getByLabelText('Current address')).toHaveTextContent('/#comparacion')
+
+        fireEvent.click(within(navigation).getByRole('link', { name: 'Concesionarias' }))
+        position = 3000
+        fireEvent.scroll(window)
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toHaveTextContent('Concesionarias')
+        fireEvent.wheel(window)
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toHaveTextContent('Comparación')
+
+        // A rapid sequence settles on the actual last position, with no delayed queue.
+        for (position of [3000, 4000, 5000, 6000]) fireEvent.scroll(window)
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toHaveTextContent('Concesionarias')
+        expect(screen.getByLabelText('Current address')).toHaveTextContent('/#concesionarias')
+        position = 0
+        fireEvent.scroll(window)
+        await act(() => vi.advanceTimersByTimeAsync(20))
+        expect(selected()).toBeNull()
+      } finally {
+        cleanup()
+        vi.useRealTimers()
+        geometry.mockRestore()
+      }
     })
 
     it('lets a guest open the section navigation and follow a landing anchor', async () => {

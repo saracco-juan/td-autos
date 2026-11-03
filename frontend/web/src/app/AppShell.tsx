@@ -53,6 +53,10 @@ const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
 // The receipt review lives inside the dealer list (Figma 38:1129 highlights Concesionarias).
 const ADMIN_DEALER_PATHS = ['/admin/concesionarias', '/admin/comprobantes/']
+const HOME_SECTIONS = [
+  ['diagnostico', 'Diagnóstico'], ['busqueda', 'Búsqueda'], ['comparacion', 'Comparación'],
+  ['costos', 'Costos'], ['checklists', 'Checklists'], ['concesionarias', 'Concesionarias'],
+]
 
 // Shared page frame: nav on top (role links beside the logo; Perfil or Administración, the dealer name and the logout on the right) (guest, or the Buyer, Dealer or Admin nav with logout once signed in), routed content, footer.
 // Each nav shows only the links whose screens exist: diagnosis, recommendations, transfer and profile for buyers,
@@ -69,6 +73,61 @@ export default function AppShell() {
   const menuOpen = menuOpenedAt === locationKey
   const setMenuOpen = (open: boolean) => setMenuOpenedAt(open ? locationKey : null)
   const menuId = useId()
+  const [visibleSection, setVisibleSection] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (pathname !== '/' || status === 'authenticated') return
+    const sections = HOME_SECTIONS.map(([id]) => document.getElementById(id))
+    let anchor = hash ? document.getElementById(hash.slice(1)) : null
+    let frame = 0
+    const updateSection = () => {
+      frame = 0
+      // Anchor navigation keeps its destination selected while passing other sections.
+      if (anchor) {
+        const top = anchor.getBoundingClientRect().top
+        const margin = parseFloat(getComputedStyle(anchor).scrollMarginTop) || 0
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+        setVisibleSection(HOME_SECTIONS.some(([id]) => id === anchor?.id) ? anchor.id : null)
+        if (Math.abs(top - margin) < 2 || (maxScroll > 0 && window.scrollY >= maxScroll - 2 && top >= margin)) {
+          anchor = null
+        }
+        return
+      }
+      // Follow the reading area below the header, including upward and fast scrolling.
+      const readingLine = Math.min(window.innerHeight / 3, 240)
+      let current: string | null = null
+      for (const section of sections) {
+        if (section && section.getBoundingClientRect().top <= readingLine) current = section.id
+      }
+      setVisibleSection(current)
+    }
+    const scheduleUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateSection)
+    }
+    const followManualScroll = () => {
+      anchor = null
+      scheduleUpdate()
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) followManualScroll()
+    }
+    scheduleUpdate()
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate)
+    window.addEventListener('wheel', followManualScroll, { passive: true })
+    window.addEventListener('touchstart', followManualScroll, { passive: true })
+    window.addEventListener('pointerdown', followManualScroll, { passive: true })
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+      window.removeEventListener('wheel', followManualScroll)
+      window.removeEventListener('touchstart', followManualScroll)
+      window.removeEventListener('pointerdown', followManualScroll)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [pathname, status, hash, locationKey])
 
   // Router anchors share one scroll path; native links would jump before this effect.
   useEffect(() => {
@@ -204,12 +263,9 @@ export default function AppShell() {
             </button>
             <div id={menuId} className={`${styles.menuPanel} ${menuOpen ? styles.menuPanelOpen : ''}`}>
               <nav aria-label="Principal" className={styles.navLinks}>
-                {[
-                  ['diagnostico', 'Diagnóstico'], ['busqueda', 'Búsqueda'], ['comparacion', 'Comparación'],
-                  ['costos', 'Costos'], ['checklists', 'Checklists'], ['concesionarias', 'Concesionarias'],
-                ].map(([id, label]) => (
+                {HOME_SECTIONS.map(([id, label]) => (
                   <Link key={id} to={`/#${id}`} className={styles.navAction}
-                    aria-current={pathname === '/' && hash === `#${id}` ? 'location' : undefined}
+                    aria-current={pathname === '/' && visibleSection === id ? 'location' : undefined}
                     onClick={() => setMenuOpen(false)}>{label}</Link>
                 ))}
               </nav>
