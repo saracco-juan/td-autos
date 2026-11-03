@@ -10,6 +10,7 @@ import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '@sha
 import { withCode } from '@shared/checklist/autosave'
 import { useChecklistAutosave } from '../../components/checklist/useChecklistAutosave'
 import FlowLayout from '../../components/FlowLayout'
+import checklistStyles from '../../components/checklist/ChecklistScreen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import SessionLoading from '../auth/session/SessionLoading'
@@ -170,7 +171,7 @@ function InspectionScreen({ vehicleId }: { vehicleId: number }) {
 
   return (
     <FlowLayout
-      narrow
+      className={checklistStyles.layout}
       actions={
         <ChecklistActionBar
           labels={ACTION_LABELS}

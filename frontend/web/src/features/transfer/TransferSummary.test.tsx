@@ -17,10 +17,10 @@ function renderSummary(completedCodes: string[] = ONLY_MANDATORY, onKeepCompleti
 const message = () => screen.getByRole('status')
 
 describe('TransferSummary', () => {
-  it('renders the shared header: eyebrow, title and counter, with no advisor card', () => {
+  it('renders the shared header: title and counter, with no advisor card', () => {
     renderSummary(MANDATORY_CODES)
 
-    expect(screen.getByText('TRÁMITES')).toBeInTheDocument()
+    expect(screen.queryByText('TRÁMITES')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Checklist de transferencia' })).toBeInTheDocument()
     expect(screen.getByText('8 de 15 pasos completados')).toBeInTheDocument()
     expect(screen.queryByText('ASESORAMIENTO')).not.toBeInTheDocument()

@@ -133,12 +133,12 @@ describe('InspectionPage', () => {
   })
 
   describe('layout', () => {
-    it('renders the back link, eyebrow, vehicle title and counter', async () => {
+    it('renders the back link, vehicle title and counter', async () => {
       await renderPage()
 
       // The vehicle sheet (HU09) does not exist yet: the link points to its planned route.
       expect(screen.getByRole('link', { name: 'Volver a la ficha' })).toHaveAttribute('href', '/vehiculos/7')
-      expect(screen.getByText('CHECKLIST DE INSPECCIÓN')).toBeInTheDocument()
+      expect(screen.queryByText('CHECKLIST DE INSPECCIÓN')).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
       expect(counter()).toHaveTextContent('0 de 10 puntos revisados')
       expect(counter()).toHaveAttribute('aria-live', 'polite')

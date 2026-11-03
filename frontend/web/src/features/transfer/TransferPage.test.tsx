@@ -115,10 +115,10 @@ describe('TransferPage', () => {
   })
 
   describe('layout', () => {
-    it('TC-38: renders the eyebrow, title and counter, with no back link', async () => {
+    it('TC-38: renders the title and counter, with no back link', async () => {
       await renderPage()
 
-      expect(screen.getByText('TRÁMITES')).toBeInTheDocument()
+      expect(screen.queryByText('TRÁMITES')).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: 'Checklist de transferencia' })).toBeInTheDocument()
       expect(counter()).toHaveTextContent('0 de 15 pasos completados')
       expect(counter()).toHaveAttribute('aria-live', 'polite')

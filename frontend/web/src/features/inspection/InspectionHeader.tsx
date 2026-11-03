@@ -1,8 +1,7 @@
 import type { Ref } from 'react'
-import { Link } from 'react-router'
-import { BACK_TO_SHEET, EYEBROW, reviewedCounter } from '@shared/checklist/inspection/copy'
-import screenStyles from '../../components/screen.module.css'
-import styles from './InspectionHeader.module.css'
+import { BACK_TO_SHEET, reviewedCounter } from '@shared/checklist/inspection/copy'
+import BackLink from '../../components/BackLink'
+import styles from '../../components/checklist/ChecklistScreen.module.css'
 
 type Props = {
   vehicleId: number
@@ -12,22 +11,13 @@ type Props = {
   titleRef: Ref<HTMLHeadingElement>
 }
 
-// Shared by the checklist and the summary view: back link, eyebrow, vehicle title and counter.
+// Shared by the inspection checklist and its summary.
 export default function InspectionHeader({ vehicleId, title, completed, total, titleRef }: Props) {
   return (
     <div className={styles.header}>
-      {/* HU09 provides the current buyer vehicle detail at this route. */}
-      <Link to={`/vehiculos/${vehicleId}`} className={styles.back}>
-        <span aria-hidden="true" className={styles.chevron}>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        {BACK_TO_SHEET}
-      </Link>
+      <BackLink to={`/vehiculos/${vehicleId}`}>{BACK_TO_SHEET}</BackLink>
       <div className={styles.titles}>
-        <p className={screenStyles.eyebrow}>{EYEBROW}</p>
-        <h1 ref={titleRef} tabIndex={-1} className={screenStyles.title}>
+        <h1 ref={titleRef} tabIndex={-1} className={styles.title}>
           {title}
         </h1>
         <p aria-live="polite" className={styles.counter}>

@@ -8,6 +8,7 @@ import ChecklistProgressCard from '../../components/checklist/ChecklistProgressC
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '@shared/checklist/progress'
 import FlowLayout from '../../components/FlowLayout'
+import checklistStyles from '../../components/checklist/ChecklistScreen.module.css'
 import { toChecklistSteps } from '@shared/checklist/inspection/steps'
 import { FLAG_LABEL, SUMMARY_LABELS } from '@shared/checklist/inspection/copy'
 import InspectionHeader from './InspectionHeader'
@@ -36,7 +37,7 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
 
   return (
     <FlowLayout
-      narrow
+      className={checklistStyles.layout}
       actions={
         <div className={barStyles.actions}>
           <Link

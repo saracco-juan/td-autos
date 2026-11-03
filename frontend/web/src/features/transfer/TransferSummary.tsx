@@ -7,6 +7,7 @@ import ChecklistProgressCard from '../../components/checklist/ChecklistProgressC
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '@shared/checklist/progress'
 import FlowLayout from '../../components/FlowLayout'
+import checklistStyles from '../../components/checklist/ChecklistScreen.module.css'
 import { FLAG_LABEL, SUMMARY_LABELS } from '@shared/checklist/transfer/copy'
 import { toChecklistSteps } from '@shared/checklist/transfer/steps'
 import { summaryMessage, summaryPendingItems } from '@shared/checklist/transfer/summaryMessage'
@@ -32,7 +33,7 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
 
   return (
     <FlowLayout
-      narrow
+      className={checklistStyles.layout}
       actions={
         <div className={barStyles.actions}>
           <button

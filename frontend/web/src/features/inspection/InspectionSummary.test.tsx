@@ -26,11 +26,11 @@ function renderSummary(completedCodes: string[] = CRITICAL_CODES, onKeepReviewin
 const message = () => screen.getByRole('status')
 
 describe('InspectionSummary', () => {
-  it('renders the shared header: back link, eyebrow, vehicle title and counter', () => {
+  it('renders the shared header: back link, vehicle title and counter', () => {
     renderSummary()
 
     expect(screen.getByRole('link', { name: 'Volver a la ficha' })).toHaveAttribute('href', '/vehiculos/7')
-    expect(screen.getByText('CHECKLIST DE INSPECCIÓN')).toBeInTheDocument()
+    expect(screen.queryByText('CHECKLIST DE INSPECCIÓN')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
     expect(screen.getByText('4 de 10 puntos revisados')).toBeInTheDocument()
   })
