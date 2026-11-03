@@ -29,7 +29,7 @@ export default function ComparisonControls({ selection, source, vehicles = [] }:
         {vehicle?.image ? <img key={vehicle.image} className={styles.photo} src={vehicle.image} alt=""
           onError={(event) => { event.currentTarget.hidden = true }} /> : null}
         <span className={styles.name} title={title}>{vehicle?.label ?? title}</span>
-        <button type="button" className={`${buttonStyles.button} ${styles.remove}`} aria-label={`Quitar ${title} de la comparación`}
+        <button type="button" className={styles.remove} aria-label={`Quitar ${title} de la comparación`}
           onClick={() => { if (id !== undefined) toggle(id) }}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>
         </button>
@@ -46,10 +46,9 @@ export default function ComparisonControls({ selection, source, vehicles = [] }:
           navigate(`/comparar?${params}`)
         }
         else setNotice('Seleccioná exactamente dos vehículos para comparar.')
-      }}>Comparar <span className={styles.count} aria-hidden="true"><span key={ids.length}>{ids.length}</span></span></button>
+      }}>Comparar</button>
       {slot(1)}
     </div>
-    <p className={styles.caption} role="status">{ids.length ? `${ids.length} ${ids.length === 1 ? 'seleccionado' : 'seleccionados'}` : 'Elegí dos vehículos'}</p>
     {notice ? <p role="alert" className={`${alertStyles.warning} ${styles.notice}`}>{notice}</p> : null}
   </section>
 }

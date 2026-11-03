@@ -10,7 +10,7 @@
   opacity: 0;
   clip-path: inset(0 0 0 100% round 10px 0 0 10px);
   pointer-events: none;
-  transition: clip-path 550ms cubic-bezier(.32, .72, 0, 1), opacity 360ms ease;
+  transition: clip-path 800ms cubic-bezier(.32, .72, 0, 1), opacity 550ms ease;
 }
 .slot:last-child { clip-path: inset(0 100% 0 0 round 0 10px 10px 0); }
 .slot[data-open='true'] { opacity: 1; clip-path: inset(0 round 10px 0 0 10px); pointer-events: auto; }
@@ -24,13 +24,18 @@
   padding: 4px;
   background: var(--palette-charcoal);
   color: var(--text-on-color);
+  border: 1px solid var(--palette-charcoal);
+  transform: translateX(100%);
+  transition: transform 800ms cubic-bezier(.32, .72, 0, 1), background-color 550ms ease, color 550ms ease;
 }
+.slot:last-child .vehicle { transform: translateX(-100%); }
+.slot[data-open='true'] .vehicle { transform: translateX(0); }
 .photo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex: none; }
 .name { min-width: 0; flex: 1; padding-left: 4px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .compare {
   width: auto;
   height: 44px;
-  padding-inline: 18px 10px;
+  padding-inline: 18px;
   border-radius: 10px;
   background: var(--surface-default);
   border-color: var(--border-default);
@@ -40,13 +45,13 @@
 }
 .controls:has(.slot:first-child[data-open='true']) .compare { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .controls:has(.slot:last-child[data-open='true']) .compare { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.count { display: grid; place-items: center; width: 24px; height: 24px; overflow: hidden; border-radius: 50%; background: var(--palette-charcoal); color: var(--text-on-color); font-variant-numeric: tabular-nums; }
-.count > span { animation: count-in 200ms cubic-bezier(.23, 1, .32, 1); }
-.remove { flex: none; width: 32px; height: 32px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--text-on-color); box-shadow: none; --button-hover-fill: var(--surface-default); --button-hover-color: var(--palette-charcoal); }
+.remove { display: grid; place-items: center; flex: none; width: 32px; height: 32px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+.remove:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
 .remove svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-.caption { margin: 6px 0 0; text-align: center; font-size: 12px; color: var(--text-secondary); }
 .notice { margin: 8px 0 0; }
-@keyframes count-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (hover: hover) and (pointer: fine) {
+  .controls:hover .vehicle { background: var(--surface-default); color: var(--palette-charcoal); }
+}
 @media (max-width: 600px) {
   .selection { width: 100%; }
   .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -63,6 +68,5 @@
 }
 @media (pointer: coarse) { .remove { width: 44px; height: 44px; } }
 @media (prefers-reduced-motion: reduce) {
-  .slot, .slot:last-child, .compare { transition: none; }
-  .count > span { animation: none; }
+  .slot, .slot:last-child, .compare, .vehicle { transition: none; }
 }

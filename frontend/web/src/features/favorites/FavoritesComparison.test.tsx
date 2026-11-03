@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { expect, it, vi } from 'vitest'
@@ -35,7 +35,7 @@ it.each(['transition', 'timeout'])('opens comparison only on explicit click afte
   if (completion === 'transition') fireEvent.transitionEnd(screen.getByRole('button', { name: 'Dejar de comparar Toyota Auto 2 2021' }).closest('[data-position]')!, { propertyName: 'transform' })
   await new Promise((resolve) => setTimeout(resolve, 750))
   expect(screen.getByRole('heading', { name: 'Vehículos guardados' })).toBeInTheDocument()
-  expect(screen.getByText('2 seleccionados')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Quitar Toyota Auto 2 2021 de la comparación' })).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'COMPARAR' }))
   expect(await screen.findByText('?compare=1%2C2&source=favorites')).toBeInTheDocument()
 })
@@ -43,7 +43,7 @@ it.each(['transition', 'timeout'])('opens comparison only on explicit click afte
 it('does not automatically reopen comparison when returning with two selected vehicles', async () => {
   vi.mocked(listFavorites).mockResolvedValue(response([1, 2]))
   mount('/favoritos?compare=1,2')
-  await screen.findByText('2 seleccionados')
+  await screen.findByRole('button', { name: 'Quitar Toyota Auto 2 2021 de la comparación' })
   await new Promise((resolve) => setTimeout(resolve, 750))
   expect(screen.getByRole('heading', { name: 'Vehículos guardados' })).toBeInTheDocument()
 })
@@ -56,7 +56,7 @@ it('cancels automatic comparison when either selected vehicle is deselected', as
   await user.click(screen.getByRole('button', { name: 'Comparar Toyota Auto 2 2021' }))
   await user.click(screen.getByRole('button', { name: 'Dejar de comparar Toyota Auto 1 2021' }))
   await new Promise((resolve) => setTimeout(resolve, 750))
-  expect(screen.getByText('1 seleccionado')).toBeInTheDocument()
+  expect(within(screen.getByRole('region', { name: 'Selección para comparar' })).getAllByRole('button', { name: /^Quitar/ })).toHaveLength(1)
   expect(screen.getByRole('heading', { name: 'Vehículos guardados' })).toBeInTheDocument()
 })
 
@@ -65,9 +65,9 @@ it('clears a removed favorite from comparison without conflating selection and s
   mount()
   const user = userEvent.setup()
   await user.click(await screen.findByRole('button', { name: 'Comparar Toyota Auto 1 2021' }))
-  expect(screen.getByText('1 seleccionado')).toBeInTheDocument()
+  expect(within(screen.getByRole('region', { name: 'Selección para comparar' })).getAllByRole('button', { name: /^Quitar/ })).toHaveLength(1)
   await user.click(within(screen.getByRole('group', { name: 'Acciones de Toyota Auto 1 2021' })).getByRole('button', { name: 'QUITAR' }))
-  expect(await screen.findByText('Elegí dos vehículos')).toBeInTheDocument()
+  await waitFor(() => expect(within(screen.getByRole('region', { name: 'Selección para comparar' })).queryAllByRole('button', { name: /^Quitar/ })).toHaveLength(0))
   expect(setFavorite).toHaveBeenCalledWith(1, false)
   expect(screen.getByRole('button', { name: 'Deshacer' })).toBeEnabled()
 })
