@@ -18,11 +18,17 @@ function Photo({ url, title }: { url: string | undefined; title: string }) {
     </div>
 }
 
-function Facts({ rows, title, className }: { rows: SpecificationRow[]; title: string; className?: string }) {
+function Facts({ rows, title, hiddenLabels, className }: {
+  rows: SpecificationRow[]; title: string; hiddenLabels?: Set<string>; className?: string
+}) {
   return <dl className={`${styles.facts} ${className ?? ''}`}>
-    {rows.map(({ label, value, explanation }) => <div className={styles.fact} key={label}>
+    {rows.map(({ label, value, explanation }) => <div className={styles.factSlot} key={label}
+      data-hidden={hiddenLabels?.has(label) || undefined} aria-hidden={hiddenLabels?.has(label) || undefined}
+      inert={hiddenLabels?.has(label) || undefined}>
+      <div className={styles.factClip}><div className={styles.fact}>
       <dt>{label}{explanation ? <> <InfoTip label={`Sobre ${label} de ${title}`}>{explanation}</InfoTip></> : null}</dt>
       <dd>{value}</dd>
+      </div></div>
     </div>)}
   </dl>
 }
@@ -43,7 +49,8 @@ export default function ComparisonTable({ entries, onRemove }: {
     && selected[1].some((row) => row.label === label && row.value === value)).map(({ label }) => label))
   const visibleRows = selected.map((rows) => hideSimilarities ? rows.filter(({ label }) => !matchingLabels.has(label)) : rows)
   const items = columns[0].groups.slice(1).map(({ title }) => ({ id: title, label: title }))
-  const specificationRows = Math.max(...visibleRows.map((rows) => rows.length))
+  const specificationRows = Math.max(...selected.map((rows) => rows.length))
+  const allSimilar = visibleRows.every((rows) => rows.length === 0)
   const specificationStyle = { '--specification-rows': specificationRows + 1 } as CSSProperties
 
   return <>
@@ -73,20 +80,27 @@ export default function ComparisonTable({ entries, onRemove }: {
         </div>
         <Tabs label="Secciones de la comparación" items={items} value={section} onValueChange={setSection}
           className={styles.sectionTabs} panelClassName={styles.sectionPanel} variant="underline">
-          {() => specificationRows === 0 ? <p className={styles.empty} role="status">Todos los datos disponibles de esta sección coinciden.</p>
-            : <div className={styles.specificationColumns} style={specificationStyle}>
+          {() => <>
+            <div className={styles.specificationColumns} style={specificationStyle}>
             {columns.map(({ id, title }, index) => <div key={id} className={styles.specificationColumn} role="group"
               aria-label={`Especificaciones de ${title}`}
-              style={{ '--fact-count': visibleRows[index].length } as CSSProperties}>
+              style={{ '--fact-count': selected[index].length } as CSSProperties}>
               <h3>{title}</h3>
-              <Facts rows={visibleRows[index]} title={title} className={styles.specificationFacts} />
+              <Facts rows={selected[index]} title={title} hiddenLabels={hideSimilarities ? matchingLabels : undefined}
+                className={styles.specificationFacts} />
             </div>)}
-          </div>}
+          </div>
+          <div className={styles.factSlot} data-hidden={!allSimilar || undefined} aria-hidden={!allSimilar || undefined}>
+            <div className={styles.factClip}><p className={styles.empty} role={allSimilar ? 'status' : undefined}>
+              Todos los datos disponibles de esta sección coinciden.
+            </p></div>
+          </div>
+          </>}
         </Tabs>
-        <div className={styles.costLinks}>
+        {section === 'Costos estimados en ARS' ? <div className={styles.costLinks}>
           {columns.map(({ id, title }) => <Link key={id} className={buttonStyles.button} to={`/vehiculos/${id}/costos`}
             state={{ comparisonReturnTo }} aria-label={`Ver cálculo completo de ${title}`}>VER CÁLCULO COMPLETO</Link>)}
-        </div>
+        </div> : null}
       </section>
     </div>
   </>

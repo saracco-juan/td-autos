@@ -69,6 +69,32 @@ div.photo {
   padding: 0 20px;
 }
 
+.factSlot {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 420ms cubic-bezier(0.32, 0.72, 0, 1), opacity 360ms ease;
+}
+
+.factSlot[data-hidden='true'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.factClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.factSlot:not([data-hidden='true']) .factClip:has([role='tooltip']:not([hidden])) {
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .factSlot { transition: none; }
+}
+
 .fact {
   display: flex;
   align-items: baseline;
