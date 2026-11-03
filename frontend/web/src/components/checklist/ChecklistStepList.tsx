@@ -1,4 +1,5 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { useLayoutEffect, useRef, type KeyboardEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { stepPanelId, stepTabId } from './ids'
 import styles from './ChecklistStepList.module.css'
 import type { ChecklistStep } from '@shared/checklist/types'
@@ -36,9 +37,49 @@ export default function ChecklistStepList({
   onSelect,
 }: Props) {
   const tabs = useRef(new Map<number, HTMLButtonElement>())
+  const motion = useRef<Animation | null>(null)
+
+  useLayoutEffect(() => () => {
+    motion.current?.cancel()
+    motion.current = null
+  }, [selected])
+
+  const select = (numero: number, animate = false) => {
+    const panel = document.getElementById(stepPanelId(idPrefix, selected))
+    const current = panel ? getComputedStyle(panel) : null
+    const from = {
+      clipPath: current?.clipPath === 'none' ? 'inset(0 0% 0 0)' : current?.clipPath,
+      opacity: current?.opacity ?? '1',
+      transform: current?.transform ?? 'none',
+    }
+    motion.current?.cancel()
+    motion.current = null
+
+    if (numero === selected) return
+    if (!animate || !panel?.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onSelect(numero)
+      return
+    }
+
+    const folded = { clipPath: 'inset(0 100% 0 0)', opacity: 0, transform: 'translateX(-12px)' }
+    const easing = 'cubic-bezier(0.23, 1, 0.32, 1)'
+    const exit = panel.animate([from, folded], { duration: 140, easing, fill: 'forwards' })
+    motion.current = exit
+    exit.onfinish = () => {
+      // Commit only the latest requested tab, then reveal its real content without scaling text.
+      if (motion.current !== exit) return
+      flushSync(() => onSelect(numero))
+      exit.cancel()
+      const next = document.getElementById(stepPanelId(idPrefix, numero))
+      motion.current = next?.animate([
+        folded,
+        { clipPath: 'inset(0 0% 0 0)', opacity: 1, transform: 'none' },
+      ], { duration: 280, easing }) ?? null
+    }
+  }
 
   const move = (numero: number) => {
-    onSelect(numero)
+    select(numero)
     // The page must not jump when the focus moves.
     tabs.current.get(numero)?.focus({ preventScroll: true })
   }
@@ -76,7 +117,7 @@ export default function ChecklistStepList({
             aria-controls={stepPanelId(idPrefix, step.numero)}
             tabIndex={isSelected ? 0 : -1}
             className={`${styles.tab} ${isSelected ? styles.selected : ''}`}
-            onClick={() => onSelect(step.numero)}
+            onClick={(event) => select(step.numero, event.detail > 0)}
           >
             <span className={styles.title}>
               {step.numero}. {step.titulo}

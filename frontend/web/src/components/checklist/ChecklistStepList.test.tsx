@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ChecklistStepList from './ChecklistStepList'
 import { STEPS } from '@shared/checklist/fixtures'
 
@@ -27,6 +27,95 @@ function renderList(overrides: Partial<Props> = {}) {
 const tabs = () => screen.getAllByRole('tab')
 
 describe('ChecklistStepList', () => {
+  beforeEach(() => vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false }))))
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('selects immediately with reduced motion and cancels a pending exit when selection changes externally', () => {
+    const { props, container, rerender } = renderList()
+    const panel = document.createElement('div')
+    panel.id = 'inspection-panel-1'
+    container.append(panel)
+    const animation = { cancel: vi.fn(), onfinish: null as (() => void) | null }
+    panel.animate = vi.fn(() => animation as unknown as Animation)
+
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })))
+    fireEvent.click(tabs()[1], { detail: 1 })
+    expect(props.onSelect).toHaveBeenCalledWith(2)
+    expect(panel.animate).not.toHaveBeenCalled()
+
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })))
+    props.onSelect = vi.fn()
+    rerender(<ChecklistStepList {...props} />)
+    fireEvent.click(tabs()[2], { detail: 1 })
+    rerender(<ChecklistStepList {...props} selected={2} />)
+    expect(animation.cancel).toHaveBeenCalled()
+    act(() => animation.onfinish?.())
+    expect(props.onSelect).not.toHaveBeenCalled()
+    expect(tabs()[1]).toHaveAttribute('aria-selected', 'true')
+    panel.remove()
+  })
+
+  it('starts expanded and closes the old panel before revealing a pointer-selected step, in either direction', () => {
+    const { props, rerender, container } = renderList()
+    const panel = document.createElement('div')
+    panel.id = 'inspection-panel-1'
+    container.append(panel)
+    const animations: { cancel: ReturnType<typeof vi.fn>; onfinish: (() => void) | null }[] = []
+    panel.animate = vi.fn(() => {
+      const animation = { cancel: vi.fn(), onfinish: null }
+      animations.push(animation)
+      return animation as unknown as Animation
+    })
+    const select = vi.fn((numero: number) => {
+      panel.id = `inspection-panel-${numero}`
+      rerender(<ChecklistStepList {...props} selected={numero} onSelect={select} />)
+    })
+    rerender(<ChecklistStepList {...props} onSelect={select} />)
+
+    expect(panel.animate).not.toHaveBeenCalled()
+    fireEvent.click(tabs()[2], { detail: 1 })
+    expect(select).not.toHaveBeenCalled()
+    act(() => animations[0].onfinish?.())
+    expect(select).toHaveBeenLastCalledWith(3)
+    expect(panel.animate).toHaveBeenCalledTimes(2)
+    expect(tabs()[2]).toHaveAttribute('aria-selected', 'true')
+
+    fireEvent.click(tabs()[1], { detail: 1 })
+    expect(select).toHaveBeenCalledTimes(1)
+    act(() => animations[2].onfinish?.())
+    expect(select).toHaveBeenLastCalledWith(2)
+    expect(panel.animate).toHaveBeenCalledTimes(4)
+    panel.remove()
+  })
+
+  it('discards an interrupted exit and keeps keyboard selection immediate', () => {
+    const { props, unmount, container } = renderList()
+    const panel = document.createElement('div')
+    panel.id = 'inspection-panel-1'
+    container.append(panel)
+    const animations: { cancel: ReturnType<typeof vi.fn>; onfinish: (() => void) | null }[] = []
+    panel.animate = vi.fn(() => {
+      const animation = { cancel: vi.fn(), onfinish: null }
+      animations.push(animation)
+      return animation as unknown as Animation
+    })
+    fireEvent.click(tabs()[1], { detail: 1 })
+    fireEvent.click(tabs()[2], { detail: 1 })
+    expect(animations[0].cancel).toHaveBeenCalled()
+    act(() => animations[0].onfinish?.())
+    expect(props.onSelect).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(screen.getByRole('tablist'), { key: 'End' })
+    expect(props.onSelect).toHaveBeenLastCalledWith(STEPS.at(-1)!.numero)
+    act(() => animations[1].onfinish?.())
+    expect(props.onSelect).toHaveBeenCalledTimes(1)
+    fireEvent.click(tabs()[1], { detail: 1 })
+    unmount()
+    act(() => animations[2].onfinish?.())
+    expect(props.onSelect).toHaveBeenCalledTimes(1)
+    panel.remove()
+  })
+
   it('renders a vertical tablist with one tab per step: title on the left, progress on the right', () => {
     renderList({ completedCodes: new Set(['papeles_vtv']) })
 
