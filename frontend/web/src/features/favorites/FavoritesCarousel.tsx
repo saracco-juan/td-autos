@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type TransitionEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import type { FavoriteVehicle } from '@shared/favorites/types'
 import buttonStyles from '../../components/button.module.css'
 import type { Recommendation } from '../recommendations/matching'
@@ -8,16 +8,13 @@ import styles from './FavoritesCarousel.module.css'
 type Props = {
   items: FavoriteVehicle[]; matches: Recommendation[]; selectedIds: number[]; pendingIds: number[]
   onToggle: (id: number) => void; onRemove: (vehicle: FavoriteVehicle) => void
-  onSelectionSettled: (id: number) => void
 }
 
-export default function FavoritesCarousel({ items, matches, selectedIds, pendingIds, onToggle, onRemove, onSelectionSettled }: Props) {
+export default function FavoritesCarousel({ items, matches, selectedIds, pendingIds, onToggle, onRemove }: Props) {
   const [compact, setCompact] = useState(() => window.matchMedia?.('(max-width: 1100px)').matches ?? false)
   const [index, setIndex] = useState(0)
   const [instant, setInstant] = useState(false)
   const pointer = useRef<{ id: number; x: number; y: number } | null>(null)
-  const settled = useRef(new Set<number>())
-  const reduced = useRef(false)
   const length = items.length
   const available = items.filter((vehicle) => !selectedIds.includes(vehicle.id))
   const startIndex = length ? ((index % length) + length) % length : 0
@@ -33,18 +30,6 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
     media?.addEventListener?.('change', update)
     return () => media?.removeEventListener?.('change', update)
   }, [])
-  useEffect(() => {
-    reduced.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-  }, [])
-  useEffect(() => {
-    selectedIds.forEach((id) => {
-      if (!settled.current.has(id)) {
-        settled.current.add(id)
-        if (reduced.current) onSelectionSettled(id)
-      }
-    })
-    settled.current.forEach((id) => { if (!selectedIds.includes(id)) settled.current.delete(id) })
-  }, [selectedIds, onSelectionSettled])
 
   const navigate = (delta: number, fromKeyboard = false) => {
     if (length < 2) return
@@ -76,9 +61,6 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
     const dx = event.clientX - start.x
     const dy = event.clientY - start.y
     if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) navigate(dx < 0 ? 1 : -1)
-  }
-  const settledOnTransition = (id: number, event: TransitionEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget && event.propertyName === 'transform' && selectedIds.includes(id)) onSelectionSettled(id)
   }
 
   const renderCard = (vehicle: FavoriteVehicle) => <FavoriteCard key={vehicle.id} vehicle={vehicle}
@@ -115,8 +97,7 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
           const active = offset === 0 || selectedIndex >= 0
           const side = selectedIndex < 0 && offset !== 0
           return <div key={vehicle.id} className={styles.card} data-position={position} data-active={active}
-            style={{ transform: orbit, zIndex: isSelected ? 30 : Math.round(10 + 5 * Math.cos(radians)) }}
-            onTransitionEnd={(event) => settledOnTransition(vehicle.id, event)}>
+            style={{ transform: orbit, zIndex: isSelected ? 30 : Math.round(10 + 5 * Math.cos(radians)) }}>
             <div aria-hidden={side ? true : undefined} inert={side ? true : undefined}>
               {renderCard(vehicle)}
             </div>

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import type { ComponentProps } from 'react'
 import { beforeEach, expect, it, vi } from 'vitest'
@@ -12,7 +12,7 @@ const items: FavoriteVehicle[] = [1, 2, 3].map((id) => ({
 }))
 const props = (overrides: Partial<ComponentProps<typeof FavoritesCarousel>> = {}) => ({
   items, matches: [], selectedIds: [], pendingIds: [], onToggle: vi.fn(), onRemove: vi.fn(),
-  onSelectionSettled: vi.fn(), ...overrides,
+  ...overrides,
 })
 
 beforeEach(() => vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false })))
@@ -86,17 +86,13 @@ it('keeps side-card actions inert until that card is brought forward', () => {
   expect(screen.getByRole('button', { name: 'Comparar Toyota Modelo 2 XEI 2021' })).toBeInTheDocument()
 })
 
-it('provides two selected upper slots and signals settled selected transforms', async () => {
-  const onSelectionSettled = vi.fn()
-  const { rerender } = render(<MemoryRouter><FavoritesCarousel {...props({ onSelectionSettled })} /></MemoryRouter>)
-  rerender(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [1, 2], onSelectionSettled })} /></MemoryRouter>)
+it('provides two selected upper slots', () => {
+  const { rerender } = render(<MemoryRouter><FavoritesCarousel {...props()} /></MemoryRouter>)
+  rerender(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [1, 2] })} /></MemoryRouter>)
   expect(screen.getByRole('group', { name: 'Vehículos seleccionados' })).toBeInTheDocument()
   const selected = screen.getByRole('listitem', { name: /Modelo 1/ }).closest('[data-position="selected-0"]')
   expect(selected).toBeInTheDocument()
-  fireEvent.transitionEnd(selected!.querySelector('li')!, { propertyName: 'transform' })
-  expect(onSelectionSettled).not.toHaveBeenCalled()
-  fireEvent.transitionEnd(selected!, { propertyName: 'transform' })
-  expect(onSelectionSettled).toHaveBeenCalledWith(1)
+  expect(screen.getByRole('listitem', { name: /Modelo 2/ }).closest('[data-position="selected-1"]')).toBeInTheDocument()
 })
 
 it('moves the next unselected favorite to the front while keeping selected actions available', () => {
@@ -110,12 +106,4 @@ it('keeps upper slots in selection order instead of inventory order', () => {
   render(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [2, 1] })} /></MemoryRouter>)
   expect(screen.getByRole('listitem', { name: /Modelo 2/ }).closest('[data-position]')).toHaveAttribute('data-position', 'selected-0')
   expect(screen.getByRole('listitem', { name: /Modelo 1/ }).closest('[data-position]')).toHaveAttribute('data-position', 'selected-1')
-})
-
-it('settles selections immediately when reduced motion is preferred', async () => {
-  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }))
-  const onSelectionSettled = vi.fn()
-  const { rerender } = render(<MemoryRouter><FavoritesCarousel {...props({ onSelectionSettled })} /></MemoryRouter>)
-  rerender(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [1], onSelectionSettled })} /></MemoryRouter>)
-  await waitFor(() => expect(onSelectionSettled).toHaveBeenCalledWith(1))
 })

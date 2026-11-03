@@ -21,7 +21,7 @@ function mount(path = '/favoritos') {
   </Routes></MemoryRouter>)
 }
 
-it('waits for the second selected card before automatically comparing saved vehicles', async () => {
+it.each(['transition', 'timeout'])('opens comparison only on explicit click after the second selection (%s)', async (completion) => {
   vi.mocked(listFavorites).mockResolvedValue(response([1, 2, 3]))
   mount()
   const user = userEvent.setup()
@@ -32,7 +32,11 @@ it('waits for the second selected card before automatically comparing saved vehi
   expect(screen.getByRole('alert')).toHaveTextContent('Seleccioná exactamente dos vehículos')
   await user.click(screen.getByRole('button', { name: 'Comparar Toyota Auto 2 2021' }))
   expect(screen.queryByText('?compare=1%2C2&source=favorites')).not.toBeInTheDocument()
-  fireEvent.transitionEnd(screen.getByRole('button', { name: 'Dejar de comparar Toyota Auto 2 2021' }).closest('[data-position]')!, { propertyName: 'transform' })
+  if (completion === 'transition') fireEvent.transitionEnd(screen.getByRole('button', { name: 'Dejar de comparar Toyota Auto 2 2021' }).closest('[data-position]')!, { propertyName: 'transform' })
+  await new Promise((resolve) => setTimeout(resolve, 750))
+  expect(screen.getByRole('heading', { name: 'Vehículos guardados' })).toBeInTheDocument()
+  expect(screen.getByText('2 seleccionados')).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'COMPARAR' }))
   expect(await screen.findByText('?compare=1%2C2&source=favorites')).toBeInTheDocument()
 })
 
