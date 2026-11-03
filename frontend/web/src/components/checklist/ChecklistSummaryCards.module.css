@@ -6,7 +6,7 @@
 .cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+  gap: clamp(32px, 4vw, 64px);
   align-items: stretch;
 }
 
@@ -24,12 +24,10 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+  gap: 24px;
+  padding: clamp(24px, 3vw, 40px);
+  background: #f6f5f4;
+  border-radius: 24px;
 }
 
 .head {
@@ -40,15 +38,15 @@
 
 .title {
   margin: 0;
-  font-size: 16px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 24px;
 }
 
 .subtitle {
   color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 /* Progress rows: step on the left, "X de Y" on the right, hairlines between rows; the total is bold. */
@@ -61,9 +59,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 40px;
+  min-height: 56px;
   border-bottom: 1px solid var(--border-default);
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .progressRow dt {
@@ -89,7 +87,7 @@
 .items {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
