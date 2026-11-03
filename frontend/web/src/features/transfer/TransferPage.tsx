@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import ChecklistActionBar from '../../components/checklist/ChecklistActionBar'
 import ChecklistColumns from '../../components/checklist/ChecklistColumns'
-import ChecklistStepList from '../../components/checklist/ChecklistStepList'
+import ChecklistStepList, { type ChecklistNavigation } from '../../components/checklist/ChecklistStepList'
 import ChecklistStepPanel from '../../components/checklist/ChecklistStepPanel'
 import ChecklistWarning from '../../components/checklist/ChecklistWarning'
 import { firstPendingStep, pendingFlaggedByStep, summarizeChecklist } from '@shared/checklist/progress'
@@ -45,6 +45,7 @@ export default function TransferPage() {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const warningRef = useRef<HTMLParagraphElement>(null)
   const panelHeadingRef = useRef<HTMLHeadingElement>(null)
+  const navigationRef = useRef<ChecklistNavigation>(null)
   const viewChanged = useRef(false)
   const headingFocus = useRef(false)
   const narrow = useMediaQuery('(max-width: 767px)')
@@ -103,9 +104,9 @@ export default function TransferPage() {
 
   const stepIndex = steps.findIndex((step) => step.numero === selected)
 
-  const goToStep = (index: number) => {
+  const goToStep = (index: number, animate: boolean) => {
     headingFocus.current = true
-    setSelected(steps[index].numero)
+    navigationRef.current?.select(steps[index].numero, animate)
   }
 
   const handleToggle = (code: string, value: boolean) => {
@@ -167,8 +168,8 @@ export default function TransferPage() {
           finishFailed={finishFailed}
           hasPrevious={stepIndex > 0}
           hasNext={stepIndex < steps.length - 1}
-          onPrevious={() => goToStep(stepIndex - 1)}
-          onNext={() => goToStep(stepIndex + 1)}
+          onPrevious={(event) => goToStep(stepIndex - 1, event.detail > 0)}
+          onNext={(event) => goToStep(stepIndex + 1, event.detail > 0)}
           onFinish={handleFinishRequest}
           onFinishAnyway={() => void handleFinish()}
           onKeepWorking={() => setWarningOpen(false)}
@@ -184,7 +185,7 @@ export default function TransferPage() {
       <ChecklistColumns
         steps={steps}
         list={
-          <ChecklistStepList
+          <ChecklistStepList ref={navigationRef}
             idPrefix="transfer"
             steps={steps}
             completedCodes={completedCodes}

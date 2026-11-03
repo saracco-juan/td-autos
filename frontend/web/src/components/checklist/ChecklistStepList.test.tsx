@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { createRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import ChecklistStepList from './ChecklistStepList'
+import ChecklistStepList, { type ChecklistNavigation } from './ChecklistStepList'
 import { STEPS } from '@shared/checklist/fixtures'
 
 type Props = React.ComponentProps<typeof ChecklistStepList>
@@ -55,8 +56,13 @@ describe('ChecklistStepList', () => {
     panel.remove()
   })
 
-  it('starts expanded and closes the old panel before revealing a pointer-selected step, in either direction', () => {
-    const { props, rerender, container } = renderList()
+  it.each(['tabs', 'actions'])('animates navigation from %s in either direction without animating initial content', (source) => {
+    const navigation = createRef<ChecklistNavigation>()
+    const { props, rerender, container } = renderList({ ref: navigation })
+    const choose = (index: number) => {
+      if (source === 'tabs') fireEvent.click(tabs()[index], { detail: 1 })
+      else act(() => navigation.current!.select(STEPS[index].numero, true))
+    }
     const panel = document.createElement('div')
     panel.id = 'inspection-panel-1'
     container.append(panel)
@@ -73,14 +79,14 @@ describe('ChecklistStepList', () => {
     rerender(<ChecklistStepList {...props} onSelect={select} />)
 
     expect(panel.animate).not.toHaveBeenCalled()
-    fireEvent.click(tabs()[2], { detail: 1 })
+    choose(2)
     expect(select).not.toHaveBeenCalled()
     act(() => animations[0].onfinish?.())
     expect(select).toHaveBeenLastCalledWith(3)
     expect(panel.animate).toHaveBeenCalledTimes(2)
     expect(tabs()[2]).toHaveAttribute('aria-selected', 'true')
 
-    fireEvent.click(tabs()[1], { detail: 1 })
+    choose(1)
     expect(select).toHaveBeenCalledTimes(1)
     act(() => animations[2].onfinish?.())
     expect(select).toHaveBeenLastCalledWith(2)

@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, type KeyboardEvent } from 'react'
+import { useCallback, useImperativeHandle, useLayoutEffect, useRef, type KeyboardEvent, type Ref } from 'react'
 import { flushSync } from 'react-dom'
 import { stepPanelId, stepTabId } from './ids'
 import { checklistSurface } from './checklistSurface'
@@ -6,8 +6,10 @@ import styles from './ChecklistStepList.module.css'
 import type { ChecklistStep } from '@shared/checklist/types'
 
 export type ListOrientation = 'vertical' | 'horizontal'
+export type ChecklistNavigation = { select: (numero: number, animate?: boolean) => void }
 
 type Props = {
+  ref?: Ref<ChecklistNavigation>
   // Prefix of the tab and panel ids; one per checklist on the page.
   idPrefix: string
   steps: ChecklistStep[]
@@ -28,6 +30,7 @@ const KEYS: Record<ListOrientation, { previous: string; next: string }> = {
 
 // The steps as tabs: arrows move and select, Home and End jump to the ends, only the selected tab is in the tab order.
 export default function ChecklistStepList({
+  ref,
   idPrefix,
   steps,
   completedCodes,
@@ -99,6 +102,8 @@ export default function ChecklistStepList({
       }
     }
   }
+
+  useImperativeHandle(ref, () => ({ select }))
 
   const move = (numero: number) => {
     select(numero)
