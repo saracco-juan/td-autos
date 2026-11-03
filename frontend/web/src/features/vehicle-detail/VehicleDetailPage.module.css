@@ -11,6 +11,7 @@
 }
 
 .back {
+  composes: trigger from '../../components/buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -21,6 +22,8 @@
 }
 
 .backIcon {
+  composes: fill from '../../components/buttonHover.module.css';
+  --button-hover-fill: var(--palette-charcoal);
   display: grid;
   place-items: center;
   width: 36px;
@@ -28,6 +31,17 @@
   border: 1px solid var(--border-default);
   border-radius: 50%;
   background: var(--surface-default);
+}
+
+.backIcon img { transition: filter 550ms ease; }
+
+@media (hover: hover) and (pointer: fine) {
+  .back:hover .backIcon img { filter: brightness(0) invert(1); }
+  .summary > button:hover:not(:disabled):not([aria-busy='true']) { color: white; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backIcon img { transition: filter 120ms ease; }
 }
 
 .back:focus-visible {
@@ -105,13 +119,32 @@
 }
 
 .summary > button {
-  --button-hover-fill: color-mix(in srgb, var(--palette-red), var(--palette-charcoal) 18%);
+  --button-hover-fill: var(--action-success);
   min-height: 48px;
-  border-color: var(--palette-red);
+  border-color: var(--action-success);
   border-radius: 12px;
-  background: var(--palette-red);
-  color: white;
+  background: var(--surface-default);
+  color: var(--action-success);
+  transition: color 550ms ease;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .summary > button { transition: color 120ms ease; }
+}
+
+@media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+  .sidebar {
+    max-height: calc(100dvh - 128px);
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-default) transparent;
+    padding: 4px 16px 4px 4px;
+    margin: -4px -16px -4px -4px;
+  }
+}
+
+.sidebar:focus-visible { outline: 2px solid var(--border-input); outline-offset: 4px; }
 
 .summary > a {
   --button-hover-fill: var(--surface-raised);
