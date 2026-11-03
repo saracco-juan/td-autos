@@ -34,7 +34,7 @@
   transform: translate(-50%, var(--wheel-y));
   opacity: 0;
   pointer-events: none;
-  transform-origin: top center;
+  transform-origin: center;
   transition: transform 550ms cubic-bezier(.32, .72, 0, 1), opacity 200ms ease;
 }
 
@@ -54,22 +54,22 @@
 
 .card[data-position='side--1'] {
   z-index: 3;
-  transform: translate(calc(-50% - 370px), var(--wheel-y)) scale(.9);
+  transform: translate(calc(-50% - 350px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(-35deg) scale(.92);
 }
 
 .card[data-position='side-1'] {
   z-index: 3;
-  transform: translate(calc(-50% + 370px), var(--wheel-y)) scale(.9);
+  transform: translate(calc(-50% + 350px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(35deg) scale(.92);
 }
 
 .card[data-position='side--2'] {
   z-index: 1;
-  transform: translate(calc(-50% - 610px), var(--wheel-y)) scale(.8);
+  transform: translate(calc(-50% - 590px), calc(var(--wheel-y) + 36px)) perspective(1200px) rotateY(-60deg) scale(.84);
 }
 
 .card[data-position='side-2'] {
   z-index: 1;
-  transform: translate(calc(-50% + 610px), var(--wheel-y)) scale(.8);
+  transform: translate(calc(-50% + 590px), calc(var(--wheel-y) + 36px)) perspective(1200px) rotateY(60deg) scale(.84);
 }
 
 .card[data-position^='selected-'] {
@@ -93,11 +93,11 @@
   .card[data-position='side-2'] { visibility: hidden; pointer-events: none; }
 
   .card[data-position='side--1'] {
-    transform: translate(calc(-50% - 340px), var(--wheel-y)) scale(.9);
+    transform: translate(calc(-50% - 330px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(-35deg) scale(.92);
   }
 
   .card[data-position='side-1'] {
-    transform: translate(calc(-50% + 340px), var(--wheel-y)) scale(.9);
+    transform: translate(calc(-50% + 330px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(35deg) scale(.92);
   }
 }
 
