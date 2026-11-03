@@ -105,13 +105,16 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
           const offset = count ? ((remainingIndex - frontIndex + count + Math.floor(count / 2)) % count) - Math.floor(count / 2) : 0
           // Keep complete turns: wrapping the angle would make a card sweep across the front.
           const angle = count ? (remainingIndex - frontIndex - Math.floor(currentTurn / length) * count) * 360 / count : 0
-          const orbit = `translate(-50%, var(--wheel-y)) translateZ(calc(-1 * var(--orbit-radius))) rotateY(${angle}deg) translateZ(var(--orbit-radius)) rotateY(${-angle}deg)`
+          const radians = angle * Math.PI / 180
+          const lift = -165 * (1 - Math.cos(radians))
+          const facing = 14 * Math.sin(radians)
+          const orbit = `translate(-50%, calc(var(--wheel-y) + ${lift}px)) translateZ(calc(-1 * var(--orbit-radius))) rotateY(${angle}deg) translateZ(var(--orbit-radius)) rotateY(${-angle}deg) rotateY(${facing}deg)`
           const position = selectedIndex >= 0 ? `selected-${selectedIndex}` : offset === 0 ? 'front'
             : Math.abs(offset) <= sidePairs ? `side-${offset}` : 'hidden'
           const active = offset === 0 || selectedIndex >= 0
           const side = selectedIndex < 0 && offset !== 0
           return <div key={vehicle.id} className={styles.card} data-position={position} data-active={active}
-            style={selectedIndex < 0 ? { transform: orbit, zIndex: Math.round(10 + 5 * Math.cos(angle * Math.PI / 180)) } : undefined}
+            style={selectedIndex < 0 ? { transform: orbit, zIndex: Math.round(10 + 5 * Math.cos(radians)) } : undefined}
             onTransitionEnd={(event) => settledOnTransition(vehicle.id, event)}>
             <div aria-hidden={side || position === 'hidden' ? true : undefined}
               inert={side || position === 'hidden' ? true : undefined}>

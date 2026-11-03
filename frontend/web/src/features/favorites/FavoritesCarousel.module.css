@@ -8,18 +8,18 @@
 }
 
 .stage {
-  --wheel-y: 52px;
+  --wheel-y: 130px;
   --orbit-radius: min(620px, calc((100vw - 400px) / 2));
   position: relative;
-  height: 600px;
+  height: 640px;
   touch-action: pan-y;
   overflow: hidden;
 
 }
 
 .hasSelected .stage {
-  --wheel-y: 560px;
-  height: 1110px;
+  --wheel-y: 670px;
+  height: 1180px;
 }
 
 .deck {
