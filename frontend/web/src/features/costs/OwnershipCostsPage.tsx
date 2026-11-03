@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { useLocation, useParams } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
 import InfoTip from '../../components/InfoTip'
-import screenStyles from '../../components/screen.module.css'
+import BackLink from '../../components/BackLink'
 import { HttpError } from '../../lib/http'
 import Field from '../auth/shared/Field'
 import SessionLoading from '../auth/session/SessionLoading'
@@ -84,7 +84,6 @@ function PurchaseCard({ data }: { data: OwnershipCosts }) {
   )
 }
 
-// Figma 2373:7378 "06 - Calculadora financiera", reshaped to the cost blocks decided for UH-10 (DESIGN.md).
 export default function OwnershipCostsPage() {
   const { id = '' } = useParams()
   // The detail's recommendation context (score, return to the filtered list) goes back with "Volver a la ficha".
@@ -139,77 +138,78 @@ export default function OwnershipCostsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <Link to={`/vehiculos/${encodeURIComponent(id)}`} state={detailState} className={styles.backLink}>
-          <span aria-hidden="true" className={styles.backIcon}>‹</span>
-          Volver a la ficha
-        </Link>
+        <BackLink to={`/vehiculos/${encodeURIComponent(id)}`} state={detailState}>Volver a la ficha</BackLink>
         {vehicle ? (
           <div className={styles.titleBlock}>
-            <p className={screenStyles.eyebrow}>COSTO DE POSESIÓN</p>
-            <h1 className={screenStyles.title}>{title}</h1>
+            <h1 className={styles.title}>{title}</h1>
             <p className={styles.subtitle}>Cuánto te costaría comprarlo y mantenerlo, más allá del precio publicado.</p>
           </div>
         ) : null}
       </div>
       {pageError ? <p role="alert" className={alertStyles.alert}>{pageError}</p> : null}
-      {data ? (
-        <form className={styles.form} noValidate onSubmit={recalculate} aria-label="Datos para el cálculo">
-          <Field
-            id="costs-km"
-            label="Kilómetros por mes"
-            errors={fieldErrors.km}
-            hint={KM_HINTS[data.inputs.km_source] ? (
-              <p id="costs-km-hint" className={styles.hint}>{KM_HINTS[data.inputs.km_source]}</p>
-            ) : undefined}
-          >
-            {(control) => (
-              <input
-                {...control}
-                type="number"
-                name="km"
-                inputMode="numeric"
-                value={km}
-                onChange={(event) => setKm(event.target.value)}
-              />
-            )}
-          </Field>
-          <Field id="costs-coverage" label="Cobertura del seguro" errors={fieldErrors.coverage}>
-            {(control) => (
-              <select {...control} name="cobertura" value={coverage} onChange={(event) => setCoverage(event.target.value as Coverage)}>
-                {COVERAGES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-            )}
-          </Field>
-          {/* The spacer takes the height of a field label, so the button lines up with the inputs. */}
-          <div className={styles.action}>
-            <span aria-hidden="true" className={styles.actionSpacer}>&nbsp;</span>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
-            >
-              RECALCULAR
-            </button>
-          </div>
-        </form>
-      ) : null}
-      {loading || data ? (
-        <div className={styles.results}>
-          {loading ? <SessionLoading /> : null}
-          {!loading && data ? (
-            <>
-              <div className={styles.cards}>
-                <MonthlyCard data={data} />
-                <PurchaseCard data={data} />
+      <div className={styles.workspace}>
+        <div className={styles.inputs}>
+          {data ? (
+            <form className={styles.form} noValidate onSubmit={recalculate} aria-label="Datos para el cálculo">
+              <div className={styles.formHeading}>
+                <h2>Ajustá tu estimación</h2>
+                <p>Indicá cuánto vas a manejar y la cobertura que preferís.</p>
               </div>
-              <p className={styles.disclaimer}>
-                Estimación orientativa con valores actualizados al {formatDate(data.rates_updated_at)}
-                {data.vehicle.province ? `, en la provincia de ${data.vehicle.province}` : ''}. Es un estimativo aproximado.
-              </p>
-            </>
+              <Field
+                id="costs-km"
+                label="Kilómetros por mes"
+                errors={fieldErrors.km}
+                hint={KM_HINTS[data.inputs.km_source] ? (
+                  <p id="costs-km-hint" className={styles.hint}>{KM_HINTS[data.inputs.km_source]}</p>
+                ) : undefined}
+              >
+                {(control) => (
+                  <input
+                    {...control}
+                    type="number"
+                    name="km"
+                    inputMode="numeric"
+                    value={km}
+                    onChange={(event) => setKm(event.target.value)}
+                  />
+                )}
+              </Field>
+              <Field id="costs-coverage" label="Cobertura del seguro" errors={fieldErrors.coverage}>
+                {(control) => (
+                  <select {...control} name="cobertura" value={coverage} onChange={(event) => setCoverage(event.target.value as Coverage)}>
+                    {COVERAGES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                )}
+              </Field>
+              <div className={styles.action}>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  aria-busy={loading}
+                  className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
+                >
+                  RECALCULAR
+                </button>
+              </div>
+            </form>
           ) : null}
+          {!loading && data ? <PurchaseCard data={data} /> : null}
         </div>
-      ) : null}
+        {loading || data ? (
+          <div className={styles.results}>
+            {loading ? <SessionLoading /> : null}
+            {!loading && data ? (
+              <>
+                <MonthlyCard data={data} />
+                <p className={styles.disclaimer}>
+                  Estimación orientativa con valores actualizados al {formatDate(data.rates_updated_at)}
+                  {data.vehicle.province ? `, en la provincia de ${data.vehicle.province}` : ''}. Es un estimativo aproximado.
+                </p>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }

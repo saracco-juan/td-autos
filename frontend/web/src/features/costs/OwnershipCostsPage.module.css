@@ -1,77 +1,101 @@
-/* Figma 2373:7378: back link and title block on top, two cards side by side; stacked under 800 px (DESIGN.md). */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 40px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1440px;
   min-width: 0;
-  margin-inline: auto;
-  margin-bottom: auto;
-  padding-top: 20px;
+  margin: 0 auto auto;
+  padding: 16px 0 64px;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 40px;
 }
 
 .titleBlock {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 2.5vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  text-wrap: balance;
 }
 
 .subtitle {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-/* Figma "Back Link": a boxed chevron (soft button look) and the text. */
-.backLink {
-  composes: trigger from '../../components/buttonHover.module.css';
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: 12px;
-  color: var(--text-primary);
-  font-size: 13px;
-  text-decoration: none;
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(32px, 5vw, 72px);
 }
 
-.backIcon {
-  composes: fill from '../../components/buttonHover.module.css';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border-default);
-  border-radius: 10px;
-  background: var(--surface-default);
-  box-shadow: 0 1px 2px rgba(26, 20, 15, 0.06);
-  font-size: 20px;
-  line-height: 1;
+.inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
 }
 
-.backLink:hover {
-  color: var(--accent-default);
-}
-
-
-/* Inputs of the estimate: two fields and the button on one row, stacked on phones. */
 .form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
-  gap: 16px 24px;
-  padding: clamp(16px, 3vw, 20px);
-  background: var(--surface-default);
+  gap: 24px;
+}
+
+.formHeading {
+  grid-column: 1 / -1;
+}
+
+.formHeading h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.formHeading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.form input, .form select {
+  height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+  border-radius: 10px;
+  background-color: var(--surface-default);
+  color: var(--palette-charcoal);
+  box-shadow: none;
+  font-size: 16px;
+  transition: border-color 200ms ease;
+}
+
+.form input:focus, .form select:focus {
+  outline: none;
+  border-color: var(--palette-charcoal);
+  box-shadow: none;
+}
+
+.form input[aria-invalid='true'], .form select[aria-invalid='true'] {
+  border-color: var(--palette-red);
 }
 
 .hint {
@@ -80,70 +104,80 @@
   font-size: 12px;
 }
 
-/* Same column as a field (label line + 6 gap + 48 control), so the button lines up with the inputs. */
 .action {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.actionSpacer {
-  font-size: 12px;
-  font-weight: 500;
+  grid-column: 1 / -1;
 }
 
 .submit {
-  width: 100%;
-  height: 48px;
+  --button-hover-fill: var(--palette-charcoal);
+  width: auto;
+  min-width: 180px;
+  height: 44px;
+  border-radius: 999px;
+  box-shadow: none;
+  transition: color 550ms ease;
 }
 
-/* The loader lives here, centered; the header and the form stay in place. */
+@media (hover: hover) and (pointer: fine) {
+  .submit:hover:not(:disabled) {
+    color: white;
+  }
+  .form input:hover, .form select:hover {
+    border-color: var(--palette-charcoal);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submit {
+    transition-duration: 120ms;
+  }
+}
+
 .results {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  min-width: 0;
   min-height: 240px;
 }
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: 32px;
-}
-
-/* Figma "Panel": white surface, 14 radius, soft shadow. */
 .card {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-  padding: 16px 20px 20px;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+  gap: 20px;
+}
+
+.inputs > .card {
+  padding-top: 32px;
+  border-top: 1px solid var(--border-default);
+}
+
+.results .card {
+  padding: clamp(24px, 3vw, 40px);
+  background: #f6f5f4;
+  border-radius: 24px;
 }
 
 .cardTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .rows {
   margin: 0;
 }
 
-/* Figma "Spec row": label secondary on the left, value on the right, a thin divider. */
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  min-height: 40px;
+  gap: 20px;
+  padding: 18px 0;
   border-bottom: 1px solid var(--border-default);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .row dt {
@@ -151,52 +185,66 @@
   align-items: center;
   gap: 8px;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .row dd {
   margin: 0;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .total {
-  font-weight: 700;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.total dt {
+  color: var(--palette-charcoal);
+  font-weight: 500;
+}
+
+.total dd {
+  font-size: clamp(24px, 2.5vw, 36px);
+  letter-spacing: -0.025em;
 }
 
 .total:last-child {
   border-bottom: 0;
+  padding-bottom: 0;
 }
 
-.total dt {
-  color: var(--text-secondary);
-}
-
-.note {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.disclaimer {
+.note, .disclaimer {
   margin: 0;
   color: var(--text-secondary);
   font-size: 12px;
+  line-height: 1.6;
 }
 
-@media (max-width: 800px) {
-  .cards {
+@media (max-width: 899px) {
+  .workspace {
     grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
+    gap: 40px;
   }
 }
 
-@media (max-width: 600px) {
-  .page {
-    padding-top: 8px;
+@media (max-width: 480px) {
+  .page, .header {
+    gap: 32px;
   }
-
-  /* Stacked fields: no label to line up with. */
-  .actionSpacer {
-    display: none;
+  .form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .submit {
+    width: 100%;
+  }
+  .row {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .row dd {
+    margin-left: auto;
   }
 }

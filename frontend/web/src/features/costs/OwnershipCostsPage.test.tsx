@@ -48,7 +48,7 @@ it('shows what it costs to keep and to buy the vehicle without ceiling wording',
   renderPage()
   expect(await screen.findByRole('heading', { level: 1, name: 'Toyota Corolla XEI 2022' })).toBeInTheDocument()
   expect(apiFetch).toHaveBeenCalledWith('/api/vehiculos/1/costos')
-  expect(screen.getByText('COSTO DE POSESIÓN')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Ajustá tu estimación' })).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Volver a la ficha' })).toHaveAttribute('href', '/vehiculos/1')
 
   expect(within(monthly()).getByText('$ 120.000 por mes')).toBeInTheDocument()
