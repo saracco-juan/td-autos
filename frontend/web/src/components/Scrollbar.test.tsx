@@ -1,7 +1,15 @@
 import { createRef } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import DetailScrollbar from './DetailScrollbar'
+import Scrollbar from './Scrollbar'
+
+it('uses the full viewport on screens without a header or footer', () => {
+  const height = vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(1800)
+  const { unmount } = render(<Scrollbar label="Scroll page" />)
+  expect(screen.getByRole('scrollbar')).toHaveStyle({ top: '0px', height: `${window.innerHeight}px` })
+  unmount()
+  height.mockRestore()
+})
 
 it('keeps the page track between the header and visible footer without shortening the scroll range', () => {
   const header = document.createElement('header')
@@ -10,7 +18,7 @@ it('keeps the page track between the header and visible footer without shortenin
   vi.spyOn(header, 'getBoundingClientRect').mockReturnValue({ bottom: 60 } as DOMRect)
   vi.spyOn(footer, 'getBoundingClientRect').mockReturnValue({ top: 700 } as DOMRect)
   const height = vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(1800)
-  const { unmount } = render(<DetailScrollbar label="Scroll page" />)
+  const { unmount } = render(<Scrollbar label="Scroll page" />)
   const control = screen.getByRole('scrollbar')
   expect(control).toHaveStyle({ top: '60px', height: '640px' })
   expect(control).toHaveAttribute('max', String(1800 - window.innerHeight))
@@ -29,7 +37,7 @@ it('maps both ends to the complete scroll range and follows native scrolling', (
   container.append(panel)
   const ref = createRef<HTMLElement>()
   ref.current = container
-  const { unmount } = render(<DetailScrollbar containerRef={ref} label="Scroll specifications" />)
+  const { unmount } = render(<Scrollbar containerRef={ref} label="Scroll specifications" />)
   const control = screen.getByRole('scrollbar')
   expect(control).toHaveAttribute('max', '566')
   expect(control).toHaveAttribute('aria-controls', panel.id)
@@ -55,7 +63,7 @@ it('hides the control when the content fits', () => {
   container.append(panel)
   const ref = createRef<HTMLElement>()
   ref.current = container
-  const { unmount } = render(<DetailScrollbar containerRef={ref} label="Scroll specifications" />)
+  const { unmount } = render(<Scrollbar containerRef={ref} label="Scroll specifications" />)
   expect(screen.getByRole('scrollbar', { hidden: true })).not.toBeVisible()
   unmount()
   expect(panel.id).toBe('')

@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, type RefObject } from 'react'
-import styles from './DetailScrollbar.module.css'
+import styles from './Scrollbar.module.css'
 
 /** A native range keeps dragging and keyboard input while giving both scrollers the same thumb. */
-export default function DetailScrollbar({ containerRef, contentKey, label }: {
+export default function Scrollbar({ containerRef, contentKey, label }: {
   containerRef?: RefObject<HTMLElement | null>
   contentKey?: string
   label: string
@@ -22,8 +22,8 @@ export default function DetailScrollbar({ containerRef, contentKey, label }: {
     if (!element.id) element.id = id
     input.setAttribute('aria-controls', element.id)
     element.classList.add(styles.nativeHidden)
-    const header = containerRef ? null : document.querySelector('header')
-    const footer = containerRef ? null : document.querySelector('footer')
+    const header = containerRef ? null : document.querySelector('header:not(main header)')
+    const footer = containerRef ? null : document.querySelector('footer:not(main footer)')
     const update = () => {
       const height = containerRef ? element.clientHeight : window.innerHeight
       const maximum = Math.max(0, element.scrollHeight - height)

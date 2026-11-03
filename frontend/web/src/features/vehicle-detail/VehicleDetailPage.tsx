@@ -14,7 +14,6 @@ import { readDetailContext, readDetailReturn, type DetailContext } from './navig
 import type { VehicleDetailResponse } from './types'
 import VehicleCostShortcut from './VehicleCostShortcut'
 import VehicleGallery from './VehicleGallery'
-import DetailScrollbar from './DetailScrollbar'
 import VehicleSpecifications from './VehicleSpecifications'
 import VehicleCompatibility from './VehicleCompatibility'
 import VehicleContact from './VehicleContact'
@@ -58,7 +57,6 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
     .map(({ value }) => value).join(' · ') : ''
   return (
     <div className={styles.page}>
-      <DetailScrollbar label="Desplazar página" />
       <BackLink to={returnTo.to}>{returnTo.label}</BackLink>
       {view.status === 'loading' ? <SessionLoading /> : null}
       {view.status === 'unavailable' ? (

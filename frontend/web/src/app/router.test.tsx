@@ -121,6 +121,7 @@ describe('app routes', () => {
     vi.mocked(fetchCurrentUser).mockReset()
     vi.mocked(logoutUser).mockReset()
     vi.mocked(fetchDiagnosis).mockReset()
+    vi.mocked(fetchDiagnosis).mockResolvedValue({ diagnostico: null, carrocerias: [] })
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
     vi.mocked(fetchTransfer).mockReset()
@@ -154,6 +155,7 @@ describe('app routes', () => {
 
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    expect(screen.getAllByRole('scrollbar', { hidden: true })).toHaveLength(1)
     expect(screen.getByRole('status').parentElement).toBe(screen.getByRole('main'))
     expect(screen.getByRole('status')).toHaveTextContent('Cargando')
     expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
@@ -192,6 +194,7 @@ describe('app routes', () => {
   it('loads inside the bare auth layout while the session is read at /login', () => {
     vi.mocked(fetchCurrentUser).mockReturnValue(new Promise(() => {}))
     renderAt('/login')
+    expect(screen.getAllByRole('scrollbar', { hidden: true })).toHaveLength(1)
 
     expect(screen.getByRole('main')).toContainElement(screen.getByRole('status'))
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()

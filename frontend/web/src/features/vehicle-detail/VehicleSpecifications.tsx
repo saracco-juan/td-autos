@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { detailSections } from '@shared/vehicles/detail'
 import Tabs from '../../components/Tabs'
-import DetailScrollbar from './DetailScrollbar'
+import Scrollbar from '../../components/Scrollbar'
 import type { BuyerVehicle } from './types'
 import styles from './VehicleSpecifications.module.css'
 
@@ -33,7 +33,7 @@ export default function VehicleSpecifications({ vehicle }: { vehicle: BuyerVehic
           </dl>
         ))}
       </Tabs>
-      <DetailScrollbar containerRef={sectionRef} contentKey={selected} label="Desplazar especificaciones" />
+      <Scrollbar containerRef={sectionRef} contentKey={selected} label="Desplazar especificaciones" />
       </div>
       <section aria-label="Descripción de la concesionaria">
         <h3>Descripción de la concesionaria</h3>

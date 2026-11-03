@@ -1,9 +1,8 @@
-import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-router'
+import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
 import AdminDashboardPage from '../features/admin/AdminDashboardPage'
 import DealerEditPage from '../features/admin/DealerEditPage'
 import DealersPage from '../features/admin/DealersPage'
 import ReceiptReviewPage from '../features/admin/ReceiptReviewPage'
-import AuthProvider from '../features/auth/session/AuthProvider'
 import GuestRoute from '../features/auth/session/GuestRoute'
 import ProtectedRoute from '../features/auth/session/ProtectedRoute'
 import RoleRoute from '../features/auth/session/RoleRoute'
@@ -31,17 +30,14 @@ import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage'
 import DepreciationPage from '../features/depreciation/DepreciationPage'
 import FavoritesPage from '../features/favorites/FavoritesPage'
 import LeadsPage from '../features/leads/LeadsPage'
+import RootLayout from './RootLayout'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
 
 export const routes: RouteObject[] = [
   {
     // Pathless root: every route lives under the session provider.
-    element: (
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
-    ),
+    element: <RootLayout />,
     children: [
       // The layouts wrap the guards, so while the session is read only the content area shows the loader.
       {
