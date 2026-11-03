@@ -7,6 +7,7 @@
 }
 .slot {
   min-width: 0;
+  overflow: clip;
   opacity: 0;
   clip-path: inset(0 0 0 100% round 10px 0 0 10px);
   pointer-events: none;

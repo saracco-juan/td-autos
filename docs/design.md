@@ -2,12 +2,13 @@
 
 Visual and interaction rules for every web screen (and the mobile app where the pattern exists). Read this file before building or changing a screen. Figma (`TD Autos · Wireframes High v3`, see `AGENTS.md`) is the visual source of truth; these rules cover what Figma does not say and win over it when they conflict, and every difference is logged for the Figma sync described in `AGENTS.md`.
 
-## Public Home typography and footer (2026-11-03)
+## Web typography and footer (2026-11-03)
 
-- The user approved replacing Inter on the public Home after the Impeccable
-  review. Use Archivo for the entire `/` shell, including its header, body and
-  footer. Other routes retain the existing Inter stack.
-- Archivo is a locally served Latin variable WOFF2 (weights 400–800, 35 KB),
+- After trying Archivo on the public Home, the user approved it for the entire
+  web application. Define its face and `--font-sans` once in `src/index.css`;
+  native form controls inherit the same family. Preserve each screen's type
+  sizes, weights and layout, including the existing 550ms button hover.
+- Archivo is a locally served Latin variable WOFF2 (weights 400–900),
   loaded with `font-display: swap`. The asset and its SIL Open Font License are
   in `frontend/web/public/fonts/`; the family is from
   [Omnibus-Type](https://github.com/Omnibus-Type/Archivo).

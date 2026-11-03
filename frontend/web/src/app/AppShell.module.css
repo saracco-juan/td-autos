@@ -1,11 +1,3 @@
-@font-face {
-  font-family: 'Archivo';
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url('/fonts/archivo-latin-variable.woff2') format('woff2');
-}
-
 .shell {
   display: flex;
   flex-direction: column;
@@ -248,11 +240,6 @@
 }
 
 /* The public landing starts behind the floating header; other screens keep their frame. */
-.homeShell {
-  --font-sans: 'Archivo', system-ui, 'Segoe UI', sans-serif;
-  font-family: var(--font-sans);
-}
-
 .homeShell .content { padding: 0; }
 .homeShell .nav { margin-bottom: -88px; }
 .homeShell .logo { background: rgb(17 11 10 / 94%); color: #fff; padding-left: 8px; }

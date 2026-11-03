@@ -230,6 +230,7 @@
 }
 
 @media (max-width: 480px) {
+  .panelClip { margin-inline: -16px; padding-inline: 16px; }
   .form { grid-template-columns: minmax(0, 1fr); }
   .form button[type='submit'] { width: 100%; }
 }
