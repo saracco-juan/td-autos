@@ -1,11 +1,9 @@
 .page {
+  composes: container from '../../components/screen.module.css';
   display: flex;
   flex-direction: column;
   gap: 40px;
-  width: 100%;
-  max-width: 1440px;
-  min-width: 0;
-  margin: 0 auto auto;
+  margin-bottom: auto;
   padding: 16px 0 64px;
 }
 
