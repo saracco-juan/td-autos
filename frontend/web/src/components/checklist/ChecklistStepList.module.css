@@ -48,6 +48,8 @@
   background: var(--palette-charcoal);
   color: white;
   font-weight: 600;
+  /* The expanding black surface is already visible: keep its label white immediately. */
+  transition: none;
 }
 
 .title {

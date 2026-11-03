@@ -38,7 +38,7 @@ it('extends only the tab background without covering or transforming panel conte
 
   checklistSurface(panel, tab, false)
   expect(animate.mock.calls[1][0]).toEqual([
-    { transform: 'translate(0px, -2px) scale(1.08, 1.0714285714285714)', opacity: 1 },
+    { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 1 },
     { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 0 },
   ])
   checklistSurface(panel, tab, false, new DOMRect(110, 298, 312, 60))

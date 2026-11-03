@@ -83,9 +83,13 @@ export default function ChecklistStepList({
       if (surface) {
         surface.animation.onfinish = () => {
           if (surfaceMotion.current !== surface) return
+          const transform = getComputedStyle(surface.surface).transform
           surface.animation.cancel()
-          surface.animation = surface.surface.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: 260, easing: 'ease', fill: 'forwards',
+          surface.animation = surface.surface.animate([
+            { transform, opacity: 1 },
+            { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 0 },
+          ], {
+            duration: 350, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'forwards',
           })
           surface.animation.onfinish = () => {
             surface.surface.remove()
