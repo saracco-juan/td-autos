@@ -2,21 +2,8 @@
   padding-bottom: 24px;
   background: #110b0a;
   color: #fff8f6;
-  position: relative;
-  isolation: isolate;
   overflow: clip;
   container-type: inline-size;
-}
-
-.footer::before {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: radial-gradient(
-    ellipse 100% clamp(180px, 28cqi, 420px) at 50% 110%,
-    #d63a24 0%, #a82415 38%, rgb(139 27 14 / 40%) 70%, transparent 100%
-  );
-  content: '';
 }
 
 .information {
@@ -61,12 +48,10 @@
 .wordmark {
   margin: 0;
   padding: 0 3.2% 1.2%;
-  color: #b77c70;
+  color: #b43b2a;
   font: 500 23cqi/0.9 var(--font-sans);
   letter-spacing: -0.04em;
   white-space: nowrap;
-  opacity: 0.55;
-  mask-image: linear-gradient(#000 20%, rgb(0 0 0 / 48%) 95%);
 }
 
 .copyright { margin: 20px clamp(24px, 5vw, 80px) 0; color: #fff0ed; font-size: 12px; line-height: 1.6; }

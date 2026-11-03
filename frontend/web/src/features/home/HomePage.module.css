@@ -1,4 +1,5 @@
 .home { width: 100%; }
+.home p { text-wrap: pretty; }
 .hero {
   position: relative;
   isolation: isolate;
@@ -28,6 +29,7 @@
   background: linear-gradient(180deg, rgb(0 0 0 / 18%), transparent 52% 82%, rgb(0 0 0 / 65%));
 }
 .heroContent { position: relative; padding: 116px 24px 0; text-align: center; }
+.heroContent h1, .stepTitle, .dealers h2 { text-wrap: balance; }
 .heroContent h1 { margin: 0; font-size: clamp(56px, 4.8vw, 80px); font-weight: 500; line-height: 1.03; letter-spacing: -0.04em; }
 .heroContent h1 span { color: #e7d9d7; }
 .heroContent p { margin: 24px auto 0; max-width: 52ch; color: #ddd0ce; font-size: 16px; line-height: 1.6; }
@@ -95,7 +97,7 @@
   .hero { min-height: 760px; height: calc(500px + 70vw); max-height: 940px; }
   .heroContent { padding: 120px 24px 0; text-align: left; }
   .heroContent h1 { font-size: clamp(40px, 10vw, 58px); line-height: 1.05; }
-  .heroContent p { font-size: 14px; margin-top: 20px; }
+  .heroContent p { font-size: 16px; margin-top: 20px; }
   .heroContent p br { display: none; }
   .heroImage { inset: 250px auto auto -7.5%; width: 115%; max-width: none; height: auto; object-fit: contain; mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent); }
   .heroBottom { bottom: 24px; grid-template-columns: 1fr; gap: 12px; }
@@ -106,8 +108,7 @@
   .stepDetails { grid-template-columns: 1fr; gap: 24px; padding-top: 28px; }
   .stepDetails dt { margin-bottom: 6px; }
   .journeyAction { justify-content: flex-start; padding-bottom: 64px; }
-  .dealerInner { grid-template-columns: 1fr; gap: 32px; }
-  .dealerInner { padding: 64px 24px; }
+  .dealerInner { grid-template-columns: 1fr; gap: 32px; padding: 64px 24px; }
   .dealers h2 { font-size: 44px; }
   .dealerContent p { font-size: 20px; }
 }
