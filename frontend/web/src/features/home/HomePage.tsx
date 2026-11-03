@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/session/useAuth'
 import buttonStyles from '../../components/button.module.css'
@@ -6,45 +5,10 @@ import styles from './HomePage.module.css'
 
 export default function HomePage() {
   const { user } = useAuth()
-  const homeRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!homeRef.current || !('IntersectionObserver' in window) || !Element.prototype.animate) return
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const animations = new Set<Animation>()
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return
-        observer.unobserve(entry.target)
-        if (preference.matches) return
-        const element = entry.target as HTMLElement
-        const animation = element.animate([
-          { opacity: 0, transform: 'translateY(28px)' },
-          { opacity: 1, transform: 'translateY(0)' },
-        ], { duration: 1000, delay: Number(element.dataset.reveal || 0) * 80, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' })
-        animations.add(animation)
-        animation.onfinish = () => animations.delete(animation)
-      })
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.1 })
-    homeRef.current.querySelectorAll('[data-reveal]').forEach((element) => observer.observe(element))
-    const stopMotion = () => {
-      if (preference.matches) {
-        animations.forEach((animation) => animation.cancel())
-        animations.clear()
-      }
-    }
-    preference.addEventListener('change', stopMotion)
-    return () => {
-      observer.disconnect()
-      animations.forEach((animation) => animation.cancel())
-      preference.removeEventListener('change', stopMotion)
-    }
-  }, [])
-
   return (
-    <div className={styles.home} ref={homeRef}>
+    <div className={styles.home}>
       <section className={styles.hero} aria-labelledby="home-title">
-        <img className={styles.heroImage} src="/images/home-ferrari.webp" alt="Ferrari roja de frente, con faros encendidos e iluminación roja en un estudio oscuro" width="1536" height="1024" fetchPriority="high" />
+        <img className={styles.heroImage} src="/images/home-vehicles.webp" alt="Ferrari oscura entre un hatchback y un SUV, rodeados de humo con iluminación roja" width="1536" height="1024" fetchPriority="high" />
         <div className={styles.heroContent}>
           <h1 id="home-title">Tu próximo auto. <br /><span>Tu próxima historia.</span></h1>
           <p>Descubrí el vehículo que acompaña tu forma de vivir. <br />Compará tus opciones y elegí con más información.</p>
@@ -63,15 +27,15 @@ export default function HomePage() {
           <section key={step.id} id={step.id} className={`${styles.step} ${step.dark ? styles.darkStep : ''}`} aria-labelledby={`${step.id}-title`}>
             <div className={styles.stepInner}>
               <h2 id={`${step.id}-title`} className={styles.stepTitle}>
-                <span data-reveal="0">{step.title}</span>{' '}<span data-reveal="1">{step.emphasis}</span>
+                <span data-reveal>{step.title}</span>{' '}<span data-reveal>{step.emphasis}</span>
               </h2>
-              <div className={styles.stepCopy} data-reveal="2">
+              <div className={styles.stepCopy} data-reveal>
                 <h3>{step.feature}</h3>
                 <p>{step.description}</p>
               </div>
               <dl className={styles.stepDetails}>
-                {step.details.map(([title, description], index) => (
-                  <div key={title} data-reveal={index}><dt>{title}</dt><dd>{description}</dd></div>
+                {step.details.map(([title, description]) => (
+                  <div key={title} data-reveal><dt>{title}</dt><dd>{description}</dd></div>
                 ))}
               </dl>
             </div>
@@ -84,8 +48,8 @@ export default function HomePage() {
 
       <section className={styles.dealers} id="concesionarias" aria-labelledby="dealers-title">
         <div className={styles.dealerInner}>
-          <h2 id="dealers-title" data-reveal="0">Tu inventario.<br /><span>Su próximo auto.</span></h2>
-          <div className={styles.dealerContent} data-reveal="1">
+          <h2 id="dealers-title" data-reveal>Tu inventario.<br /><span>Su próximo auto.</span></h2>
+          <div className={styles.dealerContent} data-reveal>
             <p>Un espacio para que tu concesionaria conecte con quienes están buscando un vehículo.</p>
             <ul><li>Publicá y mantené actualizado tu inventario.</li><li>Recibí consultas de compradores interesados.</li><li>Gestioná tus vehículos desde un mismo lugar.</li></ul>
             <div className={styles.dealerActions}>

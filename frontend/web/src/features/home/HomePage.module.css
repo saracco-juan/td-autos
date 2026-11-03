@@ -64,6 +64,21 @@
 .dealerLogin { color: #e8dcd9; font-size: 13px; text-underline-offset: 5px; }
 .explore:focus-visible, .dealerLogin:focus-visible { outline: 2px solid currentColor; outline-offset: 6px; }
 @keyframes cameraSettle { from { transform: scale(1.06); } to { transform: scale(1); } }
+/* Progress follows the element's position, without a timed visibility reset. */
+@keyframes scrollReveal {
+  from { opacity: 0; transform: translateY(44px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@supports (animation-timeline: view()) and (animation-range: entry 0% cover 40%) {
+  @media (prefers-reduced-motion: no-preference) {
+    .home [data-reveal] {
+      animation: scrollReveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+    .home [data-reveal]:focus-within { animation: none; }
+  }
+}
 @media (max-width: 1100px) {
   .heroContent { padding-top: 120px; }
   .heroImage { object-position: center 65%; }
@@ -77,7 +92,7 @@
   .heroContent h1 { font-size: clamp(40px, 10vw, 58px); line-height: 1.05; }
   .heroContent p { font-size: 14px; margin-top: 20px; }
   .heroContent p br { display: none; }
-  .heroImage { inset: 140px auto auto -40%; width: 180%; max-width: none; height: auto; object-fit: contain; mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent); }
+  .heroImage { inset: 250px auto auto -7.5%; width: 115%; max-width: none; height: auto; object-fit: contain; mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent); }
   .heroBottom { bottom: 24px; grid-template-columns: 1fr; gap: 12px; }
   .explore { min-height: 36px; }
   .stepInner { grid-template-columns: 1fr; padding: 72px 24px; gap: 32px; }

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../auth/session/useAuth'
@@ -16,48 +16,6 @@ function renderHome(authenticated = false) {
 }
 
 describe('HomePage', () => {
-  it('reveals content once and cancels movement when reduced motion is enabled', () => {
-    let notify: IntersectionObserverCallback = () => {}
-    let onPreferenceChange = () => {}
-    const unobserve = vi.fn()
-    const disconnect = vi.fn()
-    const cancel = vi.fn()
-    const animate = vi.fn(() => ({ cancel, onfinish: null }))
-    const preference = {
-      matches: false,
-      addEventListener: vi.fn((_: string, listener: () => void) => { onPreferenceChange = listener }),
-      removeEventListener: vi.fn(),
-    }
-    vi.stubGlobal('matchMedia', () => preference)
-    vi.stubGlobal('IntersectionObserver', class {
-      constructor(callback: IntersectionObserverCallback) { notify = callback }
-      observe = vi.fn()
-      unobserve = unobserve
-      disconnect = disconnect
-    })
-    Object.defineProperty(Element.prototype, 'animate', { configurable: true, value: animate })
-    try {
-      renderHome()
-      const title = screen.getByRole('heading', { name: 'El auto correcto empieza por vos.' })
-      const target = title.firstElementChild as Element
-      notify([{ target, isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
-      expect(unobserve).toHaveBeenCalledWith(target)
-      expect(animate).toHaveBeenCalledOnce()
-      preference.matches = true
-      onPreferenceChange()
-      expect(cancel).toHaveBeenCalledOnce()
-      notify([{ target: title.lastElementChild as Element, isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver)
-      expect(animate).toHaveBeenCalledOnce()
-      expect(title).toBeVisible()
-      cleanup()
-      expect(disconnect).toHaveBeenCalledOnce()
-      expect(preference.removeEventListener).toHaveBeenCalledWith('change', onPreferenceChange)
-    } finally {
-      cleanup()
-      Reflect.deleteProperty(Element.prototype, 'animate')
-      vi.unstubAllGlobals()
-    }
-  })
   it('explains the product and offers buyer registration without personal data', () => {
     renderHome()
     expect(screen.getByRole('heading', { level: 1, name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument()
@@ -71,6 +29,7 @@ describe('HomePage', () => {
       'diagnostico', 'busqueda', 'comparacion', 'costos', 'checklists', 'concesionarias',
     ])
     expect(screen.getAllByRole('img')).toHaveLength(1)
+    expect(screen.getByRole('img')).toHaveAttribute('src', '/images/home-vehicles.webp')
     expect(screen.queryByText(/Imagen conceptual generada/)).not.toBeInTheDocument()
   })
   it('provides the existing dealer login and registration destinations', () => {
