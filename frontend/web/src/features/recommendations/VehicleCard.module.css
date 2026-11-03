@@ -196,11 +196,6 @@
   margin: 12px 0 0;
 }
 
-.card ::selection {
-  background: var(--palette-red);
-  color: var(--surface-default);
-}
-
 .card :is(a, button) {
   transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms ease;
 }

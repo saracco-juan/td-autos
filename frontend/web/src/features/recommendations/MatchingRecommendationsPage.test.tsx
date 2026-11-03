@@ -53,7 +53,8 @@ it('HU05 replaces search with saved-diagnosis matching and preserves API order',
   expect(within(card).getByText(/5 plazas/)).toBeVisible()
   expect(within(card).getByText(/Seguridad: Frenos ABS/)).toBeVisible()
   expect(within(card).getByText(/Confort: Android Auto o Apple CarPlay/)).toBeVisible()
-  expect(screen.getByText(/DolarAPI.*1.030.*20\/10\/2026/)).toBeInTheDocument()
+  const quote = screen.getByText(/Cotización USD:.*1.030/)
+  expect(quote).toHaveTextContent('Actualizada: 20/10/2026')
 })
 
 it('paginates the backend top ten as nine plus one without sorting or requesting more', async () => {
@@ -185,7 +186,7 @@ it('keeps a USD publication distinct from its ARS equivalent and shows its actua
   mockDealers({ ...ready(), results: [{ ...result(), published_price: 20000,
     published_currency: 'USD', vehicle: { ...result().vehicle, image_url: '/demo/corolla.webp' } }] })
   renderPage()
-  expect(await screen.findByText('Publicado: US$ 20.000')).toBeInTheDocument()
+  expect(await screen.findByText('Publicado: USD 20.000')).toBeInTheDocument()
   expect(screen.getByText('Equivalente: $ 20.600.000')).toBeInTheDocument()
   expect(screen.getByRole('img')).toHaveAttribute('src', '/demo/corolla.webp')
 })

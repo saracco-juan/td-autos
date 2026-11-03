@@ -42,8 +42,8 @@ export default function MatchingVehicleCard({ result, comparison }: {
         <div className={styles.content}>
           <p id={titleId} className={styles.title}>{title}</p>
           <p className={styles.meta}>{formatKilometers(vehicle.kilometraje)} · {vehicle.ubicacion}</p>
-          <p className={styles.price}>Publicado: {formatPrice(result.published_price, result.published_currency)}</p>
-          <p className={styles.meta}>{equivalentPriceLabel(result)}</p>
+          <p className={styles.price}>Publicado: {formatPrice(result.published_price, result.published_currency).replace('US$', 'USD')}</p>
+          <p className={styles.meta}>{equivalentPriceLabel(result).replace('US$', 'USD')}</p>
           <p className={styles.source}>{dealer.nombre} · {dealer.provincia}</p>
           <div className={styles.actions} role="group" aria-label={`Acciones de ${title}`}>
             {comparison ? <button type="button" className={`${buttonStyles.button} ${styles.compare}`} aria-pressed={comparison.selected}

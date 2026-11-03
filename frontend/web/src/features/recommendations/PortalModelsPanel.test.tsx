@@ -206,15 +206,16 @@ it('HU06 shows one button per link the API returns', () => {
   expect(screen.getAllByRole('link')).toHaveLength(1)
 })
 
-it('HU06 repeats the exchange-rate notice of the dealers tab only when the API sends it', () => {
+it('shows a compact exchange-rate caption with its update date and stale-price warning', () => {
   const { unmount } = renderPanel(ready())
   expect(screen.queryByText(/Dólar oficial venta/)).not.toBeInTheDocument()
   unmount()
   renderPanel(ready({ exchange_rate: {
     quote: { sell: 1030, source: 'DolarAPI', updated_at: '2026-10-20T12:00:00Z' }, stale: true, warning: null,
   } }))
-  expect(screen.getByText(/Dólar oficial venta · DolarAPI · \$ 1.030/)).toBeVisible()
+  expect(screen.queryByText(/Dólar oficial venta/)).not.toBeInTheDocument()
   expect(screen.getByRole('status')).toHaveTextContent('Última cotización disponible: no se pudo actualizar.')
+  expect(screen.getByText(/Cotización USD:.*1.030/)).toHaveTextContent('Actualizada: 20/10/2026')
 })
 
 it('HU06 explains an empty ready list with a filled info message', () => {

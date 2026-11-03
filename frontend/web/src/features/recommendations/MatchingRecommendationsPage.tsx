@@ -14,6 +14,7 @@ import ComparisonControls from '../comparison/ComparisonControls'
 import { useComparisonSelection } from '../comparison/useComparisonSelection'
 import { fetchRecommendations } from './matching'
 import MatchingVehicleCard from './MatchingVehicleCard'
+import ExchangeRateCaption from './ExchangeRateCaption'
 import { fetchPortalModels } from './portalModels'
 import PortalModelsInfoTip from './PortalModelsInfoTip'
 import PortalModelsPanel from './PortalModelsPanel'
@@ -66,10 +67,9 @@ export default function MatchingRecommendationsPage() {
     <section className={styles.results} aria-label="Resultados">
       {view.status === 'loading' ? <SessionLoading /> : null}
       {view.status === 'error' ? <ErrorState kind={view.kind} onRetry={retry} /> : null}
-      {response?.status === 'ready' ? (
+      {response?.status === 'ready' && notice.warning ? (
         <div className={styles.notice}>
-          {notice.summary ? <p>{notice.summary}</p> : null}
-          {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
+          <p role="status" className={alertStyles.warning}>{notice.warning}</p>
         </div>
       ) : null}
       {empty && results.length === 0 ? (
@@ -95,6 +95,7 @@ export default function MatchingRecommendationsPage() {
           ) : null}
         </>
       ) : null}
+      {response?.status === 'ready' ? <ExchangeRateCaption quote={response.exchange_rate?.quote} /> : null}
     </section>
   )
 

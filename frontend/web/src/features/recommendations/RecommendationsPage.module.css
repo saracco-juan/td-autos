@@ -124,6 +124,14 @@
   margin: 0;
 }
 
+.exchangeRate {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 800px) {
   /* Filters first, the comparison group below at full width. */
   .comparison {

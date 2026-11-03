@@ -61,8 +61,8 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 280ms cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 240ms ease;
+  transition: grid-template-rows 420ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 360ms ease;
 }
 
 .disclosure[data-open='true'] {

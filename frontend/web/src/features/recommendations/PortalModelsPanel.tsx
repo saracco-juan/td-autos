@@ -6,6 +6,7 @@ import InfoIcon from '../../components/InfoIcon'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import SessionLoading from '../auth/session/SessionLoading'
 import PortalModelCard from './PortalModelCard'
+import ExchangeRateCaption from './ExchangeRateCaption'
 import { PORTAL_MESSAGE_WIDE_QUERY } from './portalMessage'
 import type { PortalModelsView } from './portalModels'
 import pageStyles from './RecommendationsPage.module.css'
@@ -47,8 +48,8 @@ export default function PortalModelsPanel({ view, onRetry }: { view: PortalModel
           {response.modelos.map((model) => <PortalModelCard key={model.id} model={model} />)}
         </ul>
         <div className={pageStyles.notice}>
+          <ExchangeRateCaption quote={response.exchange_rate?.quote} />
           {response.fuente_precios ? <p>{portalSourceLabel(response.fuente_precios)}</p> : null}
-          {notice.summary ? <p>{notice.summary}</p> : null}
           {notice.warning ? <p role="status" className={alertStyles.warning}>{notice.warning}</p> : null}
         </div>
       </div>
