@@ -8,7 +8,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-it('expands an empty surface from the clicked tab bounds without transforming panel content', () => {
+it('extends only the tab background without covering or transforming panel content', () => {
   const host = document.createElement('div')
   host.setAttribute('data-checklist-columns', '')
   const tab = document.createElement('button')
@@ -25,23 +25,25 @@ it('expands an empty surface from the clicked tab bounds without transforming pa
   const opening = checklistSurface(panel, tab, true)!
   expect(opening.surface).toHaveAttribute('aria-hidden', 'true')
   expect(opening.surface).toBeEmptyDOMElement()
-  expect(opening.surface.style.left).toBe('400px')
-  expect(opening.surface.style.top).toBe('0px')
+  expect(opening.surface.style.left).toBe('10px')
+  expect(opening.surface.style.top).toBe('100px')
+  expect(opening.surface.style.width).toBe('300px')
+  expect(opening.surface.style.height).toBe('56px')
   expect(animate.mock.calls[0][0]).toEqual([
-    { transform: 'translate(-390px, 100px) scale(0.5, 0.09333333333333334)', opacity: 1 },
     { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 1 },
+    { transform: 'translate(0px, -2px) scale(1.08, 1.0714285714285714)', opacity: 1 },
   ])
   expect(panel.style.transform).toBe('')
   expect(panel).toHaveTextContent('Checklist content')
 
   checklistSurface(panel, tab, false)
   expect(animate.mock.calls[1][0]).toEqual([
-    { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 1 },
-    { transform: 'translate(-390px, 100px) scale(0.5, 0.09333333333333334)', opacity: 0 },
+    { transform: 'translate(0px, -2px) scale(1.08, 1.0714285714285714)', opacity: 1 },
+    { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 0 },
   ])
-  checklistSurface(panel, tab, false, new DOMRect(300, 250, 450, 300))
+  checklistSurface(panel, tab, false, new DOMRect(110, 298, 312, 60))
   expect(animate.mock.calls[2][0]).toEqual([
-    { transform: 'translate(-200px, 50px) scale(0.75, 0.5)', opacity: 1 },
-    { transform: 'translate(-390px, 100px) scale(0.5, 0.09333333333333334)', opacity: 0 },
+    { transform: 'translate(0px, -2px) scale(1.04, 1.0714285714285714)', opacity: 1 },
+    { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 0 },
   ])
 })

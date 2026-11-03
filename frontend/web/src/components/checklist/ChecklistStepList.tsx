@@ -63,10 +63,9 @@ export default function ChecklistStepList({
       return
     }
 
-    const easing = 'cubic-bezier(0.23, 1, 0.32, 1)'
     const previousTab = tabs.current.get(selected)
     if (previousTab) surfaceMotion.current = checklistSurface(panel, previousTab, false, interruptedBounds)
-    const exit = panel.animate([from, { opacity: 0 }], { duration: 160, easing, fill: 'forwards' })
+    const exit = panel.animate([from, { opacity: 0 }], { duration: 260, easing: 'ease', fill: 'forwards' })
     motion.current = exit
     exit.onfinish = () => {
       // Commit only the latest requested tab, then reveal its real content without scaling text.
@@ -78,15 +77,15 @@ export default function ChecklistStepList({
       if (next && nextTab) surfaceMotion.current = checklistSurface(next, nextTab, true)
       const surface = surfaceMotion.current
       motion.current = next?.animate([
-        { opacity: 0 },
-        { opacity: 1 },
-      ], { delay: surface ? 320 : 0, duration: 140, easing, fill: 'backwards' }) ?? null
+        { opacity: 0, transform: 'translateX(-8px)', clipPath: 'inset(0 100% 0 0)' },
+        { opacity: 1, transform: 'none', clipPath: 'inset(0 0% 0 0)' },
+      ], { duration: 550, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'backwards' }) ?? null
       if (surface) {
         surface.animation.onfinish = () => {
           if (surfaceMotion.current !== surface) return
           surface.animation.cancel()
           surface.animation = surface.surface.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: 140, easing, fill: 'forwards',
+            duration: 260, easing: 'ease', fill: 'forwards',
           })
           surface.animation.onfinish = () => {
             surface.surface.remove()
