@@ -1,62 +1,64 @@
-/* Figma "Summary" (2074:903): 396 wide card, radius 14, soft shadow. */
 .card {
-  flex: 0 1 clamp(300px, 34%, 396px);
   min-width: 0;
-  overflow: hidden;
+  padding: 28px;
   background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgb(36 31 28 / 8%);
 }
 
 .title {
-  margin: 0;
-  padding: 16px 16px 12px;
-  font-size: 16px;
+  margin: 0 0 24px;
+  font-size: 18px;
   font-weight: 600;
+  letter-spacing: -.015em;
 }
 
 .rows {
   margin: 0;
 }
 
-/* Figma "Spec row" (2064:649): 40 high, 13 px, label secondary medium, value right-aligned; no line under the last row. */
 .row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 40px;
-  padding: 0 16px;
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  align-items: start;
+  gap: 20px;
+  padding-block: 16px;
   border-bottom: 1px solid var(--border-default);
   font-size: 13px;
+  line-height: 1.5;
+}
+
+.row:first-child {
+  padding-top: 0;
 }
 
 .row:last-child {
+  padding-bottom: 0;
   border-bottom: 0;
 }
 
 .label {
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 400;
 }
 
-.value,
-.inProgress {
+.value, .inProgress {
   margin: 0;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .value {
   color: var(--text-primary);
+  font-weight: 500;
 }
 
 .inProgress {
-  color: var(--palette-charcoal);
+  color: var(--text-secondary);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 600px) {
   .card {
-    width: 100%;
+    padding: 24px;
   }
 }

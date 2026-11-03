@@ -4,30 +4,30 @@
   gap: 12px;
 }
 
-/* Figma "Option" (2018:68): 50 high, radius 10, 16 padding, 16 semibold label. */
 .card {
-  position: relative;
+  composes: fill from '../../components/buttonHover.module.css';
+  --button-hover-fill: var(--palette-charcoal);
   display: flex;
   align-items: center;
-  height: 50px;
-  padding: 0 16px;
-  background: var(--bg-base);
-  border: 1px solid var(--border-strong);
+  min-height: 56px;
+  padding: 12px 20px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
   border-radius: 10px;
   color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
   cursor: pointer;
+  transition: color 550ms ease, background-color 550ms ease, border-color 550ms ease;
 }
 
-/* Selected: white surface and a 2 px charcoal border; the padding absorbs the thicker border. */
 .selected {
-  padding: 0 15px;
-  background: var(--surface-default);
-  border: 2px solid var(--palette-charcoal);
+  background: var(--palette-charcoal);
+  color: var(--text-on-color);
+  border-color: var(--palette-charcoal);
 }
 
-/* The native radio covers the card (invisible) so the whole card is the click and keyboard target. */
 .input {
   position: absolute;
   inset: 0;
@@ -43,8 +43,9 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 600px) {
-  .card {
-    font-size: 15px;
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    color: var(--text-on-color);
+    border-color: var(--palette-charcoal);
   }
 }
