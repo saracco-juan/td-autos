@@ -14,7 +14,7 @@
   content: '';
   pointer-events: none;
   transform: translateY(100%) scale(0.5);
-  transition: transform 650ms ease;
+  transition: transform 550ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
