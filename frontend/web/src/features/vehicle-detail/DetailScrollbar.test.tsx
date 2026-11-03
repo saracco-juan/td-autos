@@ -1,7 +1,24 @@
 import { createRef } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import DetailScrollbar from './DetailScrollbar'
+
+it('keeps the page track between the header and visible footer without shortening the scroll range', () => {
+  const header = document.createElement('header')
+  const footer = document.createElement('footer')
+  document.body.append(header, footer)
+  vi.spyOn(header, 'getBoundingClientRect').mockReturnValue({ bottom: 60 } as DOMRect)
+  vi.spyOn(footer, 'getBoundingClientRect').mockReturnValue({ top: 700 } as DOMRect)
+  const height = vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(1800)
+  const { unmount } = render(<DetailScrollbar label="Scroll page" />)
+  const control = screen.getByRole('scrollbar')
+  expect(control).toHaveStyle({ top: '60px', height: '640px' })
+  expect(control).toHaveAttribute('max', String(1800 - window.innerHeight))
+  unmount()
+  header.remove()
+  footer.remove()
+  height.mockRestore()
+})
 
 it('maps both ends to the complete scroll range and follows native scrolling', () => {
   const container = document.createElement('section')

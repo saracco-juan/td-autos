@@ -22,6 +22,8 @@ export default function DetailScrollbar({ containerRef, contentKey, label }: {
     if (!element.id) element.id = id
     input.setAttribute('aria-controls', element.id)
     element.classList.add(styles.nativeHidden)
+    const header = containerRef ? null : document.querySelector('header')
+    const footer = containerRef ? null : document.querySelector('footer')
     const update = () => {
       const height = containerRef ? element.clientHeight : window.innerHeight
       const maximum = Math.max(0, element.scrollHeight - height)
@@ -31,6 +33,13 @@ export default function DetailScrollbar({ containerRef, contentKey, label }: {
       input.setAttribute('aria-valuemax', String(maximum))
       input.setAttribute('aria-valuenow', String(Math.round(element.scrollTop)))
       if (containerRef) input.style.height = `${height}px`
+      else {
+        const top = Math.max(0, Math.min(height, header?.getBoundingClientRect().bottom ?? 0))
+        const bottom = Math.min(height, footer?.getBoundingClientRect().top ?? height)
+        input.style.top = `${top}px`
+        input.style.height = `${Math.max(0, bottom - top)}px`
+        input.hidden = maximum <= 0 || bottom - top < 48
+      }
     }
     update()
     const scrollSource = containerRef ? element : window
@@ -46,6 +55,8 @@ export default function DetailScrollbar({ containerRef, contentKey, label }: {
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
     observer?.observe(element)
     observer?.observe(containerRef ? element.firstElementChild ?? element : document.body)
+    if (header) observer?.observe(header)
+    if (footer) observer?.observe(footer)
     return () => {
       element.classList.remove(styles.nativeHidden)
       if (!originalId) element.removeAttribute('id')
