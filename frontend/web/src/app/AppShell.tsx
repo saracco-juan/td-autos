@@ -189,13 +189,22 @@ export default function AppShell() {
           </>
         ) : (
           <>
-            <nav aria-label="Principal" className={`${styles.navLinks} ${styles.guestLinks}`}>
-              <a href="/#como-funciona" className={styles.navAction}>Cómo funciona</a>
-              <a href="/#concesionarias" className={styles.navAction}>Concesionarias</a>
-            </nav>
-            <div className={styles.navActions}>
-              <Link to="/login" className={styles.navAction}>Ingresar</Link>
-              <Link to="/registro" className={styles.logout}>Crear cuenta</Link>
+            <button type="button" className={styles.menuToggle} aria-expanded={menuOpen} aria-controls={menuId} onClick={() => setMenuOpen(!menuOpen)}>
+              <MenuIcon open={menuOpen} />Menú
+            </button>
+            <div id={menuId} className={`${styles.menuPanel} ${menuOpen ? styles.menuPanelOpen : ''}`}>
+              <nav aria-label="Principal" className={styles.navLinks}>
+                {[
+                  ['diagnostico', 'Diagnóstico'], ['busqueda', 'Búsqueda'], ['comparacion', 'Comparación'],
+                  ['costos', 'Costos'], ['checklists', 'Checklists'], ['concesionarias', 'Concesionarias'],
+                ].map(([id, label]) => (
+                  <a key={id} href={`/#${id}`} className={styles.navAction} onClick={() => setMenuOpen(false)}>{label}</a>
+                ))}
+              </nav>
+              <div className={styles.navActions}>
+                <Link to="/login" className={styles.navAction}>Iniciar sesión</Link>
+                <Link to="/registro" className={styles.logout}>Registrarse</Link>
+              </div>
             </div>
           </>
         )}

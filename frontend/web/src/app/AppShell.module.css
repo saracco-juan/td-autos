@@ -189,7 +189,6 @@
 
 /* Collapse before centered navigation can collide with either outer track. */
 @media (max-width: 1100px) {
-  .guestLinks { display: none; }
   .nav > .navActions {
     flex-direction: row;
     padding-top: 0;

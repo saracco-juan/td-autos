@@ -69,11 +69,16 @@ describe('AppShell', () => {
   })
 
   describe('menu toggle (phones)', () => {
-    it('shows no toggle to a guest', () => {
+    it('lets a guest open the section navigation and follow a landing anchor', async () => {
       mockAuth('guest')
       renderShell()
 
-      expect(screen.queryByRole('button', { name: 'Menú' })).not.toBeInTheDocument()
+      const user = userEvent.setup()
+      const toggle = screen.getByRole('button', { name: 'Menú' })
+      await user.click(toggle)
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+      await user.click(screen.getByRole('link', { name: 'Diagnóstico' }))
+      expect(toggle).toHaveAttribute('aria-expanded', 'false')
     })
 
     it('starts collapsed and points at the panel that holds the links and the logout', () => {
@@ -191,11 +196,16 @@ describe('AppShell', () => {
     }
   })
 
-  it('shows no diagnosis or recommendations link to a guest', () => {
+  it('offers landing sections and account entry to a guest, not private routes', () => {
     mockAuth('guest')
     renderShell()
 
-    expect(screen.queryByRole('link', { name: 'Diagnóstico' })).not.toBeInTheDocument()
+    const navigation = screen.getByRole('navigation', { name: 'Principal' })
+    expect(within(navigation).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
+      '/#diagnostico', '/#busqueda', '/#comparacion', '/#costos', '/#checklists', '/#concesionarias',
+    ])
+    expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: 'Registrarse' })).toHaveAttribute('href', '/registro')
     expect(screen.queryByRole('link', { name: 'Recomendados' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Transferencia' })).not.toBeInTheDocument()
   })
