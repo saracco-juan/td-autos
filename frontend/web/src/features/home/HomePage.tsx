@@ -55,7 +55,7 @@ export default function HomePage() {
             <ul><li>Publicá y mantené actualizado tu inventario.</li><li>Recibí consultas de compradores interesados.</li><li>Gestioná tus vehículos desde un mismo lugar.</li></ul>
             <div className={styles.dealerActions}>
               <Link className={`${buttonStyles.button} ${styles.action}`} to="/registro/concesionaria">Registrar mi concesionaria <Arrow /></Link>
-              <Link className={styles.dealerLogin} to="/login">Ingresar como concesionaria</Link>
+              <Link className={`${buttonStyles.button} ${styles.action} ${styles.dealerLogin}`} to="/login">Ingresar como concesionaria <Arrow /></Link>
             </div>
           </div>
         </div>

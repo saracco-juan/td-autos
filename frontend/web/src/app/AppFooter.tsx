@@ -22,7 +22,7 @@ export default function AppFooter({ home }: { home: boolean }) {
           <h2>Detrás de TD Autos</h2>
           <p>Un proyecto de</p>
           <ul>
-            <li>Juan Zaracco</li>
+            <li>Juan Saraco</li>
             <li>Mariano Giardina</li>
           </ul>
         </div>

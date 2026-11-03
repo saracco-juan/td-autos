@@ -12,9 +12,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 75% 115%, #f14b30 0, #b72212 27%, transparent 65%),
-    radial-gradient(ellipse at 10% 125%, #8b1b0e 0, transparent 58%);
+  background: radial-gradient(ellipse at 50% 115%, #f14b30 0, #b72212 27%, transparent 68%);
   content: '';
 }
 
@@ -60,7 +58,7 @@
 .wordmark {
   margin: 0;
   padding: 0 3.2% 1.2%;
-  color: #eac0b6;
+  color: #b77c70;
   font: 500 23cqi/0.9 var(--font-sans);
   letter-spacing: -0.04em;
   white-space: nowrap;
