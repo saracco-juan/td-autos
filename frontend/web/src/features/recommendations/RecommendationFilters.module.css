@@ -209,36 +209,6 @@
   box-shadow: none;
 }
 
-/* Retain native selection and keyboard behavior; older browsers use their OS picker. */
-@supports (appearance: base-select) {
-  .field select,
-  .field select::picker(select) { appearance: base-select; }
-
-  .field select::picker(select) {
-    margin-block-start: 6px;
-    padding: 4px;
-    border: 0;
-    border-radius: 12px;
-    background: var(--surface-default);
-    color: var(--text-primary);
-    box-shadow: 0 8px 24px rgb(36 31 28 / 14%);
-    font: inherit;
-  }
-
-  .field option {
-    min-height: 36px;
-    padding: 8px 10px;
-    border-radius: 8px;
-  }
-
-  .field option:checked,
-  .field option:focus-visible { background: #f4f4f4; }
-
-  @media (hover: hover) and (pointer: fine) {
-    .field option:hover { background: #f4f4f4; }
-  }
-}
-
 @media (pointer: coarse) {
   .toggle, .chip, .clear, .field input, .field select,
   .field option, .form button[type='submit'] { min-height: 44px; }
