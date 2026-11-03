@@ -7,13 +7,14 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(var(--summary-rows), auto);
-  gap: clamp(16px, 2vw, 28px);
+  column-gap: clamp(16px, 2vw, 28px);
 }
 
 .card {
   display: grid;
   grid-template-rows: subgrid;
   grid-row: span var(--summary-rows);
+  row-gap: 0;
   min-width: 0;
   background: var(--surface-default);
 }
@@ -113,7 +114,7 @@ div.photo {
 
 .specifications {
   margin-top: clamp(28px, 4vw, 48px);
-  padding: 24px clamp(16px, 2vw, 28px) 12px;
+  padding: 0 20px 12px;
   border-radius: 20px;
   background: var(--surface-default);
 }
@@ -130,6 +131,7 @@ div.photo {
 
 .sectionTabs [role='tabpanel'] {
   min-width: 0;
+  padding-top: 8px;
 }
 
 .specificationColumn {
@@ -155,7 +157,7 @@ div.photo {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(var(--specification-rows), auto);
-  gap: clamp(16px, 2vw, 28px);
+  column-gap: calc(clamp(16px, 2vw, 28px) + 40px);
 }
 
 .notes {
@@ -178,6 +180,7 @@ div.photo {
   .specificationColumns {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
+    row-gap: 24px;
   }
 
   .specificationColumn {

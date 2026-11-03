@@ -88,6 +88,8 @@ export default function OwnershipCostsPage() {
   const { id = '' } = useParams()
   // The detail's recommendation context (score, return to the filtered list) goes back with "Volver a la ficha".
   const { state: detailState } = useLocation()
+  const comparisonReturnTo = typeof detailState?.comparisonReturnTo === 'string'
+    && detailState.comparisonReturnTo.startsWith('/comparar?') ? detailState.comparisonReturnTo : null
   const [data, setData] = useState<OwnershipCosts | null>(null)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string>()
@@ -138,7 +140,9 @@ export default function OwnershipCostsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <BackLink to={`/vehiculos/${encodeURIComponent(id)}`} state={detailState}>Volver a la ficha</BackLink>
+        <BackLink to={comparisonReturnTo ?? `/vehiculos/${encodeURIComponent(id)}`} state={comparisonReturnTo ? undefined : detailState}>
+          {comparisonReturnTo ? 'Volver a la comparación' : 'Volver a la ficha'}
+        </BackLink>
         {vehicle ? (
           <div className={styles.titleBlock}>
             <h1 className={styles.title}>{title}</h1>

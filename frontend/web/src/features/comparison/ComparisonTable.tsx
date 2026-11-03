@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import type { SpecificationRow } from '@shared/vehicles/detail'
 import { comparisonGroups, type ComparisonEntry } from '@shared/comparison/groups'
@@ -30,6 +30,8 @@ function Facts({ rows, title, className }: { rows: SpecificationRow[]; title: st
 export default function ComparisonTable({ entries, onRemove }: {
   entries: [ComparisonEntry, ComparisonEntry]; onRemove: (id: number) => void
 }) {
+  const location = useLocation()
+  const comparisonReturnTo = location.pathname + location.search
   const columns = entries.map((entry) => ({ ...entry, title: vehicleTitle(entry.detail.vehicle), groups: comparisonGroups(entry) }))
   const [section, setSection] = useState('Información general')
   const selected = columns.map(({ groups }) => groups.find(({ title }) => title === section) ?? groups[1])
@@ -57,7 +59,8 @@ export default function ComparisonTable({ entries, onRemove }: {
           </div>
           <Facts rows={groups[0].rows} title={title} className={styles.summaryFacts} />
           <div className={styles.footer}>
-            <Link className={buttonStyles.button} to={`/vehiculos/${id}/costos`}>VER CÁLCULO COMPLETO</Link>
+            <Link className={buttonStyles.button} to={`/vehiculos/${id}/costos`}
+              state={{ comparisonReturnTo }}>VER CÁLCULO COMPLETO</Link>
           </div>
         </article>)}
       </div>

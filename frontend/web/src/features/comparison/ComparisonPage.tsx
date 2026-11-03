@@ -11,8 +11,6 @@ import { fetchRecommendations } from '../recommendations/matching'
 import { fetchVehicleDetail } from '../vehicle-detail/api'
 import ComparisonTable, { type ComparisonEntry } from './ComparisonTable'
 import { useComparisonSelection } from './useComparisonSelection'
-import backIcon from '../vehicle-detail/back.svg'
-import detailStyles from '../vehicle-detail/VehicleDetailPage.module.css'
 import styles from './ComparisonPage.module.css'
 
 type View = { status: 'loading' } | { status: 'unavailable' }
@@ -28,10 +26,8 @@ export default function ComparisonPage() {
   const favoriteReturnTo = `/favoritos${favoriteReturnParams.size ? `?${favoriteReturnParams}` : ''}`
   return <div className={styles.page}>
     {fromFavorites ? <BackLink to={favoriteReturnTo}>Volver a favoritos</BackLink>
-      : <Link className={detailStyles.back} to={`/recomendaciones${search.size ? `?${search}` : ''}`}>
-        <span className={detailStyles.backIcon}><img src={backIcon} alt="" /></span>Volver a recomendados
-      </Link>}
-    <header>
+      : <BackLink to={`/recomendaciones${search.size ? `?${search}` : ''}`}>Volver a recomendados</BackLink>}
+    <header className={styles.heading}>
       <p className={screenStyles.eyebrow}>COMPARAR UNIDADES</p>
       <h1 className={screenStyles.title}>Comparar vehículos</h1>
       <p>{ids.length} {ids.length === 1 ? 'vehículo seleccionado' : 'vehículos seleccionados'}</p>

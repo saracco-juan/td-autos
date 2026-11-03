@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { apiFetch, HttpError, NetworkError } from '../../lib/http'
 import OwnershipCostsPage from './OwnershipCostsPage'
@@ -42,6 +42,23 @@ const purchase = () => screen.getByRole('region', { name: 'Para comprarlo' })
 
 beforeEach(() => {
   vi.mocked(apiFetch).mockReset().mockResolvedValue(costs())
+})
+
+it.each(['/comparar?compare=1%2C2&source=favorites', '/comparar?compare=1%2C2&transmission=automatic'])(
+  'returns to the original comparison with its selection and filters: %s', async (comparisonReturnTo) => {
+  function Destination() {
+    const location = useLocation()
+    return <p>{location.pathname + location.search}</p>
+  }
+  render(<MemoryRouter initialEntries={[{ pathname: '/vehiculos/1/costos', state: { comparisonReturnTo } }]}>
+    <Routes>
+      <Route path="/vehiculos/:id/costos" element={<OwnershipCostsPage />} />
+      <Route path="/comparar" element={<Destination />} />
+    </Routes>
+  </MemoryRouter>)
+  await screen.findByRole('heading', { level: 1 })
+  await userEvent.click(screen.getByRole('link', { name: 'Volver a la comparación' }))
+  expect(screen.getByText(comparisonReturnTo)).toBeInTheDocument()
 })
 
 it('shows what it costs to keep and to buy the vehicle without ceiling wording', async () => {
