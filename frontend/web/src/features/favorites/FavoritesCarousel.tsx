@@ -20,9 +20,11 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
   const reduced = useRef(false)
   const length = items.length
   const available = items.filter((vehicle) => !selectedIds.includes(vehicle.id))
-  const currentIndex = length ? (Array.from({ length }, (_, step) => (index + step) % length)
+  const startIndex = length ? ((index % length) + length) % length : 0
+  const currentIndex = length ? (Array.from({ length }, (_, step) => (startIndex + step) % length)
     .find((candidate) => !selectedIds.includes(items[candidate].id)) ?? 0) : 0
   const currentId = items[currentIndex]?.id
+  const currentTurn = length ? index + (currentIndex - startIndex + length) % length : 0
   const selected = selectedIds.flatMap((id) => items.filter((vehicle) => vehicle.id === id))
 
   useEffect(() => {
@@ -47,12 +49,12 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
   const navigate = (delta: number, fromKeyboard = false) => {
     if (length < 2) return
     setIndex(() => {
-      let next = currentIndex
+      let next = currentTurn
       for (let step = 0; step < length; step += 1) {
-        next = (next + delta + length) % length
-        if (!selectedIds.includes(items[next]?.id)) return next
+        next += delta
+        if (!selectedIds.includes(items[((next % length) + length) % length]?.id)) return next
       }
-      return currentIndex
+      return currentTurn
     })
     if (fromKeyboard) {
       setInstant(true)
@@ -101,11 +103,15 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
           const count = available.length
           const sidePairs = Math.min(2, Math.floor((count - 1) / 2))
           const offset = count ? ((remainingIndex - frontIndex + count + Math.floor(count / 2)) % count) - Math.floor(count / 2) : 0
+          // Keep complete turns: wrapping the angle would make a card sweep across the front.
+          const angle = count ? (remainingIndex - frontIndex - Math.floor(currentTurn / length) * count) * 360 / count : 0
+          const orbit = `translate(-50%, var(--wheel-y)) translateZ(calc(-1 * var(--orbit-radius))) rotateY(${angle}deg) translateZ(var(--orbit-radius)) rotateY(${-angle}deg)`
           const position = selectedIndex >= 0 ? `selected-${selectedIndex}` : offset === 0 ? 'front'
             : Math.abs(offset) <= sidePairs ? `side-${offset}` : 'hidden'
           const active = offset === 0 || selectedIndex >= 0
           const side = selectedIndex < 0 && offset !== 0
           return <div key={vehicle.id} className={styles.card} data-position={position} data-active={active}
+            style={selectedIndex < 0 ? { transform: orbit, zIndex: Math.round(10 + 5 * Math.cos(angle * Math.PI / 180)) } : undefined}
             onTransitionEnd={(event) => settledOnTransition(vehicle.id, event)}>
             <div aria-hidden={side || position === 'hidden' ? true : undefined}
               inert={side || position === 'hidden' ? true : undefined}>
@@ -113,7 +119,10 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
             </div>
             {side && position !== 'hidden' ? <button type="button" className={styles.sideTarget}
               aria-label={`Ver ${vehicle.marca} ${vehicle.modelo} ${vehicle.version ?? ''} ${vehicle.anio}`}
-              onClick={() => setIndex(itemIndex)}>Ver vehículo</button> : null}
+              onClick={() => {
+                const distance = ((itemIndex - currentIndex + length + Math.floor(length / 2)) % length) - Math.floor(length / 2)
+                setIndex(currentTurn + distance)
+              }}>Ver vehículo</button> : null}
           </div>
         })}
       </div>

@@ -49,6 +49,19 @@ it('navigates the current card with controls and keyboard', () => {
   expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', '1')
 })
 
+it('keeps complete turns when crossing the last and first cards in either direction', () => {
+  render(<MemoryRouter><FavoritesCarousel {...props()} /></MemoryRouter>)
+  const region = screen.getByRole('region', { name: 'Carrusel de favoritos' })
+  fireEvent.click(screen.getByRole('button', { name: 'Anterior favorito' }))
+  expect(region).toHaveAttribute('data-current-id', '3')
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente favorito' }))
+  expect(region).toHaveAttribute('data-current-id', '1')
+  for (let step = 0; step < items.length; step += 1) fireEvent.click(screen.getByRole('button', { name: 'Siguiente favorito' }))
+  const front = screen.getByRole('listitem', { name: /Modelo 1/ }).closest('[data-position="front"]') as HTMLElement
+  expect(front.style.transform).toContain('rotateY(-360deg)')
+  expect(front.style.transform).toContain('rotateY(360deg)')
+})
+
 it('skips selected cards while navigating', () => {
   render(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [2] })} /></MemoryRouter>)
   fireEvent.click(screen.getByRole('button', { name: 'Siguiente favorito' }))

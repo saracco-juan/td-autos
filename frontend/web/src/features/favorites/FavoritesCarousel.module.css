@@ -9,11 +9,12 @@
 
 .stage {
   --wheel-y: 52px;
+  --orbit-radius: min(620px, calc((100vw - 400px) / 2));
   position: relative;
   height: 600px;
   touch-action: pan-y;
   overflow: hidden;
-  transition: height 550ms cubic-bezier(.32, .72, 0, 1);
+
 }
 
 .hasSelected .stage {
@@ -24,6 +25,8 @@
 .deck {
   position: absolute;
   inset: 0;
+  perspective: 1600px;
+  perspective-origin: 50% calc(var(--wheel-y) + 240px);
 }
 
 .card {
@@ -52,28 +55,8 @@
   pointer-events: auto;
 }
 
-.card[data-position='side--1'] {
-  z-index: 3;
-  transform: translate(calc(-50% - 350px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(-35deg) scale(.92);
-}
-
-.card[data-position='side-1'] {
-  z-index: 3;
-  transform: translate(calc(-50% + 350px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(35deg) scale(.92);
-}
-
-.card[data-position='side--2'] {
-  z-index: 1;
-  transform: translate(calc(-50% - 590px), calc(var(--wheel-y) + 36px)) perspective(1200px) rotateY(-60deg) scale(.84);
-}
-
-.card[data-position='side-2'] {
-  z-index: 1;
-  transform: translate(calc(-50% + 590px), calc(var(--wheel-y) + 36px)) perspective(1200px) rotateY(60deg) scale(.84);
-}
-
 .card[data-position^='selected-'] {
-  z-index: 8;
+  z-index: 30;
   opacity: 1;
   pointer-events: auto;
 }
@@ -87,19 +70,6 @@
 }
 
 .card[data-position='hidden'] { visibility: hidden; }
-
-@media (max-width: 1599px) {
-  .card[data-position='side--2'],
-  .card[data-position='side-2'] { visibility: hidden; pointer-events: none; }
-
-  .card[data-position='side--1'] {
-    transform: translate(calc(-50% - 330px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(-35deg) scale(.92);
-  }
-
-  .card[data-position='side-1'] {
-    transform: translate(calc(-50% + 330px), calc(var(--wheel-y) + 18px)) perspective(1200px) rotateY(35deg) scale(.92);
-  }
-}
 
 .grid {
   display: grid;
