@@ -3,27 +3,29 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 .slot {
   min-width: 0;
   opacity: 0;
-  transform: translateX(32px) scale(.96);
+  clip-path: inset(0 0 0 100% round 10px 0 0 10px);
   pointer-events: none;
-  transition: transform 550ms cubic-bezier(.32, .72, 0, 1), opacity 240ms ease;
+  transition: clip-path 550ms cubic-bezier(.32, .72, 0, 1), opacity 360ms ease;
 }
-.slot:last-child { transform: translateX(-32px) scale(.96); }
-.slot[data-open='true'] { opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; }
+.slot:last-child { clip-path: inset(0 100% 0 0 round 0 10px 10px 0); }
+.slot[data-open='true'] { opacity: 1; clip-path: inset(0 round 10px 0 0 10px); pointer-events: auto; }
+.slot:last-child[data-open='true'] { clip-path: inset(0 round 0 10px 10px 0); }
 .vehicle {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
+  height: 44px;
+  box-sizing: border-box;
   padding: 4px;
-  border-radius: 999px;
-  background: var(--surface-raised);
+  background: var(--palette-charcoal);
+  color: var(--text-on-color);
 }
-.photo { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: none; }
+.photo { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; flex: none; }
 .name { min-width: 0; flex: 1; padding-left: 4px; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .compare {
   width: auto;
@@ -34,10 +36,13 @@
   border-color: var(--border-default);
   color: var(--text-primary);
   --button-hover-fill: var(--palette-charcoal);
+  transition: border-radius 550ms ease, color 550ms ease, border-color 550ms ease;
 }
+.controls:has(.slot:first-child[data-open='true']) .compare { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.controls:has(.slot:last-child[data-open='true']) .compare { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .count { display: grid; place-items: center; width: 24px; height: 24px; overflow: hidden; border-radius: 50%; background: var(--palette-charcoal); color: var(--text-on-color); font-variant-numeric: tabular-nums; }
 .count > span { animation: count-in 200ms cubic-bezier(.23, 1, .32, 1); }
-.remove { flex: none; width: 32px; height: 32px; padding: 8px; border: 0; border-radius: 10px; background: transparent; box-shadow: none; }
+.remove { flex: none; width: 32px; height: 32px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--text-on-color); box-shadow: none; --button-hover-fill: var(--surface-default); --button-hover-color: var(--palette-charcoal); }
 .remove svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 .caption { margin: 6px 0 0; text-align: center; font-size: 12px; color: var(--text-secondary); }
 .notice { margin: 8px 0 0; }
@@ -45,14 +50,19 @@
 @media (max-width: 600px) {
   .selection { width: 100%; }
   .controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .compare { grid-column: 1 / -1; grid-row: 1; justify-self: center; }
+  .compare { grid-column: 1 / -1; grid-row: 1; width: 100%; }
   .slot { grid-row: 2; }
   .slot:first-child { grid-column: 1; }
   .slot:last-child { grid-column: 2; }
   .name { white-space: normal; line-height: 1.3; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .controls:has(.slot:first-child[data-open='true']) .compare,
+  .controls:has(.slot:last-child[data-open='true']) .compare { border-radius: 10px 10px 0 0; }
+  .slot:first-child[data-open='true'] { clip-path: inset(0 round 0 0 0 10px); }
+  .slot:last-child[data-open='true'] { clip-path: inset(0 round 0 0 10px 0); }
+  .controls:has(.slot:last-child[data-open='false']) .slot:first-child { grid-column: 1 / -1; clip-path: inset(0 round 0 0 10px 10px); }
 }
 @media (pointer: coarse) { .remove { width: 44px; height: 44px; } }
 @media (prefers-reduced-motion: reduce) {
-  .slot, .slot:last-child { transform: none; transition: opacity 150ms ease; }
+  .slot, .slot:last-child, .compare { transition: none; }
   .count > span { animation: none; }
 }
