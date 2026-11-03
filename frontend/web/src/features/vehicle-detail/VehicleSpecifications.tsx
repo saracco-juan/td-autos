@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { detailSections } from '@shared/vehicles/detail'
 import Tabs from '../../components/Tabs'
+import DetailScrollbar from './DetailScrollbar'
 import type { BuyerVehicle } from './types'
 import styles from './VehicleSpecifications.module.css'
 
@@ -13,6 +14,7 @@ export default function VehicleSpecifications({ vehicle }: { vehicle: BuyerVehic
   return (
     <section ref={sectionRef} className={styles.card} aria-labelledby={`${id}-heading`}>
       <h2 id={`${id}-heading`}>Especificaciones técnicas</h2>
+      <div className={styles.tabs}>
       <Tabs variant="underline" label="Secciones de especificaciones" value={selected} panelClassName={styles.specificationsPanel}
         items={groups.map(({ title }) => ({ id: title, label: title }))}
         onValueChange={(value) => {
@@ -31,6 +33,8 @@ export default function VehicleSpecifications({ vehicle }: { vehicle: BuyerVehic
           </dl>
         ))}
       </Tabs>
+      <DetailScrollbar containerRef={sectionRef} contentKey={selected} label="Desplazar especificaciones" />
+      </div>
       <section aria-label="Descripción de la concesionaria">
         <h3>Descripción de la concesionaria</h3>
         <p className={styles.description}>{vehicle.descripcion?.trim() || 'Descripción no disponible.'}</p>

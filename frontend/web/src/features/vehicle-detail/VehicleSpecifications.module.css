@@ -37,32 +37,10 @@
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: var(--palette-charcoal) transparent;
-  padding: 2px 12px 2px 2px;
+  padding: 2px 36px 2px 2px;
 }
 
-/* Keep the native drag/keyboard behavior, with a compact pill-shaped track in Chromium/WebKit. */
-@supports selector(::-webkit-scrollbar) {
-  .specificationsPanel {
-    scrollbar-width: auto;
-    scrollbar-color: auto;
-  }
-  .specificationsPanel::-webkit-scrollbar { width: 8px; }
-  .specificationsPanel::-webkit-scrollbar-track {
-    background: transparent;
-    margin-block: calc((clamp(240px, 50dvh, 440px) - 120px) / 2);
-  }
-  .specificationsPanel::-webkit-scrollbar-thumb {
-    min-height: 40px;
-    border-radius: 999px;
-    background: var(--palette-charcoal);
-  }
-  .specificationsPanel::-webkit-scrollbar-button { display: none; }
-}
-
-@media (forced-colors: active) {
-  .specificationsPanel { scrollbar-color: auto; scrollbar-width: auto; }
-  .specificationsPanel::-webkit-scrollbar-thumb { background: CanvasText; }
-}
+.tabs { position: relative; }
 
 .row {
   display: grid;
