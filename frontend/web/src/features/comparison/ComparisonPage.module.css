@@ -1,12 +1,13 @@
 .page {
+  composes: container from '../../components/screen.module.css';
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
+  gap: 24px;
   flex: 1;
   min-height: 0;
   min-width: 0;
-  contain: size;
+  margin-bottom: auto;
+  padding: 32px 0 64px;
 }
 
 .page p {
@@ -14,27 +15,6 @@
 }
 
 .ready {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
-  flex: 1;
+  min-width: 0;
   outline: none;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.controls button {
-  width: auto;
-  height: 32px;
-  padding: 0 12px;
-}
-
-.controls span {
-  font-size: 13px;
 }
