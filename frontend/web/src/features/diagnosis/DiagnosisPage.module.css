@@ -61,10 +61,6 @@
   margin: 0;
 }
 
-.actions {
-  flex-wrap: wrap;
-}
-
 .actions > button {
   flex-basis: auto;
 }
@@ -73,6 +69,12 @@
   .body {
     grid-template-columns: minmax(0, 1fr);
     gap: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  .actions {
+    flex-wrap: wrap;
   }
 }
 
