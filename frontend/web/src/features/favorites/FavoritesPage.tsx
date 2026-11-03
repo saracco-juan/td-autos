@@ -5,7 +5,6 @@ import buttonStyles from '../../components/button.module.css'
 import ErrorState from '../../components/ErrorState'
 import ListFooter from '../../components/ListFooter'
 import Pagination from '../../components/Pagination'
-import ScrollArea from '../../components/ScrollArea'
 import screenStyles from '../../components/screen.module.css'
 import SessionLoading from '../auth/session/SessionLoading'
 import { fetchRecommendations, type Recommendation } from '../recommendations/matching'
@@ -64,14 +63,14 @@ export default function FavoritesPage() {
         ) : null}
         {view.status === 'ready' && items.length > 0 ? (
           <>
-            <ScrollArea key={`${page}-${perPage}`} label="Favoritos" fill className={styles.frame} viewportClassName={styles.gridArea}>
+            <div key={`${page}-${perPage}`} role="region" aria-label="Favoritos" className={styles.gridArea}>
               <ul className={styles.grid}>
                 {items.map((vehicle) => <FavoriteCard key={vehicle.id} vehicle={vehicle}
                   score={matches.find((match) => match.listing_id === vehicle.id)?.score}
                   bestMatch={matches[0]?.listing_id === vehicle.id}
                   busy={pendingIds.includes(vehicle.id)} onRemove={() => void favorites.remove(vehicle)} />)}
               </ul>
-            </ScrollArea>
+            </div>
           </>
         ) : null}
         {total > 0 ? (

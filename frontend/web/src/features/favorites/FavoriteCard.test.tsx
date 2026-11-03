@@ -26,6 +26,6 @@ it('renders unknown facts without inventing zero amounts or crashing', () => {
     kilometraje: null, transmision: null, combustible: null }} busy={false} onRemove={vi.fn()} /></MemoryRouter>)
   expect(screen.getByText('Precio no disponible')).toBeInTheDocument()
   expect(screen.getByText('Kilometraje no disponible')).toBeInTheDocument()
-  expect(screen.getByText('Imagen no disponible')).toBeInTheDocument()
+  expect(screen.getByText('Sin fotos')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'QUITAR' })).toBeEnabled()
 })

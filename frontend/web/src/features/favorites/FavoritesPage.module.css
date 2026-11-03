@@ -1,5 +1,5 @@
 .page {
-  contain: size;
+  composes: container from '../../components/screen.module.css';
   display: flex;
   width: 100%;
   min-height: 0;
@@ -35,10 +35,6 @@
   flex: 1;
   flex-direction: column;
   gap: 16px;
-}
-
-.frame[data-fill] {
-  min-height: 0;
 }
 
 .gridArea {
