@@ -66,6 +66,7 @@
 }
 
 .tabs[data-variant='underline'] {
+  position: relative;
   flex-wrap: wrap;
   gap: 0 24px;
 }
@@ -83,6 +84,7 @@
   color: var(--text-secondary);
   font-size: 14px;
   white-space: nowrap;
+  transition: color 300ms ease;
 }
 
 .tabs[data-variant='underline'] .tab:hover {
@@ -91,9 +93,27 @@
 }
 
 .tabs[data-variant='underline'] .tab[aria-selected='true'] {
-  border-bottom-color: var(--action-primary);
   color: var(--text-primary);
   font-weight: 700;
+}
+
+.indicator {
+  position: absolute;
+  inset: 0 0 -1px;
+  background: var(--action-primary);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.indicator[data-animate='true'] {
+  transition: clip-path 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.tabs:has(:focus-visible) .tab { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator[data-animate='true'],
+  .tabs[data-variant='underline'] .tab { transition: none; }
 }
 
 .tabs[data-variant='underline'] .tab:focus-visible {
