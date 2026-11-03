@@ -12,7 +12,10 @@
   position: absolute;
   z-index: -1;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 115%, #f14b30 0, #b72212 27%, transparent 68%);
+  background: radial-gradient(
+    ellipse 100% clamp(180px, 28cqi, 420px) at 50% 110%,
+    #d63a24 0%, #a82415 38%, rgb(139 27 14 / 40%) 70%, transparent 100%
+  );
   content: '';
 }
 
