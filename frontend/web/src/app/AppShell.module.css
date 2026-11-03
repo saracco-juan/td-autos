@@ -110,25 +110,25 @@
 }
 
 .navLinks > .navAction:first-child,
-.navLinks > .navAction[aria-current='page'] + .navAction {
+.navLinks > .navAction:is([aria-current='page'], [aria-current='location']) + .navAction {
   border-start-start-radius: 10px;
   border-end-start-radius: 10px;
 }
 
 .navLinks > .navAction:last-child,
-.navLinks > .navAction:has(+ [aria-current='page']) {
+.navLinks > .navAction:has(+ :is([aria-current='page'], [aria-current='location'])) {
   border-start-end-radius: 10px;
   border-end-end-radius: 10px;
 }
 
-.navLinks > .navAction[aria-current='page'] {
+.navLinks > .navAction:is([aria-current='page'], [aria-current='location']) {
   margin-inline: 8px;
   border-radius: 10px;
   background: var(--palette-red);
   color: var(--text-on-color);
 }
 
-.navActions .navAction[aria-current='page'] {
+.navActions .navAction:is([aria-current='page'], [aria-current='location']) {
   background: var(--palette-charcoal);
   color: var(--text-on-color);
 }
@@ -150,7 +150,7 @@
 .logout:disabled { opacity: 0.6; cursor: not-allowed; }
 
 @media (hover: hover) and (pointer: fine) {
-  .navAction:hover:not([aria-current='page']),
+  .navAction:hover:not(:is([aria-current='page'], [aria-current='location'])),
   .logout:hover:not(:disabled),
   .menuToggle:hover { color: var(--text-on-color); }
 }
@@ -236,7 +236,7 @@
   }
 
   .navLinks > .navAction,
-  .navLinks > .navAction[aria-current='page'] {
+  .navLinks > .navAction:is([aria-current='page'], [aria-current='location']) {
     margin-inline: 0;
     border-radius: 10px;
   }
@@ -263,14 +263,14 @@
   border-color: #3e3330;
 }
 .homeShell .navLinks > .navAction { border-color: transparent; }
-.homeShell .navLinks > .navAction[aria-current='page'] { background: var(--palette-red); }
+.homeShell .navLinks > .navAction:is([aria-current='page'], [aria-current='location']) { background: var(--palette-red); }
 .homeShell .navChip { color: #fff; }
 .homeShell .logo:focus-visible,
 .homeShell .navAction:focus-visible,
 .homeShell .logout:focus-visible,
 .homeShell .menuToggle:focus-visible { outline-color: #e02404; }
 @media (hover: hover) and (pointer: fine) {
-  .homeShell .navAction:hover:not([aria-current='page']),
+  .homeShell .navAction:hover:not(:is([aria-current='page'], [aria-current='location'])),
   .homeShell .logout:hover:not(:disabled),
   .homeShell .menuToggle:hover { color: #171211; }
 }

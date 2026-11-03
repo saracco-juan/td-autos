@@ -69,6 +69,19 @@ describe('AppShell', () => {
   })
 
   describe('menu toggle (phones)', () => {
+    it('updates the selected guest section on navigation and starts from the URL anchor', async () => {
+      mockAuth('guest')
+      renderShell('/#diagnostico')
+      const diagnosis = screen.getByRole('link', { name: 'Diagnóstico' })
+      const comparison = screen.getByRole('link', { name: 'Comparación' })
+      expect(diagnosis).toHaveAttribute('aria-current', 'location')
+      await userEvent.setup().click(comparison)
+      expect(comparison).toHaveAttribute('aria-current', 'location')
+      expect(diagnosis).not.toHaveAttribute('aria-current')
+      await userEvent.setup().click(screen.getByRole('link', { name: 'TD Autos' }))
+      expect(comparison).not.toHaveAttribute('aria-current')
+    })
+
     it('lets a guest open the section navigation and follow a landing anchor', async () => {
       mockAuth('guest')
       renderShell()

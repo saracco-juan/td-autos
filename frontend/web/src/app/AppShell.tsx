@@ -59,7 +59,7 @@ const ADMIN_DEALER_PATHS = ['/admin/concesionarias', '/admin/comprobantes/']
 // list and the dashboard for administrators. A signed-in user with any other role gets only the logout.
 export default function AppShell() {
   const navigate = useNavigate()
-  const { pathname, key: locationKey } = useLocation()
+  const { pathname, hash, key: locationKey } = useLocation()
   const { user, status, logout } = useAuth()
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutFailed, setLogoutFailed] = useState(false)
@@ -68,6 +68,12 @@ export default function AppShell() {
   const menuOpen = menuOpenedAt === locationKey
   const setMenuOpen = (open: boolean) => setMenuOpenedAt(open ? locationKey : null)
   const menuId = useId()
+
+  // Router anchors select a section without reloading the landing.
+  useEffect(() => {
+    if (pathname !== '/' || status === 'authenticated' || !hash) return
+    document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' })
+  }, [pathname, hash, status, locationKey])
 
   const handleLogout = async () => {
     setLogoutFailed(false)
@@ -198,7 +204,9 @@ export default function AppShell() {
                   ['diagnostico', 'Diagnóstico'], ['busqueda', 'Búsqueda'], ['comparacion', 'Comparación'],
                   ['costos', 'Costos'], ['checklists', 'Checklists'], ['concesionarias', 'Concesionarias'],
                 ].map(([id, label]) => (
-                  <a key={id} href={`/#${id}`} className={styles.navAction} onClick={() => setMenuOpen(false)}>{label}</a>
+                  <Link key={id} to={`/#${id}`} className={styles.navAction}
+                    aria-current={pathname === '/' && hash === `#${id}` ? 'location' : undefined}
+                    onClick={() => setMenuOpen(false)}>{label}</Link>
                 ))}
               </nav>
               <div className={styles.navActions}>
