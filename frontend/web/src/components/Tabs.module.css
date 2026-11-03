@@ -29,6 +29,7 @@
 }
 
 .tab {
+  composes: fill from './buttonHover.module.css';
   flex: 1 1 8rem;
   min-width: 0;
   padding: 10px 12px;
@@ -42,7 +43,6 @@
   cursor: pointer;
 }
 
-.tab:hover,
 .tab[aria-selected='true'] {
   background: var(--surface-raised);
 }
@@ -71,6 +71,7 @@
 }
 
 .tabs[data-variant='underline'] .tab {
+  --button-hover-fill: transparent;
   flex: none;
   padding: 10px 2px 12px;
   margin-bottom: -1px;

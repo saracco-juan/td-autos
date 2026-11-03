@@ -11,6 +11,8 @@
 }
 
 .tab {
+  composes: fill from '../buttonHover.module.css';
+  --button-hover-fill: var(--bg-base);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -25,10 +27,6 @@
   cursor: pointer;
 }
 
-.tab:hover {
-  background: var(--bg-base);
-}
-
 .tab:focus-visible {
   outline: 2px solid var(--palette-red);
   outline-offset: 2px;
@@ -37,6 +35,7 @@
 /* Selected: raised surface, stronger border and medium weight. */
 .selected,
 .selected:hover {
+  --button-hover-fill: transparent;
   background: var(--surface-raised);
   border-color: var(--border-strong);
   font-weight: 600;

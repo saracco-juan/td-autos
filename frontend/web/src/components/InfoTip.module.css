@@ -7,6 +7,7 @@
 
 /* 24 px circle (the minimum target size). */
 .button {
+  composes: fill from './buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -21,10 +22,6 @@
   font: italic 700 12px/1 Georgia, 'Times New Roman', serif;
   cursor: pointer;
   transition: background-color 0.15s ease;
-}
-
-.button:hover {
-  background: var(--surface-raised);
 }
 
 .button:focus-visible {

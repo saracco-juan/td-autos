@@ -78,6 +78,8 @@
 
 /* A link is a pill: soft white text, a translucent white fill on hover. */
 .navAction {
+  composes: fill from '../components/buttonHover.module.css';
+  --button-hover-fill: rgba(255, 255, 255, 0.14);
   display: inline-flex;
   align-items: center;
   padding: 7px 12px;
@@ -94,7 +96,6 @@
 }
 
 .navAction:hover {
-  background: rgba(255, 255, 255, 0.14);
   color: var(--text-on-color);
 }
 
@@ -122,6 +123,8 @@
 
 /* "Cerrar sesión": an outlined pill with an icon, set apart from the links. */
 .logout {
+  composes: fill from '../components/buttonHover.module.css';
+  --button-hover-fill: rgba(255, 255, 255, 0.14);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -133,10 +136,6 @@
   font: 600 12px/1 var(--font-sans);
   cursor: pointer;
   transition: background-color 0.15s ease;
-}
-
-.logout:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.14);
 }
 
 .logout:disabled {

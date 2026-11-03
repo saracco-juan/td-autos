@@ -94,13 +94,13 @@
 }
 
 .comparison button:last-child {
+  --button-hover-fill: var(--palette-charcoal);
   border-color: var(--palette-red);
   background: var(--palette-red);
   color: var(--text-on-action);
 }
 
 .comparison button:last-child:hover:not(:disabled):not([aria-busy='true']) {
-  background: var(--palette-charcoal);
   border-color: var(--palette-charcoal);
 }
 

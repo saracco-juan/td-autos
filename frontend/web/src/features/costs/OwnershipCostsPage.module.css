@@ -31,6 +31,7 @@
 
 /* Figma "Back Link": a boxed chevron (soft button look) and the text. */
 .backLink {
+  composes: trigger from '../../components/buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
@@ -41,6 +42,7 @@
 }
 
 .backIcon {
+  composes: fill from '../../components/buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -58,9 +60,6 @@
   color: var(--accent-default);
 }
 
-.backLink:hover .backIcon {
-  background: var(--surface-raised);
-}
 
 /* Inputs of the estimate: two fields and the button on one row, stacked on phones. */
 .form {

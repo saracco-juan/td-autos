@@ -157,24 +157,23 @@
 }
 
 .actions .compare {
+  --button-hover-fill: var(--surface-raised);
   border-color: var(--surface-raised);
   background: transparent;
   color: var(--surface-default);
 }
 
 .actions .detail {
+  --button-hover-fill: color-mix(in srgb, var(--palette-red), var(--palette-charcoal) 18%);
   border-color: transparent;
   background: var(--palette-red);
   color: var(--surface-default);
 }
 
-.actions .compare:hover:not(:disabled):not([aria-busy='true']) {
-  background: var(--surface-raised);
-  color: var(--palette-charcoal);
-}
-
-.actions .detail:hover:not(:disabled):not([aria-busy='true']) {
-  background: color-mix(in srgb, var(--palette-red), var(--palette-charcoal) 18%);
+@media (hover: hover) and (pointer: fine) {
+  .actions .compare:hover:not(:disabled):not([aria-busy='true']) {
+    color: var(--palette-charcoal);
+  }
 }
 
 .card > p {

@@ -10,6 +10,7 @@
 }
 
 .item {
+  composes: fill from './buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -32,10 +33,6 @@
 .group > .item:first-child,
 .first {
   border-left: 0;
-}
-
-.item:hover:not(:disabled):not([aria-disabled='true']):not([aria-current]) {
-  background: var(--surface-raised);
 }
 
 .item:focus-visible {

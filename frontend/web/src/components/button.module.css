@@ -2,6 +2,7 @@
    thin light border, soft shadow, dark grey label, a subtle hover in the table header tone and a soft focus ring
    (docs/design.md "Buttons"). The variant only changes the border and the label. */
 .button {
+  composes: fill from './buttonHover.module.css';
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,11 +18,7 @@
   font: 600 11px/normal var(--font-sans);
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.button:hover:not(:disabled):not([aria-busy='true']) {
-  background: var(--surface-raised);
+  transition: color 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
 }
 
 .button:focus-visible {
