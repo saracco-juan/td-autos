@@ -68,7 +68,10 @@ export default function FavoritesPage() {
         {total > 0 ? recommendationsLink : null}
       </header>
       {view.status === 'ready' && total > 0 ? <div className={styles.comparison}>
-        <ComparisonControls selection={{ ...comparison, toggle: toggleComparison }} source="favorites" />
+        <ComparisonControls selection={{ ...comparison, toggle: toggleComparison }} source="favorites"
+          vehicles={items.map((vehicle) => ({ id: vehicle.id,
+            label: `${vehicle.marca} ${vehicle.modelo} ${vehicle.anio}`,
+            title: [vehicle.marca, vehicle.modelo, vehicle.version, vehicle.anio].filter(Boolean).join(' '), image: vehicle.image_url }))} />
       </div> : null}
       {actionError ? (
         <p role="alert" className={alertStyles.alert}>

@@ -64,11 +64,11 @@
 }
 
 .comparison {
-  flex: none;
+  flex: 0 1 600px;
+  width: 600px;
   max-width: 100%;
 }
 
-.comparison button,
 .adjust {
   height: 36px;
   min-height: 36px;
@@ -77,32 +77,10 @@
   font-size: 12px;
 }
 
-.comparison > section > div {
-  justify-content: flex-end;
-  min-height: 36px;
-}
-
-.comparison [role='alert'] {
-  max-width: 360px;
-  margin: 8px 0 0;
-}
-
 @media (pointer: coarse) {
-  .comparison button, .adjust { min-height: 44px; }
+  .adjust { min-height: 44px; }
 }
 
-.comparison button:last-child {
-  --button-hover-fill: var(--palette-charcoal);
-  border-color: var(--palette-red);
-  background: var(--palette-red);
-  color: var(--text-on-action);
-}
-
-.comparison button:last-child:hover:not(:disabled):not([aria-busy='true']) {
-  border-color: var(--palette-charcoal);
-}
-
-.comparison button:focus-visible,
 .adjust:focus-visible {
   outline: 2px solid var(--palette-charcoal);
   outline-offset: 3px;

@@ -25,6 +25,8 @@
 
 .comparison {
   composes: comparison from '../recommendations/RecommendationsPage.module.css';
+  flex: none;
+  align-self: flex-end;
 }
 
 .header p,

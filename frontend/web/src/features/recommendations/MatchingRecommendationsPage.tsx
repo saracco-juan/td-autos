@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { OTHER_PORTALS_TAB, portalCountLabel, portalTabLabel } from '@shared/portals/format'
 import { filterRecommendations } from '@shared/recommendations/filters'
 import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
-import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
+import { emptyStateCopy, exchangeRateNotice, vehicleCount, recommendationTitle } from '@shared/recommendations/format'
 import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
@@ -113,7 +113,10 @@ export default function MatchingRecommendationsPage() {
   const dealersPanel = (
     <div className={styles.dealersLayout}>
       {response?.status === 'ready' ? (
-        <RecommendationFilters value={filters} actions={<div className={styles.comparison}><ComparisonControls selection={comparison} /></div>}
+        <RecommendationFilters value={filters} actions={<div className={styles.comparison}><ComparisonControls selection={comparison}
+          vehicles={(response.results ?? []).map((result) => ({ id: result.listing_id, title: recommendationTitle(result),
+            label: `${result.vehicle.marca} ${result.vehicle.modelo} ${result.vehicle.anio}`,
+            image: result.vehicle.image_urls?.[0] ?? result.vehicle.image_url }))} /></div>}
           onChange={(next) => {
             applyFilters(next)
             setPage(1)
