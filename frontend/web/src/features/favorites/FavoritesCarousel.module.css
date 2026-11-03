@@ -54,12 +54,12 @@
 
 .card[data-position='side--1'] {
   z-index: 3;
-  transform: translate(calc(-50% - 370px), var(--wheel-y)) scale(.9);
+  transform: translate(calc(-50% - 382px), var(--wheel-y)) scale(.9);
 }
 
 .card[data-position='side-1'] {
   z-index: 3;
-  transform: translate(calc(-50% + 370px), var(--wheel-y)) scale(.9);
+  transform: translate(calc(-50% + 382px), var(--wheel-y)) scale(.9);
 }
 
 .card[data-position='side--2'] {
@@ -93,11 +93,11 @@
   .card[data-position='side-2'] { visibility: hidden; pointer-events: none; }
 
   .card[data-position='side--1'] {
-    transform: translate(calc(-50% - 340px), var(--wheel-y)) scale(.9);
+    transform: translate(calc(-50% - 352px), var(--wheel-y)) scale(.9);
   }
 
   .card[data-position='side-1'] {
-    transform: translate(calc(-50% + 340px), var(--wheel-y)) scale(.9);
+    transform: translate(calc(-50% + 352px), var(--wheel-y)) scale(.9);
   }
 }
 
