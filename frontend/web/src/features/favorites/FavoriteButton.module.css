@@ -1,5 +1,6 @@
 .button {
   composes: fill from '../../components/buttonHover.module.css';
+  --button-hover-fill: #fff0ed;
   display: grid;
   place-items: center;
   flex: 0 0 40px;
@@ -7,10 +8,10 @@
   height: 40px;
   padding: 0;
   border: 1px solid var(--border-default);
-  border-radius: 10px;
+  border-radius: 50%;
   background: var(--surface-default);
   box-shadow: 0 1px 1px rgba(26, 20, 15, 0.06);
-  color: var(--text-secondary);
+  color: var(--palette-red);
   font-size: 21px;
   line-height: 1;
   cursor: pointer;
@@ -25,6 +26,46 @@
   cursor: wait;
 }
 
-.saved {
-  color: var(--status-error-border);
+.heart {
+  transform-origin: center;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.button:active:not(:disabled):not(:focus-visible) .heart { transform: scale(0.85); }
+
+.button::before {
+  position: absolute;
+  inset: 6px;
+  border: 2px solid var(--palette-red);
+  border-radius: 50%;
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* One confirmation pulse per pointer activation; never on initial saved state. */
+.button[data-animate='true'][aria-pressed='true'] .heart {
+  animation: heartPulse 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.button[data-animate='true'][aria-pressed='true']::before {
+  animation: heartRing 420ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes heartPulse {
+  0% { transform: scale(0.85); }
+  45% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes heartRing {
+  0% { transform: scale(0.65); opacity: 0.65; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heart { transition: none; }
+  .button:active:not(:disabled):not(:focus-visible) .heart { transform: none; }
+  .button[data-animate='true'][aria-pressed='true'] .heart,
+  .button[data-animate='true'][aria-pressed='true']::before { animation: none; }
 }
