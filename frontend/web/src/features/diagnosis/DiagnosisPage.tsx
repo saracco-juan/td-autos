@@ -71,7 +71,13 @@ export default function DiagnosisPage() {
   useEffect(() => {
     if (!stepChanged.current) return
     stepChanged.current = false
-    titleRef.current?.focus()
+    const title = titleRef.current
+    if (!title) return
+    title.focus({ preventScroll: true })
+    const { top, bottom } = title.getBoundingClientRect()
+    if (top < 96 || bottom > window.innerHeight) {
+      title.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+    }
   }, [step])
 
   const goToStep = (index: number) => {
@@ -128,15 +134,13 @@ export default function DiagnosisPage() {
 
   if (typeof loadState === 'object') return <ErrorState kind={loadState.error} />
 
-  const current = DIAGNOSIS_STEPS[step]
   const isLast = step === LAST_STEP
-  const messageId = unanswered ? MESSAGE_ID : undefined
 
   return (
     <FlowLayout
-      narrow
+      className={styles.page}
       actions={
-        <div className={barStyles.actions}>
+        <div className={`${barStyles.actions} ${styles.actions}`}>
           {step > 0 ? (
             <button
               type="button"
@@ -169,53 +173,58 @@ export default function DiagnosisPage() {
         </div>
       }
     >
-      <div className={styles.header}>
-        <p className={styles.eyebrow}>DIAGNÓSTICO DE NECESIDADES</p>
-        <h1 id={TITLE_ID} ref={titleRef} tabIndex={-1} className={styles.title}>
-          {current.title}
-        </h1>
-        {current.subtitle ? <p className={styles.subtitle}>{current.subtitle}</p> : null}
-        <StepProgress current={step + 1} total={DIAGNOSIS_STEPS.length} />
-      </div>
-
+      <StepProgress current={step + 1} total={DIAGNOSIS_STEPS.length} />
       <div className={styles.body}>
-        <div className={styles.options}>
-          {passengersNeedConfirmation && current.field === 'pasajeros' && draft.pasajeros === null && !unanswered ? (
-            <p role="alert" className={`${alertStyles.warning} ${styles.message}`}>
-              Actualizamos las opciones de pasajeros. Volvé a elegir cuántas personas viajan habitualmente.
-            </p>
-          ) : null}
-          {current.kind === 'multi' ? (
-            <BodyTypeChips
-              labelledBy={TITLE_ID}
-              bodyTypes={bodyTypes}
-              selected={draft.carrocerias}
-              describedBy={messageId}
-              onToggle={(id) => handleDraftChange(toggleBodyType(draft, id))}
-            />
-          ) : (
-            <ChoiceCards
-              // The step key resets the radio group so a step never inherits the previous focus.
-              key={current.field}
-              name={current.field}
-              labelledBy={TITLE_ID}
-              options={current.options}
-              value={draft[current.field]}
-              describedBy={messageId}
-              invalid={unanswered}
-              onSelect={(code) => handleDraftChange({ ...draft, [current.field]: code })}
-            />
-          )}
-          {unanswered ? (
-            <p id={MESSAGE_ID} role="alert" className={`${alertStyles.warning} ${styles.message}`}>
-              {UNANSWERED_STEP_MESSAGE}
-            </p>
-          ) : null}
-          {saveFailed ? (
-            <p role="alert" className={`${alertStyles.alert} ${styles.message}`}>
-              {SAVE_ERROR}
-            </p>
-          ) : null}
+        <div className={styles.questions}>
+          {DIAGNOSIS_STEPS.map((current, index) => {
+            const active = index === step
+            const titleId = `${TITLE_ID}-${index}`
+            const messageId = active && unanswered ? MESSAGE_ID : undefined
+            return <section key={current.field} className={styles.question}
+              aria-labelledby={titleId} aria-hidden={!active} inert={!active}
+              style={{ transform: `translateX(${active ? 0 : index < step ? 48 : -48}px)`, opacity: active ? 1 : 0 }}>
+              <div className={styles.header}>
+                <h1 id={titleId} ref={active ? titleRef : null} tabIndex={-1} className={styles.title}>{current.title}</h1>
+                {current.subtitle ? <p className={styles.subtitle}>{current.subtitle}</p> : null}
+              </div>
+              <div className={styles.options}>
+                {active && passengersNeedConfirmation && current.field === 'pasajeros' && draft.pasajeros === null && !unanswered ? (
+                  <p role="alert" className={`${alertStyles.warning} ${styles.message}`}>
+                    Actualizamos las opciones de pasajeros. Volvé a elegir cuántas personas viajan habitualmente.
+                  </p>
+                ) : null}
+                {current.kind === 'multi' ? (
+                  <BodyTypeChips
+                    labelledBy={titleId}
+                    bodyTypes={bodyTypes}
+                    selected={draft.carrocerias}
+                    describedBy={messageId}
+                    onToggle={(id) => handleDraftChange(toggleBodyType(draft, id))}
+                  />
+                ) : (
+                  <ChoiceCards
+                    name={current.field}
+                    labelledBy={titleId}
+                    options={current.options}
+                    value={draft[current.field]}
+                    describedBy={messageId}
+                    invalid={active && unanswered}
+                    onSelect={(code) => handleDraftChange({ ...draft, [current.field]: code })}
+                  />
+                )}
+                {active && unanswered ? (
+                  <p id={MESSAGE_ID} role="alert" className={`${alertStyles.warning} ${styles.message}`}>
+                    {UNANSWERED_STEP_MESSAGE}
+                  </p>
+                ) : null}
+                {active && saveFailed ? (
+                  <p role="alert" className={`${alertStyles.alert} ${styles.message}`}>
+                    {SAVE_ERROR}
+                  </p>
+                ) : null}
+              </div>
+            </section>
+          })}
         </div>
         <DiagnosisSummary draft={draft} currentStep={step} bodyTypes={bodyTypes} />
       </div>

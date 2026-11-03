@@ -114,6 +114,17 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## Page layout
 
+- Diagnosis redesign (2026-11-03): use the shared 1600px content container instead
+  of the historical narrow flow. Keep questions left and the summary right, stacking
+  below 900px. The user's latest progress reference supersedes the previous bar:
+  a red sports-car SVG follows the black track from the first question to the last.
+  Car, track and question panels share a 700ms transition; forward moves right and
+  Back reverses it. Inactive panels are inert and hidden from assistive technology.
+  Reduced motion removes travel; an offscreen next question scrolls into view
+  smoothly, or instantly with reduced motion. Answer controls reuse the shared
+  550ms hover and 10px corners. Saving and validation rules remain unchanged.
+  Figma synchronization and native mobile adaptation remain separate pending work.
+
 ### Buyer catalog redesign (2026-11-02)
 
 - The approved Carent reference supplies catalog distribution; Devialet supplies

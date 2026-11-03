@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
 import { useAuth } from '../auth/session/useAuth'
 import { fetchDiagnosis, saveDiagnosis } from './api'
@@ -14,6 +14,7 @@ vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
 
 // Saving the diagnosis refreshes the session (D6): the stub records the order of the calls.
 const refresh = vi.fn()
+const originalScrollIntoView = HTMLElement.prototype.scrollIntoView
 
 const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
 
@@ -91,6 +92,8 @@ function summaryValue(label: string) {
 
 describe('DiagnosisPage', () => {
   beforeEach(() => {
+    HTMLElement.prototype.scrollIntoView = vi.fn()
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })))
     vi.mocked(fetchDiagnosis).mockReset()
     vi.mocked(saveDiagnosis).mockReset().mockResolvedValue(FIRST_PAYLOAD)
     refresh.mockReset().mockResolvedValue(undefined)
@@ -101,6 +104,12 @@ describe('DiagnosisPage', () => {
       refresh,
       logout: vi.fn(),
     })
+  })
+
+  afterEach(() => {
+    HTMLElement.prototype.scrollIntoView = originalScrollIntoView
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it('keeps the step buttons in the bar pinned to the bottom of the screen', async () => {
@@ -158,10 +167,49 @@ describe('DiagnosisPage', () => {
   })
 
   describe('layout', () => {
+    it.each([false, true])('brings an offscreen question into view (reduced motion: %s)', async (reduceMotion) => {
+      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reduceMotion })))
+      const user = userEvent.setup()
+      await renderPage({ diagnostico: savedAnswers, carrocerias: bodyTypes })
+      await next(user)
+      expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({
+        block: 'start', behavior: reduceMotion ? 'instant' : 'smooth',
+      })
+    })
+
+    it('keeps the viewport still when the next question is already visible', async () => {
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ top: 200, bottom: 260 } as DOMRect)
+      const user = userEvent.setup()
+      await renderPage({ diagnostico: savedAnswers, carrocerias: bodyTypes })
+      await next(user)
+      expect(HTMLElement.prototype.scrollIntoView).not.toHaveBeenCalled()
+    })
+
+    it('keeps only the current moving question interactive through forward and reverse changes', async () => {
+      const user = userEvent.setup()
+      await renderPage({ diagnostico: savedAnswers, carrocerias: bodyTypes })
+      const firstQuestion = screen.getByRole('region', { name: '¿Cuál es tu presupuesto máximo?' })
+      expect(firstQuestion).not.toHaveAttribute('inert')
+
+      await next(user)
+      expect(firstQuestion).toHaveAttribute('inert')
+      expect(firstQuestion).toHaveAttribute('aria-hidden', 'true')
+      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
+
+      await next(user)
+      await back(user)
+      await back(user)
+      expect(firstQuestion).not.toHaveAttribute('inert')
+      expect(screen.getByRole('radio', { name: '$15.000.000 a $25.000.000' })).toBeChecked()
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+      expect(saveDiagnosis).not.toHaveBeenCalled()
+    })
+
     it('renders step 1: header, progress, options, summary and only CONTINUAR', async () => {
       await renderPage()
 
-      expect(screen.getByText('DIAGNÓSTICO DE NECESIDADES')).toBeInTheDocument()
+      expect(screen.queryByText('DIAGNÓSTICO DE NECESIDADES')).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: '¿Cuál es tu presupuesto máximo?' })).toBeInTheDocument()
       expect(
         screen.getByText('Incluí solo el valor del vehículo. Los gastos de compra los calculamos después.'),

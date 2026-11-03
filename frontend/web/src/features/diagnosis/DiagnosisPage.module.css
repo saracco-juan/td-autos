@@ -1,49 +1,93 @@
-/* Figma "Header group" (2074:882): eyebrow, title and subtitle 8 apart, the progress group 20 below. */
+.page {
+  composes: container from '../../components/screen.module.css';
+  --diagnosis-motion-duration: 700ms;
+  --diagnosis-motion-ease: cubic-bezier(.32, .72, 0, 1);
+  padding-top: 32px;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  align-items: start;
+  gap: clamp(32px, 5vw, 80px);
+}
+
+/* Stacked panels reserve the tallest question's space without moving the summary. */
+.questions {
+  display: grid;
+  min-width: 0;
+  overflow: clip;
+  overflow-clip-margin: 4px;
+}
+
+.question {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease),
+    opacity var(--diagnosis-motion-duration) var(--diagnosis-motion-ease);
+}
+
 .header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.header > :last-child {
-  margin-top: 12px;
-}
-
-.eyebrow {
-  composes: eyebrow from '../../components/screen.module.css';
+  display: grid;
+  gap: 12px;
+  margin-bottom: 32px;
 }
 
 .title {
-  composes: title from '../../components/screen.module.css';
+  margin: 0;
+  font-size: clamp(26px, 2.6vw, 38px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+  scroll-margin-top: 200px;
 }
 
 .subtitle {
+  max-width: 65ch;
+  margin: 0;
   color: var(--text-secondary);
-  font-size: 14px;
-}
-
-/* Figma "Body" (2074:893): options fill the row, the summary card keeps 396 on the right, 32 apart. */
-.body {
-  display: flex;
-  align-items: flex-start;
-  gap: 32px;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .options {
   display: flex;
-  flex: 1;
   flex-direction: column;
   gap: 16px;
-  min-width: 0;
 }
 
 .message {
   margin: 0;
 }
 
+.actions {
+  flex-wrap: wrap;
+}
+
+.actions > button {
+  flex-basis: auto;
+}
+
 @media (max-width: 900px) {
   .body {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-top: 16px;
+  }
+  .header {
+    margin-bottom: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question {
+    transform: none !important;
+    transition: opacity 120ms ease;
   }
 }
