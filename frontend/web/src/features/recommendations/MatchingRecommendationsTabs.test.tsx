@@ -27,7 +27,8 @@ const model = (id: number) => ({
 const portals = (count = 2) => ({ status: 'ready', modelos: Array.from({ length: count }, (_, i) => model(i + 1)),
   fuente_precios: { nombre: 'Guía de precios ACARA', fecha: '2026-10-19' } })
 const respond = (routes: { dealers?: () => unknown; portals?: () => unknown }) =>
-  vi.mocked(apiFetch).mockImplementation(async (path) => (path === PORTALS
+  vi.mocked(apiFetch).mockImplementation(async (path) => (path === '/api/diagnostico'
+    ? { diagnostico: { prioridad: 'reventa' }, carrocerias: [] } : path === PORTALS
     ? (routes.portals ?? portals)() : (routes.dealers ?? dealers)()) as never)
 const calls = (path: string) => vi.mocked(apiFetch).mock.calls.filter(([called]) => called === path).length
 const renderPage = () => render(<MemoryRouter><MatchingRecommendationsPage /></MemoryRouter>)

@@ -197,3 +197,28 @@ it('keeps concise reasons in an optional info tip instead of expanding the card'
   expect(tip).not.toBeVisible()
   expect(info).toHaveFocus()
 })
+
+
+it('changes inventory photos without navigating and keeps body warnings in an info tip', async () => {
+  const item = result()
+  mockDealers({ ...ready(), results: [{ ...item, vehicle: { ...item.vehicle,
+    image_url: '/one.jpg', image_urls: ['/one.jpg', '/two.jpg', '/three.jpg', '/four.jpg'],
+  } }] })
+  renderPage()
+  const card = await screen.findByRole('listitem', { name: 'Toyota Corolla XEI 1 2021' })
+  const photo = () => within(card).getByRole('img', { name: /Foto de Toyota/ })
+  expect(photo()).toHaveAttribute('src', '/one.jpg')
+  await userEvent.click(within(card).getByRole('button', { name: 'Foto siguiente' }))
+  expect(photo()).toHaveAttribute('src', '/two.jpg')
+  await userEvent.click(within(card).getByRole('button', { name: 'Ver foto 3 de 4' }))
+  expect(photo()).toHaveAttribute('src', '/three.jpg')
+  await userEvent.click(within(card).getByRole('button', { name: 'Foto siguiente' }))
+  expect(photo()).toHaveAttribute('src', '/four.jpg')
+  await userEvent.click(within(card).getByRole('button', { name: 'Foto siguiente' }))
+  expect(photo()).toHaveAttribute('src', '/one.jpg')
+  expect(within(card).getByText('No coincide con la carrocería elegida.')).not.toBeVisible()
+  await userEvent.click(within(card).getByRole('button', { name: /Advertencia de carrocería/ }))
+  expect(within(card).getByRole('tooltip')).toHaveTextContent('No coincide con la carrocería elegida.')
+  await userEvent.keyboard('{Escape}')
+  expect(within(card).queryByRole('tooltip')).not.toBeInTheDocument()
+})

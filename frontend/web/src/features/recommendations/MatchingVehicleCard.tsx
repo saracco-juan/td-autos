@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId } from 'react'
 import { Link, useLocation } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/button.module.css'
@@ -10,7 +10,7 @@ import {
 import { formatKilometers, formatPrice } from '../inventory/format'
 import FavoriteButton from '../favorites/FavoriteButton'
 import type { Recommendation } from './matching'
-import PhotoPlaceholder from './PhotoPlaceholder'
+import CardPhotos from './CardPhotos'
 import styles from './VehicleCard.module.css'
 
 // Photo-led redesign of High v3 Card/Vehicle (2373:7340); matching stays in the backend.
@@ -18,7 +18,6 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel 
   result: Recommendation; comparison?: { selected: boolean; toggle: () => void }; priorityLabel?: string
 }) {
   const titleId = useId()
-  const [photoFailed, setPhotoFailed] = useState(false)
   const location = useLocation()
   const { vehicle, dealer, components } = result
   const title = recommendationTitle(result)
@@ -26,14 +25,7 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel 
   return (
     <li className={styles.card} aria-labelledby={titleId}>
       <div className={styles.surface}>
-        <div className={styles.imageWrapper}>
-          {vehicle.image_url && !photoFailed ? (
-            <img src={vehicle.image_url} alt={`Foto de ${title}`} loading="lazy" className={styles.image}
-              onError={() => setPhotoFailed(true)} />
-          ) : (
-            <PhotoPlaceholder className={styles.placeholder} />
-          )}
-        </div>
+        <CardPhotos title={title} photos={vehicle.image_urls?.length ? vehicle.image_urls : vehicle.image_url ? [vehicle.image_url] : []} />
         <div className={styles.topline}>
           <div className={styles.matchingInfo}>
             <strong className={styles.compatibility}>{compatibilityLabel(result)}</strong>
@@ -51,6 +43,13 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel 
               {result.budget_penalty > 0 ? <p className={styles.reasonNote}>Presupuesto: −{displayScore(result.budget_penalty)} puntos.</p> : null}
               <p className={styles.reasonNote}>Atributos y detalle de la evaluación en la ficha.</p>
             </InfoTip>
+            {result.warnings.includes('body_mismatch') ? (
+              <span className={styles.bodyWarning}>
+                <InfoTip label={`Advertencia de carrocería de ${title}`}>
+                  No coincide con la carrocería elegida.
+                </InfoTip>
+              </span>
+            ) : null}
           </div>
           <div className={styles.favorite}><FavoriteButton vehicleId={result.listing_id}
             vehicleName={title} isFavorite={result.is_favorite ?? false} /></div>
@@ -74,7 +73,7 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel 
           </div>
         </div>
       </div>
-      {warningMessages(result).map((message) => <p key={message} className={alertStyles.warning}>{message}</p>)}
+      {warningMessages({ ...result, warnings: result.warnings.filter((warning) => warning !== 'body_mismatch') }).map((message) => <p key={message} className={alertStyles.warning}>{message}</p>)}
 
     </li>
   )
