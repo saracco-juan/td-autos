@@ -19,7 +19,7 @@ it('TC-40 shows the published currency, annual estimate, chart and all resale ho
   expect(screen.getByText('10% anual')).toBeInTheDocument()
   expect(screen.getByText(/2020, 2021, 2022/)).toBeInTheDocument()
   expect(screen.getByText(/62.000 km/)).toBeInTheDocument()
-  expect(screen.getByText(/no un historial de precios/)).toBeInTheDocument()
+  expect(screen.queryByText(/no un historial de precios/)).not.toBeInTheDocument()
   expect(screen.queryByText(/Promedio del segmento/)).not.toBeInTheDocument()
 })
 

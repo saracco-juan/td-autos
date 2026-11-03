@@ -34,6 +34,7 @@ function ProjectionChart({ projection }: { projection: DepreciationProjection })
 export default function DepreciationResult({ projection, reference, kilometers }: {
   projection: DepreciationProjection; reference: DepreciationReference; kilometers: number | null
 }) {
+  const [, ...referenceDetails] = referenceLines(reference)
   return (
     <div className={styles.body}>
       <section className={styles.projection} aria-labelledby="projection-title">
@@ -60,7 +61,7 @@ export default function DepreciationResult({ projection, reference, kilometers }
         <div className={styles.factors}>
           <section>
             <h3>Referencias del vehículo</h3>
-            {referenceLines(reference).map(line => <p key={line}>{line}</p>)}
+            {referenceDetails.map(line => <p key={line}>{line}</p>)}
           </section>
           <section>
             <h3>Estado de la unidad</h3>
