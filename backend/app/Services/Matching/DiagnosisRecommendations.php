@@ -41,7 +41,7 @@ final class DiagnosisRecommendations
         $vehicles = Vehiculo::query()->where('origen', VehiculoOptions::ORIGEN_CONCESIONARIA)
             ->whereIn('id', VehiculoConcesionaria::query()->select('vehiculo_id')
                 ->where('visible', true)->whereIn('concesionaria_id', $dealerIds))
-            ->with(['propiedad.concesionaria:id,nombre,provincia', 'tipoCarroceria', 'portada'])
+            ->with(['propiedad.concesionaria:id,nombre,provincia', 'tipoCarroceria', 'portada', 'fotos'])
             ->get()->keyBy('id');
         $exchange = $this->exchange->current();
         $resale = $diagnosis->prioridad_comprador === 'reventa'
@@ -69,6 +69,7 @@ final class DiagnosisRecommendations
         ], array_keys(VehiculoFields::EQUIPMENT_FIELDS))) + [
             'carroceria' => $vehicle->tipoCarroceria?->nombre,
             'image_url' => $vehicle->portada ? VehiculoFotos::url($vehicle->portada->ubicacion_archivo) : null,
+            'image_urls' => $vehicle->fotos->map(fn ($photo) => VehiculoFotos::url($photo->ubicacion_archivo))->values()->all(),
         ];
     }
 }
