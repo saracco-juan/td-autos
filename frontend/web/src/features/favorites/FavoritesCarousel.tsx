@@ -99,9 +99,10 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
           const remainingIndex = available.findIndex((item) => item.id === vehicle.id)
           const frontIndex = available.findIndex((item) => item.id === currentId)
           const count = available.length
+          const sidePairs = Math.min(2, Math.floor((count - 1) / 2))
           const offset = count ? ((remainingIndex - frontIndex + count + Math.floor(count / 2)) % count) - Math.floor(count / 2) : 0
           const position = selectedIndex >= 0 ? `selected-${selectedIndex}` : offset === 0 ? 'front'
-            : Math.abs(offset) <= 2 ? `side-${offset}` : 'hidden'
+            : Math.abs(offset) <= sidePairs ? `side-${offset}` : 'hidden'
           const active = offset === 0 || selectedIndex >= 0
           const side = selectedIndex < 0 && offset !== 0
           return <div key={vehicle.id} className={styles.card} data-position={position} data-active={active}
@@ -110,7 +111,7 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
               inert={side || position === 'hidden' ? true : undefined}>
               {renderCard(vehicle)}
             </div>
-            {side && Math.abs(offset) <= 2 ? <button type="button" className={styles.sideTarget}
+            {side && position !== 'hidden' ? <button type="button" className={styles.sideTarget}
               aria-label={`Ver ${vehicle.marca} ${vehicle.modelo} ${vehicle.version ?? ''} ${vehicle.anio}`}
               onClick={() => setIndex(itemIndex)}>Ver vehículo</button> : null}
           </div>

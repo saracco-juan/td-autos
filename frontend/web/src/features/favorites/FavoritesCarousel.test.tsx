@@ -17,6 +17,17 @@ const props = (overrides: Partial<ComponentProps<typeof FavoritesCarousel>> = {}
 
 beforeEach(() => vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false })))
 
+it.each([2, 4, 6])('keeps symmetric side pairs with %i favorites and rotates hidden cards forward', (count) => {
+  const vehicles = Array.from({ length: count }, (_, index) => ({ ...items[0], id: index + 1, modelo: `Modelo ${index + 1}` }))
+  const { container } = render(<MemoryRouter><FavoritesCarousel {...props({ items: vehicles })} /></MemoryRouter>)
+  for (let step = 0; step < count; step += 1) {
+    expect(container.querySelectorAll('[data-position^="side--"]').length)
+      .toBe(container.querySelectorAll('[data-position="side-1"], [data-position="side-2"]').length)
+    expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', String(step + 1))
+    fireEvent.click(screen.getByRole('button', { name: 'Siguiente favorito' }))
+  }
+})
+
 it('shows every favorite as an actionable grid card on smaller screens', () => {
   vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query === '(max-width: 1100px)' })))
   const onToggle = vi.fn()
