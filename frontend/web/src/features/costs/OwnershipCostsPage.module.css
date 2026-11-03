@@ -88,6 +88,10 @@
   transition: border-color 200ms ease;
 }
 
+.form select {
+  align-items: center;
+}
+
 .form input:focus, .form select:focus {
   outline: none;
   border-color: var(--palette-charcoal);
