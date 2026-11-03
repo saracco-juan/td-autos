@@ -4,11 +4,10 @@ import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehic
 import type { DepreciationResponse } from '@shared/depreciation/types'
 import { depreciationCopy } from '@shared/depreciation/presentation'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
-import screenStyles from '../../components/screen.module.css'
+import BackLink from '../../components/BackLink'
 import { apiFetch, HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
-import backIcon from '../vehicle-detail/back.svg'
-import styles from '../vehicle-detail/VehicleDetailPage.module.css'
+import styles from './DepreciationPage.module.css'
 import DepreciationResult from './DepreciationResult'
 
 type View = { status: 'loading' | 'unavailable' }
@@ -41,13 +40,12 @@ function DepreciationScreen({ id, returnState }: { id: number | null; returnStat
 
   return (
     <div className={styles.page}>
-      <Link to={id === null ? '/recomendaciones' : `/vehiculos/${id}`} state={returnState} className={styles.back}>
-        <span className={styles.backIcon}><img src={backIcon} alt="" /></span>
+      <BackLink to={id === null ? '/recomendaciones' : `/vehiculos/${id}`} state={returnState}>
         {id === null ? 'Volver a recomendados' : 'Volver a la ficha'}
-      </Link>
+      </BackLink>
       {view.status === 'loading' ? <SessionLoading /> : null}
       {view.status === 'unavailable' ? <section role="status">
-        <h1 ref={heading} tabIndex={-1} className={screenStyles.title}>Esta publicación ya no está disponible.</h1>
+        <h1 ref={heading} tabIndex={-1} className={styles.title}>Esta publicación ya no está disponible.</h1>
         <Link to="/recomendaciones">Ver recomendados</Link>
       </section> : null}
       {view.status === 'error' ? <ErrorState kind={view.kind} onRetry={() => {
@@ -55,14 +53,13 @@ function DepreciationScreen({ id, returnState }: { id: number | null; returnStat
         setAttempt((value) => value + 1)
       }} /> : null}
       {view.status === 'ready' ? <>
-        <header>
-          <p className={screenStyles.eyebrow}>DEPRECIACIÓN Y REVENTA</p>
-          <h1 ref={heading} tabIndex={-1} className={screenStyles.title}>{vehicleTitle(view.data.vehicle)}</h1>
-          <p className={styles.muted}>{depreciationCopy.subtitle}</p>
+        <header className={styles.header}>
+          <h1 ref={heading} tabIndex={-1} className={styles.title}>{vehicleTitle(view.data.vehicle)}</h1>
+          <p className={styles.subtitle}>{depreciationCopy.subtitle}</p>
         </header>
         {view.data.projection && view.data.reference ? <DepreciationResult projection={view.data.projection}
           reference={view.data.reference} kilometers={view.data.vehicle.kilometraje} />
-          : <section role="status" className={styles.summary}>
+          : <section role="status" className={styles.empty}>
             <h2>{depreciationCopy.insufficient}</h2>
             <p>{depreciationCopy.insufficientHint}</p>
           </section>}
