@@ -13,9 +13,10 @@ it('HU08 RF07 TC-23 aligns current specifications, diagnosis factors and existin
   expect(cards).toHaveLength(2)
   expect(cards[0]).toHaveAccessibleName('Toyota Corolla XEI 2021')
   expect(screen.queryByRole('table')).not.toBeInTheDocument()
-  expect(within(cards[0]).getAllByRole('term').slice(0, 3).map((term) => term.firstChild?.textContent?.trim()))
-    .toEqual(['Precio publicado', 'Coincidencia', 'Fuente'])
   const firstSpecifications = screen.getByRole('group', { name: 'Especificaciones de Toyota Corolla XEI 2021' })
+  expect(within(cards[0]).queryByRole('term')).not.toBeInTheDocument()
+  expect(within(firstSpecifications).getAllByRole('term').slice(0, 3).map((term) => term.firstChild?.textContent?.trim()))
+    .toEqual(['Precio publicado', 'Coincidencia', 'Fuente'])
   const row = (label: string) => within(firstSpecifications).getByText(label, { exact: true }).closest('div')
   choose('Costos estimados en ARS')
   expect(row('Compra con transferencia')).toHaveTextContent('$ 29.500.000')
@@ -28,7 +29,7 @@ it('HU08 RF07 TC-23 aligns current specifications, diagnosis factors and existin
   expect(row('Motor')).toHaveTextContent('2.0')
   choose('Seguridad')
   expect(row('Frenos ABS')).toHaveTextContent('No disponible')
-  expect(screen.getAllByRole('link', { name: 'VER CÁLCULO COMPLETO' })[1]).toHaveAttribute('href', '/vehiculos/8/costos')
+  expect(screen.getByRole('link', { name: 'Ver cálculo completo de Toyota Cronos XEI 2021' })).toHaveAttribute('href', '/vehiculos/8/costos')
   expect(screen.getByText(/No indican un ganador/)).toBeInTheDocument()
   choose('Información general')
   fireEvent.click(within(firstSpecifications).getByRole('button', { name: /^Sobre Transmisión/ }))
@@ -59,7 +60,7 @@ it('distinguishes unknown equipment, missing photos and partial costs without in
   expect(screen.getAllByText('Fotos no disponibles.')).toHaveLength(2)
 })
 
-it('uses one shared tablist to switch both vehicle sections without changing overview facts or selection', () => {
+it('uses one shared tablist to switch both vehicle sections without changing selection', () => {
   const remove = vi.fn()
   render(<MemoryRouter><ComparisonTable entries={[entry(), entry(8)]} onRemove={remove} /></MemoryRouter>)
   expect(screen.getAllByRole('tablist')).toHaveLength(1)
@@ -70,6 +71,26 @@ it('uses one shared tablist to switch both vehicle sections without changing ove
   expect(within(panels[0]).getAllByRole('group')).toHaveLength(2)
   for (const panel of panels) expect(within(panel).getAllByText('Motor', { exact: true })).toHaveLength(2)
   expect(screen.queryByText('Frenos ABS')).not.toBeInTheDocument()
-  expect(screen.getAllByText('Precio publicado')).toHaveLength(2)
+  expect(screen.queryByText('Precio publicado')).not.toBeInTheDocument()
   expect(remove).not.toHaveBeenCalled()
+})
+
+it('hides matching known facts in both columns, keeps differences and missing data, and restores them', () => {
+  const first = entry()
+  const second = entry(8)
+  first.detail.vehicle.frenos_abs = true
+  second.detail.vehicle.frenos_abs = false
+  first.detail.vehicle.airbags_laterales = true
+  second.detail.vehicle.airbags_laterales = true
+  render(<MemoryRouter><ComparisonTable entries={[first, second]} onRemove={vi.fn()} /></MemoryRouter>)
+  choose('Seguridad')
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Ocultar similitudes' }))
+  expect(screen.queryByText('Airbags laterales')).not.toBeInTheDocument()
+  expect(screen.getAllByText('Frenos ABS')).toHaveLength(2)
+  expect(screen.getAllByText('No disponible').length).toBeGreaterThan(0)
+  choose('Costos estimados en ARS')
+  expect(screen.getByRole('status')).toHaveTextContent('Todos los datos disponibles de esta sección coinciden.')
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Ocultar similitudes' }))
+  expect(screen.getAllByText('Total mensual')).toHaveLength(2)
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
