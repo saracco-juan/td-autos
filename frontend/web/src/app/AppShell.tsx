@@ -92,7 +92,7 @@ export default function AppShell() {
   }, [menuOpen])
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${pathname === '/' ? styles.homeShell : ''}`}>
       <header className={styles.nav}>
         {/* The TD monogram reads as "TD", so the wordmark only adds "Autos"; the link keeps the full brand name. */}
         <Link to="/" className={styles.logo} aria-label="TD Autos">
@@ -187,7 +187,18 @@ export default function AppShell() {
               </div>
             </div>
           </>
-        ) : null}
+        ) : (
+          <>
+            <nav aria-label="Principal" className={`${styles.navLinks} ${styles.guestLinks}`}>
+              <a href="/#como-funciona" className={styles.navAction}>Cómo funciona</a>
+              <a href="/#concesionarias" className={styles.navAction}>Concesionarias</a>
+            </nav>
+            <div className={styles.navActions}>
+              <Link to="/login" className={styles.navAction}>Ingresar</Link>
+              <Link to="/registro" className={styles.logout}>Crear cuenta</Link>
+            </div>
+          </>
+        )}
       </header>
       <main className={styles.content}>
         {logoutFailed ? (

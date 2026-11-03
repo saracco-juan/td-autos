@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, render, screen, within, waitFor } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
@@ -149,28 +149,20 @@ describe('app routes', () => {
     asAuthenticated()
   })
 
-  it('keeps the shell on screen and loads only its content while the session is read', () => {
+  it('shows the public Home while session loading is pending', () => {
     vi.mocked(fetchCurrentUser).mockReturnValue(new Promise(() => {}))
     renderAt('/')
-
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
-    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
-    expect(screen.getAllByRole('scrollbar', { hidden: true })).toHaveLength(1)
-    expect(screen.getByRole('status').parentElement).toBe(screen.getByRole('main'))
-    expect(screen.getByRole('status')).toHaveTextContent('Cargando')
-    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Encontrar mi auto' })).toHaveAttribute('href', '/registro')
+    expect(fetchDiagnosis).not.toHaveBeenCalled()
   })
 
-  it('shows the connection error in the content area, with the frame visible and no redirect, when the session cannot be read', async () => {
+  it('keeps the public Home readable when the session server is unavailable', async () => {
     vi.mocked(fetchCurrentUser).mockRejectedValue(new NetworkError(new TypeError('Failed to fetch')))
     const router = renderAt('/')
-
-    const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('Sin conexión con el servidor')
-    expect(alert.parentElement).toBe(screen.getByRole('main'))
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
-    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
+    expect(fetchVehicles).not.toHaveBeenCalled()
   })
 
   it('shows the server error in the content area when the session read fails with a 500', async () => {
@@ -208,13 +200,13 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: '¿Cuál es tu presupuesto máximo?' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/diagnostico')
-    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).not.toBeInTheDocument()
   })
 
   it('D6: shows the home to a user who already has a diagnosis, without reading it', async () => {
     const router = renderAt('/')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
     expect(fetchDiagnosis).not.toHaveBeenCalled()
   })
@@ -264,7 +256,7 @@ describe('app routes', () => {
 
     await act(() => router.navigate('/'))
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
   })
 
@@ -302,10 +294,10 @@ describe('app routes', () => {
     expect(screen.queryByRole('heading', { name: 'Mejores opciones para vos' })).not.toBeInTheDocument()
   })
 
-  it('renders the home placeholder at /', async () => {
+  it('renders the Home at /', async () => {
     renderAt('/')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
   })
 
   it('renders the profile screen at /perfil inside the shell for an authenticated user', async () => {
@@ -396,7 +388,7 @@ describe('app routes', () => {
   it('redirects an authenticated user from /registro to /', async () => {
     const router = renderAt('/registro')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Registrá tu cuenta' })).not.toBeInTheDocument()
   })
@@ -424,18 +416,19 @@ describe('app routes', () => {
   it('UH17: redirects an authenticated user from /registro/concesionaria to /', async () => {
     const router = renderAt('/registro/concesionaria')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Registrá tu concesionaria' })).not.toBeInTheDocument()
   })
 
-  it('TC-84: sends a guest opening / to the login screen without rendering the home', async () => {
+  it('renders the public landing at / without reading protected data', async () => {
     asGuest()
     const router = renderAt('/')
 
-    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/login')
-    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
+    expect(router.state.location.pathname).toBe('/')
+    expect(fetchDiagnosis).not.toHaveBeenCalled()
+    expect(fetchVehicles).not.toHaveBeenCalled()
   })
 
   it('renders the login screen at /login for a guest', async () => {
@@ -448,7 +441,7 @@ describe('app routes', () => {
   it('redirects an authenticated user from /login to /', async () => {
     const router = renderAt('/login')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Ingresá a tu cuenta' })).not.toBeInTheDocument()
   })
@@ -473,7 +466,7 @@ describe('app routes', () => {
   it('redirects an authenticated user from /recuperar to /', async () => {
     const router = renderAt('/recuperar')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Recuperá tu contraseña' })).not.toBeInTheDocument()
   })
@@ -504,7 +497,7 @@ describe('app routes', () => {
   it('redirects an authenticated user from /restablecer/:token to /', async () => {
     const router = renderAt('/restablecer/abc?email=a%40b.com')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
     expect(screen.queryByRole('heading', { name: 'Definí tu nueva contraseña' })).not.toBeInTheDocument()
   })
@@ -531,9 +524,9 @@ describe('app routes', () => {
     await user.type(screen.getByLabelText('Contraseña'), 'Abcdef12')
     await user.click(screen.getByRole('button', { name: 'INGRESAR' }))
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
-    expect(screen.getByText('ana@example.com')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver mis recomendados' })).toHaveAttribute('href', '/recomendaciones')
   })
 
   it('TC-83: pressing Cerrar sesión ends the session and shows the login screen', async () => {
@@ -545,11 +538,11 @@ describe('app routes', () => {
     expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
     expect(logoutUser).toHaveBeenCalledTimes(1)
     expect(router.state.location.pathname).toBe('/login')
-    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument()
   })
 
-  it('TC-84: after logging out, navigating to / shows the login screen and not the protected content', async () => {
+  it('after logging out, navigating to / shows the public landing without protected data', async () => {
     vi.mocked(logoutUser).mockResolvedValue(undefined)
     const router = renderAt('/')
     await userEvent.setup().click(await screen.findByRole('button', { name: 'Cerrar sesión' }))
@@ -557,9 +550,10 @@ describe('app routes', () => {
 
     await act(() => router.navigate('/'))
 
-    expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/login')
-    expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
+    expect(router.state.location.pathname).toBe('/')
+    expect(fetchDiagnosis).not.toHaveBeenCalled()
+    expect(fetchVehicles).not.toHaveBeenCalled()
   })
 
   it('keeps the user on / with an alert when the logout request fails', async () => {
@@ -570,12 +564,12 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cerrar la sesión. Intentá nuevamente.')
     expect(router.state.location.pathname).toBe('/')
-    expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument()
   })
 
   it('wraps / in the shared shell (nav and footer)', async () => {
     renderAt('/')
-    await screen.findByRole('heading', { name: 'Inicio' })
+    await screen.findByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })
 
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toHaveTextContent('© 2026 TD Autos. Todos los derechos reservados.')
@@ -655,7 +649,7 @@ describe('app routes', () => {
       expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
       expect(registerDealer).toHaveBeenCalledTimes(1)
       expect(fetchDiagnosis).not.toHaveBeenCalled()
-      expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).not.toBeInTheDocument()
     })
 
     it.each([
@@ -683,7 +677,7 @@ describe('app routes', () => {
       expect(await landingHeading()).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
       expect(fetchDiagnosis).not.toHaveBeenCalled()
-      expect(screen.queryByRole('heading', { name: 'Inicio' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).not.toBeInTheDocument()
     })
 
     it.each(['/diagnostico', '/recomendaciones', '/transferencia', '/vehiculos/7/inspeccion', '/perfil'])(
@@ -716,7 +710,7 @@ describe('app routes', () => {
     it.each(['/concesionaria', '/concesionaria/inventario'])('sends a buyer opening the dealer route %s to /', async (path) => {
       const router = renderAt(path)
 
-      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
       expect(router.state.location.pathname).toBe('/')
       expect(screen.queryByRole('heading', { name: 'Verificación de suscripción' })).not.toBeInTheDocument()
     })
@@ -811,7 +805,7 @@ describe('app routes', () => {
     it.each(['/concesionaria/inventario/nuevo', '/concesionaria/inventario/1/editar'])('UH21: a buyer opening %s is sent to /', async (path) => {
       const router = renderAt(path)
 
-      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
       expect(router.state.location.pathname).toBe('/')
     })
 
@@ -849,7 +843,7 @@ describe('app routes', () => {
     it('UH18: a buyer opening /concesionaria/suscripcion is sent to / and nothing is loaded', async () => {
       const router = renderAt('/concesionaria/suscripcion')
 
-      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
       expect(router.state.location.pathname).toBe('/')
       expect(fetchSubscription).not.toHaveBeenCalled()
     })
@@ -878,7 +872,7 @@ describe('app routes', () => {
   it('redirects unknown paths to /', async () => {
     const router = renderAt('/no-existe')
 
-    expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
     expect(router.state.location.pathname).toBe('/')
   })
 
@@ -987,7 +981,7 @@ describe('app routes', () => {
     })
 
     it.each([
-      ['a buyer', () => undefined, 'Inicio'],
+      ['a buyer', () => undefined, 'Tu próximo auto. Tu próxima historia.'],
       ['a dealer', () => asDealer('activa'), 'Suscripción y comprobantes'],
     ])('UH27: sends %s opening a dealer page away without reading the dealer', async (_label, signIn, heading) => {
       signIn()
@@ -1010,7 +1004,7 @@ describe('app routes', () => {
     it('sends a buyer opening a receipt review to / without reading the receipt', async () => {
       const router = renderAt('/admin/comprobantes/31')
 
-      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
       expect(router.state.location.pathname).toBe('/')
       expect(fetchReceipt).not.toHaveBeenCalled()
     })
@@ -1018,7 +1012,7 @@ describe('app routes', () => {
     it.each(['/admin', '/admin/concesionarias'])('sends a buyer opening %s to / without reading the dealers', async (path) => {
       const router = renderAt(path)
 
-      expect(await screen.findByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
       expect(router.state.location.pathname).toBe('/')
       expect(fetchDealerDirectory).not.toHaveBeenCalled()
     })

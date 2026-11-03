@@ -15,6 +15,7 @@ import ActiveDealerRoute from '../features/dealer/ActiveDealerRoute'
 import DealerStatusPage from '../features/dealer/DealerStatusPage'
 import DiagnosisPage from '../features/diagnosis/DiagnosisPage'
 import HomeRoute from '../features/home/HomeRoute'
+import PublicHomeRoute from '../features/home/PublicHomeRoute'
 import InspectionPage from '../features/inspection/InspectionPage'
 import EditVehiclePage from '../features/inventory/EditVehiclePage'
 import ImportInventoryPage from '../features/inventory/ImportInventoryPage'
@@ -44,6 +45,11 @@ export const routes: RouteObject[] = [
         element: <AppShell />,
         children: [
           {
+            path: '/',
+            element: <PublicHomeRoute />,
+            children: [{ element: <RoleRoute allow="buyer" />, children: [{ index: true, element: <HomeRoute /> }] }],
+          },
+          {
             element: <ProtectedRoute />,
             children: [
               {
@@ -51,7 +57,6 @@ export const routes: RouteObject[] = [
                 // so the home never sends either to the diagnosis.
                 element: <RoleRoute allow="buyer" />,
                 children: [
-                  { path: '/', element: <HomeRoute /> },
                   { path: '/diagnostico', element: <DiagnosisPage /> },
                   { path: '/vehiculos/:id', element: <VehicleDetailPage /> },
                   { path: '/vehiculos/:id/depreciacion', element: <DepreciationPage /> },

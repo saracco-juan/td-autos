@@ -1,46 +1,35 @@
 import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router'
+import { describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../auth/session/useAuth'
-import type { User } from '../auth/types'
 import HomePage from './HomePage'
 
 vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
 
-// The 401 redirect to /login is the route guard's job: see router.test.tsx (TC-84).
-function renderHome(user: User | null) {
+function renderHome(authenticated = false) {
   vi.mocked(useAuth).mockReturnValue({
-    user,
-    status: user ? 'authenticated' : 'guest',
-    login: vi.fn(),
-    refresh: vi.fn(),
-    logout: vi.fn(),
+    user: authenticated ? { id: 7, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: true, tiene_diagnostico: true } : null,
+    status: authenticated ? 'authenticated' : 'guest',
+    login: vi.fn(), refresh: vi.fn(), logout: vi.fn(),
   })
-  render(<HomePage />)
+  render(<MemoryRouter><HomePage /></MemoryRouter>)
 }
 
 describe('HomePage', () => {
-  beforeEach(() => {
-    vi.mocked(useAuth).mockReset()
+  it('explains the product and offers buyer registration without personal data', () => {
+    renderHome()
+    expect(screen.getByRole('heading', { level: 1, name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Encontrar mi auto' })).toHaveAttribute('href', '/registro')
+    expect(screen.getByRole('heading', { name: 'Menos dudas. Más información.' })).toBeInTheDocument()
+    expect(screen.queryByText('ana@example.com')).not.toBeInTheDocument()
   })
-
-  it('TC-02: shows the logged-in user from the session', () => {
-    renderHome({ id: 7, name: 'Ana', apellido: 'Pérez', email: 'ana@example.com', rol: 'comprador', perfil_completo: true, tiene_diagnostico: true })
-
-    expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
-    expect(screen.getByText('Ana Pérez')).toBeInTheDocument()
-    expect(screen.getByText('ana@example.com')).toBeInTheDocument()
+  it('provides the existing dealer login and registration destinations', () => {
+    renderHome()
+    expect(screen.getByRole('link', { name: 'Registrar mi concesionaria' })).toHaveAttribute('href', '/registro/concesionaria')
+    expect(screen.getByRole('link', { name: 'Ingresar como concesionaria' })).toHaveAttribute('href', '/login')
   })
-
-  it('shows only the name when the user has no apellido', () => {
-    renderHome({ id: 8, name: 'Beto', apellido: null, email: 'beto@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true })
-
-    expect(screen.getByText('Beto')).toBeInTheDocument()
-  })
-
-  it('renders no user section without a session user', () => {
-    renderHome(null)
-
-    expect(screen.getByRole('heading', { name: 'Inicio' })).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Usuario' })).not.toBeInTheDocument()
+  it('lets an existing buyer continue to recommendations', () => {
+    renderHome(true)
+    expect(screen.getByRole('link', { name: 'Ver mis recomendados' })).toHaveAttribute('href', '/recomendaciones')
   })
 })
