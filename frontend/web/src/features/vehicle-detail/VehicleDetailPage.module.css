@@ -160,10 +160,6 @@
   padding-top: 32px;
 }
 
-.compatibility > section {
-  max-width: 720px;
-}
-
 @media (max-width: 1099px) {
   .body {
     gap: 32px;

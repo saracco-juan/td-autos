@@ -35,6 +35,10 @@ export default function MatchingRecommendationsPage() {
   const portals = useApiView(fetchPortalModels)
   const diagnosis = useApiView(fetchDiagnosis)
   const priority = diagnosis.view.status === 'ready' ? diagnosis.view.response.diagnostico?.prioridad : undefined
+  const usage = diagnosis.view.status === 'ready' ? diagnosis.view.response.diagnostico?.uso_principal : undefined
+  const usageStep = DIAGNOSIS_STEPS.find((step) => step.field === 'uso_principal')
+  const usageLabel = usageStep?.kind === 'single'
+    ? usageStep.options.find((option) => option.code === usage)?.label : undefined
   const priorityStep = DIAGNOSIS_STEPS.find((step) => step.field === 'prioridad')
   const priorityLabel = priorityStep?.kind === 'single'
     ? priorityStep.options.find((option) => option.code === priority)?.label : undefined
@@ -89,7 +93,7 @@ export default function MatchingRecommendationsPage() {
         <>
           <ul className={styles.grid} aria-label="Recomendaciones">
             {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
-              <MatchingVehicleCard key={result.listing_id} result={result} priorityLabel={priorityLabel} comparison={{
+              <MatchingVehicleCard key={result.listing_id} result={result} priorityLabel={priorityLabel} usageLabel={usageLabel} comparison={{
                 selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
               }} />
             ))}

@@ -14,8 +14,8 @@ import CardPhotos from './CardPhotos'
 import styles from './VehicleCard.module.css'
 
 // Photo-led redesign of High v3 Card/Vehicle (2373:7340); matching stays in the backend.
-export default function MatchingVehicleCard({ result, comparison, priorityLabel }: {
-  result: Recommendation; comparison?: { selected: boolean; toggle: () => void }; priorityLabel?: string
+export default function MatchingVehicleCard({ result, comparison, priorityLabel, usageLabel }: {
+  result: Recommendation; comparison?: { selected: boolean; toggle: () => void }; priorityLabel?: string; usageLabel?: string
 }) {
   const titleId = useId()
   const location = useLocation()
@@ -67,7 +67,7 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel 
             </button> : null}
             <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${styles.detail}`}
               state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
-                factors: components, returnTo: `${location.pathname}${location.search}` } }}>
+                factors: components, usageLabel, priorityLabel, returnTo: `${location.pathname}${location.search}` } }}>
               VER FICHA
             </Link>
           </div>

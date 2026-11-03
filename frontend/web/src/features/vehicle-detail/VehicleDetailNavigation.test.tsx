@@ -37,6 +37,7 @@ function mount(path = context.returnTo, state?: unknown) {
 beforeEach(() => {
   vi.mocked(apiFetch).mockReset().mockImplementation(async (path) => path === '/api/recomendaciones'
     ? { status: 'ready', results: [recommendation], exchange_rate: null }
+    : path === '/api/diagnostico' ? { diagnostico: { uso_principal: 'mixto', prioridad: 'reventa' }, carrocerias: [] }
     : { vehicle: { ...vehicle, precio: 30000000 }, dealer: recommendation.dealer })
 })
 
@@ -46,7 +47,9 @@ it('HU09 keeps VER FICHA primary, the existing costs shortcut, current facts and
   expect(await screen.findByRole('heading', { name: 'Toyota Corolla XEI 2021' })).toBeInTheDocument()
   expect(screen.getByText('$ 30.000.000')).toBeInTheDocument()
   expect(screen.getByText('88,5% de compatibilidad')).toBeInTheDocument()
-  expect(screen.getByText('Prioridad principal: no disponible')).toBeInTheDocument()
+  expect(screen.getByText('Sin datos')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Uso mixto' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Buena reventa' })).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'CALCULAR COSTOS' })).toHaveAttribute('href', '/vehiculos/7/costos')
   const back = screen.getByRole('link', { name: 'Volver a recomendados' })
   expect(back).toHaveAttribute('href', context.returnTo)

@@ -1,4 +1,6 @@
 export type DetailContext = {
+  usageLabel?: string
+  priorityLabel?: string
   listingId: number
   score: number
   factors: { usage: number; body: number; comfort: number; priority: number | null }
@@ -24,5 +26,6 @@ export function readDetailContext(state: unknown, id: number | null): DetailCont
   const factors = value.factors
   if (!factors || !score(factors.usage) || !score(factors.body) || !score(factors.comfort)
     || (factors.priority !== null && !score(factors.priority))) return null
-  return value as DetailContext
+  const label = (input: unknown) => typeof input === 'string' && input.trim().length <= 120 ? input.trim() || undefined : undefined
+  return { ...value as DetailContext, usageLabel: label(value.usageLabel), priorityLabel: label(value.priorityLabel) }
 }
