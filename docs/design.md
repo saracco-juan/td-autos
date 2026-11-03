@@ -129,7 +129,9 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Preserve the approved photographic cards, existing actions and source notices.
 - Continue using CSS Modules and shared CSS variables; do not introduce Tailwind
   or a second styling system. Keep global CSS limited to base styles and tokens.
-- Catalog controls use 44 px targets, fully rounded compact controls, charcoal selected page
+- Catalog pagination and Favorites carousel arrows use compact 44 x 36 px controls with
+  10 px corners, matching the filter button, and retain the shared 550ms hover.
+  Favorite hearts and photo indicators remain circular. Use charcoal selected page
   numbers and red primary actions. Source tabs retain the approved minimal text
   and underline treatment, without capsules or filled backgrounds.
   Filters expand above the grid, preserving card

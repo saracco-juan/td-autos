@@ -38,9 +38,9 @@
 
 .pager nav button {
   min-width: 44px;
-  height: 44px;
+  height: 36px;
   border: 1px solid var(--border-default);
-  border-radius: 999px;
+  border-radius: 10px;
   background: var(--surface-default);
   font-size: 14px;
 }
