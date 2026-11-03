@@ -11,36 +11,43 @@
 }
 
 .back {
-  composes: trigger from '../../components/buttonHover.module.css';
+  composes: fill from '../../components/buttonHover.module.css';
+  --button-hover-fill: var(--palette-charcoal);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   align-self: flex-start;
-  color: var(--text-secondary);
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 18px 10px 14px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-default);
+  color: var(--palette-charcoal);
   font-size: 13px;
+  font-weight: 500;
   text-decoration: none;
+  transition: color 550ms ease;
 }
 
 .backIcon {
-  composes: fill from '../../components/buttonHover.module.css';
-  --button-hover-fill: var(--palette-charcoal);
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border-default);
-  border-radius: 50%;
-  background: var(--surface-default);
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .backIcon img { transition: filter 550ms ease; }
 
 @media (hover: hover) and (pointer: fine) {
+  .back:hover { color: white; }
   .back:hover .backIcon img { filter: brightness(0) invert(1); }
   .summary > button:hover:not(:disabled):not([aria-busy='true']) { color: white; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .back { transition: color 120ms ease; }
   .backIcon img { transition: filter 120ms ease; }
 }
 
