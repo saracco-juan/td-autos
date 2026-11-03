@@ -12,6 +12,7 @@
   --orbit-radius: min(620px, calc((100vw - 400px) / 2));
   position: relative;
   height: 640px;
+  transition: height 550ms cubic-bezier(.32, .72, 0, 1);
   touch-action: pan-y;
   overflow: hidden;
 
@@ -127,7 +128,7 @@
   stroke-width: 1.8;
 }
 
-.instant .card, .instant .deck {
+.instant .card, .instant .deck, .instant .stage {
   transition: none;
 }
 

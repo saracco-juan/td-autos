@@ -34,6 +34,9 @@
   position: fixed;
   z-index: 30;
   width: min(300px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  box-sizing: border-box;
+  overflow-y: auto;
   padding: 10px 12px;
   border: 1px solid var(--border-default);
   border-radius: 10px;

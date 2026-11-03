@@ -60,8 +60,8 @@ it('HU08 TC-76 requests completion for zero or one selection without leaving rec
   await select(0)
   await userEvent.click(screen.getByRole('button', { name: 'COMPARAR' }))
   expect(screen.queryByRole('region', { name: 'Comparación de vehículos' })).not.toBeInTheDocument()
-  // Only the two recommendation lists (dealers and portals), never a comparison request.
-  expect(apiFetch).toHaveBeenCalledTimes(2)
+  // Recommendation and favorite lists may load, but an incomplete pair must not fetch vehicle details or costs.
+  expect(vi.mocked(apiFetch).mock.calls.some(([url]) => String(url).startsWith('/api/vehiculos/'))).toBe(false)
 })
 
 it('HU08 TC-25 removes either selected vehicle, preserves filters and permits replacement', async () => {

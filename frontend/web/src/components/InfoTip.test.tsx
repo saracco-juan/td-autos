@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import InfoTip from './InfoTip'
 
 const renderTip = () => render(
@@ -10,6 +10,22 @@ const renderTip = () => render(
   </div>,
 )
 const button = () => screen.getByRole('button', { name: 'Cómo calculamos Seguro' })
+
+it('clamps a tall explanation inside a short viewport', async () => {
+  vi.stubGlobal('innerHeight', 280)
+  const bounds = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+    const tall = this.getAttribute('role') === 'tooltip'
+    return { left: 20, top: 100, bottom: 124, width: 240, height: tall ? 600 : 24 } as DOMRect
+  })
+  try {
+    renderTip()
+    await userEvent.click(button())
+    expect(screen.getByRole('tooltip')).toHaveStyle({ top: '8px' })
+  } finally {
+    bounds.mockRestore()
+    vi.unstubAllGlobals()
+  }
+})
 
 it('is a closed, accessible button that points to its tooltip', () => {
   renderTip()

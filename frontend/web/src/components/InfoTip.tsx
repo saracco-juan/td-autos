@@ -35,7 +35,8 @@ export default function InfoTip({ label, children }: InfoTipProps) {
     const top = below + box.height + MARGIN > window.innerHeight && anchor.top - GAP - box.height >= MARGIN
       ? anchor.top - GAP - box.height
       : below
-    setPosition({ left: Math.max(MARGIN, left), top })
+    const height = Math.min(box.height, window.innerHeight - MARGIN * 2)
+    setPosition({ left: Math.max(MARGIN, left), top: Math.max(MARGIN, Math.min(top, window.innerHeight - height - MARGIN)) })
   }, [])
 
   useLayoutEffect(() => {
