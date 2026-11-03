@@ -15,7 +15,13 @@
   gap: 24px;
   min-height: 88px;
   padding: 16px clamp(16px, 3vw, 40px);
-  background: var(--surface-default);
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Empty header space lets the underlying page remain visible and interactive. */
+.logo, .navLinks, .navActions, .menuToggle, .menuPanelOpen {
+  pointer-events: auto;
 }
 
 .logo {
@@ -23,6 +29,9 @@
   align-items: center;
   justify-self: start;
   gap: 8px;
+  padding: 3px 8px 3px 0;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 94%);
   color: var(--text-primary);
   font-size: 19px;
   font-weight: 800;
