@@ -18,15 +18,17 @@
 }
 
 .hasSelected .stage {
-  --wheel-y: 670px;
   height: 1180px;
 }
+
+.hasSelected .deck { transform: translateY(540px); }
 
 .deck {
   position: absolute;
   inset: 0;
   perspective: 1600px;
-  perspective-origin: 50% calc(var(--wheel-y) + 240px);
+  perspective-origin: 50% 370px;
+  transition: transform 550ms cubic-bezier(.32, .72, 0, 1);
 }
 
 .card {
@@ -42,6 +44,11 @@
 }
 
 .card li { list-style: none; }
+
+.card button[aria-pressed='true'] {
+  padding-inline: 8px;
+  white-space: nowrap;
+}
 
 .card[data-position='front'] {
   z-index: 5;
@@ -60,16 +67,6 @@
   opacity: 1;
   pointer-events: auto;
 }
-
-.card[data-position='selected-0'] {
-  transform: translate(calc(-50% - 200px), 20px);
-}
-
-.card[data-position='selected-1'] {
-  transform: translate(calc(-50% + 200px), 20px);
-}
-
-.card[data-position='hidden'] { visibility: hidden; }
 
 .grid {
   display: grid;
@@ -130,10 +127,10 @@
   stroke-width: 1.8;
 }
 
-.instant .card {
+.instant .card, .instant .deck {
   transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .stage { transition: none; }
+  .card, .stage, .deck { transition: none; }
 }

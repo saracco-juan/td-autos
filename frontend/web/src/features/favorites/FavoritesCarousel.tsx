@@ -98,29 +98,29 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
       <div className={styles.deck}>
         {items.map((vehicle, itemIndex) => {
           const selectedIndex = selected.findIndex((item) => item.id === vehicle.id)
-          const remainingIndex = available.findIndex((item) => item.id === vehicle.id)
-          const frontIndex = available.findIndex((item) => item.id === currentId)
-          const count = available.length
-          const sidePairs = Math.min(2, Math.floor((count - 1) / 2))
-          const offset = count ? ((remainingIndex - frontIndex + count + Math.floor(count / 2)) % count) - Math.floor(count / 2) : 0
+          const offset = ((itemIndex - currentIndex + length + Math.floor(length / 2)) % length) - Math.floor(length / 2)
           // Keep complete turns: wrapping the angle would make a card sweep across the front.
-          const angle = count ? (remainingIndex - frontIndex - Math.floor(currentTurn / length) * count) * 360 / count : 0
+          const angle = (itemIndex - currentTurn) * 360 / length
           const radians = angle * Math.PI / 180
-          const lift = -165 * (1 - Math.cos(radians))
-          const facing = 14 * Math.sin(radians)
-          const orbit = `translate(-50%, calc(var(--wheel-y) + ${lift}px)) translateZ(calc(-1 * var(--orbit-radius))) rotateY(${angle}deg) translateZ(var(--orbit-radius)) rotateY(${-angle}deg) rotateY(${facing}deg)`
+          const isSelected = selectedIndex >= 0
+          const lift = isSelected ? 0 : -165 * (1 - Math.cos(radians))
+          const facing = isSelected ? 0 : 14 * Math.sin(radians)
+          const radius = isSelected ? '0px' : 'var(--orbit-radius)'
+          const x = isSelected ? `calc(-50% + ${selectedIndex === 0 ? -200 : 200}px)` : '-50%'
+          const y = isSelected ? '-520px' : `calc(var(--wheel-y) + ${lift}px)`
+          // Keep the same transform functions while lifting out of the orbit.
+          const orbit = `translate(${x}, ${y}) translateZ(calc(-1 * ${radius})) rotateY(${angle}deg) translateZ(${radius}) rotateY(${-angle}deg) rotateY(${facing}deg)`
           const position = selectedIndex >= 0 ? `selected-${selectedIndex}` : offset === 0 ? 'front'
-            : Math.abs(offset) <= sidePairs ? `side-${offset}` : 'hidden'
+            : `side-${offset}`
           const active = offset === 0 || selectedIndex >= 0
           const side = selectedIndex < 0 && offset !== 0
           return <div key={vehicle.id} className={styles.card} data-position={position} data-active={active}
-            style={selectedIndex < 0 ? { transform: orbit, zIndex: Math.round(10 + 5 * Math.cos(radians)) } : undefined}
+            style={{ transform: orbit, zIndex: isSelected ? 30 : Math.round(10 + 5 * Math.cos(radians)) }}
             onTransitionEnd={(event) => settledOnTransition(vehicle.id, event)}>
-            <div aria-hidden={side || position === 'hidden' ? true : undefined}
-              inert={side || position === 'hidden' ? true : undefined}>
+            <div aria-hidden={side ? true : undefined} inert={side ? true : undefined}>
               {renderCard(vehicle)}
             </div>
-            {side && position !== 'hidden' ? <button type="button" className={styles.sideTarget}
+            {side ? <button type="button" className={styles.sideTarget}
               aria-label={`Ver ${vehicle.marca} ${vehicle.modelo} ${vehicle.version ?? ''} ${vehicle.anio}`}
               onClick={() => {
                 const distance = ((itemIndex - currentIndex + length + Math.floor(length / 2)) % length) - Math.floor(length / 2)

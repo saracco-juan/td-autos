@@ -17,15 +17,25 @@ const props = (overrides: Partial<ComponentProps<typeof FavoritesCarousel>> = {}
 
 beforeEach(() => vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false })))
 
-it.each([2, 4, 6])('keeps symmetric side pairs with %i favorites and rotates hidden cards forward', (count) => {
+it.each([2, 3, 4, 5, 6])('keeps all %i favorites in the orbit while navigating', (count) => {
   const vehicles = Array.from({ length: count }, (_, index) => ({ ...items[0], id: index + 1, modelo: `Modelo ${index + 1}` }))
   const { container } = render(<MemoryRouter><FavoritesCarousel {...props({ items: vehicles })} /></MemoryRouter>)
   for (let step = 0; step < count; step += 1) {
-    expect(container.querySelectorAll('[data-position^="side--"]').length)
-      .toBe(container.querySelectorAll('[data-position="side-1"], [data-position="side-2"]').length)
+    expect(container.querySelectorAll('[data-position="hidden"]')).toHaveLength(0)
+    expect(container.querySelectorAll('[data-position^="side-"]')).toHaveLength(count - 1)
     expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', String(step + 1))
     fireEvent.click(screen.getByRole('button', { name: 'Siguiente favorito' }))
   }
+})
+
+it('keeps orbit angles and transform structure stable when a side card is selected', () => {
+  const { container, rerender } = render(<MemoryRouter><FavoritesCarousel {...props()} /></MemoryRouter>)
+  const transforms = Array.from(container.querySelectorAll<HTMLElement>('[data-position]'), (card) => card.style.transform)
+  rerender(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [2] })} /></MemoryRouter>)
+  const cards = container.querySelectorAll<HTMLElement>('[data-position]')
+  expect(cards[0].style.transform).toBe(transforms[0])
+  expect(cards[2].style.transform).toBe(transforms[2])
+  expect(cards[1].style.transform.match(/(?:translateZ?|rotateY)\(/g)).toEqual(transforms[1].match(/(?:translateZ?|rotateY)\(/g))
 })
 
 it('shows every favorite as an actionable grid card on smaller screens', () => {
