@@ -1,3 +1,15 @@
+/* Numeric fields retain validation and keyboard entry without stepper arrows. */
+input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 ::selection {
   background: var(--palette-red);
   color: var(--text-on-color);
