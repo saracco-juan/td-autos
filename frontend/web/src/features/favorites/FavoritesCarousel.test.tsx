@@ -17,6 +17,18 @@ const props = (overrides: Partial<ComponentProps<typeof FavoritesCarousel>> = {}
 
 beforeEach(() => vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false })))
 
+it('shows every favorite as an actionable grid card on smaller screens', () => {
+  vi.stubGlobal('matchMedia', vi.fn((query: string) => ({ matches: query === '(max-width: 1100px)' })))
+  const onToggle = vi.fn()
+  render(<MemoryRouter><FavoritesCarousel {...props({ onToggle })} /></MemoryRouter>)
+  expect(screen.getByRole('list', { name: 'Vehículos favoritos' })).toBeInTheDocument()
+  expect(screen.queryByRole('region', { name: 'Carrusel de favoritos' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Siguiente favorito' })).not.toBeInTheDocument()
+  items.forEach((item) => expect(screen.getByRole('button', { name: `Comparar Toyota Modelo ${item.id} XEI 2021` })).toBeEnabled())
+  fireEvent.click(screen.getByRole('button', { name: 'Comparar Toyota Modelo 3 XEI 2021' }))
+  expect(onToggle).toHaveBeenCalledWith(3)
+})
+
 it('navigates the current card with controls and keyboard', () => {
   render(<MemoryRouter><FavoritesCarousel {...props()} /></MemoryRouter>)
   expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', '1')
@@ -58,6 +70,12 @@ it('moves the next unselected favorite to the front while keeping selected actio
   render(<MemoryRouter><FavoritesCarousel {...input} /></MemoryRouter>)
   expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', '2')
   expect(screen.getByRole('button', { name: 'Dejar de comparar Toyota Modelo 1 XEI 2021' })).toBeInTheDocument()
+})
+
+it('keeps upper slots in selection order instead of inventory order', () => {
+  render(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [2, 1] })} /></MemoryRouter>)
+  expect(screen.getByRole('listitem', { name: /Modelo 2/ }).closest('[data-position]')).toHaveAttribute('data-position', 'selected-0')
+  expect(screen.getByRole('listitem', { name: /Modelo 1/ }).closest('[data-position]')).toHaveAttribute('data-position', 'selected-1')
 })
 
 it('settles selections immediately when reduced motion is preferred', async () => {

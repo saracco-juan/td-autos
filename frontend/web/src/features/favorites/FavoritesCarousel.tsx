@@ -12,6 +12,7 @@ type Props = {
 }
 
 export default function FavoritesCarousel({ items, matches, selectedIds, pendingIds, onToggle, onRemove, onSelectionSettled }: Props) {
+  const [compact, setCompact] = useState(() => window.matchMedia?.('(max-width: 1100px)').matches ?? false)
   const [index, setIndex] = useState(0)
   const [instant, setInstant] = useState(false)
   const pointer = useRef<{ id: number; x: number; y: number } | null>(null)
@@ -22,8 +23,14 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
   const currentIndex = length ? (Array.from({ length }, (_, step) => (index + step) % length)
     .find((candidate) => !selectedIds.includes(items[candidate].id)) ?? 0) : 0
   const currentId = items[currentIndex]?.id
-  const selected = items.filter((vehicle) => selectedIds.includes(vehicle.id))
+  const selected = selectedIds.flatMap((id) => items.filter((vehicle) => vehicle.id === id))
 
+  useEffect(() => {
+    const media = window.matchMedia?.('(max-width: 1100px)')
+    const update = () => setCompact(media?.matches ?? false)
+    media?.addEventListener?.('change', update)
+    return () => media?.removeEventListener?.('change', update)
+  }, [])
   useEffect(() => {
     reduced.current = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
   }, [])
@@ -72,6 +79,16 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
     if (event.target === event.currentTarget && event.propertyName === 'transform' && selectedIds.includes(id)) onSelectionSettled(id)
   }
 
+  const renderCard = (vehicle: FavoriteVehicle) => <FavoriteCard key={vehicle.id} vehicle={vehicle}
+    busy={pendingIds.includes(vehicle.id)} onRemove={() => onRemove(vehicle)}
+    score={matches.find((match) => match.listing_id === vehicle.id)?.score}
+    bestMatch={matches[0]?.listing_id === vehicle.id}
+    comparison={{ selected: selectedIds.includes(vehicle.id), toggle: () => onToggle(vehicle.id) }} />
+
+  if (compact) return <ul className={styles.grid} aria-label="Vehículos favoritos">
+    {items.map(renderCard)}
+  </ul>
+
   return <section className={`${styles.carousel} ${instant ? styles.instant : ''} ${selected.length ? styles.hasSelected : ''}`}
     role="region" aria-label="Carrusel de favoritos" aria-roledescription="carrusel" tabIndex={0}
     data-current-id={currentId} onKeyDown={onKeyDown} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { pointer.current = null }}>
@@ -87,14 +104,11 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
             : Math.abs(offset) <= 2 ? `side-${offset}` : 'hidden'
           const active = offset === 0 || selectedIndex >= 0
           const side = selectedIndex < 0 && offset !== 0
-          const score = matches.find((match) => match.listing_id === vehicle.id)?.score
           return <div key={vehicle.id} className={styles.card} data-position={position} data-active={active}
             onTransitionEnd={(event) => settledOnTransition(vehicle.id, event)}>
             <div aria-hidden={side || position === 'hidden' ? true : undefined}
               inert={side || position === 'hidden' ? true : undefined}>
-              <FavoriteCard vehicle={vehicle} busy={pendingIds.includes(vehicle.id)} onRemove={() => onRemove(vehicle)}
-                score={score} bestMatch={matches[0]?.listing_id === vehicle.id}
-                comparison={{ selected: selectedIndex >= 0, toggle: () => onToggle(vehicle.id) }} />
+              {renderCard(vehicle)}
             </div>
             {side && Math.abs(offset) <= 2 ? <button type="button" className={styles.sideTarget}
               aria-label={`Ver ${vehicle.marca} ${vehicle.modelo} ${vehicle.version ?? ''} ${vehicle.anio}`}
