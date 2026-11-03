@@ -9,14 +9,16 @@ function ProjectionChart({ projection }: { projection: DepreciationProjection })
     <svg viewBox="0 0 740 240" className={styles.chart} role="img"
       aria-label={depreciationCopy.chartLabel}>
       <desc>Los importes y porcentajes de esta estimación están en la tabla Valor proyectado.</desc>
-      <path d={`${path} L710,200 L30,200 Z`} className={styles.area} />
       <path d="M30,200 H710" className={styles.axis} />
-      <path d={path} className={styles.curve} />
+      <g className={styles.chartReveal}>
+        <path d={`${path} L710,200 L30,200 Z`} className={styles.area} />
+        <path d={path} className={styles.curve} />
+        {coordinates.map(({ x, y }, index) => <circle key={values[index].years} cx={x} cy={y} r="4" />)}
+      </g>
       {values.map((point, index) => {
         const { x, y } = coordinates[index]
         const anchor = index === 0 ? 'start' : index === values.length - 1 ? 'end' : 'middle'
         return <g key={point.years}>
-          <circle cx={x} cy={y} r="4" />
           <text x={x} y={y - 14} textAnchor={anchor} className={styles.chartValue}>
             {formatPrice(point.value, projection.currency)}
           </text>
@@ -34,12 +36,12 @@ export default function DepreciationResult({ projection, reference, kilometers }
 }) {
   return (
     <div className={styles.body}>
-        <section className={styles.projection} aria-labelledby="projection-title">
-          <h2 id="projection-title">Valor proyectado en el tiempo</h2>
-          <p className={styles.rate}><span>Depreciación anual estimada</span><strong>{formatPercent(projection.annual_depreciation_percent)} anual</strong></p>
-          <ProjectionChart projection={projection} />
-          <p className={styles.legend}>{depreciationCopy.legend}</p>
-        </section>
+      <section className={styles.projection} aria-labelledby="projection-title">
+        <h2 id="projection-title">Valor proyectado en el tiempo</h2>
+        <p className={styles.rate}><span>Depreciación anual estimada</span><strong>{formatPercent(projection.annual_depreciation_percent)} anual</strong></p>
+        <ProjectionChart projection={projection} />
+        <p className={styles.legend}>{depreciationCopy.legend}</p>
+      </section>
       <div className={styles.summary}>
         <table aria-label="Valor proyectado">
           <caption>Valor proyectado</caption>

@@ -25,6 +25,9 @@
   line-height: 1.6;
 }
 
+/* The heading receives focus for route announcements, not as an interactive control. */
+.title:focus { outline: none; }
+
 .empty { max-width: 65ch; line-height: 1.6; }
 .empty h2 { font-size: 24px; font-weight: 600; }
 .empty p { color: var(--text-secondary); }
