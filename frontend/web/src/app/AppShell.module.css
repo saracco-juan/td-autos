@@ -176,17 +176,6 @@
   padding: 20px clamp(16px, 3vw, 40px);
 }
 
-/* Figma "Footer" */
-.footer {
-  display: flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 clamp(16px, 3vw, 40px);
-  background: var(--palette-red);
-  color: var(--text-on-color);
-  font-size: 11px;
-}
-
 /* Collapse before centered navigation can collide with either outer track. */
 @media (max-width: 1100px) {
   .nav > .navActions {

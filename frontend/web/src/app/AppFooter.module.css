@@ -1,0 +1,95 @@
+.footer {
+  padding: 24px clamp(16px, 3vw, 40px) 20px;
+  background: #0d0b0b;
+  color: #fff8f6;
+}
+
+.panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #181313;
+  container-type: inline-size;
+}
+
+.panel::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 75% 115%, #f14b30 0, #b72212 27%, transparent 65%),
+    radial-gradient(ellipse at 10% 125%, #8b1b0e 0, transparent 58%);
+  content: '';
+}
+
+.information {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  padding: clamp(28px, 4vw, 64px);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  color: inherit;
+  font: 500 clamp(16px, 1.4vw, 22px)/1.4 var(--font-sans);
+  text-decoration: none;
+  text-underline-offset: 6px;
+  transition: color 550ms ease;
+}
+
+.links a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 5px;
+  border-radius: 4px;
+}
+
+.team { text-align: right; }
+.team h2 { margin: 0 0 20px; font: 500 18px/1.4 var(--font-sans); }
+.team p { margin: 0 0 8px; color: #d8bfba; font-size: 14px; }
+.team ul { margin: 0; padding: 0; list-style: none; font: 400 16px/1.8 var(--font-sans); }
+
+.wordmark {
+  margin: 0;
+  padding: 0 3.2% 1.2%;
+  color: #eac0b6;
+  font: 500 23cqi/0.9 var(--font-sans);
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  opacity: 0.55;
+  mask-image: linear-gradient(#000 20%, rgb(0 0 0 / 48%) 95%);
+}
+
+.copyright { margin: 20px 0 0; color: #c4b9b6; font-size: 12px; line-height: 1.6; }
+
+@media (hover: hover) and (pointer: fine) {
+  .links a:hover { color: #ff9a86; text-decoration: underline; }
+}
+
+@media (min-width: 900px) {
+  .footer:not(.home) .information { padding-block: 32px; }
+  .footer:not(.home) .wordmark { font-size: 10cqi; }
+}
+
+@media (max-width: 600px) {
+  .information { flex-direction: column; gap: 32px; padding: 28px 24px 36px; }
+  .team { text-align: left; }
+  .team h2 { margin-bottom: 12px; }
+  .panel { border-radius: 18px; }
+  .wordmark { padding-bottom: 5%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .links a { transition: none; }
+}

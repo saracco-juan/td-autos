@@ -4,6 +4,7 @@ import alertStyles from '../components/alert.module.css'
 import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/roles'
 import { useAuth } from '../features/auth/session/useAuth'
 import styles from './AppShell.module.css'
+import AppFooter from './AppFooter'
 
 // Brand mark before the wordmark: the TD monogram of the favicon, in red on a white tile. Decorative; the link carries the name.
 function LogoMark() {
@@ -225,7 +226,7 @@ export default function AppShell() {
         ) : null}
         <Outlet />
       </main>
-      <footer className={styles.footer}>© 2026 TD Autos. Todos los derechos reservados.</footer>
+      <AppFooter home={pathname === '/'} />
     </div>
   )
 }
