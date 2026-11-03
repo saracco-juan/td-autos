@@ -18,7 +18,7 @@ import DetailScrollbar from './DetailScrollbar'
 import VehicleSpecifications from './VehicleSpecifications'
 import VehicleCompatibility from './VehicleCompatibility'
 import VehicleContact from './VehicleContact'
-import backIcon from './back.svg'
+import BackLink from '../../components/BackLink'
 import styles from './VehicleDetailPage.module.css'
 
 type View = { status: 'loading' | 'unavailable' }
@@ -59,10 +59,7 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
   return (
     <div className={styles.page}>
       <DetailScrollbar label="Desplazar página" />
-      <Link className={styles.back} to={returnTo.to}>
-        <span className={styles.backIcon}><img src={backIcon} alt="" /></span>
-        {returnTo.label}
-      </Link>
+      <BackLink to={returnTo.to}>{returnTo.label}</BackLink>
       {view.status === 'loading' ? <SessionLoading /> : null}
       {view.status === 'unavailable' ? (
         <section role="status">
