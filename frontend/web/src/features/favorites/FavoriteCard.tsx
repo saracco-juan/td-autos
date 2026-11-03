@@ -41,7 +41,7 @@ export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch
           <p className={styles.price}>{vehicle.precio === null || vehicle.moneda === null
             ? 'Precio no disponible' : <>Publicado: <span>{formatPrice(vehicle.precio, vehicle.moneda).replace('US$', 'USD')}</span></>}</p>
           <p className={styles.meta}>{vehicle.ubicacion || 'Ubicación no disponible'}</p>
-          <div className={styles.actions} role="group" aria-label={`Acciones de ${name}`}>
+          <div className={`${styles.actions} ${favoriteStyles.actions}`} role="group" aria-label={`Acciones de ${name}`}>
             {comparison ? <button type="button" className={`${buttonStyles.button} ${styles.compare}`}
               aria-pressed={comparison.selected} disabled={busy}
               aria-label={`${comparison.selected ? 'Dejar de comparar' : 'Comparar'} ${name}`} onClick={comparison.toggle}>

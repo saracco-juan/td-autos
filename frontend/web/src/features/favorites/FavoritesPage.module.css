@@ -23,10 +23,29 @@
   gap: 4px;
 }
 
-.comparison {
-  composes: comparison from '../recommendations/RecommendationsPage.module.css';
-  flex: none;
-  align-self: flex-end;
+.headerActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.headerActions .comparison {
+  width: 104px;
+  max-width: 100%;
+  margin-left: 0;
+  transition: width 550ms cubic-bezier(.32, .72, 0, 1);
+}
+
+.headerActions .comparison:has([data-open='true'], [role='alert']) {
+  width: 520px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headerActions .comparison { transition: none; }
 }
 
 .header p,

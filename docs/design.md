@@ -138,6 +138,9 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   width; fields wrap to two columns and then one on smaller screens. Applied
   filters stay removable, and pagination includes its current/total page label.
   Shared tabs and pagination retain their existing appearance on other routes.
+- Favorites groups View recommendations and Compare in its header. The comparison
+  control starts compact, expands for selections or validation, and wraps within
+  narrow screens. Card actions size to their labels so selected text stays on one line.
 - Filter disclosure opens and closes with a short interruptible CSS accordion
   transition. Keyboard activation is immediate; reduced motion removes the layout
   transition. Closed fields are inert and excluded from the accessibility tree.

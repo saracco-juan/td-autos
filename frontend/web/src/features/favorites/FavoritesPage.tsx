@@ -43,14 +43,14 @@ export default function FavoritesPage() {
           <p className={styles.subtitle}>{total === 0 ? 'Sin vehículos guardados'
             : `${total} ${total === 1 ? 'vehículo guardado' : 'vehículos guardados'}`}</p>
         </div>
-        {total > 0 ? recommendationsLink : null}
+        {total > 0 ? <div className={styles.headerActions} role="group" aria-label="Acciones de favoritos">
+          {recommendationsLink}
+          {view.status === 'ready' ? <ComparisonControls className={styles.comparison} selection={comparison} source="favorites"
+            vehicles={items.map((vehicle) => ({ id: vehicle.id,
+              label: `${vehicle.marca} ${vehicle.modelo} ${vehicle.anio}`,
+              title: [vehicle.marca, vehicle.modelo, vehicle.version, vehicle.anio].filter(Boolean).join(' '), image: vehicle.image_url }))} /> : null}
+        </div> : null}
       </header>
-      {view.status === 'ready' && total > 0 ? <div className={styles.comparison}>
-        <ComparisonControls selection={comparison} source="favorites"
-          vehicles={items.map((vehicle) => ({ id: vehicle.id,
-            label: `${vehicle.marca} ${vehicle.modelo} ${vehicle.anio}`,
-            title: [vehicle.marca, vehicle.modelo, vehicle.version, vehicle.anio].filter(Boolean).join(' '), image: vehicle.image_url }))} />
-      </div> : null}
       {actionError ? (
         <p role="alert" className={alertStyles.alert}>
           No pudimos actualizar tus favoritos. Intentá nuevamente.

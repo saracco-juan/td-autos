@@ -14,3 +14,11 @@
   font-weight: 600;
   line-height: 1.5;
 }
+
+.actions > a,
+.actions > button {
+  flex-basis: auto;
+  width: auto;
+  padding-inline: 8px;
+  white-space: nowrap;
+}

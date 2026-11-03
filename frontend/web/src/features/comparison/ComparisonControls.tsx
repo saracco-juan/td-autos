@@ -8,8 +8,8 @@ import styles from './ComparisonControls.module.css'
 
 type SelectionVehicle = { id: number; title: string; label?: string; image?: string | null }
 
-export default function ComparisonControls({ selection, source, vehicles = [] }: {
-  selection: ReturnType<typeof useComparisonSelection>; source?: 'favorites'; vehicles?: SelectionVehicle[]
+export default function ComparisonControls({ selection, source, vehicles = [], className = '' }: {
+  selection: ReturnType<typeof useComparisonSelection>; source?: 'favorites'; vehicles?: SelectionVehicle[]; className?: string
 }) {
   const navigate = useNavigate()
   const { ids, search, toggle, notice, setNotice } = selection
@@ -36,7 +36,7 @@ export default function ComparisonControls({ selection, source, vehicles = [] }:
       </div>
     </div>
   }
-  return <section className={styles.selection} aria-label="Selección para comparar">
+  return <section className={`${styles.selection} ${className}`} aria-label="Selección para comparar">
     <div className={styles.controls}>
       {slot(0)}
       <button type="button" aria-label="COMPARAR" className={`${buttonStyles.button} ${styles.compare}`} onClick={() => {
