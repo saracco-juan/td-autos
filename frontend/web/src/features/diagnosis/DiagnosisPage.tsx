@@ -42,6 +42,7 @@ export default function DiagnosisPage() {
   const [unanswered, setUnanswered] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
+  const [passengersNeedConfirmation, setPassengersNeedConfirmation] = useState(false)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const stepChanged = useRef(false)
 
@@ -52,6 +53,10 @@ export default function DiagnosisPage() {
         if (cancelled) return
         setBodyTypes(carrocerias)
         setDraft(diagnostico ? draftFromAnswers(diagnostico) : createEmptyDraft())
+        if (diagnostico?.pasajeros === null) {
+          setPassengersNeedConfirmation(true)
+          setStep(DIAGNOSIS_STEPS.findIndex(({ field }) => field === 'pasajeros'))
+        }
         setLoadState('ready')
       })
       .catch((error: unknown) => {
@@ -175,6 +180,11 @@ export default function DiagnosisPage() {
 
       <div className={styles.body}>
         <div className={styles.options}>
+          {passengersNeedConfirmation && current.field === 'pasajeros' && draft.pasajeros === null && !unanswered ? (
+            <p role="alert" className={`${alertStyles.warning} ${styles.message}`}>
+              Actualizamos las opciones de pasajeros. Volvé a elegir cuántas personas viajan habitualmente.
+            </p>
+          ) : null}
           {current.kind === 'multi' ? (
             <BodyTypeChips
               labelledBy={TITLE_ID}

@@ -35,13 +35,26 @@
   object-fit: cover;
 }
 
+.imageWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.favorite {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
 .placeholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   background: var(--surface-raised);
   color: var(--text-secondary);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -53,4 +66,27 @@
   border-radius: 999px;
   color: var(--text-secondary);
   font-size: 11px;
+}
+
+.card details {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.actions > a,
+.actions > button {
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.card summary {
+  cursor: pointer;
+  font-weight: 600;
 }

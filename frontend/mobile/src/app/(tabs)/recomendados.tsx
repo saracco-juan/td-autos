@@ -1,5 +1,5 @@
-import ComingSoon from '../../components/ComingSoon'
+import RecommendationsScreen from '../../features/recommendations/RecommendationsScreen'
 
 export default function RecomendadosTab() {
-  return <ComingSoon title="Recomendados" />
+  return <RecommendationsScreen />
 }

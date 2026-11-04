@@ -1,6 +1,6 @@
 /* "Button" (Figma v3): height 40, radius 10, 11px uppercase label. Every variant shares the soft look: white surface,
    thin light border, soft shadow, dark grey label, a subtle hover in the table header tone and a soft focus ring
-   (DESIGN.md "Buttons"). The variant only changes the border and the label. */
+   (docs/design.md "Buttons"). The variant only changes the border and the label. */
 .button {
   display: flex;
   align-items: center;

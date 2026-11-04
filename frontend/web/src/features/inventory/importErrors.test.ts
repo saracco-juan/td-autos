@@ -19,9 +19,9 @@ describe('importFailureFrom', () => {
   })
 
   it('reads a file-level 422 as its message with no rows', () => {
-    const body = { message: 'x', errors: { archivo: ['El archivo tiene que ser un CSV.'] } }
+    const body = { message: 'x', errors: { archivo: ['El archivo tiene que ser un XLSX.'] } }
 
-    expect(importFailureFrom(new HttpError(422, body))).toEqual({ message: 'El archivo tiene que ser un CSV.', rows: [] })
+    expect(importFailureFrom(new HttpError(422, body))).toEqual({ message: 'El archivo tiene que ser un XLSX.', rows: [] })
   })
 
   it('answers the network copy for a network failure and the generic copy for anything else', () => {

@@ -89,6 +89,7 @@ export default function EditVehiclePage() {
       subtitle={EDIT_SUBTITLE}
       initialValues={valuesFromVehicle(vehicle)}
       initialPhotos={vehicle.fotos}
+      isEditing
       submitLabel="GUARDAR CAMBIOS"
       onSubmit={async (submission) => {
         await updateVehicle(vehicle.id, submission)

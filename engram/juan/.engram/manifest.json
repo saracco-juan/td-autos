@@ -360,6 +360,134 @@
       "sessions": 1,
       "memories": 2,
       "prompts": 0
+    },
+    {
+      "id": "918d0270",
+      "created_by": "juansaracco",
+      "created_at": "2026-10-22T18:45:08.626654Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "0485a8da",
+      "created_by": "Juan",
+      "created_at": "2026-10-24T20:11:00Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
+    },
+    {
+      "id": "ff97c3bd",
+      "created_by": "Juan",
+      "created_at": "2026-10-26T00:47:18Z",
+      "sessions": 2,
+      "memories": 497,
+      "prompts": 102
+    },
+    {
+      "id": "66789c92",
+      "created_by": "Juan",
+      "created_at": "2026-10-26T00:50:36Z",
+      "sessions": 0,
+      "memories": 196,
+      "prompts": 29
+    },
+    {
+      "id": "446546a0",
+      "created_by": "Juan",
+      "created_at": "2026-10-26T20:17:36Z",
+      "sessions": 0,
+      "memories": 6,
+      "prompts": 0
+    },
+    {
+      "id": "8330411a",
+      "created_by": "Juan",
+      "created_at": "2026-10-26T20:25:33Z",
+      "sessions": 0,
+      "memories": 5,
+      "prompts": 0
+    },
+    {
+      "id": "70592811",
+      "created_by": "Juan",
+      "created_at": "2026-10-27T01:19:25Z",
+      "sessions": 0,
+      "memories": 3,
+      "prompts": 0
+    },
+    {
+      "id": "a4cfe19b",
+      "created_by": "Juan",
+      "created_at": "2026-10-27T01:33:44Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "34f6df7d",
+      "created_by": "Juan",
+      "created_at": "2026-10-27T14:17:09Z",
+      "sessions": 0,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "18409043",
+      "created_by": "Juan",
+      "created_at": "2026-10-27T22:35:58Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "f8fb95fd",
+      "created_by": "Juan",
+      "created_at": "2026-10-28T13:32:48Z",
+      "sessions": 0,
+      "memories": 4,
+      "prompts": 0
+    },
+    {
+      "id": "6bd1ddd5",
+      "created_by": "Juan",
+      "created_at": "2026-10-28T14:36:22Z",
+      "sessions": 0,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "a5e74bd8",
+      "created_by": "Juan",
+      "created_at": "2026-10-28T16:35:37Z",
+      "sessions": 0,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "e1163781",
+      "created_by": "Juan",
+      "created_at": "2026-10-28T17:09:00Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "bcb25061",
+      "created_by": "Juan",
+      "created_at": "2026-10-28T17:33:56Z",
+      "sessions": 0,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "5d7cf505",
+      "created_by": "Juan",
+      "created_at": "2026-10-28T22:48:02Z",
+      "sessions": 0,
+      "memories": 4,
+      "prompts": 0
     }
   ]
 }

@@ -22,9 +22,15 @@ import ImportInventoryPage from '../features/inventory/ImportInventoryPage'
 import InventoryPage from '../features/inventory/InventoryPage'
 import NewVehiclePage from '../features/inventory/NewVehiclePage'
 import ProfilePage from '../features/profile/ProfilePage'
-import RecommendationsPage from '../features/recommendations/RecommendationsPage'
+import OwnershipCostsPage from '../features/costs/OwnershipCostsPage'
+import ComparisonPage from '../features/comparison/ComparisonPage'
+import RecommendationsPage from '../features/recommendations/MatchingRecommendationsPage'
 import SubscriptionPage from '../features/subscription/SubscriptionPage'
 import TransferPage from '../features/transfer/TransferPage'
+import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage'
+import DepreciationPage from '../features/depreciation/DepreciationPage'
+import FavoritesPage from '../features/favorites/FavoritesPage'
+import LeadsPage from '../features/leads/LeadsPage'
 import AppShell from './AppShell'
 import AuthLayout from './AuthLayout'
 
@@ -51,8 +57,13 @@ export const routes: RouteObject[] = [
                 children: [
                   { path: '/', element: <HomeRoute /> },
                   { path: '/diagnostico', element: <DiagnosisPage /> },
+                  { path: '/vehiculos/:id', element: <VehicleDetailPage /> },
+                  { path: '/vehiculos/:id/depreciacion', element: <DepreciationPage /> },
                   { path: '/vehiculos/:id/inspeccion', element: <InspectionPage /> },
                   { path: '/recomendaciones', element: <RecommendationsPage /> },
+                  { path: '/favoritos', element: <FavoritesPage /> },
+                  { path: '/comparar', element: <ComparisonPage /> },
+                  { path: '/vehiculos/:id/costos', element: <OwnershipCostsPage /> },
                   { path: '/transferencia', element: <TransferPage /> },
                   { path: '/perfil', element: <ProfilePage /> },
                 ],
@@ -62,6 +73,7 @@ export const routes: RouteObject[] = [
                 element: <RoleRoute allow="dealer" />,
                 children: [
                   { path: '/concesionaria', element: <DealerStatusPage /> },
+                  { path: '/concesionaria/leads', element: <LeadsPage /> },
                   // Outside ActiveDealerRoute: a pending dealer has to reach it to send the first payment.
                   { path: '/concesionaria/suscripcion', element: <SubscriptionPage /> },
                   {

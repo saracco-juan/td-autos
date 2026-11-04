@@ -3,6 +3,8 @@ import { Tabs } from 'expo-router'
 import type { ColorValue } from 'react-native'
 
 import AppBar from '../../components/AppBar'
+import { ComparisonSelectionProvider } from '../../features/comparison/ComparisonSelection'
+import { FavoriteProvider } from '../../features/favorites/FavoriteButton'
 import { colors } from '../../theme/tokens'
 
 type IconName = keyof typeof Ionicons.glyphMap
@@ -25,15 +27,18 @@ const TAB_SCREENS = TABS.map(({ name, title, icon }) => ({
   name,
   options: {
     title,
-    tabBarIcon: ({ color }: { color: ColorValue }) => <Ionicons name={icon} size={24} color={color} />,
+    // @expo/vector-icons 15 types predate React Native 0.88's ColorValue; the tab bar passes a plain color string.
+    tabBarIcon: ({ color }: { color: ColorValue }) => <Ionicons name={icon} size={24} color={color as string} />,
   },
 }))
 
-const HIDDEN = { href: null }
+// No tab button. Not `href: null`: Expo Router 58 redirects a focused hidden tab to the first one.
+// The item wrapper keeps `flex: 1` even without a button, so it must not be laid out at all.
+const HIDDEN = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' as const } }
 
 export default function TabsLayout() {
   return (
-    <Tabs
+    <FavoriteProvider><ComparisonSelectionProvider><Tabs
       screenOptions={{
         header: renderHeader,
         sceneStyle: { backgroundColor: colors.background },
@@ -46,8 +51,12 @@ export default function TabsLayout() {
       {TAB_SCREENS.map(({ name, options }) => (
         <Tabs.Screen key={name} name={name} options={options} />
       ))}
-      {/* Inspection checklist: a screen of the tabs (the bottom bar stays) without a tab of its own. */}
+      {/* Vehicle sheet and inspection checklist: screens of the tabs (the bottom bar stays) without a tab of their own. */}
+      <Tabs.Screen name="vehiculos/[id]/index" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/inspeccion" options={HIDDEN} />
-    </Tabs>
+      <Tabs.Screen name="vehiculos/[id]/costos" options={HIDDEN} />
+      <Tabs.Screen name="vehiculos/[id]/depreciacion" options={HIDDEN} />
+      <Tabs.Screen name="comparar" options={HIDDEN} />
+    </Tabs></ComparisonSelectionProvider></FavoriteProvider>
   )
 }

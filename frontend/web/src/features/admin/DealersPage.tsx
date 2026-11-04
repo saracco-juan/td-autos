@@ -21,7 +21,7 @@ import StateTag from "./StateTag";
 import type { AdminDealerRow } from "./types";
 import { useDealerDirectory } from "./useDealerDirectory";
 
-// "Mostrar" options; the page size is the user's choice, never the screen's, so zooming does not change it (DESIGN.md).
+// "Mostrar" options; the page size is the user's choice, never the screen's, so zooming does not change it (docs/design.md).
 const PAGE_SIZES = [10, 25, 50];
 
 // The message a previous screen leaves in the navigation state (a deleted dealer); anything else is ignored.

@@ -2,12 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Vehiculo;
+use App\Services\Inventario\VehicleCatalogIdentity;
 use App\Support\Patente;
 use App\Support\VehiculoFields;
 use App\Support\VehiculoOptions;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Unique;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Rules and messages shared by every request that writes a dealer vehicle
@@ -16,6 +20,8 @@ use Illuminate\Validation\Rules\Unique;
  */
 abstract class VehiculoRequest extends FormRequest
 {
+    private array $catalogIdentity = [];
+
     protected const FOTOS_MINIMO_MESSAGE = VehiculoFields::FOTOS_MINIMO_MESSAGE;
 
     protected const FOTOS_MAXIMO_MESSAGE = VehiculoFields::FOTOS_MAXIMO_MESSAGE;
@@ -44,7 +50,31 @@ abstract class VehiculoRequest extends FormRequest
      */
     protected function vehiculoRules(): array
     {
-        return VehiculoFields::rules($this->plateUniqueRule());
+        return VehiculoFields::rules($this->plateUniqueRule(), includeMatchingFacts: true)
+            + ['acara_version_id' => ['nullable', 'string', 'max:70']];
+    }
+
+    public function after(): array
+    {
+        return [function (Validator $validator) {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+            try {
+                $this->catalogIdentity = app(VehicleCatalogIdentity::class)->resolve($this->all(), $this->catalogVehicle());
+            } catch (ValidationException $error) {
+                foreach ($error->errors() as $field => $messages) {
+                    foreach ($messages as $message) {
+                        $validator->errors()->add($field, $message);
+                    }
+                }
+            }
+        }];
+    }
+
+    protected function catalogVehicle(): ?Vehiculo
+    {
+        return null;
     }
 
     /**
@@ -96,6 +126,6 @@ abstract class VehiculoRequest extends FormRequest
      */
     public function vehiculoAttributes(): array
     {
-        return VehiculoFields::attributes($this->validated());
+        return [...VehiculoFields::attributes($this->validated()), ...$this->catalogIdentity];
     }
 }

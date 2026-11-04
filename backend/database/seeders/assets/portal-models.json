@@ -1,0 +1,781 @@
+[
+    {
+        "marca": "VOLKSWAGEN",
+        "modelo": "Gol",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": false,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "volkswagen/gol",
+        "ruta_kavak": "volkswagen/gol"
+    },
+    {
+        "marca": "VOLKSWAGEN",
+        "modelo": "Gol Trend",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "volkswagen/gol-trend",
+        "ruta_kavak": "volkswagen/gol-trend"
+    },
+    {
+        "marca": "VOLKSWAGEN",
+        "modelo": "Polo",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "volkswagen/polo",
+        "ruta_kavak": "volkswagen/polo"
+    },
+    {
+        "marca": "VOLKSWAGEN",
+        "modelo": "Vento",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta"
+        ],
+        "ruta_mercadolibre": "volkswagen/vento",
+        "ruta_kavak": "volkswagen/vento"
+    },
+    {
+        "marca": "VOLKSWAGEN",
+        "modelo": "Amarok",
+        "carroceria": "Pickup",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "alto",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "volkswagen/amarok",
+        "ruta_kavak": "volkswagen/amarok"
+    },
+    {
+        "marca": "VOLKSWAGEN",
+        "modelo": "Suran",
+        "carroceria": "Rural / familiar",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "volkswagen/suran",
+        "ruta_kavak": "volkswagen/suran"
+    },
+    {
+        "marca": "VOLKSWAGEN",
+        "modelo": "Fox",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad"
+        ],
+        "ruta_mercadolibre": "volkswagen/fox",
+        "ruta_kavak": "volkswagen/fox"
+    },
+    {
+        "marca": "CHEVROLET",
+        "modelo": "Onix",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "chevrolet/onix",
+        "ruta_kavak": "chevrolet/onix"
+    },
+    {
+        "marca": "CHEVROLET",
+        "modelo": "Cruze",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta"
+        ],
+        "ruta_mercadolibre": "chevrolet/cruze",
+        "ruta_kavak": "chevrolet/cruze"
+    },
+    {
+        "marca": "CHEVROLET",
+        "modelo": "Prisma",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "chevrolet/prisma",
+        "ruta_kavak": "chevrolet/prisma"
+    },
+    {
+        "marca": "CHEVROLET",
+        "modelo": "Tracker",
+        "carroceria": "SUV",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "chevrolet/tracker",
+        "ruta_kavak": "chevrolet/tracker"
+    },
+    {
+        "marca": "CHEVROLET",
+        "modelo": "S10",
+        "carroceria": "Pickup",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "diesel"
+        ],
+        "consumo": "alto",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "chevrolet/s10",
+        "ruta_kavak": "chevrolet/s10"
+    },
+    {
+        "marca": "CHEVROLET",
+        "modelo": "Cobalt",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta"
+        ],
+        "ruta_mercadolibre": "chevrolet/cobalt",
+        "ruta_kavak": "chevrolet/cobalt"
+    },
+    {
+        "marca": "CHEVROLET",
+        "modelo": "Spin",
+        "carroceria": "Rural / familiar",
+        "plazas": 7,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "chevrolet/spin",
+        "ruta_kavak": "chevrolet/spin"
+    },
+    {
+        "marca": "TOYOTA",
+        "modelo": "Etios",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "toyota/etios",
+        "ruta_kavak": "toyota/etios"
+    },
+    {
+        "marca": "TOYOTA",
+        "modelo": "Corolla",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta"
+        ],
+        "ruta_mercadolibre": "toyota/corolla",
+        "ruta_kavak": "toyota/corolla"
+    },
+    {
+        "marca": "TOYOTA",
+        "modelo": "Hilux",
+        "carroceria": "Pickup",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "alto",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "toyota/hilux",
+        "ruta_kavak": "toyota/hilux"
+    },
+    {
+        "marca": "TOYOTA",
+        "modelo": "Yaris",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "toyota/yaris",
+        "ruta_kavak": "toyota/yaris"
+    },
+    {
+        "marca": "FORD",
+        "modelo": "Fiesta KD",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "ford/fiesta",
+        "ruta_kavak": "ford/fiesta",
+        "nombres_inventario": ["Fiesta"]
+    },
+    {
+        "marca": "FORD",
+        "modelo": "Focus III",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta"
+        ],
+        "ruta_mercadolibre": "ford/focus",
+        "ruta_kavak": "ford/focus",
+        "nombres_inventario": ["Focus"]
+    },
+    {
+        "marca": "FORD",
+        "modelo": "KA",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad"
+        ],
+        "ruta_mercadolibre": "ford/ka",
+        "ruta_kavak": "ford/ka"
+    },
+    {
+        "marca": "FORD",
+        "modelo": "EcoSport KD",
+        "carroceria": "SUV",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "ford/ecosport",
+        "ruta_kavak": "ford/ecosport",
+        "nombres_inventario": ["EcoSport"]
+    },
+    {
+        "marca": "FORD",
+        "modelo": "Ranger",
+        "carroceria": "Pickup",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "alto",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "ford/ranger",
+        "ruta_kavak": "ford/ranger"
+    },
+    {
+        "marca": "RENAULT",
+        "modelo": "Sandero",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "renault/sandero",
+        "ruta_kavak": "renault/sandero"
+    },
+    {
+        "marca": "RENAULT",
+        "modelo": "Logan",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": false,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "renault/logan",
+        "ruta_kavak": "renault/logan"
+    },
+    {
+        "marca": "RENAULT",
+        "modelo": "Kangoo",
+        "carroceria": "Rural / familiar",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": false,
+        "combustibles": [
+            "nafta",
+            "diesel",
+            "gnc"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "renault/kangoo",
+        "ruta_kavak": "renault/kangoo"
+    },
+    {
+        "marca": "RENAULT",
+        "modelo": "Duster",
+        "carroceria": "SUV",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "renault/duster",
+        "ruta_kavak": "renault/duster"
+    },
+    {
+        "marca": "FIAT",
+        "modelo": "Cronos",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "fiat/cronos",
+        "ruta_kavak": "fiat/cronos"
+    },
+    {
+        "marca": "FIAT",
+        "modelo": "Argo",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad"
+        ],
+        "ruta_mercadolibre": "fiat/argo",
+        "ruta_kavak": "fiat/argo"
+    },
+    {
+        "marca": "FIAT",
+        "modelo": "Palio",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "gnc"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "fiat/palio",
+        "ruta_kavak": "fiat/palio"
+    },
+    {
+        "marca": "FIAT",
+        "modelo": "Toro",
+        "carroceria": "Pickup",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "fiat/toro",
+        "ruta_kavak": "fiat/toro"
+    },
+    {
+        "marca": "PEUGEOT",
+        "modelo": "208",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "peugeot/208",
+        "ruta_kavak": "peugeot/208"
+    },
+    {
+        "marca": "PEUGEOT",
+        "modelo": "308",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta",
+            "diesel"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta"
+        ],
+        "ruta_mercadolibre": "peugeot/308",
+        "ruta_kavak": "peugeot/308"
+    },
+    {
+        "marca": "PEUGEOT",
+        "modelo": "2008",
+        "carroceria": "SUV",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "peugeot/2008",
+        "ruta_kavak": "peugeot/2008"
+    },
+    {
+        "marca": "CITROEN",
+        "modelo": "C3",
+        "carroceria": "Hatchback",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "bajo",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "citroen/c3",
+        "ruta_kavak": "citroen/c3"
+    },
+    {
+        "marca": "CITROEN",
+        "modelo": "C4 Cactus",
+        "carroceria": "SUV",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "citroen/c4-cactus",
+        "ruta_kavak": "citroen/c4-cactus"
+    },
+    {
+        "marca": "NISSAN",
+        "modelo": "Frontier",
+        "carroceria": "Pickup",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "diesel"
+        ],
+        "consumo": "alto",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta",
+            "trabajo"
+        ],
+        "ruta_mercadolibre": "nissan/frontier",
+        "ruta_kavak": "nissan/frontier"
+    },
+    {
+        "marca": "NISSAN",
+        "modelo": "Kicks",
+        "carroceria": "SUV",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "nissan/kicks",
+        "ruta_kavak": "nissan/kicks"
+    },
+    {
+        "marca": "HONDA",
+        "modelo": "HR-V",
+        "carroceria": "SUV",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ciudad",
+            "ruta"
+        ],
+        "ruta_mercadolibre": "honda/hr-v",
+        "ruta_kavak": "honda/hr-v"
+    },
+    {
+        "marca": "HONDA",
+        "modelo": "Civic",
+        "carroceria": "Sedán",
+        "plazas": 5,
+        "tiene_manual": true,
+        "tiene_automatica": true,
+        "combustibles": [
+            "nafta"
+        ],
+        "consumo": "medio",
+        "seguridad_estrellas": null,
+        "usos": [
+            "ruta"
+        ],
+        "ruta_mercadolibre": "honda/civic",
+        "ruta_kavak": "honda/civic"
+    }
+]

@@ -3,21 +3,24 @@
 namespace App\Services\Inventario;
 
 use App\Models\Concesionaria;
+use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
 use App\Support\Patente;
 use App\Support\VehiculoFields;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Validates a whole CSV for a dealer without writing anything (CU-20): file shape, every row,
+ * Validates a whole XLSX for a dealer without writing anything (CU-20): file shape, every row,
  * and the rules that need the whole batch (repeated plates, plates of other dealers). The
  * import endpoint runs the same plan again before it applies it.
  */
 class VehiculoImportPlanner
 {
     public function __construct(
-        private readonly VehiculoCsvReader $reader,
+        private readonly VehiculoXlsxReader $reader,
         private readonly VehiculoRowValidator $validator,
+        private readonly VehicleCatalog $catalog,
+        private readonly VehicleCatalogIdentity $identity,
     ) {}
 
     /**
@@ -34,8 +37,33 @@ class VehiculoImportPlanner
         $rows = array_map(fn (array $row) => $this->validator->validate($row['fila'], $row['data']), $parsed);
 
         $this->applyBatchRules($dealer, $rows);
+        $rows = $this->resolveIdentities($rows);
 
         return new ImportPlan($rows);
+    }
+
+    /** Add catalog links only after row and ownership validation; never write in preview. */
+    private function resolveIdentities(array $rows): array
+    {
+        $valid = array_filter($rows, fn (ImportRow $row) => $row->isValid());
+        if ($valid === []) {
+            return $rows;
+        }
+        $catalog = $this->catalog->current();
+        $existing = Vehiculo::query()->whereIn('id', array_filter(array_column($valid, 'vehiculoId')))->get()->keyBy('id');
+        foreach ($rows as $index => $row) {
+            if (! $row->isValid()) {
+                continue;
+            }
+            try {
+                $labels = $this->identity->resolveWorkbook($row->attributes, $existing->get($row->vehiculoId), $catalog);
+                $rows[$index] = new ImportRow($row->fila, $row->patente, [...$row->attributes, ...$labels], $row->fotos, [], $row->vehiculoId);
+            } catch (ValidationException $error) {
+                $row->errores = array_merge(...array_values($error->errors()));
+            }
+        }
+
+        return $rows;
     }
 
     /**

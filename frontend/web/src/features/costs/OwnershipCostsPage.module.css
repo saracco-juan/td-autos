@@ -1,0 +1,203 @@
+/* Figma 2373:7378: back link and title block on top, two cards side by side; stacked under 800 px (DESIGN.md). */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  min-width: 0;
+  margin-inline: auto;
+  margin-bottom: auto;
+  padding-top: 20px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Figma "Back Link": a boxed chevron (soft button look) and the text. */
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.backIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  box-shadow: 0 1px 2px rgba(26, 20, 15, 0.06);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.backLink:hover {
+  color: var(--accent-default);
+}
+
+.backLink:hover .backIcon {
+  background: var(--surface-raised);
+}
+
+/* Inputs of the estimate: two fields and the button on one row, stacked on phones. */
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  align-items: start;
+  gap: 16px 24px;
+  padding: clamp(16px, 3vw, 20px);
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* Same column as a field (label line + 6 gap + 48 control), so the button lines up with the inputs. */
+.action {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.actionSpacer {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.submit {
+  width: 100%;
+  height: 48px;
+}
+
+/* The loader lives here, centered; the header and the form stay in place. */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 240px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 32px;
+}
+
+/* Figma "Panel": white surface, 14 radius, soft shadow. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 20px 20px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.rows {
+  margin: 0;
+}
+
+/* Figma "Spec row": label secondary on the left, value on the right, a thin divider. */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 13px;
+}
+
+.row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.row dd {
+  margin: 0;
+  text-align: right;
+}
+
+.total {
+  font-weight: 700;
+}
+
+.total:last-child {
+  border-bottom: 0;
+}
+
+.total dt {
+  color: var(--text-secondary);
+}
+
+.note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.disclaimer {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+@media (max-width: 800px) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-top: 8px;
+  }
+
+  /* Stacked fields: no label to line up with. */
+  .actionSpacer {
+    display: none;
+  }
+}

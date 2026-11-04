@@ -1,7 +1,8 @@
 /* Messages are filled boxes with dark text; the tint carries the meaning. */
 .alert,
 .notice,
-.warning {
+.warning,
+.info {
   padding: 10px 12px;
   border: 1px solid;
   border-radius: 8px;
@@ -25,4 +26,20 @@
 .warning {
   border-color: var(--status-warning-border);
   background: var(--status-warning-bg);
+}
+
+/* Neutral information (e.g. "these are models, not units"): the table-header tone, no meaning of success or error.
+   Optional leading icon (InfoIcon) in the secondary text tone. */
+.info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-color: var(--border-default);
+  background: var(--surface-raised);
+}
+
+.info > svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--text-secondary);
 }

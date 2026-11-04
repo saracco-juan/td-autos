@@ -11,8 +11,12 @@ final class VehiculoOptions
 
     public const COMBUSTIBLE = ['nafta', 'diesel', 'gnc', 'hibrido', 'electrico'];
 
-    /** The portal lists prices in pesos only. */
+    /** Default currency for the legacy CSV flow until its matching-facts stage. */
     public const MONEDA = 'ARS';
+
+    public const MONEDAS = ['ARS', 'USD'];
+
+    public const POTENCIA_UNIDADES = ['CV', 'HP', 'kW'];
 
     /** Value of vehiculo.origen for cars loaded by a dealer. */
     public const ORIGEN_CONCESIONARIA = 'concesionaria';

@@ -1,0 +1,31 @@
+[
+  {
+    "marca": "TOYOTA",
+    "modelo": "Etios",
+    "carroceria": "Hatchback",
+    "plazas": 5,
+    "tiene_manual": true,
+    "tiene_automatica": false,
+    "combustibles": ["nafta"],
+    "consumo": "bajo",
+    "seguridad_estrellas": null,
+    "usos": ["ciudad", "ruta"],
+    "ruta_mercadolibre": "toyota/etios",
+    "ruta_kavak": "toyota/etios",
+    "nombres_inventario": ["Etios Hatch", 7]
+  },
+  {
+    "marca": "FORD",
+    "modelo": "Ranger",
+    "carroceria": "Pickup",
+    "plazas": 5,
+    "tiene_manual": true,
+    "tiene_automatica": true,
+    "combustibles": ["nafta", "diesel"],
+    "consumo": "alto",
+    "seguridad_estrellas": 4,
+    "usos": ["ruta", "trabajo"],
+    "ruta_mercadolibre": "ford/ranger",
+    "ruta_kavak": null
+  }
+]

@@ -3,11 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../lib/http'
-import { createVehicle, fetchBodyTypes } from './api'
-import { vehiculo } from './fixtures'
+import { createVehicle, fetchBodyTypes, fetchVehicleCatalog } from './api'
+import { MATCHING_FACTS, VEHICLE_CATALOG, vehiculo } from './fixtures'
+import { matchingValues } from './matchingFields'
 import NewVehiclePage from './NewVehiclePage'
 
-vi.mock('./api', () => ({ createVehicle: vi.fn(), fetchBodyTypes: vi.fn() }))
+vi.mock('./api', () => ({ createVehicle: vi.fn(), fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
 
 function Inventory() {
   const location = useLocation()
@@ -32,6 +33,7 @@ async function fillAndAddPhotos() {
   fill('Patente', 'AB123CD')
   fill('Marca', 'Toyota')
   fill('Modelo', 'Corolla')
+  fill('Versión', 'XEI')
   fill('Año', '2021')
   fill('Kilometraje', '60000')
   fill('Precio', '18500000')
@@ -39,6 +41,10 @@ async function fillAndAddPhotos() {
   fill('Combustible', 'nafta')
   fill('Carrocería', '1')
   fill('Ubicación', 'Córdoba')
+  for (const [key, value] of Object.entries(matchingValues(MATCHING_FACTS))) {
+    if (key === 'potencia_unidad') continue
+    fireEvent.change(document.getElementById(`vehicle-${key}`)!, { target: { value } })
+  }
   const photos = Array.from({ length: 7 }, (_, index) => new File(['x'], `f${index}.jpg`, { type: 'image/jpeg' }))
   await userEvent.setup().upload(screen.getByLabelText('AGREGAR IMAGEN'), photos)
   return photos
@@ -49,6 +55,7 @@ describe('NewVehiclePage', () => {
     vi.mocked(createVehicle).mockReset()
     vi.mocked(fetchBodyTypes).mockReset()
     vi.mocked(fetchBodyTypes).mockResolvedValue([{ id: 1, nombre: 'Sedán' }])
+    vi.mocked(fetchVehicleCatalog).mockResolvedValue(VEHICLE_CATALOG)
   })
 
   it('renders the header of Figma 38:923 with a back link to the inventory and an empty form', async () => {
@@ -75,6 +82,7 @@ describe('NewVehiclePage', () => {
     expect(createVehicle).toHaveBeenCalledTimes(1)
     const sent = vi.mocked(createVehicle).mock.calls[0][0]
     expect(sent.values.patente).toBe('AB123CD')
+    expect(sent.values.acara_version_id).toBe('selected-corolla')
     expect(sent.newPhotos).toEqual(photos)
     expect(sent.removedPhotoIds).toEqual([])
   })

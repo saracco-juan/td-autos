@@ -88,7 +88,7 @@ export default function VehicleRow({ vehicle, confirming, deleting, failed, lock
           <td className={`${tableStyles.muted} ${styles.colPlate}`}>{vehicle.patente}</td>
           <td className={`${tableStyles.muted} ${styles.colPhotos}`}>{photoCount(vehicle.fotos.length)}</td>
           <td className={tableStyles.muted}>{formatKilometers(vehicle.kilometraje)}</td>
-          <td>{formatPrice(vehicle.precio)}</td>
+      <td>{formatPrice(vehicle.precio, vehicle.moneda)}</td>
           <td className={`${tableStyles.muted} ${tableStyles.truncate} ${styles.colPlace}`} title={vehicle.ubicacion}>
             {vehicle.ubicacion}
           </td>

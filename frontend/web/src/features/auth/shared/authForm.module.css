@@ -53,6 +53,16 @@
   font: 400 14px/normal var(--font-sans);
 }
 
+/* Figma "Input" with chevron: our own arrow, 16 px in from the right edge, instead of the browser's flush one. */
+select.input {
+  appearance: none;
+  padding-right: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%231a140f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 12px 8px;
+}
+
 /* A textarea keeps the input look but grows with its rows instead of the fixed 48. */
 .textarea {
   height: auto;

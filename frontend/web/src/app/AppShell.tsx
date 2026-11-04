@@ -129,6 +129,9 @@ export default function AppShell() {
                         Inventario
                       </NavLink>
                     ) : null}
+                    <NavLink to="/concesionaria/leads" className={styles.navAction}>
+                      Métricas
+                    </NavLink>
                   </>
                 ) : null}
                 {isAdmin(user) ? (
@@ -147,6 +150,9 @@ export default function AppShell() {
                     </NavLink>
                     <NavLink to="/recomendaciones" className={styles.navAction}>
                       Recomendados
+                    </NavLink>
+                    <NavLink to="/favoritos" className={styles.navAction}>
+                      Favoritos
                     </NavLink>
                     <NavLink to="/transferencia" className={styles.navAction}>
                       Transferencia

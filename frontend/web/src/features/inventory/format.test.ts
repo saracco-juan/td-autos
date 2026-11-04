@@ -24,6 +24,11 @@ describe('formatKilometers', () => {
 })
 
 describe('formatPrice', () => {
+  it('distinguishes dollars without converting the published amount', () => {
+    expect(formatPrice(18500, 'USD')).toBe('US$ 18.500')
+    expect(vehicleMeta(vehiculo({ precio: 18500, moneda: 'USD' }))).toContain('US$ 18.500')
+  })
+
   it.each([
     [18500000, '$ 18.500.000'],
     [950000, '$ 950.000'],

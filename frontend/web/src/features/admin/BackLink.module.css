@@ -1,4 +1,4 @@
-/* Figma "Back Link": a boxed chevron (soft button look, DESIGN.md) and the text. */
+/* Figma "Back Link": a boxed chevron (soft button look, docs/design.md) and the text. */
 .backLink {
   display: inline-flex;
   align-items: center;

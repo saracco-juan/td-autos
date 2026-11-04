@@ -9,6 +9,7 @@ use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
 use App\Support\VehiculoFotos;
 use App\Support\VehiculoOptions;
+use Database\Seeders\Support\DemoVehicleFacts;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 
@@ -75,7 +76,8 @@ class LocalDevSeeder extends Seeder
                 'combustible' => 'nafta',
                 'tipo_carroceria_id' => TipoCarroceria::where('nombre', $sample['body'])->sole()->id,
                 'ubicacion' => $dealer->localidad,
-                'descripcion' => 'Vehículo de demostración. Imágenes sintéticas; no es una oferta real.',
+                'descripcion' => DemoVehicleFacts::NOTICE.' Imágenes sintéticas.',
+                ...DemoVehicleFacts::profile($index, 'nafta'),
             ]);
 
             VehiculoConcesionaria::create([

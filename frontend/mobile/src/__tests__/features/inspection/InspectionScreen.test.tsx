@@ -227,12 +227,12 @@ describe('InspectionScreen', () => {
     expect(await screen.findByText('Algo salió mal')).toBeOnTheScreen()
   })
 
-  it('goes home from Volver a la ficha when there is nothing to go back to', async () => {
+  it('opens the vehicle sheet from Volver a la ficha when there is nothing to go back to', async () => {
     const view = await open()
 
     await fireEvent.press(screen.getByRole('link', { name: 'Volver a la ficha' }))
 
-    await waitFor(() => expect(view.getPathname()).toBe('/'))
+    await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
   })
 
   it('shows the total row in the progress card', async () => {

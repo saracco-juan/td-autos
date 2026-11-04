@@ -47,7 +47,7 @@ export default function InspectionScreen({ rawId }: Readonly<{ rawId: string | u
 
 function Checklist({ vehicleId }: Readonly<{ vehicleId: number }>) {
   const { authFetch } = useAuth()
-  const goBack = useBackToSheet()
+  const goBack = useBackToSheet(vehicleId)
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const [content, setContent] = useState<Content | null>(null)
   const steps = toChecklistSteps(content?.steps ?? [])
@@ -86,7 +86,7 @@ function Checklist({ vehicleId }: Readonly<{ vehicleId: number }>) {
 
   const { progress } = flow
   const header = (
-    <InspectionHeader title={vehicleTitle(content.vehicle)} completed={progress.completed} total={progress.total} />
+    <InspectionHeader vehicleId={vehicleId} title={vehicleTitle(content.vehicle)} completed={progress.completed} total={progress.total} />
   )
 
   if (flow.view === 'summary') {

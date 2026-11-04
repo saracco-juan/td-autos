@@ -247,6 +247,41 @@ describe('DiagnosisPage', () => {
   })
 
   describe('pre-filled answers', () => {
+    it.each([
+      ['1_2', '1 o 2'], ['3_4', '3 o 4'], ['5', '5'], ['mas_5', 'Más de 5'],
+    ] as const)('UH-5: restores and saves the passenger range %s', async (pasajeros, label) => {
+      const user = userEvent.setup()
+      const diagnostico = { ...savedAnswers, pasajeros }
+      await renderPage({ diagnostico, carrocerias: bodyTypes })
+      await next(user)
+      await next(user)
+      expect(screen.getByText('Incluyendo al conductor.')).toBeInTheDocument()
+      expect(screen.getAllByRole('radio')).toHaveLength(4)
+      expect(screen.queryByRole('radio', { name: '5 o más' })).not.toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: label })).toBeChecked()
+      expect(summaryValue('Pasajeros')?.textContent).toBe(label)
+      for (let step = 2; step < 6; step++) await next(user)
+      await finish(user)
+      expect(saveDiagnosis).toHaveBeenCalledWith(diagnostico)
+    })
+
+    it('UH-5: requires a new passenger choice while retaining the other legacy answers', async () => {
+      const user = userEvent.setup()
+      await renderPage({ diagnostico: { ...savedAnswers, pasajeros: null }, carrocerias: bodyTypes })
+      expect(screen.getByText('PASO 3 DE 7')).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent('Actualizamos las opciones de pasajeros. Volvé a elegir cuántas personas viajan habitualmente.')
+      expect(screen.getAllByRole('radio').every((radio) => !(radio as HTMLInputElement).checked)).toBe(true)
+      expect(summaryValue('Pasajeros')).toHaveTextContent(/^En curso$/)
+      await next(user)
+      expect(screen.getByText(UNANSWERED_STEP_MESSAGE)).toBeInTheDocument()
+      expect(saveDiagnosis).not.toHaveBeenCalled()
+      await choose(user, 'Más de 5')
+      expect(summaryValue('Pasajeros')).toHaveTextContent(/^Más de 5$/)
+      for (let step = 2; step < 6; step++) await next(user)
+      await finish(user)
+      expect(saveDiagnosis).toHaveBeenCalledWith({ ...savedAnswers, pasajeros: 'mas_5' })
+    })
+
     it('pre-selects the saved answers on every step, starting at step 1', async () => {
       const user = userEvent.setup()
       await renderPage({ diagnostico: savedAnswers, carrocerias: bodyTypes })

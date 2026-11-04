@@ -1,4 +1,4 @@
-/* A centered column up to 1200 px: header, search, cards and pager share its edges (DESIGN.md). */
+/* A centered column up to 1200 px: header, search, cards and pager share its edges (docs/design.md). */
 .page {
   display: flex;
   flex-direction: column;
@@ -13,7 +13,58 @@
   padding-top: 16px;
 }
 
-/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right; the search box goes under them. */
+/* HU07 keeps the existing header/grid and adds the High v3 filter sidebar (inside the dealers tab, HU06). */
+.filterPage {
+  /* The real shell has min-height, not a fixed height: sidebar content must not size the page. */
+  contain: size;
+}
+
+.tabPanel {
+  min-width: 0;
+}
+
+.dealersLayout {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.comparison {
+  flex: none;
+  max-width: 100%;
+}
+
+/* The exchange-rate notice: small secondary text under the toolbar. */
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.filterPage .filteredFrame[data-fill] {
+  min-height: 0;
+}
+
+@media (max-width: 800px) {
+  /* Filters first, the comparison group below at full width. */
+  .comparison {
+    width: 100%;
+  }
+
+  .comparison > section > div {
+    justify-content: space-between;
+  }
+}
+
+/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right. */
 .headerRow {
   display: flex;
   align-items: flex-end;
@@ -47,26 +98,14 @@
   width: clamp(180px, 20%, 236px);
 }
 
-/* Full-width search field under the header; it searches on Enter. */
-.search {
-  min-width: 0;
-}
-
-/* The loader and the states live here and are centered in it; the header and the search stay in place. */
+/* The loader and the states live here and are centered in it, the header stays in place. */
 .results {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  min-width: 0;
   min-height: 240px;
-}
-
-/* Where the cards were while the next page loads: the loader is centered in the space of the grid. */
-.gridLoading {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
 }
 
 /* Room for the card shadows, which the scroll box would clip. */
@@ -74,7 +113,7 @@
   padding: 2px 4px 10px;
 }
 
-/* 3 x 3 (DESIGN.md): three columns, rows as tall as the cards; what does not fit scrolls inside the list box. */
+/* 3 x 3 (docs/design.md): three columns, rows as tall as the cards; what does not fit scrolls inside the list box. */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

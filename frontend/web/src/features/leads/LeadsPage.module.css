@@ -1,0 +1,189 @@
+.page {
+  contain: size;
+  gap: 20px;
+}
+
+.header p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.header {
+  display: grid;
+  gap: 8px;
+}
+
+.header .hint {
+  font-size: 12px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filters button {
+  width: auto;
+  border-radius: 999px;
+  text-transform: none;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 16px;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.3fr);
+  grid-template-rows: minmax(185px, 0.8fr) minmax(230px, 1.2fr);
+  grid-template-areas: 'total total ranking' 'brands concentration ranking';
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.dashboard[data-empty] {
+  display: flex;
+  flex-direction: column;
+}
+
+.rankingPanel {
+  grid-area: ranking;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.rankingPanel .row {
+  background: var(--surface-raised);
+  border-color: transparent;
+  padding: 12px;
+}
+
+.rankingPanel .bar::-webkit-meter-bar {
+  background: var(--surface-default);
+}
+
+.card, .row {
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.card h2, .rankingTitle, .empty h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.card p, .empty p {
+  color: var(--text-secondary);
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.ranking[data-fill] {
+  flex: 1;
+  min-height: 0;
+}
+
+.list {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.rowHeading {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.rowHeading span {
+  overflow-wrap: anywhere;
+}
+
+.rowHeading strong {
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.bar {
+  display: block;
+  width: 100%;
+  height: 12px;
+  margin-top: 12px;
+  border: 0;
+}
+
+.bar::-webkit-meter-bar {
+  background: var(--surface-raised);
+  border: 0;
+  border-radius: 999px;
+}
+
+.bar::-webkit-meter-optimum-value {
+  background: var(--accent-default);
+  border-radius: 999px;
+}
+
+.bar::-moz-meter-bar {
+  background: var(--accent-default);
+  border-radius: 999px;
+}
+
+.empty {
+  text-align: center;
+  margin: auto;
+  padding: 24px;
+}
+
+@media (max-width: 600px) {
+  .page {
+    gap: 16px;
+  }
+
+  .filters {
+    gap: 8px;
+  }
+
+  .filters button {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .dashboard {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(230px, auto) minmax(300px, 1fr);
+    grid-template-areas: 'total total' 'brands concentration' 'ranking ranking';
+    gap: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  .dashboard > section {
+    flex: 0 0 auto;
+  }
+
+  .rankingPanel {
+    min-height: min(360px, 65svh);
+  }
+}

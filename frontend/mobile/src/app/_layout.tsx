@@ -12,11 +12,12 @@ function RootNavigator() {
   if (status === 'loading') return <Loader />
 
   return (
+    // A failed guard redirects (Expo Router 58): guests go to the login, signed-in users to the tabs.
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={status === 'guest'}>
+      <Stack.Protected guard={status === 'guest'} redirectTo="/">
         <Stack.Screen name="(guest)" />
       </Stack.Protected>
-      <Stack.Protected guard={status === 'authenticated'}>
+      <Stack.Protected guard={status === 'authenticated'} redirectTo="/login">
         <Stack.Screen name="(tabs)" />
       </Stack.Protected>
       <Stack.Screen name="auth/google" />

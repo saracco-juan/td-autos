@@ -16,7 +16,7 @@
   text-decoration: none;
 }
 
-/* Figma "Back arrow": 36 square in the soft button look (DESIGN.md). */
+/* Figma "Back arrow": 36 square in the soft button look (docs/design.md). */
 .arrow {
   display: inline-flex;
   align-items: center;

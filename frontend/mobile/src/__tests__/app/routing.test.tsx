@@ -1,4 +1,5 @@
 import { fireEvent, screen, waitFor } from 'expo-router/testing-library'
+import { StyleSheet } from 'react-native'
 
 import * as api from '../../features/auth/api'
 import * as diagnosisApi from '../../features/diagnosis/api'
@@ -18,6 +19,18 @@ const diagnosis = jest.mocked(diagnosisApi)
 const transfer = jest.mocked(transferApi)
 
 const USER = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador' }
+
+type HostNode = NonNullable<typeof screen.root>
+
+function findHost(node: HostNode | string | null, match: (node: HostNode) => boolean): HostNode | undefined {
+  if (node === null || typeof node === 'string') return undefined
+  if (match(node)) return node
+  for (const child of node.children) {
+    const found = findHost(child, match)
+    if (found) return found
+  }
+  return undefined
+}
 
 describe('route guards', () => {
   beforeEach(() => {
@@ -52,6 +65,21 @@ describe('route guards', () => {
     for (const label of ['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia', 'Perfil']) {
       expect(screen.getByRole('button', { name: new RegExp(`^${label},`) })).toBeOnTheScreen()
     }
+  })
+
+  it('lays out only the five tabs, so the hidden inspection route takes no slot in the bar', async () => {
+    storage.readToken.mockResolvedValue('tok')
+    apiMock.fetchCurrentUser.mockResolvedValue(USER)
+
+    await renderApp('/')
+
+    await screen.findByText('DIAGNÓSTICO DE NECESIDADES')
+    // Every host child of the tab list is one tab item; a hidden one must not take flex space.
+    const tablist = findHost(screen.root, (node) => node.props.role === 'tablist')
+    const items = (tablist?.children ?? []).filter(
+      (item) => typeof item !== 'string' && StyleSheet.flatten(item.props.style)?.display !== 'none',
+    )
+    expect(items).toHaveLength(5)
   })
 
   it('opens the transfer checklist in the Transferencia tab', async () => {

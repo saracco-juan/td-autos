@@ -62,7 +62,6 @@ class ConcesionariaVehiculoController extends Controller
                 $vehiculo = Vehiculo::create([
                     ...$request->vehiculoAttributes(),
                     'origen' => VehiculoOptions::ORIGEN_CONCESIONARIA,
-                    'moneda' => VehiculoOptions::MONEDA,
                 ]);
 
                 $vehiculo->propiedad()->create([

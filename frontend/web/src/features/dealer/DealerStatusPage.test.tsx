@@ -124,11 +124,11 @@ describe('DealerStatusPage', () => {
     expect(screen.getByText('Sin información de estado')).toBeInTheDocument()
   })
 
-  it('leaves the receipt review and the inventory button to later stories', () => {
+  it('keeps receipt review and inventory actions outside the verification page', () => {
     renderPage(dealerIn('pendiente'))
 
     expect(screen.queryByText('Revisión')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'ENVIAR COMPROBANTE' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'VER INVENTARIO' })).not.toBeInTheDocument()
   })
 })

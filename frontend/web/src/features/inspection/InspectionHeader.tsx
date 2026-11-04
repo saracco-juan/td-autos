@@ -16,7 +16,7 @@ type Props = {
 export default function InspectionHeader({ vehicleId, title, completed, total, titleRef }: Props) {
   return (
     <div className={styles.header}>
-      {/* The vehicle sheet (HU09) does not exist yet: the link points to its planned route. */}
+      {/* HU09 provides the current buyer vehicle detail at this route. */}
       <Link to={`/vehiculos/${vehicleId}`} className={styles.back}>
         <span aria-hidden="true" className={styles.chevron}>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">

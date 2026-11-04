@@ -33,6 +33,12 @@ return [
 
     'stores' => [
 
+        // Separate from the default database cache; loss only costs a catalog reload.
+        'catalog' => [
+            'driver' => env('CATALOG_CACHE_DRIVER', 'file'),
+            'path' => storage_path('framework/cache/catalog'),
+        ],
+
         'array' => [
             'driver' => 'array',
             'serialize' => false,

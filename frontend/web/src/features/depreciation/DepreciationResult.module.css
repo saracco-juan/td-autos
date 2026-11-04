@@ -1,0 +1,136 @@
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 32px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.card,
+.summary {
+  min-width: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-default);
+  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
+}
+
+.card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card h2,
+.card h3,
+.caption {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.card p,
+.note,
+.legend {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.chartValue {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--text-primary);
+}
+.chartYear {
+  font-size: 12px;
+  fill: var(--text-secondary);
+}
+.area {
+  fill: var(--text-secondary);
+  opacity: 0.12;
+}
+.curve {
+  fill: none;
+  stroke: var(--text-primary);
+  stroke-width: 2.5;
+}
+.axis {
+  fill: none;
+  stroke: var(--border-default);
+}
+.legend::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  margin-right: 8px;
+  background: var(--text-primary);
+}
+.caption {
+  color: var(--text-secondary);
+}
+.factors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.rate {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 13px;
+}
+.summary table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.summary caption {
+  text-align: left;
+  padding: 20px 16px 12px;
+  font-weight: 600;
+  font-size: 16px;
+}
+.summary th,
+.summary td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+.summary th {
+  text-align: left;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+.summary td {
+  text-align: right;
+}
+.summary .note {
+  padding: 16px;
+}
+
+@media (max-width: 799px) {
+  .body { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+
+@media (max-width: 500px) {
+  .factors { grid-template-columns: minmax(0, 1fr); }
+  .chartValue { display: none; }
+  .chartYear { font-size: 32px; }
+  .card { padding: 16px; }
+}

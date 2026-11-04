@@ -2,7 +2,7 @@
 #   td-autos-api      <- branch main     (production)
 #   td-autos-api-dev  <- branch develop  (development)
 # The browser never calls these hosts directly: the SPA on Vercel proxies /backend/* to them
-# (frontend/web/vercel.json). Setup, secrets and per-environment values: DEVELOPMENT.md, "Deploy".
+# (frontend/web/vercel.json). Setup, secrets and per-environment values: docs/infrastructure.md.
 #
 # `sync: false` values are asked for once, when the Blueprint is first created; later Blueprint
 # syncs ignore them, so change them afterwards in each service's Environment tab.
@@ -83,7 +83,7 @@ services:
         sync: false
       - key: CRON_SECRET
         sync: false
-      # Mail goes through the Gmail API (Render free blocks outbound SMTP): DEVELOPMENT.md, "Mail".
+      # Mail goes through the Gmail API (Render free blocks outbound SMTP): docs/infrastructure.md, "Mail".
       - key: GMAIL_CLIENT_ID
         sync: false
       - key: GMAIL_CLIENT_SECRET
@@ -106,7 +106,7 @@ services:
     dockerContext: .
     healthCheckPath: /up
     autoDeployTrigger: commit
-    # Same keys as td-autos-api; values differ per environment (DEVELOPMENT.md).
+    # Same keys as td-autos-api; values differ per environment (docs/infrastructure.md).
     envVars:
       # Fixed values, same in both environments.
       - key: APP_NAME
@@ -168,7 +168,7 @@ services:
         sync: false
       - key: CRON_SECRET
         sync: false
-      # Mail goes through the Gmail API (Render free blocks outbound SMTP): DEVELOPMENT.md, "Mail".
+      # Mail goes through the Gmail API (Render free blocks outbound SMTP): docs/infrastructure.md, "Mail".
       - key: GMAIL_CLIENT_ID
         sync: false
       - key: GMAIL_CLIENT_SECRET

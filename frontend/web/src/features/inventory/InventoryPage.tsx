@@ -41,7 +41,7 @@ function PageHeader({ subtitle }: { subtitle: string }) {
 
 const REMOVED_NOTICE = "Eliminaste el vehículo.";
 
-// "Mostrar" options (DESIGN.md): the page size is the dealer's choice, never the screen's.
+// "Mostrar" options (docs/design.md): the page size is the dealer's choice, never the screen's.
 const PAGE_SIZES = [10, 25, 50];
 
 // The message the form leaves in the navigation state (saved or edited); anything else is ignored.
@@ -51,7 +51,7 @@ function noticeFrom(state: unknown): string | null {
 }
 
 // Dealer inventory (Figma 38:884, UH-21): the dealer's vehicles with EDITAR and ELIMINAR, and the load action.
-// IMPORTAR CSV opens the import (UH-22); SUSCRIPCIÓN of the frame waits for its own story.
+// IMPORTAR XLSX opens the import (UH-22); SUSCRIPCIÓN of the frame waits for its own story.
 export default function InventoryPage() {
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [vehicles, setVehicles] = useState<Vehiculo[]>([]);
@@ -261,7 +261,7 @@ export default function InventoryPage() {
                 to="/concesionaria/inventario/importar"
                 className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.load}`}
               >
-                IMPORTAR CSV
+                IMPORTAR XLSX
               </Link>
             </>
           }

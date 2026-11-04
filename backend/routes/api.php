@@ -3,16 +3,26 @@
 use App\Http\Controllers\Admin\ComprobanteController as AdminComprobanteController;
 use App\Http\Controllers\Admin\ConcesionariaController as AdminConcesionariaController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\BusquedaController;
+use App\Http\Controllers\BuyerVehicleContactController;
+use App\Http\Controllers\BuyerVehicleDetailController;
 use App\Http\Controllers\ConcesionariaVehiculoController;
 use App\Http\Controllers\ConcesionariaVehiculoImportController;
+use App\Http\Controllers\DealerContactController;
+use App\Http\Controllers\DealerLeadsController;
 use App\Http\Controllers\DiagnosticoController;
+use App\Http\Controllers\FavoritoController;
 use App\Http\Controllers\InspeccionController;
+use App\Http\Controllers\InventoryXlsxTemplateController;
 use App\Http\Controllers\Mobile\MobileAuthController;
 use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecomendacionesController;
+use App\Http\Controllers\RecomendacionesModelosController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
+use App\Http\Controllers\VehicleCatalogController;
+use App\Http\Controllers\VehicleDepreciationController;
+use App\Http\Controllers\VehiculoCostosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,10 +42,27 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::put('/user', [ProfileController::class, 'update']);
 
-    Route::get('/busqueda', [BusquedaController::class, 'index']);
+    Route::get('/concesionaria/leads', DealerLeadsController::class)->middleware('dealer');
+
+    Route::middleware('dealer')->prefix('concesionaria/contacto')->group(function () {
+        Route::get('/', [DealerContactController::class, 'show']);
+        Route::put('/', [DealerContactController::class, 'update']);
+    });
 
     Route::get('/diagnostico', [DiagnosticoController::class, 'show']);
     Route::put('/diagnostico', [DiagnosticoController::class, 'save']);
+
+    Route::get('/recomendaciones', [RecomendacionesController::class, 'index']);
+    Route::get('/recomendaciones/modelos', [RecomendacionesModelosController::class, 'index']);
+
+    Route::get('/favoritos', [FavoritoController::class, 'index']);
+    Route::put('/favoritos/{id}', [FavoritoController::class, 'store'])->whereNumber('id');
+    Route::delete('/favoritos/{id}', [FavoritoController::class, 'destroy'])->whereNumber('id');
+
+    Route::get('/vehiculos/{id}', BuyerVehicleDetailController::class)->whereNumber('id');
+    Route::post('/vehiculos/{id}/contacto', BuyerVehicleContactController::class)->whereNumber('id');
+    Route::get('/vehiculos/{id}/depreciacion', VehicleDepreciationController::class)->whereNumber('id');
+    Route::get('/vehiculos/{id}/costos', [VehiculoCostosController::class, 'show']);
 
     Route::get('/vehiculos/{vehiculo}/inspeccion', [InspeccionController::class, 'show']);
     Route::put('/vehiculos/{vehiculo}/inspeccion/items/{codigo}', [InspeccionController::class, 'toggle']);
@@ -52,6 +79,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::middleware('dealer.active')->prefix('concesionaria/vehiculos')->group(function () {
+        Route::get('/catalogo', VehicleCatalogController::class);
+        Route::get('/importar/plantilla', InventoryXlsxTemplateController::class);
         Route::post('/importar/vista-previa', [ConcesionariaVehiculoImportController::class, 'preview']);
         Route::post('/importar', [ConcesionariaVehiculoImportController::class, 'import']);
         Route::get('/', [ConcesionariaVehiculoController::class, 'index']);

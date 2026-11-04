@@ -50,7 +50,7 @@ return [
         ],
 
         // Gmail API over HTTPS (App\Mail\Transport\GmailApiTransport), for hosts that block
-        // outbound SMTP. OAuth client and refresh token setup: DEVELOPMENT.md, "Mail".
+        // outbound SMTP. OAuth client and refresh token setup: docs/infrastructure.md, "Mail".
         'gmail' => [
             'transport' => 'gmail',
             'client_id' => env('GMAIL_CLIENT_ID'),

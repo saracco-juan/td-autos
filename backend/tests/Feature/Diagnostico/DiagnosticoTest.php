@@ -95,7 +95,7 @@ class DiagnosticoTest extends TestCase
 
         $changed = $this->answers([
             'presupuesto' => 'mas_40m',
-            'pasajeros' => '5_mas',
+            'pasajeros' => 'mas_5',
             'prioridad' => 'reventa',
             'carrocerias' => [2],
         ]);
@@ -157,7 +157,7 @@ class DiagnosticoTest extends TestCase
     {
         $user = User::factory()->create();
 
-        foreach (['mas_40m' => '1_2', 'hasta_15m' => '3_4', '25m_40m' => '5_mas'] as $presupuesto => $pasajeros) {
+        foreach (['mas_40m' => '1_2', 'hasta_15m' => '3_4', '25m_40m' => '5', '15m_25m' => 'mas_5'] as $presupuesto => $pasajeros) {
             $answers = $this->answers(['presupuesto' => $presupuesto, 'pasajeros' => $pasajeros]);
             $this->actingAs($user)->putJson('/api/diagnostico', $answers)->assertOk();
 
@@ -280,5 +280,93 @@ class DiagnosticoTest extends TestCase
             ['Sedán', 'Hatchback', 'SUV', 'Pickup', 'Furgón', 'Rural / familiar'],
             TipoCarroceria::orderBy('id')->pluck('nombre')->all(),
         );
+    }
+
+    // UH-5: old clients must not silently store the ambiguous passenger bucket.
+    public function test_legacy_passenger_code_cannot_replace_saved_answers(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->putJson('/api/diagnostico', $this->answers())->assertOk();
+        $before = DB::table('diagnostico')->get()->toJson();
+        $links = DB::table('diagnostico_carroceria')->get()->toJson();
+
+        $this->putJson('/api/diagnostico', $this->answers(['pasajeros' => '5_mas', 'carrocerias' => [2]]))
+            ->assertUnprocessable()->assertJsonPath('errors.pasajeros.0', 'Elegí una opción.');
+
+        $this->assertSame($before, DB::table('diagnostico')->get()->toJson());
+        $this->assertSame($links, DB::table('diagnostico_carroceria')->get()->toJson());
+    }
+
+    // UH-5: only the ambiguous legacy answer is invalidated, never the whole diagnosis.
+    public function test_migration_requires_passenger_confirmation_and_preserves_other_answers(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user)->putJson('/api/diagnostico', $this->answers())->assertOk();
+        DB::table('diagnostico')->where('usuario_id', $user->id)->update(['pasajeros' => 5]);
+        $before = DB::table('diagnostico')->where('usuario_id', $user->id)->first();
+        foreach ([2, 4, 6, null] as $seats) {
+            Diagnostico::create(['usuario_id' => User::factory()->create()->id, 'pasajeros' => $seats]);
+        }
+        $others = fn () => DB::table('diagnostico')->where('usuario_id', '!=', $user->id)->get()->toJson();
+        $otherBefore = $others();
+        $links = DB::table('diagnostico_carroceria')->get()->toJson();
+        $migration = '2026_10_20_000001_require_legacy_passenger_confirmation';
+        DB::table('migrations')->where('migration', $migration)->delete();
+
+        $this->artisan('migrate', ['--path' => 'database/migrations/'.$migration.'.php', '--force' => true])->assertExitCode(0);
+
+        $expected = $this->answers(['pasajeros' => null]);
+        $this->getJson('/api/diagnostico')->assertOk()->assertJsonPath('diagnostico', $expected);
+        $this->getJson('/api/user')->assertOk()->assertJsonPath('tiene_diagnostico', false);
+        $after = DB::table('diagnostico')->where('usuario_id', $user->id)->first();
+        $this->assertEquals((object) array_replace((array) $before, ['pasajeros' => null, 'estado' => 'pendiente_pasajeros']), $after);
+        $this->assertSame($otherBefore, $others());
+        $this->assertSame($links, DB::table('diagnostico_carroceria')->get()->toJson());
+        $this->putJson('/api/diagnostico', $expected)->assertUnprocessable()->assertJsonValidationErrors('pasajeros');
+        $this->assertEquals($after, DB::table('diagnostico')->where('usuario_id', $user->id)->first());
+
+        foreach (['5' => 5, 'mas_5' => 6] as $code => $seats) {
+            $confirmed = $this->answers(['pasajeros' => (string) $code]);
+            $this->putJson('/api/diagnostico', $confirmed)->assertOk()->assertExactJson(['diagnostico' => $confirmed]);
+            $this->getJson('/api/diagnostico')->assertJsonPath('diagnostico', $confirmed);
+            $this->getJson('/api/user')->assertJsonPath('tiene_diagnostico', true);
+            $this->assertDatabaseHas('diagnostico', ['usuario_id' => $user->id, 'pasajeros' => $seats, 'estado' => 'completo']);
+        }
+    }
+
+    public function test_passenger_rollback_refuses_saved_diagnoses_and_rerun_preserves_confirmation(): void
+    {
+        $user = User::factory()->create();
+        $confirmed = $this->answers(['pasajeros' => '5']);
+        $this->actingAs($user)->putJson('/api/diagnostico', $confirmed)->assertOk();
+        $response = $this->getJson('/api/diagnostico')->assertOk()->json();
+        $before = DB::table('diagnostico')->get()->toJson();
+        $links = DB::table('diagnostico_carroceria')->get()->toJson();
+        $history = DB::table('migrations')->get()->toJson();
+
+        $migration = '2026_10_20_000001_require_legacy_passenger_confirmation';
+        try {
+            $this->artisan('migrate:rollback', [
+                '--step' => DB::table('migrations')->where('migration', '>=', $migration)->count(),
+                '--path' => ['database/migrations/'.$migration.'.php'],
+                '--force' => true,
+            ])->run();
+            $this->fail('Rollback must refuse saved diagnoses and retain its migration history.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame(
+                'Cannot roll back passenger confirmation while diagnoses exist. Restore a coordinated backup instead.',
+                $exception->getMessage(),
+            );
+        }
+
+        $this->assertSame($history, DB::table('migrations')->get()->toJson());
+        $this->assertSame($before, DB::table('diagnostico')->get()->toJson());
+        $this->assertSame($links, DB::table('diagnostico_carroceria')->get()->toJson());
+        $this->artisan('migrate', ['--force' => true])->assertExitCode(0);
+        $this->assertSame($history, DB::table('migrations')->get()->toJson());
+        $this->assertSame($before, DB::table('diagnostico')->get()->toJson());
+        $this->assertSame($links, DB::table('diagnostico_carroceria')->get()->toJson());
+        $this->getJson('/api/diagnostico')->assertOk()->assertExactJson($response);
+        $this->getJson('/api/user')->assertOk()->assertJsonPath('tiene_diagnostico', true);
     }
 }
