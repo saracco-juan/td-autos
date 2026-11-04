@@ -73,3 +73,16 @@ The [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) workflow runs on e
 The SonarQube Cloud job needs the `SONAR_TOKEN` secret in the GitHub repository and does not run on pull requests opened from forks.
 
 Merging to `main` requires the Backend, Web frontend and both SonarQube checks to pass (repository ruleset).
+
+## Releases
+
+Every push to `main` is a promotion to production, and the [`.github/workflows/release.yml`](../.github/workflows/release.yml) workflow tags it (`scripts/release-tag.sh`) and publishes a GitHub Release whose notes list the pull requests merged since the previous tag.
+
+| Merged into `main` | New version |
+|--------------------|-------------|
+| `develop` (or any other branch) | minor: `v0.1.0` → `v0.2.0` |
+| `hotfix/<short-description>` | patch: `v0.2.0` → `v0.2.1` |
+
+- For another bump (for example `major` for the final delivery), run it by hand: Actions → Release → Run workflow, branch `main`, choose the bump. A commit that already has a version tag is skipped.
+- The hotfix rule reads the merge commit subject (`Merge pull request #N from <owner>/hotfix/...`), so merge hotfixes with a merge commit, not squash or rebase.
+- To see what is in production, compare tags (`git log v0.1.0..v0.2.0`); to roll back, redeploy the commit of the previous tag in Render and Vercel.
