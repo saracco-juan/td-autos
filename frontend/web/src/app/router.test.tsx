@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api/client'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api/client'
-import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api'
-import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../features/inventory/fixtures'
+import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api/client'
+import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../test/fixtures/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api/client'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api/client'
@@ -40,7 +40,7 @@ vi.mock('../features/inspection/api/client', () => ({
   finishInspection: vi.fn(),
 }))
 
-vi.mock('../features/inventory/api', () => ({
+vi.mock('../features/inventory/api/client', () => ({
   fetchVehicles: vi.fn(),
   deleteVehicle: vi.fn(),
   fetchVehicle: vi.fn(),

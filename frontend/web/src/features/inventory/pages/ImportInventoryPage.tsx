@@ -1,22 +1,24 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
+import Button from '../../../components/Buttons/Button'
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router";
-import alertStyles from "../../styles/alert.module.css";
-import buttonStyles from "../../components/Buttons/button.module.css";
-import barStyles from "../../components/checklist/pinnedBar.module.css";
-import ScrollArea from "../../components/ScrollArea/ScrollArea";
-import { HttpError } from "../../lib/http";
-import SessionLoading from "../auth/session/components/SessionLoading";
-import { confirmImport, fetchInventoryTemplate, previewImport } from "./api";
+import { useNavigate } from "react-router";
+import alertStyles from "../../../styles/alert.module.css";
+import buttonStyles from "../../../components/Buttons/button.module.css";
+import barStyles from "../../../components/checklist/pinnedBar.module.css";
+import ScrollArea from "../../../components/ScrollArea/ScrollArea";
+import { HttpError } from "../../../lib/http";
+import SessionLoading from "../../auth/session/components/SessionLoading";
+import { confirmImport, fetchInventoryTemplate, previewImport } from "../api/client";
 import {
   inactiveSubscription,
   type InactiveSubscription,
-} from "./inactiveSubscription";
-import { importFailureFrom, type ImportFailure } from "./importErrors";
-import { appliedNotice, previewSummary } from "./importMessages";
+} from "../model/inactiveSubscription";
+import { importFailureFrom, type ImportFailure } from "../model/importErrors";
+import { appliedNotice, previewSummary } from "../model/importMessages";
 import styles from "./ImportInventoryPage.module.css";
-import { goToInventory, INVENTORY_PATH } from "./inventoryRoutes";
-import SubscriptionBlockedNotice from "./SubscriptionBlockedNotice";
-import type { ImportCounts } from "./types";
+import { goToInventory, INVENTORY_PATH } from "../model/inventoryRoutes";
+import SubscriptionBlockedNotice from "../components/SubscriptionBlockedNotice";
+import type { ImportCounts } from "../model/types";
 import VehicleFormPage from "./VehicleFormPage";
 
 type Preview = "none" | "loading" | ImportCounts;
@@ -130,21 +132,21 @@ export default function ImportInventoryPage() {
       subtitle="Subí un archivo para cargar o actualizar varios vehículos a la vez."
       actions={
         <div className={barStyles.actions}>
-          <Link
+          <ButtonLink
             to={INVENTORY_PATH}
-            className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
+            variant="secondary" className={`${barStyles.action}`}
           >
             VOLVER AL INVENTARIO
-          </Link>
-          <button
+          </ButtonLink>
+          <Button
             type="button"
             disabled={!ready || confirming}
             aria-busy={confirming}
-            className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+            variant="success" className={`${barStyles.actionWide}`}
             onClick={() => void confirm()}
           >
             {confirming ? "IMPORTANDO…" : "CONFIRMAR IMPORTACIÓN"}
-          </button>
+          </Button>
         </div>
       }
     >
@@ -161,15 +163,15 @@ export default function ImportInventoryPage() {
         {MATCHING_HELP.map((help) => (
           <p key={help} className={styles.cardBody}>{help}</p>
         ))}
-        <button
+        <Button
           type="button"
           disabled={downloading || confirming}
           aria-busy={downloading}
           onClick={() => void downloadTemplate()}
-          className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.template}`}
+          variant="secondary" className={`${styles.template}`}
         >
           {downloading ? "DESCARGANDO…" : "DESCARGAR PLANTILLA"}
-        </button>
+        </Button>
       </section>
       <div className={styles.fileRow}>
         <div className={styles.fileField}>

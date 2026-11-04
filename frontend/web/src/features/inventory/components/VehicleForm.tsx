@@ -1,26 +1,26 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
+import Button from '../../../components/Buttons/Button'
 import { useCallback, useEffect, useId, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import barStyles from '../../components/checklist/pinnedBar.module.css'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import { HttpError, NetworkError } from '../../lib/http'
-import type { BodyType } from '../diagnosis/model/types'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import SelectField, { type SelectOption } from '../auth/shared/components/SelectField'
-import TextAreaField from '../auth/shared/components/TextAreaField'
-import TextField from '../auth/shared/components/TextField'
-import { fetchBodyTypes, fetchVehicleCatalog, type VehicleSubmission } from './api'
+import alertStyles from '../../../styles/alert.module.css'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import { HttpError, NetworkError } from '../../../lib/http'
+import type { BodyType } from '../../diagnosis/model/types'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import SelectField, { type SelectOption } from '../../auth/shared/components/SelectField'
+import TextAreaField from '../../auth/shared/components/TextAreaField'
+import TextField from '../../auth/shared/components/TextField'
+import { fetchBodyTypes, fetchVehicleCatalog, type VehicleSubmission } from '../api/client'
 import CatalogField from './CatalogField'
-import { inactiveSubscription, type InactiveSubscription } from './inactiveSubscription'
-import { INVENTORY_PATH } from './inventoryRoutes'
+import { inactiveSubscription, type InactiveSubscription } from '../model/inactiveSubscription'
+import { INVENTORY_PATH } from '../model/inventoryRoutes'
 import PhotoPicker from './PhotoPicker'
 import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
-import type { FotoVehiculo, VehicleCatalog } from './types'
-import { usePhotoDraft } from './usePhotoDraft'
-import VehicleFormPage from './VehicleFormPage'
+import type { FotoVehiculo, VehicleCatalog } from '../model/types'
+import { usePhotoDraft } from '../hooks/usePhotoDraft'
+import VehicleFormPage from '../pages/VehicleFormPage'
 import { EQUIPMENT_GROUPS } from '@shared/vehicles/equipment'
-import { YES_NO } from './matchingFields'
+import { YES_NO } from '../model/matchingFields'
 import styles from './VehicleForm.module.css'
 import {
   COMBUSTIBLE_OPTIONS,
@@ -32,7 +32,7 @@ import {
   type VehicleErrors,
   type VehicleFieldName,
   type VehicleValues,
-} from './vehicleFields'
+} from '../model/vehicleFields'
 
 const NETWORK_ERROR = 'No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.'
 const SAVE_ERROR = 'No pudimos guardar el vehículo. Probá de nuevo.'
@@ -174,18 +174,18 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
     <div className={styles.actionArea}>
       {formError ? <p role="alert" className={alertStyles.alert}>{formError}</p> : null}
       <div className={barStyles.actions}>
-        <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}>
+        <ButtonLink to={INVENTORY_PATH} variant="danger" className={`${barStyles.action}`}>
           CANCELAR
-        </Link>
-        <button
+        </ButtonLink>
+        <Button
           type="submit"
           form={formId}
           disabled={submitting}
           aria-busy={submitting}
-          className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+          variant="success" className={`${barStyles.actionWide}`}
         >
           {submitting ? 'GUARDANDO…' : submitLabel}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -217,7 +217,7 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
             <h2 className={styles.sectionTitle}>Datos del vehículo</h2>
             <div className={styles.fullRow}>
               <p>Buscá y elegí la marca, el modelo y la versión del catálogo.</p>
-              {!catalog.identities ? <p className={alertStyles.alert}>El catálogo no está disponible. Podés guardar cambios de vehículos vinculados, pero no vincular una versión nueva. <button type="button" className={buttonStyles.button} onClick={retry}>REINTENTAR</button></p> : null}
+              {!catalog.identities ? <p className={alertStyles.alert}>El catálogo no está disponible. Podés guardar cambios de vehículos vinculados, pero no vincular una versión nueva. <Button type="button"  onClick={retry}>REINTENTAR</Button></p> : null}
               {catalog.identities?.stale ? <p>Usamos el último catálogo disponible. Sus precios pueden estar desactualizados.</p> : null}
               {isEditing && !initialValues.acara_version_id ? <p>Este vehículo no está vinculado al catálogo. Elegí una versión del catálogo para guardar cambios.</p> : null}
             </div>

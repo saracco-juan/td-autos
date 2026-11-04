@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { MATCHING_FACTS, VEHICULOS, vehiculo } from './fixtures'
-import { matchingValues } from './matchingFields'
+import { MATCHING_FACTS, VEHICULOS, vehiculo } from '../../fixtures/inventory/fixtures'
+import { matchingValues } from '../../../features/inventory/model/matchingFields'
 import {
   emptyValues,
   errorsFromServer,
@@ -9,7 +9,7 @@ import {
   validateVehicleForm,
   valuesFromVehicle,
   type VehicleValues,
-} from './vehicleFields'
+} from '../../../features/inventory/model/vehicleFields'
 
 const valid: VehicleValues = {
   ...matchingValues(MATCHING_FACTS),

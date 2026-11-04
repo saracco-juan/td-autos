@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { FotoVehiculo } from './types'
-import { PHOTOS_MAX } from './vehicleFields'
-import { checkNewFiles } from './vehiclePhotos'
+import type { FotoVehiculo } from '../model/types'
+import { PHOTOS_MAX } from '../model/vehicleFields'
+import { checkNewFiles } from '../model/vehiclePhotos'
 
 export type AddedPhoto = { key: number; file: File; url: string }
 

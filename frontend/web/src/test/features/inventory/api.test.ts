@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn(), apiFetchBlob: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn(), apiFetchBlob: vi.fn() }))
 
-import { apiFetch, apiFetchBlob } from '../../lib/http'
+import { apiFetch, apiFetchBlob } from '../../../lib/http'
 import {
   buildVehicleFormData,
   confirmImport,
@@ -14,9 +14,9 @@ import {
   fetchInventoryTemplate,
   previewImport,
   updateVehicle,
-} from './api'
-import { VEHICULOS, vehiculo } from './fixtures'
-import { emptyValues, type VehicleValues } from './vehicleFields'
+} from '../../../features/inventory/api/client'
+import { VEHICULOS, vehiculo } from '../../fixtures/inventory/fixtures'
+import { emptyValues, type VehicleValues } from '../../../features/inventory/model/vehicleFields'
 
 describe('inventory api', () => {
   beforeEach(() => {

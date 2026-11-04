@@ -7,7 +7,7 @@ import {
   compatibilityLabel, displayScore, equivalentPriceLabel, recommendationTitle,
   warningMessages,
 } from '@shared/recommendations/format'
-import { formatKilometers, formatPrice } from '../inventory/format'
+import { formatKilometers, formatPrice } from '../inventory/model/format'
 import FavoriteButton from '../favorites/components/FavoriteButton'
 import type { Recommendation } from './matching'
 import CardPhotos from './CardPhotos'

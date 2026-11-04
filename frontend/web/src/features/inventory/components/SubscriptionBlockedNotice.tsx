@@ -1,7 +1,6 @@
-import { Link } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import { SUBSCRIPTION_PATH, pausedInventoryText, type InactiveSubscription } from './inactiveSubscription'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
+import alertStyles from '../../../styles/alert.module.css'
+import { SUBSCRIPTION_PATH, pausedInventoryText, type InactiveSubscription } from '../model/inactiveSubscription'
 import styles from './SubscriptionBlockedNotice.module.css'
 
 const RENEW = 'RENOVAR SUSCRIPCIÓN'
@@ -10,9 +9,9 @@ const RENEW = 'RENOVAR SUSCRIPCIÓN'
 // The card replaces the content of a page that cannot load; the compact box reports a refused submit in place.
 export default function SubscriptionBlockedNotice({ info, compact }: { info: InactiveSubscription; compact?: boolean }) {
   const renew = (
-    <Link to={SUBSCRIPTION_PATH} className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.link}`}>
+    <ButtonLink to={SUBSCRIPTION_PATH} variant="primary" className={`${styles.link}`}>
       {RENEW}
-    </Link>
+    </ButtonLink>
   )
 
   if (compact) {

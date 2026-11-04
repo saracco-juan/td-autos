@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { vehiculo } from './fixtures'
-import { formatKilometers, formatPrice, vehicleMeta, vehicleTitle } from './format'
+import { vehiculo } from '../../fixtures/inventory/fixtures'
+import { formatKilometers, formatPrice, vehicleMeta, vehicleTitle } from '../../../features/inventory/model/format'
 
 describe('vehicleTitle', () => {
   it('joins brand, model, version and year', () => {

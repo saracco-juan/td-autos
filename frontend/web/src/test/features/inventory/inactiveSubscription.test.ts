@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { INACTIVE_MESSAGE, PAUSED_TEXT, inactiveBody } from './fixtures'
-import { inactiveSubscription, pausedInventoryText } from './inactiveSubscription'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { INACTIVE_MESSAGE, PAUSED_TEXT, inactiveBody } from '../../fixtures/inventory/fixtures'
+import { inactiveSubscription, pausedInventoryText } from '../../../features/inventory/model/inactiveSubscription'
 
 describe('inactiveSubscription', () => {
   it('reads the message and the data of the 403 that blocks an inactive subscription', () => {

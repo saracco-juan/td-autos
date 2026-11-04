@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router'
-import { createVehicle } from './api'
-import { goToInventory } from './inventoryRoutes'
-import VehicleForm from './VehicleForm'
-import { emptyValues } from './vehicleFields'
+import { createVehicle } from '../api/client'
+import { goToInventory } from '../model/inventoryRoutes'
+import VehicleForm from '../components/VehicleForm'
+import { emptyValues } from '../model/vehicleFields'
 
 // Load a vehicle (Figma 38:923, CU-19): the form starts empty; saving returns to the list with a success message.
 export default function NewVehiclePage() {

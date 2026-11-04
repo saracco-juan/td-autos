@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PHOTO_MAX_BYTES, checkNewFiles } from './vehiclePhotos'
+import { PHOTO_MAX_BYTES, checkNewFiles } from '../../../features/inventory/model/vehiclePhotos'
 
 function file(name: string, type = 'image/jpeg', size = 10) {
   const result = new File(['x'], name, { type })

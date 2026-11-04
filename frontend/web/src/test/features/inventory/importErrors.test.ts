@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { importFailureFrom } from './importErrors'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { importFailureFrom } from '../../../features/inventory/model/importErrors'
 
 describe('importFailureFrom', () => {
   it('reads the row errors of a 422, one line per message', () => {

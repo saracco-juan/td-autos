@@ -1,4 +1,4 @@
-import type { Vehiculo, VehicleCatalog } from './types'
+import type { Vehiculo, VehicleCatalog } from '../../../features/inventory/model/types'
 import { EQUIPMENT_FIELDS } from '@shared/vehicles/equipment'
 
 export const VEHICLE_CATALOG: VehicleCatalog = {

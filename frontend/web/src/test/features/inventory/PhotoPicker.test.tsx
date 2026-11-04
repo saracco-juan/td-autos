@@ -2,10 +2,10 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import PhotoPicker from './PhotoPicker'
-import { vehiculo } from './fixtures'
-import type { FotoVehiculo } from './types'
-import { usePhotoDraft, type PhotoDraft } from './usePhotoDraft'
+import PhotoPicker from '../../../features/inventory/components/PhotoPicker'
+import { vehiculo } from '../../fixtures/inventory/fixtures'
+import type { FotoVehiculo } from '../../../features/inventory/model/types'
+import { usePhotoDraft, type PhotoDraft } from '../../../features/inventory/hooks/usePhotoDraft'
 
 let latest: PhotoDraft
 let counter = 0

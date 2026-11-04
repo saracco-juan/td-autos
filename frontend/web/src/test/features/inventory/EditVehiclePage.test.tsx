@@ -2,12 +2,12 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { fetchBodyTypes, fetchVehicle, fetchVehicleCatalog, updateVehicle } from './api'
-import EditVehiclePage from './EditVehiclePage'
-import { PAUSED_HINT, PAUSED_TEXT, inactiveBody, vehiculo } from './fixtures'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { fetchBodyTypes, fetchVehicle, fetchVehicleCatalog, updateVehicle } from '../../../features/inventory/api/client'
+import EditVehiclePage from '../../../features/inventory/pages/EditVehiclePage'
+import { PAUSED_HINT, PAUSED_TEXT, inactiveBody, vehiculo } from '../../fixtures/inventory/fixtures'
 
-vi.mock('./api', () => ({ fetchVehicle: vi.fn(), updateVehicle: vi.fn(), fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
+vi.mock('../../../features/inventory/api/client', () => ({ fetchVehicle: vi.fn(), updateVehicle: vi.fn(), fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
 
 function Inventory() {
   const location = useLocation()

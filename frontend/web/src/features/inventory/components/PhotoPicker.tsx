@@ -1,8 +1,8 @@
 import { useId, useRef } from 'react'
-import buttonStyles from '../../components/Buttons/button.module.css'
+import buttonStyles from '../../../components/Buttons/button.module.css'
 import styles from './PhotoPicker.module.css'
-import type { PhotoDraft } from './usePhotoDraft'
-import { PHOTOS_MIN } from './vehicleFields'
+import type { PhotoDraft } from '../hooks/usePhotoDraft'
+import { PHOTOS_MIN } from '../model/vehicleFields'
 
 // Id of the file input: the form moves the focus here when the photos are what failed.
 export const PHOTO_INPUT_ID = 'vehicle-fotos'

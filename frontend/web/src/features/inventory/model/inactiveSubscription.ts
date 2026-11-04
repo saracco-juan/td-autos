@@ -1,5 +1,5 @@
-import { HttpError } from '../../lib/http'
-import { formatDay, retentionReached } from '../admin/model/format'
+import { HttpError } from '../../../lib/http'
+import { formatDay, retentionReached } from '../../admin/model/format'
 
 export const SUBSCRIPTION_PATH = '/concesionaria/suscripcion'
 

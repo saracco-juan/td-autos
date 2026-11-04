@@ -2,12 +2,12 @@ import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { confirmImport, fetchInventoryTemplate, previewImport } from './api'
-import { inactiveBody } from './fixtures'
-import ImportInventoryPage from './ImportInventoryPage'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { confirmImport, fetchInventoryTemplate, previewImport } from '../../../features/inventory/api/client'
+import { inactiveBody } from '../../fixtures/inventory/fixtures'
+import ImportInventoryPage from '../../../features/inventory/pages/ImportInventoryPage'
 
-vi.mock('./api', () => ({ previewImport: vi.fn(), confirmImport: vi.fn(), fetchInventoryTemplate: vi.fn() }))
+vi.mock('../../../features/inventory/api/client', () => ({ previewImport: vi.fn(), confirmImport: vi.fn(), fetchInventoryTemplate: vi.fn() }))
 
 type Counts = { nuevos: number; actualizaciones: number }
 

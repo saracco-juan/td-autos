@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { buildVehicleFormData } from './api'
-import { vehiculo } from './fixtures'
-import { emptyValues, errorsFromServer, validateVehicleForm, valuesFromVehicle } from './vehicleFields'
+import { buildVehicleFormData } from '../../../features/inventory/api/client'
+import { vehiculo } from '../../fixtures/inventory/fixtures'
+import { emptyValues, errorsFromServer, validateVehicleForm, valuesFromVehicle } from '../../../features/inventory/model/vehicleFields'
 
 const flags = [
   'control_estabilidad', 'frenos_abs', 'airbags_frontales', 'airbags_laterales',

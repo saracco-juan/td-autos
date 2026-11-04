@@ -1,8 +1,8 @@
-import { apiFetch, apiFetchBlob } from '../../lib/http'
-import { fetchDiagnosis } from '../diagnosis/api/client'
-import type { BodyType } from '../diagnosis/model/types'
-import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse, VehicleCatalog } from './types'
-import { normalizePlate, type VehicleValues } from './vehicleFields'
+import { apiFetch, apiFetchBlob } from '../../../lib/http'
+import { fetchDiagnosis } from '../../diagnosis/api/client'
+import type { BodyType } from '../../diagnosis/model/types'
+import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse, VehicleCatalog } from '../model/types'
+import { normalizePlate, type VehicleValues } from '../model/vehicleFields'
 
 export async function fetchVehicles(): Promise<Vehiculo[]> {
   const response = await apiFetch<VehiculosResponse>('/api/concesionaria/vehiculos')

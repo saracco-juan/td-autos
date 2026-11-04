@@ -2,12 +2,12 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { deleteVehicle, fetchVehicles } from './api'
-import { PAUSED_HINT, PAUSED_TEXT, VEHICULOS, inactiveBody, vehiculo } from './fixtures'
-import InventoryPage from './InventoryPage'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { deleteVehicle, fetchVehicles } from '../../../features/inventory/api/client'
+import { PAUSED_HINT, PAUSED_TEXT, VEHICULOS, inactiveBody, vehiculo } from '../../fixtures/inventory/fixtures'
+import InventoryPage from '../../../features/inventory/pages/InventoryPage'
 
-vi.mock('./api', () => ({ fetchVehicles: vi.fn(), deleteVehicle: vi.fn() }))
+vi.mock('../../../features/inventory/api/client', () => ({ fetchVehicles: vi.fn(), deleteVehicle: vi.fn() }))
 
 const COROLLA = 'Toyota Corolla XEI 2021'
 const CRONOS = 'Fiat Cronos Drive 2022'

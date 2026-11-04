@@ -4,7 +4,7 @@ import type {
 } from '@shared/recommendations/matching'
 import { RECOMMENDATIONS_PATH } from '@shared/recommendations/matching'
 import { apiFetch } from '../../lib/http'
-import type { MatchingFacts } from '../inventory/matchingFields'
+import type { MatchingFacts } from '../inventory/model/matchingFields'
 
 // The response types live in frontend/shared; web cards also read the optional matching facts.
 export type Recommendation = SharedRecommendation<MatchingFacts>

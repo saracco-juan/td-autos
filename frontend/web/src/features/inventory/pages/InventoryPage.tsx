@@ -1,27 +1,27 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
-import alertStyles from "../../styles/alert.module.css";
-import buttonStyles from "../../components/Buttons/button.module.css";
-import tableStyles from "../../styles/dataTable.module.css";
-import ErrorState, { type ErrorKind } from "../../components/ErrorState/ErrorState";
-import ListFooter from "../../components/ListFooter/ListFooter";
-import Pagination from "../../components/Pagination/Pagination";
-import ScrollArea from "../../components/ScrollArea/ScrollArea";
-import screenStyles from "../../styles/screen.module.css";
-import usePagedItems from "../../hooks/usePagedItems";
-import { HttpError, NetworkError } from "../../lib/http";
-import SessionLoading from "../auth/session/components/SessionLoading";
-import { deleteVehicle, fetchVehicles } from "./api";
+import { useLocation, useNavigate } from "react-router";
+import alertStyles from "../../../styles/alert.module.css";
+import tableStyles from "../../../styles/dataTable.module.css";
+import ErrorState, { type ErrorKind } from "../../../components/ErrorState/ErrorState";
+import ListFooter from "../../../components/ListFooter/ListFooter";
+import Pagination from "../../../components/Pagination/Pagination";
+import ScrollArea from "../../../components/ScrollArea/ScrollArea";
+import screenStyles from "../../../styles/screen.module.css";
+import usePagedItems from "../../../hooks/usePagedItems";
+import { HttpError, NetworkError } from "../../../lib/http";
+import SessionLoading from "../../auth/session/components/SessionLoading";
+import { deleteVehicle, fetchVehicles } from "../api/client";
 import {
   inactiveSubscription,
   type InactiveSubscription,
-} from "./inactiveSubscription";
+} from "../model/inactiveSubscription";
 import styles from "./InventoryPage.module.css";
-import type { InventoryLocationState } from "./inventoryRoutes";
-import SubscriptionBlockedNotice from "./SubscriptionBlockedNotice";
-import type { Vehiculo } from "./types";
-import VehicleRow from "./VehicleRow";
-import rowStyles from "./VehicleRow.module.css";
+import type { InventoryLocationState } from "../model/inventoryRoutes";
+import SubscriptionBlockedNotice from "../components/SubscriptionBlockedNotice";
+import type { Vehiculo } from "../model/types";
+import VehicleRow from "../components/VehicleRow";
+import rowStyles from "../components/VehicleRow.module.css";
 
 type LoadState =
   | "loading"
@@ -251,18 +251,18 @@ export default function InventoryPage() {
         <ListFooter
           actions={
             <>
-              <Link
+              <ButtonLink
                 to="/concesionaria/inventario/nuevo"
-                className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.load}`}
+                variant="primary" className={`${styles.load}`}
               >
                 CARGAR VEHÍCULO
-              </Link>
-              <Link
+              </ButtonLink>
+              <ButtonLink
                 to="/concesionaria/inventario/importar"
-                className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.load}`}
+                variant="secondary" className={`${styles.load}`}
               >
                 IMPORTAR XLSX
-              </Link>
+              </ButtonLink>
             </>
           }
         >

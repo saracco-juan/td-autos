@@ -8,7 +8,7 @@ import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorSta
 import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/components/SessionLoading'
 import FavoriteButton from '../favorites/components/FavoriteButton'
-import { formatPrice } from '../inventory/format'
+import { formatPrice } from '../inventory/model/format'
 import { fetchVehicleDetail } from './api'
 import { readDetailContext, readDetailReturn, type DetailContext } from './navigation'
 import type { VehicleDetailResponse } from './types'

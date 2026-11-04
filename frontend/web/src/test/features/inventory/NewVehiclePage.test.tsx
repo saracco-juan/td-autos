@@ -2,13 +2,13 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../lib/http'
-import { createVehicle, fetchBodyTypes, fetchVehicleCatalog } from './api'
-import { MATCHING_FACTS, VEHICLE_CATALOG, vehiculo } from './fixtures'
-import { matchingValues } from './matchingFields'
-import NewVehiclePage from './NewVehiclePage'
+import { HttpError } from '../../../lib/http'
+import { createVehicle, fetchBodyTypes, fetchVehicleCatalog } from '../../../features/inventory/api/client'
+import { MATCHING_FACTS, VEHICLE_CATALOG, vehiculo } from '../../fixtures/inventory/fixtures'
+import { matchingValues } from '../../../features/inventory/model/matchingFields'
+import NewVehiclePage from '../../../features/inventory/pages/NewVehiclePage'
 
-vi.mock('./api', () => ({ createVehicle: vi.fn(), fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
+vi.mock('../../../features/inventory/api/client', () => ({ createVehicle: vi.fn(), fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
 
 function Inventory() {
   const location = useLocation()

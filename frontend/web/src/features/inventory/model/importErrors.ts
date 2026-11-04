@@ -1,4 +1,4 @@
-import { HttpError, NetworkError } from '../../lib/http'
+import { HttpError, NetworkError } from '../../../lib/http'
 
 export type ImportFailure = {
   message: string

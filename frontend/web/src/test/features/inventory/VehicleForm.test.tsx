@@ -2,14 +2,14 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { fetchBodyTypes, fetchVehicleCatalog, type VehicleSubmission } from './api'
-import { inactiveBody, MATCHING_FACTS, VEHICLE_CATALOG, vehiculo } from './fixtures'
-import { matchingValues } from './matchingFields'
-import VehicleForm from './VehicleForm'
-import { emptyValues, valuesFromVehicle, type VehicleValues } from './vehicleFields'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { fetchBodyTypes, fetchVehicleCatalog, type VehicleSubmission } from '../../../features/inventory/api/client'
+import { inactiveBody, MATCHING_FACTS, VEHICLE_CATALOG, vehiculo } from '../../fixtures/inventory/fixtures'
+import { matchingValues } from '../../../features/inventory/model/matchingFields'
+import VehicleForm from '../../../features/inventory/components/VehicleForm'
+import { emptyValues, valuesFromVehicle, type VehicleValues } from '../../../features/inventory/model/vehicleFields'
 
-vi.mock('./api', () => ({ fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
+vi.mock('../../../features/inventory/api/client', () => ({ fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
 
 const BODY_TYPES = [
   { id: 1, nombre: 'Sedán' },
