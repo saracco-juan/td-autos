@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it } from 'vitest'
-import Tabs from './Tabs'
+import Tabs from '../../components/Tabs/Tabs'
 import { useState } from 'react'
 
 const items = [{ id: 'general', label: 'General' }, { id: 'engine', label: 'Engine' }]

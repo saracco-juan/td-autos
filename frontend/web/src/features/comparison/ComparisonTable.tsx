@@ -4,7 +4,7 @@ import { vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import type { SpecificationRow } from '@shared/vehicles/detail'
 import { comparisonGroups, type ComparisonEntry } from '@shared/comparison/groups'
 import InfoTip from '../../components/InfoTip'
-import Tabs from '../../components/Tabs'
+import Tabs from '../../components/Tabs/Tabs'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './ComparisonTable.module.css'
 

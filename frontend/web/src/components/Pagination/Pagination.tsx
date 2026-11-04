@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { buildPageItems } from '@shared/pagination/pageItems'
-import groupStyles from './buttonGroup.module.css'
+import groupStyles from '../buttonGroup.module.css'
 import styles from './Pagination.module.css'
 
 type PaginationProps = {

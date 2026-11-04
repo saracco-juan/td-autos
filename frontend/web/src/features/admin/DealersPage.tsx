@@ -4,11 +4,11 @@ import alertStyles from "../../components/alert.module.css";
 import groupStyles from "../../components/buttonGroup.module.css";
 import tableStyles from "../../components/dataTable.module.css";
 import ErrorState from "../../components/ErrorState";
-import ListFooter from "../../components/ListFooter";
-import Pagination from "../../components/Pagination";
+import ListFooter from "../../components/ListFooter/ListFooter";
+import Pagination from "../../components/Pagination/Pagination";
 import ScrollArea from "../../components/ScrollArea/ScrollArea";
 import screenStyles from "../../components/screen.module.css";
-import usePagedItems from "../../components/usePagedItems";
+import usePagedItems from "../../hooks/usePagedItems";
 import SessionLoading from "../auth/session/SessionLoading";
 import styles from "./admin.module.css";
 import {

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import ListFooter from './ListFooter'
+import ListFooter from '../../components/ListFooter/ListFooter'
 
 describe('ListFooter', () => {
   it('puts the actions first and the pager last, in one group each', () => {

@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 import buttonStyles from "../../components/Buttons/button.module.css";
-import ListFooter from "../../components/ListFooter";
-import Pagination from "../../components/Pagination";
+import ListFooter from "../../components/ListFooter/ListFooter";
+import Pagination from "../../components/Pagination/Pagination";
 import ScrollArea from "../../components/ScrollArea/ScrollArea";
-import usePagedItems from "../../components/usePagedItems";
+import usePagedItems from "../../hooks/usePagedItems";
 import { formatSentDate } from "../subscription/format";
 import adminStyles from "./admin.module.css";
 import styles from "./DealerEditPage.module.css";
