@@ -45,7 +45,11 @@ final class DiagnosisRecommendations
             ->get()->keyBy('id');
         $exchange = $this->exchange->current();
         $resale = $diagnosis->prioridad_comprador === 'reventa'
-            ? app(ResaleScorer::class)->scores($vehicles, app(AcaraPriceSource::class)->current(), app(DnrpaActivityStore::class)->current()) : [];
+            ? app(ResaleScorer::class)->scores(
+                $vehicles,
+                app(AcaraPriceSource::class)->current(),
+                app(DnrpaActivityStore::class)->current(),
+            ) : [];
         $ranking = $this->ranker->rank($vehicles, $diagnosis, $dealerIds, $at->year, $exchange['quote']['sell'] ?? null, $resale);
         $favoriteIds = $this->favorites->savedVehicleIds($userId, array_column($ranking['results'], 'listing_id'));
         foreach ($ranking['results'] as &$result) {

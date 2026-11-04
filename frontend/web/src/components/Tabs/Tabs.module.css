@@ -45,9 +45,6 @@
 
 .tab[aria-selected='true'] {
   background: var(--surface-raised);
-}
-
-.tab[aria-selected='true'] {
   border-color: var(--border-input);
   font-weight: 700;
 }

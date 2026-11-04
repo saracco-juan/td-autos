@@ -79,12 +79,12 @@ export default function MatchingRecommendationsPage() {
       {view.status === 'error' ? <ErrorState kind={view.kind} onRetry={retry} /> : null}
       {response?.status === 'ready' && notice.warning ? (
         <div className={styles.notice}>
-          <p role="status" className={alertStyles.warning}>{notice.warning}</p>
+          <p className={alertStyles.warning}><output>{notice.warning}</output></p>
         </div>
       ) : null}
       {empty && results.length === 0 ? (
         <div className={styles.empty}>
-          <p className={styles.emptyTitle} role="status">{empty.title}</p>
+          <p className={styles.emptyTitle}><output>{empty.title}</output></p>
           <p className={styles.emptyHint}>{empty.hint}</p>
         </div>
       ) : null}

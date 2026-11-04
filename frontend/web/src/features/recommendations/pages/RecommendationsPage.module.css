@@ -120,6 +120,8 @@
 }
 
 .adjust {
+  flex: none;
+  width: clamp(180px, 20%, 236px);
   height: 36px;
   min-height: 36px;
   border-radius: 10px;
@@ -186,11 +188,6 @@
   margin: 0;
   color: var(--text-secondary);
   font-size: 14px;
-}
-
-.adjust {
-  flex: none;
-  width: clamp(180px, 20%, 236px);
 }
 
 /* Loading and empty states use the same natural page flow as the cards. */

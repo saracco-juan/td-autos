@@ -23,12 +23,14 @@ export function checklistSurface(panel: HTMLElement, tab: HTMLElement, expanding
     transform: 'translate(0px, 0px) scale(1, 1)',
     opacity: expanding ? 1 : 0,
   }
+  let extendedTransform = 'translate(0px, 0px) scale(1, 1)'
+  if (interruptedBounds) {
+    extendedTransform = `translate(${interruptedBounds.left - origin.left}px, ${interruptedBounds.top - origin.top}px) scale(${interruptedBounds.width / origin.width}, ${interruptedBounds.height / origin.height})`
+  } else if (expanding) {
+    extendedTransform = `translate(0px, -2px) scale(${(origin.width + 24) / origin.width}, ${(origin.height + 4) / origin.height})`
+  }
   const extended = {
-    transform: interruptedBounds
-      ? `translate(${interruptedBounds.left - origin.left}px, ${interruptedBounds.top - origin.top}px) scale(${interruptedBounds.width / origin.width}, ${interruptedBounds.height / origin.height})`
-      : expanding
-        ? `translate(0px, -2px) scale(${(origin.width + 24) / origin.width}, ${(origin.height + 4) / origin.height})`
-        : 'translate(0px, 0px) scale(1, 1)',
+    transform: extendedTransform,
     opacity: 1,
   }
   const animation = surface.animate(expanding ? [atTab, extended] : [extended, atTab], {

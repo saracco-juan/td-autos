@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import styles from './AppFooter.module.css'
 import ScrollCue from '../components/ScrollCue/ScrollCue'
 
-export default function AppFooter({ home }: { home: boolean }) {
+export default function AppFooter({ home }: Readonly<{ home: boolean }>) {
   return (
     <footer className={`${styles.footer} ${home ? styles.home : ''}`}>
       <div className={styles.information}>

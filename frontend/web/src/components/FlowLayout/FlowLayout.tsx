@@ -13,7 +13,7 @@ type Props = {
 
 // Frame of the flow and form screens: fills the free height between the header and the footer, with the content
 // on top and the action bar at the bottom. A taller content scrolls the page and the bar stays visible.
-export default function FlowLayout({ children, actions, narrow = false, className = '' }: Props) {
+export default function FlowLayout({ children, actions, narrow = false, className = '' }: Readonly<Props>) {
   return (
     <div className={`${styles.flow} ${narrow ? styles.narrow : ''} ${className}`}>
       <div className={styles.body}>{children}</div>

@@ -93,8 +93,8 @@ export default function ProfileForm({
       </Button>
       <div className={styles.feedback}>
         {successMessage ? (
-          <p role="status" className={`${alertStyles.notice} ${styles.success}`}>
-            {successMessage}
+          <p className={`${alertStyles.notice} ${styles.success}`}>
+            <output>{successMessage}</output>
           </p>
         ) : null}
         {formError ? (

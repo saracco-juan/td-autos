@@ -1,17 +1,18 @@
 import InfoTip from '../../../components/InfoTip/InfoTip'
 import type { DetailContext } from '../model/navigation'
 import styles from './VehicleCompatibility.module.css'
+import accessibility from '../../../styles/accessibility.module.css'
 
 const number = (value: number) => value.toLocaleString('es-AR', { maximumFractionDigits: 1 })
 
 export default function VehicleCompatibility({ context }: { context: DetailContext | null }) {
   const metrics = context ? [
-    { label: context.usageLabel ?? 'Uso', value: context.factors.usage,
+    { id: 'usage', label: context.usageLabel ?? 'Uso', value: context.factors.usage,
       explanation: context.usageLabel ? `Elegiste ${context.usageLabel.toLocaleLowerCase('es-AR')} como uso principal.` : 'Coincidencia con el uso de tu diagnóstico.' },
-    { label: 'Carrocería', value: context.factors.body },
-    { label: context.priorityLabel ?? 'Prioridad', value: context.factors.priority,
+    { id: 'body', label: 'Carrocería', value: context.factors.body },
+    { id: 'priority', label: context.priorityLabel ?? 'Prioridad', value: context.factors.priority,
       explanation: context.priorityLabel ? `Elegiste ${context.priorityLabel.toLocaleLowerCase('es-AR')} como prioridad principal.` : 'Coincidencia con la prioridad de tu diagnóstico.' },
-    { label: 'Confort', value: context.factors.comfort },
+    { id: 'comfort', label: 'Confort', value: context.factors.comfort },
   ] : []
 
   return (
@@ -22,11 +23,13 @@ export default function VehicleCompatibility({ context }: { context: DetailConte
       </div>
       {context ? <>
         <div className={styles.metrics}>
-          {metrics.map(({ label, value, explanation }, index) => (
-            <div className={styles.metric} key={index}>
+          {metrics.map(({ id, label, value, explanation }) => (
+            <div className={styles.metric} key={id}>
               {value !== null ? <>
                 <div className={styles.scale} aria-hidden="true"><span>0%</span><span>100%</span></div>
-                <div className={styles.track} role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={value}>
+                <div className={styles.track}>
+                  <meter className={accessibility.visuallyHidden} min={0} max={100} value={value}
+                    aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={value} />
                   <span style={{ width: `${value}%` }} />
                 </div>
                 <p className={styles.score}>{number(value)}<span>%</span></p>

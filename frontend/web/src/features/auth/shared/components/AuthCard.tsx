@@ -13,7 +13,7 @@ type Props = {
 }
 
 // Card shared by every auth screen: title row with the boxed wordmark, optional subtitle, then the content.
-export default function AuthCard({ title, titleId, subtitle, wide = false, embedded = false, focusTitle = false, children }: Props) {
+export default function AuthCard({ title, titleId, subtitle, wide = false, embedded = false, focusTitle = false, children }: Readonly<Props>) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   useEffect(() => {
     if (focusTitle) titleRef.current?.focus({ preventScroll: true })

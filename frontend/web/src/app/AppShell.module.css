@@ -57,7 +57,6 @@
 }
 
 .menuPanel { display: contents; }
-.menuToggle { display: none; }
 
 .navLinks {
   display: flex;
@@ -74,8 +73,6 @@
 }
 
 .navAction { composes: fill from '../components/Buttons/buttonHover.module.css'; }
-.logout { composes: fill from '../components/Buttons/buttonHover.module.css'; }
-.menuToggle { composes: fill from '../components/Buttons/buttonHover.module.css'; }
 
 .navAction,
 .logout,
@@ -100,7 +97,10 @@
     margin-inline 550ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.menuToggle { display: none; }
+.menuToggle {
+  composes: fill from '../components/Buttons/buttonHover.module.css';
+  display: none;
+}
 
 /* Only the selected item detaches; its inactive neighbors form continuous groups.
    The small margin transition is intentionally scoped to this single navigation row. */
@@ -134,6 +134,7 @@
 }
 
 .logout {
+  composes: fill from '../components/Buttons/buttonHover.module.css';
   border-color: #dedddb;
   background: var(--surface-default);
 }

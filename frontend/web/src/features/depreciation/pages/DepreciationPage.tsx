@@ -44,8 +44,8 @@ function DepreciationScreen({ id, returnState }: { id: number | null; returnStat
         {id === null ? 'Volver a recomendados' : 'Volver a la ficha'}
       </BackLink>
       {view.status === 'loading' ? <SessionLoading /> : null}
-      {view.status === 'unavailable' ? <section role="status">
-        <h1 ref={heading} tabIndex={-1} className={styles.title}>Esta publicación ya no está disponible.</h1>
+      {view.status === 'unavailable' ? <section aria-live="polite">
+        <h1 ref={heading} tabIndex={-1} className={styles.title}><output>Esta publicación ya no está disponible.</output></h1>
         <Link to="/recomendaciones">Ver recomendados</Link>
       </section> : null}
       {view.status === 'error' ? <ErrorState kind={view.kind} onRetry={() => {
@@ -59,8 +59,8 @@ function DepreciationScreen({ id, returnState }: { id: number | null; returnStat
         </header>
         {view.data.projection && view.data.reference ? <DepreciationResult projection={view.data.projection}
           reference={view.data.reference} kilometers={view.data.vehicle.kilometraje} />
-          : <section role="status" className={styles.empty}>
-            <h2>{depreciationCopy.insufficient}</h2>
+          : <section aria-live="polite" className={styles.empty}>
+            <h2><output>{depreciationCopy.insufficient}</output></h2>
             <p>{depreciationCopy.insufficientHint}</p>
           </section>}
       </> : null}

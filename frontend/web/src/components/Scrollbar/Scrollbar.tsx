@@ -2,11 +2,11 @@ import { useEffect, useId, useRef, type RefObject } from 'react'
 import styles from './Scrollbar.module.css'
 
 /** A native range keeps dragging and keyboard input while giving both scrollers the same thumb. */
-export default function Scrollbar({ containerRef, contentKey, label }: {
+export default function Scrollbar({ containerRef, contentKey, label }: Readonly<{
   containerRef?: RefObject<HTMLElement | null>
   contentKey?: string
   label: string
-}) {
+}>) {
   const control = useRef<HTMLInputElement>(null)
   const target = useRef<HTMLElement | null>(null)
   const id = useId()
@@ -47,7 +47,9 @@ export default function Scrollbar({ containerRef, contentKey, label }: {
     const wheel = (event: WheelEvent) => {
       if (event.ctrlKey) return
       event.preventDefault()
-      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1
+      let unit = 1
+      if (event.deltaMode === 1) unit = 16
+      else if (event.deltaMode === 2) unit = element.clientHeight
       element.scrollTop += event.deltaY * unit
     }
     if (containerRef) input.addEventListener('wheel', wheel, { passive: false })
@@ -68,7 +70,7 @@ export default function Scrollbar({ containerRef, contentKey, label }: {
   }, [containerRef, contentKey, id])
 
   return <input ref={control} type="range" role="scrollbar" min="0" defaultValue="0" step="1"
-    aria-label={label} aria-orientation="vertical" aria-valuemin={0}
+    aria-label={label} aria-orientation="vertical" aria-valuemin={0} aria-valuenow={0} aria-controls={id}
     className={`${styles.control} ${containerRef ? styles.panel : styles.page}`}
     onChange={(event) => {
       if (target.current) target.current.scrollTop = Number(event.currentTarget.value)

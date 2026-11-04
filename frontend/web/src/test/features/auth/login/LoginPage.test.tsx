@@ -38,6 +38,12 @@ async function fillForm(user: User, email = 'ana@example.com', password = 'Abcde
 const submit = (user: User) => user.click(screen.getByRole('button', { name: 'INGRESAR' }))
 
 describe('LoginPage', () => {
+  beforeEach(() => {
+    login.mockReset().mockResolvedValue(undefined)
+    refresh.mockReset().mockResolvedValue(undefined)
+    vi.mocked(useAuth).mockReturnValue({ user: null, status: 'guest', login, refresh, logout: vi.fn() })
+  })
+
   it('focuses the title when keyboard navigation requests it', () => {
     renderPage({ pathname: '/login', state: { authFocus: 'title' } })
     expect(screen.getByRole('heading', { name: 'Ingresá a tu cuenta' })).toHaveFocus()
@@ -48,11 +54,7 @@ describe('LoginPage', () => {
     expect(screen.getByRole('heading', { name: 'Ingresá a tu cuenta' })).not.toHaveFocus()
   })
 
-  beforeEach(() => {
-    login.mockReset().mockResolvedValue(undefined)
-    refresh.mockReset().mockResolvedValue(undefined)
-    vi.mocked(useAuth).mockReturnValue({ user: null, status: 'guest', login, refresh, logout: vi.fn() })
-  })
+
 
   describe('layout', () => {
     it('renders the title, subtitle, fields and links, without remember-me or dealer link', () => {

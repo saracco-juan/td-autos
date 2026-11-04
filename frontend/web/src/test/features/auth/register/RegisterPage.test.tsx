@@ -56,6 +56,13 @@ const validFields: Fields = {
 const submit = (user: User) => user.click(screen.getByRole('button', { name: 'CREAR CUENTA' }))
 
 describe('RegisterPage', () => {
+  beforeEach(() => {
+    vi.mocked(registerUser).mockReset()
+    vi.mocked(registerUser).mockResolvedValue(createdUser)
+    refresh.mockReset().mockResolvedValue(undefined)
+    vi.mocked(useAuth).mockReturnValue({ user: null, status: 'guest', login: vi.fn(), refresh, logout: vi.fn() })
+  })
+
   it('focuses the title when keyboard navigation requests it', () => {
     renderPage({ pathname: '/registro', state: { authFocus: 'title' } })
     expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toHaveFocus()
@@ -66,12 +73,7 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).not.toHaveFocus()
   })
 
-  beforeEach(() => {
-    vi.mocked(registerUser).mockReset()
-    vi.mocked(registerUser).mockResolvedValue(createdUser)
-    refresh.mockReset().mockResolvedValue(undefined)
-    vi.mocked(useAuth).mockReturnValue({ user: null, status: 'guest', login: vi.fn(), refresh, logout: vi.fn() })
-  })
+
 
   describe('layout', () => {
     it('renders the embedded title, subtitle and login link without a duplicate wordmark', () => {

@@ -5,7 +5,9 @@ import styles from './AuthLayout.module.css'
 
 export default function AuthLayout() {
   const location = useLocation()
-  const mode = location.pathname === '/login' ? 'login' : location.pathname === '/registro' ? 'register' : null
+  let mode: 'login' | 'register' | null = null
+  if (location.pathname === '/login') mode = 'login'
+  else if (location.pathname === '/registro') mode = 'register'
 
   if (mode) {
     return (

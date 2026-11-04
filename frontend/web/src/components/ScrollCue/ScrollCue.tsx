@@ -2,11 +2,11 @@ import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router'
 import styles from './ScrollCue.module.css'
 
-export default function ScrollCue({ to, direction = 'down', children }: {
+export default function ScrollCue({ to, direction = 'down', children }: Readonly<{
   to: string
   direction?: 'up' | 'down'
   children: ReactNode
-}) {
+}>) {
   const { pathname, search, state } = useLocation()
   return (
     <Link to={{ pathname, search, hash: to }} state={state} className={styles.cue} data-direction={direction}>

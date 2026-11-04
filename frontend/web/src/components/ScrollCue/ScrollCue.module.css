@@ -18,5 +18,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cue svg { transition: none; transform: none !important; }
+  .cue svg,
+  .cue:hover svg,
+  .cue[data-direction='up']:hover svg { transition: none; transform: none; }
 }

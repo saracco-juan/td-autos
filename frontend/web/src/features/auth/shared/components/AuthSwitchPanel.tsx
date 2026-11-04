@@ -3,7 +3,7 @@ import styles from './AuthSwitchPanel.module.css'
 
 export type AuthAccessMode = 'login' | 'register'
 
-export default function AuthSwitchPanel({ mode, className }: { mode: AuthAccessMode; className: string }) {
+export default function AuthSwitchPanel({ mode, className }: Readonly<{ mode: AuthAccessMode; className: string }>) {
   const registering = mode === 'register'
   const destination = registering ? '/login' : '/registro'
 

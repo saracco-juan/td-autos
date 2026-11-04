@@ -26,7 +26,7 @@
 .rate strong { font-size: 24px; font-weight: 600; color: var(--palette-charcoal); }
 
 .chart { width: 100%; height: auto; overflow: visible; }
-.chartValue { font-size: 12px; font-weight: 600; fill: var(--text-primary); }
+.chartValue { font-size: 12px; font-weight: 600; fill: var(--text-primary); animation: showValues 400ms ease-out 800ms both; }
 .chartYear { font-size: 12px; fill: var(--text-secondary); }
 .area { fill: var(--palette-charcoal); opacity: 0.05; }
 .curve { fill: none; stroke: var(--palette-charcoal); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -38,10 +38,6 @@
 /* Reveal the actual projection once on entry, without changing its values. */
 .chartReveal {
   animation: drawProjection 1600ms cubic-bezier(0.23, 1, 0.32, 1) both;
-}
-
-.chartValue {
-  animation: showValues 400ms ease-out 800ms both;
 }
 
 @keyframes drawProjection {

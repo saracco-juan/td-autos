@@ -85,7 +85,7 @@ export default function AppShell() {
       // Anchor navigation keeps its destination selected while passing other sections.
       if (anchor) {
         const top = anchor.getBoundingClientRect().top
-        const margin = parseFloat(getComputedStyle(anchor).scrollMarginTop) || 0
+    const margin = Number.parseFloat(getComputedStyle(anchor).scrollMarginTop) || 0
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight
         setVisibleSection(HOME_SECTIONS.some(([id]) => id === anchor?.id) ? anchor.id : null)
         if (Math.abs(top - margin) < 2 || (maxScroll > 0 && window.scrollY >= maxScroll - 2 && top >= margin)) {
