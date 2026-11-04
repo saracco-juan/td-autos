@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { apiFetch, HttpError } from '../../lib/http'
 import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
-import Field from '../auth/shared/Field'
+import Field from '../auth/shared/components/Field'
 import styles from '../profile/ProfileForm.module.css'
 
 type Contact = { telefono_publico: string | null }

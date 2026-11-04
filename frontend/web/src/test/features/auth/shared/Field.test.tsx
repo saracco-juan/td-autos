@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import Field from './Field'
+import Field from '../../../../features/auth/shared/components/Field'
 
 describe('Field', () => {
   it('associates the label with the control through the given id', () => {

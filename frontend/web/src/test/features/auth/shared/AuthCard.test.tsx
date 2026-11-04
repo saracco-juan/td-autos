@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import AuthCard from './AuthCard'
+import AuthCard from '../../../../features/auth/shared/components/AuthCard'
 
 describe('AuthCard', () => {
   it('renders the title, the wordmark, the subtitle and the children', () => {

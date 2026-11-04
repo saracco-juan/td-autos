@@ -2,8 +2,8 @@ import Button from '../../../../components/Buttons/Button'
 import type { ChangeEvent, FormEvent } from 'react'
 import type { FieldErrors } from '../../types'
 import alertStyles from '../../../../styles/alert.module.css'
-import Field from '../../shared/Field'
-import styles from '../../shared/authForm.module.css'
+import Field from '../../shared/components/Field'
+import styles from '../../shared/styles/authForm.module.css'
 
 type Props = {
   email: string

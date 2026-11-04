@@ -1,6 +1,6 @@
-import buttonStyles from '../../../components/Buttons/button.module.css'
-import GoogleIcon from '../../../components/GoogleIcon/GoogleIcon'
-import { GOOGLE_REDIRECT_URL } from '../api'
+import ButtonAnchor from '../../../../components/Buttons/ButtonAnchor'
+import GoogleIcon from '../../../../components/GoogleIcon/GoogleIcon'
+import { GOOGLE_REDIRECT_URL } from '../../api'
 import styles from './GoogleAuthLink.module.css'
 
 type GoogleOrigin = 'registro' | 'login'
@@ -13,10 +13,10 @@ export default function GoogleAuthLink({ from }: { from: GoogleOrigin }) {
       <div className={styles.divider}>
         <span>o</span>
       </div>
-      <a href={`${GOOGLE_REDIRECT_URL}?from=${from}`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+      <ButtonAnchor href={`${GOOGLE_REDIRECT_URL}?from=${from}`} variant="secondary">
         <GoogleIcon />
         CONTINUAR CON GOOGLE
-      </a>
+      </ButtonAnchor>
     </>
   )
 }

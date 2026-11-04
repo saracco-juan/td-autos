@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { PASSWORD_RULES } from '../passwordRules'
-import PasswordRequirements from './PasswordRequirements'
+import { PASSWORD_RULES } from '../../../../features/auth/passwordRules'
+import PasswordRequirements from '../../../../features/auth/shared/components/PasswordRequirements'
 
 describe('PasswordRequirements', () => {
   it('lists every rule as pending for an empty password', () => {

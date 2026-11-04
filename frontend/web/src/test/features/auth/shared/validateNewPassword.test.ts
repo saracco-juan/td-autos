@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateNewPassword } from './validateNewPassword'
+import { validateNewPassword } from '../../../../features/auth/shared/model/validateNewPassword'
 
 describe('validateNewPassword', () => {
   it('returns no errors for a strong password that matches its confirmation', () => {

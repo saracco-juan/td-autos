@@ -2,9 +2,9 @@ import Button from '../../../../components/Buttons/Button'
 import type { ChangeEvent, FormEvent } from 'react'
 import type { FieldErrors } from '../../types'
 import alertStyles from '../../../../styles/alert.module.css'
-import Field from '../../shared/Field'
-import PasswordInput from '../../shared/PasswordInput'
-import styles from '../../shared/authForm.module.css'
+import Field from '../../shared/components/Field'
+import PasswordInput from '../../shared/components/PasswordInput'
+import styles from '../../shared/styles/authForm.module.css'
 import type { LoginFormValues } from '../model/validateLoginForm'
 
 type Props = {

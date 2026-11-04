@@ -1,5 +1,5 @@
 import type { FieldErrors } from '../../types'
-import { validateEmail } from '../../shared/validateEmail'
+import { validateEmail } from '../../shared/model/validateEmail'
 
 export type LoginFormValues = {
   email: string

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { API_URL } from '../../../lib/config'
-import GoogleAuthLink from './GoogleAuthLink'
+import { API_URL } from '../../../../lib/config'
+import GoogleAuthLink from '../../../../features/auth/shared/components/GoogleAuthLink'
 
 describe('GoogleAuthLink', () => {
   it('renders the "o" divider followed by the Google link to the backend redirect route', () => {

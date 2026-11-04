@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import SelectField from './SelectField'
-import TextAreaField from './TextAreaField'
-import TextField from './TextField'
+import SelectField from '../../../../features/auth/shared/components/SelectField'
+import TextAreaField from '../../../../features/auth/shared/components/TextAreaField'
+import TextField from '../../../../features/auth/shared/components/TextField'
 
 const OPTIONS = [
   { value: 'manual', label: 'Manual' },

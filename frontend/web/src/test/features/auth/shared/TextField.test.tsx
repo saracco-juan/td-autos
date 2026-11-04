@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import TextField from './TextField'
+import TextField from '../../../../features/auth/shared/components/TextField'
 
 describe('TextField', () => {
   it('renders a labelled input with its name, type, value and autocomplete hint', () => {

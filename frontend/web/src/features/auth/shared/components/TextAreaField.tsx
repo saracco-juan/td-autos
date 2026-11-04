@@ -1,6 +1,6 @@
 import type { ChangeEvent, ReactNode } from 'react'
 import Field from './Field'
-import styles from './authForm.module.css'
+import styles from '../styles/authForm.module.css'
 
 export type TextAreaFieldProps = {
   // Full element id of the control.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateEmail } from './validateEmail'
+import { validateEmail } from '../../../../features/auth/shared/model/validateEmail'
 
 describe('validateEmail', () => {
   it('requires a value', () => {

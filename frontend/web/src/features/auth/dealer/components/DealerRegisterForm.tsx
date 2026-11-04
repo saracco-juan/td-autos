@@ -1,9 +1,9 @@
 import Button from '../../../../components/Buttons/Button'
 import type { FormEvent } from 'react'
 import alertStyles from '../../../../styles/alert.module.css'
-import PasswordRequirements from '../../shared/PasswordRequirements'
-import TextField, { type TextFieldProps } from '../../shared/TextField'
-import styles from '../../shared/authForm.module.css'
+import PasswordRequirements from '../../shared/components/PasswordRequirements'
+import TextField, { type TextFieldProps } from '../../shared/components/TextField'
+import styles from '../../shared/styles/authForm.module.css'
 import type { DealerRegisterErrors, DealerRegisterField, DealerRegisterFormValues } from '../model/validateDealerRegisterForm'
 
 type Props = {

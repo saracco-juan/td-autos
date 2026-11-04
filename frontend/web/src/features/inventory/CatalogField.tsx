@@ -1,4 +1,4 @@
-import Field from '../auth/shared/Field'
+import Field from '../auth/shared/components/Field'
 
 type Props = {
   id: string
