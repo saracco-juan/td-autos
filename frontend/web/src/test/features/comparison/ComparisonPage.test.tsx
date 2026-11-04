@@ -78,7 +78,8 @@ it('does not show a comparison when either existing calculator request fails; re
 
 it('requires correction when an ID no longer belongs to current recommendations', async () => {
   mount('compare=7,99')
-  expect(await screen.findByText(/Algún vehículo ya no está disponible/)).toHaveAttribute('role', 'status')
+  await screen.findByText(/Algún vehículo ya no está disponible/)
+  expect(screen.getByRole('status')).toHaveTextContent('Algún vehículo ya no está disponible')
   expect(screen.queryByRole('region', { name: 'Comparación de vehículos' })).not.toBeInTheDocument()
   expect(apiFetch).toHaveBeenCalledTimes(1)
 })

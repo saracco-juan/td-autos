@@ -6,11 +6,13 @@ import alertStyles from '../../../styles/alert.module.css'
 import type { useComparisonSelection } from '../hooks/useComparisonSelection'
 import styles from './ComparisonControls.module.css'
 
-type SelectionVehicle = { id: number; title: string; label?: string; image?: string | null }
+type SelectionVehicle = Readonly<{ id: number; title: string; label?: string; image?: string | null }>
 
-export default function ComparisonControls({ selection, source, vehicles = [], className = '' }: {
-  selection: ReturnType<typeof useComparisonSelection>; source?: 'favorites'; vehicles?: SelectionVehicle[]; className?: string
-}) {
+type Props = Readonly<{
+  selection: ReturnType<typeof useComparisonSelection>; source?: 'favorites'; vehicles?: readonly SelectionVehicle[]; className?: string
+}>
+
+export default function ComparisonControls({ selection, source, vehicles = [], className = '' }: Props) {
   const navigate = useNavigate()
   const { ids, search, toggle, notice, setNotice } = selection
   const [known, setKnown] = useState<SelectionVehicle[]>([])

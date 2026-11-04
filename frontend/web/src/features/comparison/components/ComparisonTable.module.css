@@ -173,6 +173,7 @@ div.photo {
 }
 
 .empty {
+  display: block;
   margin: 0;
   padding: 24px 0;
 }
@@ -191,7 +192,12 @@ div.photo {
   grid-template-rows: subgrid;
   grid-row: 1 / span var(--specification-rows);
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
+
+
 
 .specificationColumn h3 {
   margin: 0 0 8px;

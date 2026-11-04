@@ -23,27 +23,31 @@ export default function ComparisonPage() {
   const favoriteReturnParams = new URLSearchParams()
   if (search.has('compare')) favoriteReturnParams.set('compare', search.get('compare')!)
   if (fromFavorites) favoriteReturnParams.set('source', 'favorites')
-  const favoriteReturnTo = `/favoritos${favoriteReturnParams.size ? `?${favoriteReturnParams}` : ''}`
+  const favoriteReturnQuery = favoriteReturnParams.toString()
+  const favoriteReturnTo = favoriteReturnQuery ? `/favoritos?${favoriteReturnQuery}` : '/favoritos'
+  const recommendationsReturnTo = search.size ? `/recomendaciones?${search}` : '/recomendaciones'
   return <div className={styles.page}>
     {fromFavorites ? <BackLink to={favoriteReturnTo}>Volver a favoritos</BackLink>
-      : <BackLink to={`/recomendaciones${search.size ? `?${search}` : ''}`}>Volver a recomendados</BackLink>}
+      : <BackLink to={recommendationsReturnTo}>Volver a recomendados</BackLink>}
     <header className={styles.heading}>
       <p className={screenStyles.eyebrow}>COMPARAR UNIDADES</p>
       <h1 className={screenStyles.title}>Comparar vehículos</h1>
       <p>{ids.length} {ids.length === 1 ? 'vehículo seleccionado' : 'vehículos seleccionados'}</p>
     </header>
     {canCompare(ids) ? <ReadyComparison key={ids.join(',')} ids={ids as [number, number]} onRemove={toggle} fromFavorites={fromFavorites} />
-      : <section role="status">
-        <p>{fromFavorites ? 'Seleccioná exactamente dos vehículos favoritos para completar la comparación.'
-          : 'Seleccioná exactamente dos vehículos recomendados para completar la comparación.'}</p>
+      : <section>
+        <p><output>{fromFavorites ? 'Seleccioná exactamente dos vehículos favoritos para completar la comparación.'
+          : 'Seleccioná exactamente dos vehículos recomendados para completar la comparación.'}</output></p>
         {ids.map((id) => <p key={id}>Conservás el vehículo {id}. <Link to={`/vehiculos/${id}`}>Ver ficha</Link></p>)}
       </section>}
   </div>
 }
 
-function ReadyComparison({ ids, onRemove, fromFavorites }: {
-  ids: [number, number]; onRemove: (id: number) => void; fromFavorites: boolean
-}) {
+type ReadyComparisonProps = Readonly<{
+  ids: readonly [number, number]; onRemove: (id: number) => void; fromFavorites: boolean
+}>
+
+function ReadyComparison({ ids, onRemove, fromFavorites }: ReadyComparisonProps) {
   const [view, setView] = useState<View>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
   const ready = useRef<HTMLDivElement>(null)
@@ -83,9 +87,9 @@ function ReadyComparison({ ids, onRemove, fromFavorites }: {
   }, [first, second, attempt, fromFavorites])
   useEffect(() => { if (view.status === 'ready') ready.current?.focus() }, [view.status])
   if (view.status === 'loading') return <SessionLoading />
-  if (view.status === 'unavailable') return <p role="status">{fromFavorites
+  if (view.status === 'unavailable') return <p><output>{fromFavorites
     ? 'Algún vehículo ya no está disponible. Volvé y corregí la selección.'
-    : 'Algún vehículo ya no está disponible entre tus recomendaciones. Volvé y corregí la selección.'}</p>
+    : 'Algún vehículo ya no está disponible entre tus recomendaciones. Volvé y corregí la selección.'}</output></p>
   if (view.status === 'error') return <ErrorState kind={view.network ? 'network' : 'server'} onRetry={() => {
     setView({ status: 'loading' })
     setAttempt((value) => value + 1)

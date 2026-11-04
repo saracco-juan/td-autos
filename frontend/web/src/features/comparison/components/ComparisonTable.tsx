@@ -1,3 +1,4 @@
+import accessibility from '../../../styles/accessibility.module.css'
 import Button from '../../../components/Buttons/Button'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useState, type CSSProperties } from 'react'
@@ -11,7 +12,7 @@ import styles from './ComparisonTable.module.css'
 
 export type { ComparisonEntry } from '@shared/comparison/groups'
 
-function Photo({ url, title }: { url: string | undefined; title: string }) {
+function Photo({ url, title }: Readonly<{ url: string | undefined; title: string }>) {
   const [failed, setFailed] = useState(false)
   return url && !failed ? <img className={styles.photo} src={url} alt={`Foto de ${title}`}
     onError={() => setFailed(true)} /> : <div className={styles.photo} role="img" aria-label={`Foto de ${title}`}>
@@ -19,9 +20,9 @@ function Photo({ url, title }: { url: string | undefined; title: string }) {
     </div>
 }
 
-function Facts({ rows, title, hiddenLabels, className }: {
+function Facts({ rows, title, hiddenLabels, className }: Readonly<{
   rows: SpecificationRow[]; title: string; hiddenLabels?: Set<string>; className?: string
-}) {
+}>) {
   return <dl className={`${styles.facts} ${className ?? ''}`}>
     {rows.map(({ label, value, explanation }) => <div className={styles.factSlot} key={label}
       data-hidden={hiddenLabels?.has(label) || undefined} aria-hidden={hiddenLabels?.has(label) || undefined}
@@ -34,9 +35,9 @@ function Facts({ rows, title, hiddenLabels, className }: {
   </dl>
 }
 
-export default function ComparisonTable({ entries, onRemove }: {
-  entries: [ComparisonEntry, ComparisonEntry]; onRemove: (id: number) => void
-}) {
+export default function ComparisonTable({ entries, onRemove }: Readonly<{
+  entries: readonly [ComparisonEntry, ComparisonEntry]; onRemove: (id: number) => void
+}>) {
   const location = useLocation()
   const comparisonReturnTo = location.pathname + location.search
   const columns = entries.map((entry) => ({ ...entry, title: vehicleTitle(entry.detail.vehicle), groups: comparisonGroups(entry) }))
@@ -76,25 +77,25 @@ export default function ComparisonTable({ entries, onRemove }: {
           <h2>Especificaciones técnicas</h2>
           <label className={styles.hideSimilarities}>
             <input type="checkbox" checked={hideSimilarities} onChange={(event) => setHideSimilarities(event.target.checked)} />
-            Ocultar similitudes
+            <span>Ocultar similitudes</span>
           </label>
         </div>
         <Tabs label="Secciones de la comparación" items={items} value={section} onValueChange={setSection}
           className={styles.sectionTabs} panelClassName={styles.sectionPanel} variant="underline">
           {() => <>
             <div className={styles.specificationColumns} style={specificationStyle}>
-            {columns.map(({ id, title }, index) => <div key={id} className={styles.specificationColumn} role="group"
-              aria-label={`Especificaciones de ${title}`}
+            {columns.map(({ id, title }, index) => <fieldset key={id} className={styles.specificationColumn}
               style={{ '--fact-count': selected[index].length } as CSSProperties}>
+              <legend className={accessibility.visuallyHidden}>Especificaciones de {title}</legend>
               <h3>{title}</h3>
               <Facts rows={selected[index]} title={title} hiddenLabels={hideSimilarities ? matchingLabels : undefined}
                 className={styles.specificationFacts} />
-            </div>)}
+            </fieldset>)}
           </div>
           <div className={styles.factSlot} data-hidden={!allSimilar || undefined} aria-hidden={!allSimilar || undefined}>
-            <div className={styles.factClip}><p className={styles.empty} role={allSimilar ? 'status' : undefined}>
+            <div className={styles.factClip}><output className={styles.empty} aria-hidden={!allSimilar || undefined}>
               Todos los datos disponibles de esta sección coinciden.
-            </p></div>
+            </output></div>
           </div>
           </>}
         </Tabs>

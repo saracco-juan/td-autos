@@ -25,10 +25,10 @@ const KM_HINTS = {
   usuario: undefined,
 }
 
-type FieldErrors = { km?: string[]; coverage?: string[] }
+type FieldErrors = Readonly<{ km?: string[]; coverage?: string[] }>
 type ValidationBody = { errors?: { km?: string[]; cobertura?: string[] } }
 
-type RowProps = { label: string; value: string; strong?: boolean; info?: { name: string; text: string } }
+type RowProps = Readonly<{ label: string; value: string; strong?: boolean; info?: Readonly<{ name: string; text: string }> }>
 
 function Row({ label, value, strong = false, info }: RowProps) {
   return (
@@ -57,7 +57,7 @@ function fieldErrorsOf(error: unknown): FieldErrors | null {
   return found.km?.length || found.coverage?.length ? found : null
 }
 
-function MonthlyCard({ data }: { data: OwnershipCosts }) {
+function MonthlyCard({ data }: Readonly<{ data: OwnershipCosts }>) {
   const { lines, note } = monthlyLines(data)
   return (
     <section className={styles.card} aria-labelledby="costs-monthly">
@@ -70,7 +70,7 @@ function MonthlyCard({ data }: { data: OwnershipCosts }) {
   )
 }
 
-function PurchaseCard({ data }: { data: OwnershipCosts }) {
+function PurchaseCard({ data }: Readonly<{ data: OwnershipCosts }>) {
   const { lines, usdNote, budget } = purchaseLines(data, 'Precio')
   return (
     <section className={styles.card} aria-labelledby="costs-purchase">
@@ -84,12 +84,7 @@ function PurchaseCard({ data }: { data: OwnershipCosts }) {
   )
 }
 
-export default function OwnershipCostsPage() {
-  const { id = '' } = useParams()
-  // The detail's recommendation context (score, return to the filtered list) goes back with "Volver a la ficha".
-  const { state: detailState } = useLocation()
-  const comparisonReturnTo = typeof detailState?.comparisonReturnTo === 'string'
-    && detailState.comparisonReturnTo.startsWith('/comparar?') ? detailState.comparisonReturnTo : null
+function useOwnershipCosts(id: string) {
   const [data, setData] = useState<OwnershipCosts | null>(null)
   const [loading, setLoading] = useState(true)
   const [pageError, setPageError] = useState<string>()
@@ -135,7 +130,90 @@ export default function OwnershipCostsPage() {
     load({ km: checked.km, coverage }, false)
   }
 
-  const vehicle = data?.vehicle
+  return { data, loading, pageError, km, setKm, coverage, setCoverage, fieldErrors, recalculate }
+}
+
+type CostInputsProps = Readonly<{
+  data: OwnershipCosts
+  km: string
+  coverage: Coverage
+  loading: boolean
+  fieldErrors: FieldErrors
+  onKmChange: (value: string) => void
+  onCoverageChange: (value: Coverage) => void
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+}>
+
+function CostInputs({ data, km, coverage, loading, fieldErrors, onKmChange, onCoverageChange, onSubmit }: CostInputsProps) {
+  const kmHint = KM_HINTS[data.inputs.km_source]
+  return (
+    <form className={styles.form} noValidate onSubmit={onSubmit} aria-label="Datos para el cálculo">
+      <div className={styles.formHeading}>
+        <h2>Ajustá tu estimación</h2>
+        <p>Indicá cuánto vas a manejar y la cobertura que preferís.</p>
+      </div>
+      <Field
+        id="costs-km"
+        label="Kilómetros por mes"
+        errors={fieldErrors.km}
+        hint={kmHint ? <p id="costs-km-hint" className={styles.hint}>{kmHint}</p> : undefined}
+      >
+        {(control) => (
+          <input
+            {...control}
+            type="number"
+            name="km"
+            inputMode="numeric"
+            value={km}
+            onChange={(event) => onKmChange(event.target.value)}
+          />
+        )}
+      </Field>
+      <Field id="costs-coverage" label="Cobertura del seguro" errors={fieldErrors.coverage}>
+        {(control) => (
+          <select {...control} name="cobertura" value={coverage}
+            onChange={(event) => onCoverageChange(event.target.value as Coverage)}>
+            {COVERAGES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        )}
+      </Field>
+      <div className={styles.action}>
+        <Button type="submit" disabled={loading} aria-busy={loading} variant="primary" className={styles.submit}>
+          RECALCULAR
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function CostResults({ loading, data }: Readonly<{ loading: boolean; data: OwnershipCosts | null }>) {
+  if (!loading && !data) return null
+  const province = data?.vehicle.province
+  return (
+    <div className={styles.results}>
+      {loading ? <SessionLoading /> : null}
+      {!loading && data ? (
+        <>
+          <MonthlyCard data={data} />
+          <p className={styles.disclaimer}>
+            Estimación orientativa con valores actualizados al {formatDate(data.rates_updated_at)}
+            {province ? `, en la provincia de ${province}` : ''}. Es un estimativo aproximado.
+          </p>
+        </>
+      ) : null}
+    </div>
+  )
+}
+
+export default function OwnershipCostsPage() {
+  const { id = '' } = useParams()
+  // The detail's recommendation context (score, return to the filtered list) goes back with "Volver a la ficha".
+  const { state: detailState } = useLocation()
+  const comparisonReturnTo = typeof detailState?.comparisonReturnTo === 'string'
+    && detailState.comparisonReturnTo.startsWith('/comparar?') ? detailState.comparisonReturnTo : null
+  const costs = useOwnershipCosts(id)
+
+  const vehicle = costs.data?.vehicle
   const title = vehicle ? [vehicle.make, vehicle.model, vehicle.version, vehicle.year].filter(Boolean).join(' ') : ''
   return (
     <div className={styles.page}>
@@ -150,69 +228,15 @@ export default function OwnershipCostsPage() {
           </div>
         ) : null}
       </div>
-      {pageError ? <p role="alert" className={alertStyles.alert}>{pageError}</p> : null}
+      {costs.pageError ? <p role="alert" className={alertStyles.alert}>{costs.pageError}</p> : null}
       <div className={styles.workspace}>
         <div className={styles.inputs}>
-          {data ? (
-            <form className={styles.form} noValidate onSubmit={recalculate} aria-label="Datos para el cálculo">
-              <div className={styles.formHeading}>
-                <h2>Ajustá tu estimación</h2>
-                <p>Indicá cuánto vas a manejar y la cobertura que preferís.</p>
-              </div>
-              <Field
-                id="costs-km"
-                label="Kilómetros por mes"
-                errors={fieldErrors.km}
-                hint={KM_HINTS[data.inputs.km_source] ? (
-                  <p id="costs-km-hint" className={styles.hint}>{KM_HINTS[data.inputs.km_source]}</p>
-                ) : undefined}
-              >
-                {(control) => (
-                  <input
-                    {...control}
-                    type="number"
-                    name="km"
-                    inputMode="numeric"
-                    value={km}
-                    onChange={(event) => setKm(event.target.value)}
-                  />
-                )}
-              </Field>
-              <Field id="costs-coverage" label="Cobertura del seguro" errors={fieldErrors.coverage}>
-                {(control) => (
-                  <select {...control} name="cobertura" value={coverage} onChange={(event) => setCoverage(event.target.value as Coverage)}>
-                    {COVERAGES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                )}
-              </Field>
-              <div className={styles.action}>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  aria-busy={loading}
-                  variant="primary" className={`${styles.submit}`}
-                >
-                  RECALCULAR
-                </Button>
-              </div>
-            </form>
-          ) : null}
-          {!loading && data ? <PurchaseCard data={data} /> : null}
+          {costs.data ? <CostInputs data={costs.data} km={costs.km} coverage={costs.coverage}
+            loading={costs.loading} fieldErrors={costs.fieldErrors}
+            onKmChange={costs.setKm} onCoverageChange={costs.setCoverage} onSubmit={costs.recalculate} /> : null}
+          {!costs.loading && costs.data ? <PurchaseCard data={costs.data} /> : null}
         </div>
-        {loading || data ? (
-          <div className={styles.results}>
-            {loading ? <SessionLoading /> : null}
-            {!loading && data ? (
-              <>
-                <MonthlyCard data={data} />
-                <p className={styles.disclaimer}>
-                  Estimación orientativa con valores actualizados al {formatDate(data.rates_updated_at)}
-                  {data.vehicle.province ? `, en la provincia de ${data.vehicle.province}` : ''}. Es un estimativo aproximado.
-                </p>
-              </>
-            ) : null}
-          </div>
-        ) : null}
+        <CostResults loading={costs.loading} data={costs.data} />
       </div>
     </div>
   )
