@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRef } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import ChecklistStepList, { type ChecklistNavigation } from './ChecklistStepList'
+import ChecklistStepList, { type ChecklistNavigation } from '../../../components/checklist/ChecklistStepList'
 import { STEPS } from '@shared/checklist/fixtures'
 
 type Props = React.ComponentProps<typeof ChecklistStepList>

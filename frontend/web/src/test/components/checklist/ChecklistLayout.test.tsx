@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import ChecklistColumns from './ChecklistColumns'
-import ChecklistWarning from './ChecklistWarning'
+import ChecklistColumns from '../../../components/checklist/ChecklistColumns'
+import ChecklistWarning from '../../../components/checklist/ChecklistWarning'
 import { STEPS } from '@shared/checklist/fixtures'
 
 describe('ChecklistColumns', () => {

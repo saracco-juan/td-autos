@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import ChecklistCardGrid from './ChecklistCardGrid'
+import ChecklistCardGrid from '../../../components/checklist/ChecklistCardGrid'
 
 describe('ChecklistCardGrid', () => {
   it('renders its cards in order', () => {

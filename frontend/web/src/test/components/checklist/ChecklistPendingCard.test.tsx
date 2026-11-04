@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import ChecklistPendingCard from './ChecklistPendingCard'
+import ChecklistPendingCard from '../../../components/checklist/ChecklistPendingCard'
 
 const items = [
   { codigo: 'a', texto: 'El titular coincide con el vendedor', flagged: true },

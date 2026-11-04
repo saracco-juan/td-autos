@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import ChecklistActionBar from './ChecklistActionBar'
+import ChecklistActionBar from '../../../components/checklist/ChecklistActionBar'
 
 type Props = React.ComponentProps<typeof ChecklistActionBar>
 

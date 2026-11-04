@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import ChecklistProgressCard from './ChecklistProgressCard'
+import ChecklistProgressCard from '../../../components/checklist/ChecklistProgressCard'
 
 const steps = [
   { numero: 1, titulo: 'Antes de señar', completed: 1, total: 3 },

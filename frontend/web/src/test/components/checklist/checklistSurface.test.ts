@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { checklistSurface } from './checklistSurface'
+import { checklistSurface } from '../../../components/checklist/checklistSurface'
 
 const originalAnimate = HTMLElement.prototype.animate
 afterEach(() => {
