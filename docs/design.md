@@ -21,13 +21,13 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   requests title focus through navigation state, without scrolling. Pointer and
   direct entry leave focus alone. `AuthCard` keeps `embedded` presentation separate
   from its optional `focusTitle` behavior.
-- Embedded buyer inputs use16px text through800px width to avoid the small-input
+- Embedded buyer inputs use `16px` text through `800px` width to avoid the small-input
   focus zoom risk on mobile Safari. Desktop and standalone auth fields retain
   their existing sizing; no viewport zoom restriction is added.
 - The desktop stage fills the remaining viewport below the access navigation.
   Use smaller outer vertical padding and embedded-card gaps on shorter displays;
   keep input and button sizes unchanged. Both normal buyer forms fit without page
-  scrolling at1920x900,1366x768 and1280x720. Extra validation content, zoom, very
+  scrolling at 1920×900, 1366×768 and 1280×720. Extra validation content, zoom, very
   short windows and the mobile stack may still scroll rather than clipping controls.
 - Recovery, password reset and dealer registration keep their standalone cards.
   Auth validation, endpoints, OAuth origins and session guards are unchanged.
