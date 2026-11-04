@@ -1,15 +1,15 @@
+import Button from '../../../components/Buttons/Button'
 import { useEffect, useState } from 'react'
-import alertStyles from '../../styles/alert.module.css'
-import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import { formatDay, retentionReached } from '../admin/model/format'
-import { DEALER_STATE_ACTIVE } from '../auth/model/roles'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import { fetchSubscription } from '../subscription/api'
-import type { VigenciaSuscripcion } from '../subscription/types'
-import { accountStatusText } from './accountStatus'
+import alertStyles from '../../../styles/alert.module.css'
+import FlowLayout from '../../../components/FlowLayout/FlowLayout'
+import { formatDay, retentionReached } from '../../admin/model/format'
+import { DEALER_STATE_ACTIVE } from '../../auth/model/roles'
+import { useAuth } from '../../auth/session/hooks/useAuth'
+import { fetchSubscription } from '../../subscription/api'
+import type { VigenciaSuscripcion } from '../../subscription/types'
+import { accountStatusText } from '../model/accountStatus'
 import styles from './DealerStatusPage.module.css'
-import DealerContact from './DealerContact'
+import DealerContact from '../components/DealerContact'
 
 type Status = { text: string; detail?: string; tone?: 'warning' | 'error' }
 
@@ -92,9 +92,9 @@ export default function DealerStatusPage() {
         )}
       </section>
       {user?.rol === 'concesionaria' ? editingContact ? <DealerContact key={user.id} /> : (
-        <button type="button" className={buttonStyles.button} onClick={() => setEditingContact(true)}>
+        <Button type="button"  onClick={() => setEditingContact(true)}>
           EDITAR CONTACTO
-        </button>
+        </Button>
       ) : null}
     </FlowLayout>
   )

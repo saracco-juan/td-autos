@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import type { User } from '../auth/model/types'
-import ActiveDealerRoute from './ActiveDealerRoute'
+import { useAuth } from '../../../features/auth/session/hooks/useAuth'
+import type { User } from '../../../features/auth/model/types'
+import ActiveDealerRoute from '../../../features/dealer/components/ActiveDealerRoute'
 
-vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const marta: User = { id: 2, name: 'Marta', apellido: 'Gómez', email: 'marta@autosdelsur.com', rol: 'concesionaria', perfil_completo: true, tiene_diagnostico: false }
 

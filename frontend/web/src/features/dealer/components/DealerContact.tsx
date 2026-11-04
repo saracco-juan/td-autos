@@ -1,9 +1,9 @@
+import Button from '../../../components/Buttons/Button'
 import { useEffect, useState, type FormEvent } from 'react'
-import { apiFetch, HttpError } from '../../lib/http'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import Field from '../auth/shared/components/Field'
-import styles from '../profile/ProfileForm.module.css'
+import { apiFetch, HttpError } from '../../../lib/http'
+import alertStyles from '../../../styles/alert.module.css'
+import Field from '../../auth/shared/components/Field'
+import styles from '../../profile/ProfileForm.module.css'
 
 type Contact = { telefono_publico: string | null }
 const ENDPOINT = '/api/concesionaria/contacto'
@@ -53,11 +53,11 @@ export default function DealerContact() {
       <h2 id="dealer-contact-title" className={styles.title}>CONTACTO DE LA CONCESIONARIA</h2>
       {loading ? <p>Cargando contacto…</p> : loadFailed ? <>
         <p role="alert" className={alertStyles.alert}>No se pudo cargar el teléfono.</p>
-        <button type="button" className={buttonStyles.button} onClick={() => {
+        <Button type="button"  onClick={() => {
           setLoading(true)
           setLoadFailed(false)
           setAttempt((value) => value + 1)
-        }}>REINTENTAR</button>
+        }}>REINTENTAR</Button>
       </> : <>
         {saved ? <p role="status" className={alertStyles.notice}>El teléfono se guardó.</p> : null}
         <Field id="dealer-public-phone" label="Teléfono público / WhatsApp" errors={error ? [error] : undefined}>
@@ -69,8 +69,8 @@ export default function DealerContact() {
             }} />}
         </Field>
         <p>Ingresá un número con WhatsApp y código de país. Si lo dejás vacío, se deshabilita el contacto.</p>
-        <button className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
-          type="submit" disabled={saving} aria-busy={saving}>{saving ? 'GUARDANDO…' : 'GUARDAR TELÉFONO'}</button>
+        <Button variant="primary" className={`${styles.submit}`}
+          type="submit" disabled={saving} aria-busy={saving}>{saving ? 'GUARDANDO…' : 'GUARDAR TELÉFONO'}</Button>
       </>}
     </form>
   )

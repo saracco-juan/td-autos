@@ -1,4 +1,4 @@
-import { DEALER_STATE_ACTIVE, DEALER_STATE_PENDING } from '../auth/model/roles'
+import { DEALER_STATE_ACTIVE, DEALER_STATE_PENDING } from '../../auth/model/roles'
 
 // Wording of the account state (Figma 38:860 and 38:826 "Estado de la cuenta"), shared by the dealer screens.
 export function accountStatusText(state: string | null | undefined): string {

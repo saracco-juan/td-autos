@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch, HttpError } from '../../lib/http'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import DealerStatusPage from './DealerStatusPage'
+import { apiFetch, HttpError } from '../../../lib/http'
+import { useAuth } from '../../../features/auth/session/hooks/useAuth'
+import DealerStatusPage from '../../../features/dealer/pages/DealerStatusPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
-vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../subscription/api', () => ({ fetchSubscription: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../features/subscription/api', () => ({ fetchSubscription: vi.fn() }))
 const endpoint = '/api/concesionaria/contacto'
 const mount = (rol = 'concesionaria') => {
   vi.mocked(useAuth).mockReturnValue({ user: { id: 1, name: 'Ana', apellido: 'Pérez', rol,
