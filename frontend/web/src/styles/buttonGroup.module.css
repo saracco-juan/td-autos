@@ -10,7 +10,7 @@
 }
 
 .item {
-  composes: fill from './Buttons/buttonHover.module.css';
+  composes: fill from '../components/Buttons/buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;

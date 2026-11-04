@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router'
-import alertStyles from '../../../components/alert.module.css'
+import alertStyles from '../../../styles/alert.module.css'
 import type { User } from '../types'
 import { isAdmin, isBuyer, isDealer } from '../roles'
 import styles from './RoleRoute.module.css'

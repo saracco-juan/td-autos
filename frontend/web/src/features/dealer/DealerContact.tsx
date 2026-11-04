@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { apiFetch, HttpError } from '../../lib/http'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import Field from '../auth/shared/Field'
 import styles from '../profile/ProfileForm.module.css'

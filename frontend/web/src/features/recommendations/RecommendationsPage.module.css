@@ -1,6 +1,6 @@
 /* A broad catalog column keeps controls and cards aligned on large displays. */
 .page {
-  composes: container from '../../components/screen.module.css';
+  composes: container from '../../styles/screen.module.css';
   display: flex;
   flex-direction: column;
   gap: 32px;

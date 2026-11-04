@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useParams } from 'react-router'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import InfoTip from '../../components/InfoTip/InfoTip'
 import BackLink from '../../components/Buttons/BackLink'

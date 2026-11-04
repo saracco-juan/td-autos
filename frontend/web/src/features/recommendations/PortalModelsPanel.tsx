@@ -1,6 +1,6 @@
 import { PORTAL_EMPTY_COPY, PORTAL_MODELS_NOTICE, portalSourceLabel } from '@shared/portals/format'
 import { emptyStateCopy, exchangeRateNotice } from '@shared/recommendations/format'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import ErrorState from '../../components/ErrorState/ErrorState'
 import InfoIcon from '../../components/InfoIcon/InfoIcon'
 import { useMediaQuery } from '../../lib/useMediaQuery'

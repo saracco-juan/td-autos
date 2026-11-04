@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { Link, useLocation } from 'react-router'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import InfoTip from '../../components/InfoTip/InfoTip'
 import {

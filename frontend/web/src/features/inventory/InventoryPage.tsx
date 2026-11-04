@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import alertStyles from "../../components/alert.module.css";
+import alertStyles from "../../styles/alert.module.css";
 import buttonStyles from "../../components/Buttons/button.module.css";
-import tableStyles from "../../components/dataTable.module.css";
+import tableStyles from "../../styles/dataTable.module.css";
 import ErrorState, { type ErrorKind } from "../../components/ErrorState/ErrorState";
 import ListFooter from "../../components/ListFooter/ListFooter";
 import Pagination from "../../components/Pagination/Pagination";
 import ScrollArea from "../../components/ScrollArea/ScrollArea";
-import screenStyles from "../../components/screen.module.css";
+import screenStyles from "../../styles/screen.module.css";
 import usePagedItems from "../../hooks/usePagedItems";
 import { HttpError, NetworkError } from "../../lib/http";
 import SessionLoading from "../auth/session/SessionLoading";

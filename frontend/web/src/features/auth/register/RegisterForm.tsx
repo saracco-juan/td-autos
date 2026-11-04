@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 import type { FieldErrors } from '../types'
-import alertStyles from '../../../components/alert.module.css'
+import alertStyles from '../../../styles/alert.module.css'
 import buttonStyles from '../../../components/Buttons/button.module.css'
 import PasswordRequirements from '../shared/PasswordRequirements'
 import TextField, { type TextFieldProps } from '../shared/TextField'

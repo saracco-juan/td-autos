@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'

@@ -1,6 +1,6 @@
 import type { ChangeEvent, FormEvent } from 'react'
 import type { FieldErrors } from '../types'
-import alertStyles from '../../../components/alert.module.css'
+import alertStyles from '../../../styles/alert.module.css'
 import buttonStyles from '../../../components/Buttons/button.module.css'
 import Field from '../shared/Field'
 import styles from '../shared/authForm.module.css'

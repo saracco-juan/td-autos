@@ -1,5 +1,5 @@
 import type { ReactNode, Ref } from 'react'
-import alertStyles from '../alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import { stepPanelId, stepTabId } from './ids'
 import styles from './ChecklistStepPanel.module.css'
 import type { ChecklistStep } from '@shared/checklist/types'

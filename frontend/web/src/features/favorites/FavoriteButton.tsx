@@ -1,4 +1,4 @@
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import { useFavorite } from './useFavorite'
 import styles from './FavoriteButton.module.css'
 

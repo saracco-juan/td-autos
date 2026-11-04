@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import alertStyles from "../../components/alert.module.css";
-import groupStyles from "../../components/buttonGroup.module.css";
-import tableStyles from "../../components/dataTable.module.css";
+import alertStyles from "../../styles/alert.module.css";
+import groupStyles from "../../styles/buttonGroup.module.css";
+import tableStyles from "../../styles/dataTable.module.css";
 import ErrorState from "../../components/ErrorState/ErrorState";
 import ListFooter from "../../components/ListFooter/ListFooter";
 import Pagination from "../../components/Pagination/Pagination";
 import ScrollArea from "../../components/ScrollArea/ScrollArea";
-import screenStyles from "../../components/screen.module.css";
+import screenStyles from "../../styles/screen.module.css";
 import usePagedItems from "../../hooks/usePagedItems";
 import SessionLoading from "../auth/session/SessionLoading";
 import styles from "./admin.module.css";

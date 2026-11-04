@@ -1,5 +1,5 @@
 import type { Ref } from 'react'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import ChecklistCardGrid from '../../components/checklist/ChecklistCardGrid'
 import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCard'

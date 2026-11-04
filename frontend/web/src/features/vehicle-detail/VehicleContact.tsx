@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import { HttpError } from '../../lib/http'
 import { contactVehicle } from './api'

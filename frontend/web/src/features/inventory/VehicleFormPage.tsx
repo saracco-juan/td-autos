@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import screenStyles from '../../components/screen.module.css'
+import screenStyles from '../../styles/screen.module.css'
 import { INVENTORY_PATH } from './inventoryRoutes'
 import styles from './VehicleFormPage.module.css'
 

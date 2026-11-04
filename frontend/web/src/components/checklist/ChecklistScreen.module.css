@@ -1,5 +1,5 @@
 .layout {
-  composes: container from '../screen.module.css';
+  composes: container from '../../styles/screen.module.css';
   padding-top: 16px;
 }
 

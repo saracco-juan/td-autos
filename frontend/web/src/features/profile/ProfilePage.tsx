@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { HttpError } from '../../lib/http'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import { useAuth } from '../auth/session/useAuth'
 import { updateProfile } from './api'
 import ProfileForm from './ProfileForm'

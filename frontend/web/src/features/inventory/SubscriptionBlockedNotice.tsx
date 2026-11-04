@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import alertStyles from '../../components/alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import { SUBSCRIPTION_PATH, pausedInventoryText, type InactiveSubscription } from './inactiveSubscription'
 import styles from './SubscriptionBlockedNotice.module.css'
