@@ -192,6 +192,7 @@ describe('DiagnosisPage', () => {
     it('keeps only the current moving question interactive through forward and reverse changes', async () => {
       const user = userEvent.setup()
       await renderPage({ diagnostico: savedAnswers, carrocerias: bodyTypes })
+      expect(document.querySelectorAll('[id^="diagnosis-step-title-"]')).toHaveLength(7)
       const firstQuestion = screen.getByRole('region', { name: '¿Cuál es tu presupuesto máximo?' })
       expect(firstQuestion).not.toHaveAttribute('inert')
 

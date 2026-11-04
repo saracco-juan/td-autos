@@ -23,6 +23,7 @@
 .question {
   grid-area: 1 / 1;
   min-width: 0;
+  transform: translateX(var(--diagnosis-motion-offset));
   transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease),
     opacity 160ms ease;
 }
@@ -96,7 +97,7 @@
 @media (prefers-reduced-motion: reduce) {
   .question,
   .question[aria-hidden='false'] {
-    transform: none !important;
+    transform: none;
     transition: opacity 120ms ease;
   }
 }

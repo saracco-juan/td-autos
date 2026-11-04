@@ -2,18 +2,15 @@ import Button from '../../../components/Buttons/Button'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
-import alertStyles from '../../../styles/alert.module.css'
 import barStyles from '../../../components/checklist/pinnedBar.module.css'
 import FlowLayout from '../../../components/FlowLayout/FlowLayout'
 import { NetworkError } from '../../../lib/http'
 import SessionLoading from '../../auth/session/components/SessionLoading'
 import { useAuth } from '../../auth/session/hooks/useAuth'
 import { fetchDiagnosis, saveDiagnosis } from '../api/client'
-import BodyTypeChips from '../components/BodyTypeChips'
-import ChoiceCards from '../components/ChoiceCards'
+import DiagnosisQuestion from '../components/DiagnosisQuestion'
 import DiagnosisSummary from '../components/DiagnosisSummary'
 import {
-  UNANSWERED_STEP_MESSAGE,
   buildAnswers,
   createEmptyDraft,
   draftFromAnswers,
@@ -25,11 +22,6 @@ import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
 import StepProgress from '../components/StepProgress'
 import type { BodyType, DiagnosisDraft } from '@shared/diagnosis/types'
 
-const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
-const TITLE_ID = 'diagnosis-step-title'
-const MESSAGE_ID = 'diagnosis-step-message'
-const BODY_TYPE_HINT_ID = 'diagnosis-body-type-hint'
-const BODY_TYPE_LIMIT_MESSAGE = 'Podés elegir hasta dos. Desmarcá una para cambiarla.'
 const LAST_STEP = DIAGNOSIS_STEPS.length - 1
 
 type LoadState = 'loading' | 'ready' | { error: ErrorKind }
@@ -190,59 +182,24 @@ export default function DiagnosisPage() {
       <StepProgress current={step + 1} total={DIAGNOSIS_STEPS.length} />
       <div className={styles.body}>
         <div className={styles.questions}>
-          {DIAGNOSIS_STEPS.map((current, index) => {
-            const active = index === step
-            const titleId = `${TITLE_ID}-${index}`
-            const messageId = active && unanswered ? MESSAGE_ID : undefined
-            return <section key={current.field} className={styles.question}
-              aria-labelledby={titleId} aria-hidden={!active} inert={!active}
-              style={{ transform: `translateX(${active ? '0px' : index < step ? 'var(--diagnosis-motion-distance)' : 'calc(-1 * var(--diagnosis-motion-distance))'})`, opacity: active ? 1 : 0 }}>
-              <div className={styles.header}>
-                <h1 id={titleId} ref={active ? titleRef : null} tabIndex={-1} className={styles.title}>{current.title}</h1>
-                {current.subtitle ? <p className={styles.subtitle}
-                  id={current.kind === 'multi' ? BODY_TYPE_HINT_ID : undefined}
-                  role={current.kind === 'multi' ? 'status' : undefined}>
-                  {current.kind === 'multi' && bodyTypeLimitReached ? BODY_TYPE_LIMIT_MESSAGE : current.subtitle}
-                </p> : null}
-              </div>
-              <div className={styles.options}>
-                {active && passengersNeedConfirmation && current.field === 'pasajeros' && draft.pasajeros === null && !unanswered ? (
-                  <p role="alert" className={`${alertStyles.warning} ${styles.message}`}>
-                    Actualizamos las opciones de pasajeros. Volvé a elegir cuántas personas viajan habitualmente.
-                  </p>
-                ) : null}
-                {current.kind === 'multi' ? (
-                  <BodyTypeChips
-                    labelledBy={titleId}
-                    bodyTypes={bodyTypes}
-                    selected={draft.carrocerias}
-                    describedBy={messageId ?? (bodyTypeLimitReached ? BODY_TYPE_HINT_ID : undefined)}
-                    onToggle={handleBodyTypeToggle}
-                  />
-                ) : (
-                  <ChoiceCards
-                    name={current.field}
-                    labelledBy={titleId}
-                    options={current.options}
-                    value={draft[current.field]}
-                    describedBy={messageId}
-                    invalid={active && unanswered}
-                    onSelect={(code) => handleDraftChange({ ...draft, [current.field]: code })}
-                  />
-                )}
-                {active && unanswered ? (
-                  <p id={MESSAGE_ID} role="alert" className={`${alertStyles.warning} ${styles.message}`}>
-                    {UNANSWERED_STEP_MESSAGE}
-                  </p>
-                ) : null}
-                {active && saveFailed ? (
-                  <p role="alert" className={`${alertStyles.alert} ${styles.message}`}>
-                    {SAVE_ERROR}
-                  </p>
-                ) : null}
-              </div>
-            </section>
-          })}
+          {DIAGNOSIS_STEPS.map((current, index) => (
+            <DiagnosisQuestion
+              key={current.field}
+              current={current}
+              index={index}
+              active={index === step}
+              step={step}
+              draft={draft}
+              bodyTypes={bodyTypes}
+              unanswered={unanswered}
+              bodyTypeLimitReached={bodyTypeLimitReached}
+              passengersNeedConfirmation={passengersNeedConfirmation}
+              saveFailed={saveFailed}
+              titleRef={titleRef}
+              onBodyTypeToggle={handleBodyTypeToggle}
+              onDraftChange={handleDraftChange}
+            />
+          ))}
         </div>
         <DiagnosisSummary draft={draft} currentStep={step} bodyTypes={bodyTypes} />
       </div>

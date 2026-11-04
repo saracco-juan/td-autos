@@ -49,7 +49,7 @@ const profiles: Record<VehicleShape, { body: string; windows: string; details: s
   },
 }
 
-export default function VehicleSilhouette({ shape, className = '' }: { shape: VehicleShape; className?: string }) {
+export default function VehicleSilhouette({ shape, className = '' }: Readonly<{ shape: VehicleShape; className?: string }>) {
   const profile = profiles[shape]
   const sport = shape === 'sport'
 
