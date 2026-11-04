@@ -2,8 +2,8 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import type { PortalModel, PortalModelsResponse } from '@shared/portals/models'
-import type { PortalModelsView } from './portalModels'
-import PortalModelsPanel from './PortalModelsPanel'
+import type { PortalModelsView } from '../../../features/recommendations/api/portalModels'
+import PortalModelsPanel from '../../../features/recommendations/components/PortalModelsPanel'
 
 const model = (id: number, overrides: Partial<PortalModel> = {}): PortalModel => ({
   id, marca: 'TOYOTA', modelo: `Etios ${id}`, carroceria: 'Hatchback',

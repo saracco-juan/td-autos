@@ -4,8 +4,8 @@ import { useId } from 'react'
 import type { FavoriteVehicle } from '@shared/favorites/types'
 import { formatKilometers, formatPrice } from '../../inventory/model/format'
 import { COMBUSTIBLE_OPTIONS, TRANSMISION_OPTIONS } from '../../inventory/model/vehicleFields'
-import CardPhotos from '../../recommendations/CardPhotos'
-import styles from '../../recommendations/VehicleCard.module.css'
+import CardPhotos from '../../recommendations/components/CardPhotos'
+import styles from '../../recommendations/components/VehicleCard.module.css'
 import favoriteStyles from './FavoriteCard.module.css'
 
 function title(vehicle: FavoriteVehicle) {

@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { apiFetch } from '../../../lib/http'
 import { entry, recommendation } from '../../comparison'
-import MatchingRecommendationsPage from '../../../features/recommendations/MatchingRecommendationsPage'
+import MatchingRecommendationsPage from '../../../features/recommendations/pages/MatchingRecommendationsPage'
 import ComparisonPage from '../../../features/comparison/pages/ComparisonPage'
 
 vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))

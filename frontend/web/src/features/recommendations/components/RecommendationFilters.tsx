@@ -1,6 +1,6 @@
+import Button from '../../../components/Buttons/Button'
 import { useId, useRef, useState, type ReactNode } from 'react'
 import { appliedFilterChips, type RecommendationFilters as Filters } from '@shared/recommendations/filters'
-import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './RecommendationFilters.module.css'
 
 type Props = {
@@ -28,7 +28,7 @@ export default function RecommendationFilters({ value, onChange, actions, childr
     <>
       <div className={styles.toolbar} role="toolbar" aria-label="Filtros y comparación">
         <div className={styles.controls}>
-          <button ref={toggle} type="button" className={`${buttonStyles.button} ${styles.toggle}`}
+          <Button ref={toggle} type="button" className={`${styles.toggle}`}
             aria-expanded={open} aria-controls={panelId} onClick={(event) => {
               setAnimate(event.detail > 0)
               setOpen(!open)
@@ -39,16 +39,16 @@ export default function RecommendationFilters({ value, onChange, actions, childr
             </svg>
             FILTROS
             {chips.length > 0 ? <span className={styles.count} aria-hidden="true">{chips.length}</span> : null}
-          </button>
+          </Button>
           {chips.length > 0 ? (
             <div role="group" aria-label="Filtros aplicados" className={styles.chips}>
               {chips.map(({ key, label }) => (
-                <button key={key} type="button" className={`${buttonStyles.button} ${styles.chip}`}
+                <Button key={key} type="button" className={`${styles.chip}`}
                   aria-label={`Quitar ${label}`} onClick={() => onChange({ ...value, [key]: undefined })}>
                   {label} <span aria-hidden="true">×</span>
-                </button>
+                </Button>
               ))}
-              <button className={`${buttonStyles.button} ${styles.clear}`} type="button" onClick={() => onChange({})}>LIMPIAR FILTROS</button>
+              <Button className={`${styles.clear}`} type="button" onClick={() => onChange({})}>LIMPIAR FILTROS</Button>
             </div>
           ) : null}
         </div>
@@ -90,7 +90,7 @@ export default function RecommendationFilters({ value, onChange, actions, childr
                     <option value="automatica">Automática</option>
                   </select>
                 </label>
-                <button className={`${buttonStyles.button} ${buttonStyles.primary}`} type="submit">APLICAR</button>
+                <Button variant="primary" type="submit">APLICAR</Button>
               </form>
             </aside>
           </div>

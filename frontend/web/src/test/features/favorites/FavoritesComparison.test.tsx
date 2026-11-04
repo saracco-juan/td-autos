@@ -6,7 +6,7 @@ import { listFavorites, setFavorite } from '../../../features/favorites/api/clie
 import FavoritesPage from '../../../features/favorites/pages/FavoritesPage'
 
 vi.mock('../../../features/favorites/api/client', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn().mockResolvedValue(undefined) }))
-vi.mock('../../../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn().mockRejectedValue(new Error('offline')) }))
+vi.mock('../../../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn().mockRejectedValue(new Error('offline')) }))
 
 const vehicle = (id: number) => ({ id, marca: 'Toyota', modelo: `Auto ${id}`, version: null, anio: 2021,
   precio: 100, moneda: 'USD' as const, kilometraje: 1000, transmision: null, combustible: null,

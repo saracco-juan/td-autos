@@ -2,11 +2,11 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch, HttpError, NetworkError } from '../../lib/http'
-import type { Recommendation } from './matching'
-import MatchingRecommendationsPage from './MatchingRecommendationsPage'
+import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
+import type { Recommendation } from '../../../features/recommendations/api/matching'
+import MatchingRecommendationsPage from '../../../features/recommendations/pages/MatchingRecommendationsPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 
 const DEALERS = '/api/recomendaciones'
 const PORTALS = '/api/recomendaciones/modelos'

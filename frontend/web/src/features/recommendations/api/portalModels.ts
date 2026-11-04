@@ -1,6 +1,6 @@
 import { PORTAL_MODELS_PATH, type PortalModelsResponse } from '@shared/portals/models'
-import { apiFetch } from '../../lib/http'
-import type { ApiView } from './useApiView'
+import { apiFetch } from '../../../lib/http'
+import type { ApiView } from '../hooks/useApiView'
 
 // The curated-model recommendations load on their own, so a failure here never touches the dealers tab.
 export type PortalModelsView = ApiView<PortalModelsResponse>

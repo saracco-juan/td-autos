@@ -1,28 +1,27 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
 import { OTHER_PORTALS_TAB, portalCountLabel, portalTabLabel } from '@shared/portals/format'
 import { filterRecommendations } from '@shared/recommendations/filters'
 import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount, recommendationTitle } from '@shared/recommendations/format'
 import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import ErrorState from '../../components/ErrorState/ErrorState'
-import Pagination from '../../components/Pagination/Pagination'
-import Tabs from '../../components/Tabs/Tabs'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import ComparisonControls from '../comparison/components/ComparisonControls'
-import { useComparisonSelection } from '../comparison/hooks/useComparisonSelection'
-import { fetchDiagnosis } from '../diagnosis/api/client'
-import { fetchRecommendations } from './matching'
-import MatchingVehicleCard from './MatchingVehicleCard'
-import ExchangeRateCaption from './ExchangeRateCaption'
-import { fetchPortalModels } from './portalModels'
-import PortalModelsInfoTip from './PortalModelsInfoTip'
-import PortalModelsPanel from './PortalModelsPanel'
-import RecommendationFilters from './RecommendationFilters'
-import { useApiView } from './useApiView'
-import { useRecommendationFilters } from './useRecommendationFilters'
+import alertStyles from '../../../styles/alert.module.css'
+import ErrorState from '../../../components/ErrorState/ErrorState'
+import Pagination from '../../../components/Pagination/Pagination'
+import Tabs from '../../../components/Tabs/Tabs'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import ComparisonControls from '../../comparison/components/ComparisonControls'
+import { useComparisonSelection } from '../../comparison/hooks/useComparisonSelection'
+import { fetchDiagnosis } from '../../diagnosis/api/client'
+import { fetchRecommendations } from '../api/matching'
+import MatchingVehicleCard from '../components/MatchingVehicleCard'
+import ExchangeRateCaption from '../components/ExchangeRateCaption'
+import { fetchPortalModels } from '../api/portalModels'
+import PortalModelsInfoTip from '../components/PortalModelsInfoTip'
+import PortalModelsPanel from '../components/PortalModelsPanel'
+import RecommendationFilters from '../components/RecommendationFilters'
+import { useApiView } from '../hooks/useApiView'
+import { useRecommendationFilters } from '../hooks/useRecommendationFilters'
 import styles from './RecommendationsPage.module.css'
 
 const DEALERS_TAB = 'dealers'
@@ -134,9 +133,9 @@ export default function MatchingRecommendationsPage() {
           <h1 ref={title} className={styles.title}>Mejores opciones para vos</h1>
           {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
         </div>
-        <Link to="/diagnostico" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.adjust}`}>
+        <ButtonLink to="/diagnostico" variant="secondary" className={`${styles.adjust}`}>
           AJUSTAR DIAGNÓSTICO
-        </Link>
+        </ButtonLink>
       </div>
       <Tabs label="Fuentes de recomendaciones" items={tabs} value={activeTab} variant="underline"
         onValueChange={setChosenTab} panelClassName={styles.tabPanel}

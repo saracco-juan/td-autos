@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { ErrorKind } from '../../components/ErrorState/ErrorState'
-import { NetworkError } from '../../lib/http'
+import type { ErrorKind } from '../../../components/ErrorState/ErrorState'
+import { NetworkError } from '../../../lib/http'
 
 export type ApiView<T> =
   | { status: 'loading' }

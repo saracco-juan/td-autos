@@ -1,7 +1,7 @@
 import Button from '../../../components/Buttons/Button'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import type { Recommendation } from '../../recommendations/matching'
+import type { Recommendation } from '../../recommendations/api/matching'
 import FavoriteCard from './FavoriteCard'
 import styles from './FavoritesCarousel.module.css'
 

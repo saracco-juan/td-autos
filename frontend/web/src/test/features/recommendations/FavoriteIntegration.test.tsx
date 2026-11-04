@@ -2,11 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { expect, it, vi } from 'vitest'
-import { apiFetch } from '../../lib/http'
-import MatchingVehicleCard from './MatchingVehicleCard'
-import type { Recommendation } from './matching'
+import { apiFetch } from '../../../lib/http'
+import MatchingVehicleCard from '../../../features/recommendations/components/MatchingVehicleCard'
+import type { Recommendation } from '../../../features/recommendations/api/matching'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 
 const result: Recommendation = {
   listing_id: 7,

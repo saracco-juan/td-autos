@@ -2,10 +2,10 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch, HttpError, NetworkError } from '../../lib/http'
-import RecommendationsPage from './MatchingRecommendationsPage'
+import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
+import RecommendationsPage from '../../../features/recommendations/pages/MatchingRecommendationsPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 
 const result = (id = 1) => ({
   listing_id: id, score: 90.25, components: { usage: 100, body: 100, priority: 100, comfort: 60 },

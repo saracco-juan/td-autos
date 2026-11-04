@@ -1,15 +1,16 @@
+import Button from '../../../components/Buttons/Button'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useId } from 'react'
-import { Link, useLocation } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import InfoTip from '../../components/InfoTip/InfoTip'
+import { useLocation } from 'react-router'
+import alertStyles from '../../../styles/alert.module.css'
+import InfoTip from '../../../components/InfoTip/InfoTip'
 import {
   compatibilityLabel, displayScore, equivalentPriceLabel, recommendationTitle,
   warningMessages,
 } from '@shared/recommendations/format'
-import { formatKilometers, formatPrice } from '../inventory/model/format'
-import FavoriteButton from '../favorites/components/FavoriteButton'
-import type { Recommendation } from './matching'
+import { formatKilometers, formatPrice } from '../../inventory/model/format'
+import FavoriteButton from '../../favorites/components/FavoriteButton'
+import type { Recommendation } from '../api/matching'
 import CardPhotos from './CardPhotos'
 import styles from './VehicleCard.module.css'
 
@@ -61,15 +62,15 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel,
           <p className={styles.meta}>{equivalentPriceLabel(result).replace('US$', 'USD')}</p>
           <p className={styles.source}>{dealer.nombre} · {dealer.provincia}</p>
           <div className={styles.actions} role="group" aria-label={`Acciones de ${title}`}>
-            {comparison ? <button type="button" className={`${buttonStyles.button} ${styles.compare}`} aria-pressed={comparison.selected}
+            {comparison ? <Button type="button" className={`${styles.compare}`} aria-pressed={comparison.selected}
               aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
               {comparison.selected ? 'QUITAR' : 'COMPARAR'}
-            </button> : null}
-            <Link to={`/vehiculos/${result.listing_id}`} className={`${buttonStyles.button} ${styles.detail}`}
+            </Button> : null}
+            <ButtonLink to={`/vehiculos/${result.listing_id}`} className={`${styles.detail}`}
               state={{ vehicleDetail: { listingId: result.listing_id, score: result.score,
                 factors: components, usageLabel, priorityLabel, returnTo: `${location.pathname}${location.search}` } }}>
               VER FICHA
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </div>

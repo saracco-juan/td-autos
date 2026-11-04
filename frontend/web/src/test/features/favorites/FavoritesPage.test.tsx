@@ -6,7 +6,7 @@ import { listFavorites, setFavorite } from '../../../features/favorites/api/clie
 import FavoritesPage from '../../../features/favorites/pages/FavoritesPage'
 
 vi.mock('../../../features/favorites/api/client', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn() }))
-vi.mock('../../../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn().mockResolvedValue({ results: [] }) }))
+vi.mock('../../../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn().mockResolvedValue({ results: [] }) }))
 
 const vehicle = {
   id: 12, marca: 'Toyota', modelo: 'Corolla', version: 'XEI', anio: 2021,

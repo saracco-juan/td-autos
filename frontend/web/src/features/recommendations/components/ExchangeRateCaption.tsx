@@ -1,5 +1,5 @@
 import { formatPrice } from '@shared/recommendations/format'
-import styles from './RecommendationsPage.module.css'
+import styles from '../pages/RecommendationsPage.module.css'
 
 export default function ExchangeRateCaption({ quote }: {
   quote?: { sell: number; updated_at: string; source: string } | null

@@ -2,11 +2,11 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch } from '../../lib/http'
-import type { Recommendation } from './matching'
-import MatchingRecommendationsPage from './MatchingRecommendationsPage'
+import { apiFetch } from '../../../lib/http'
+import type { Recommendation } from '../../../features/recommendations/api/matching'
+import MatchingRecommendationsPage from '../../../features/recommendations/pages/MatchingRecommendationsPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 const result = (id: number): Recommendation => ({
   listing_id: id, score: 70 + id, components: { usage: 100, body: 100, priority: 80, comfort: 60 },
   published_price: id * 5000, published_currency: 'USD', price_ars: id * 5000000, price_usd: id * 5000,

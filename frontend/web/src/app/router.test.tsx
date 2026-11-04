@@ -13,8 +13,8 @@ import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } fro
 import { dealerDetail, directory, receipt } from '../test/fixtures/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
-import { fetchRecommendations } from '../features/recommendations/matching'
-import { fetchPortalModels } from '../features/recommendations/portalModels'
+import { fetchRecommendations } from '../features/recommendations/api/matching'
+import { fetchPortalModels } from '../features/recommendations/api/portalModels'
 import { fetchTransfer } from '../features/transfer/api'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/model/types'
@@ -62,8 +62,8 @@ vi.mock('../features/admin/api/client', () => ({
   rejectReceipt: vi.fn(),
 }))
 
-vi.mock('../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn() }))
-vi.mock('../features/recommendations/portalModels', () => ({ fetchPortalModels: vi.fn() }))
+vi.mock('../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn() }))
+vi.mock('../features/recommendations/api/portalModels', () => ({ fetchPortalModels: vi.fn() }))
 
 vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 

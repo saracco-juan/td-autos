@@ -6,7 +6,7 @@ import { listFavorites, setFavorite } from '../../../features/favorites/api/clie
 import FavoritesPage from '../../../features/favorites/pages/FavoritesPage'
 
 vi.mock('../../../features/favorites/api/client', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn().mockResolvedValue(undefined) }))
-vi.mock('../../../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn().mockRejectedValue(new Error('offline')) }))
+vi.mock('../../../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn().mockRejectedValue(new Error('offline')) }))
 afterEach(() => { cleanup(); vi.mocked(listFavorites).mockReset(); vi.mocked(setFavorite).mockClear() })
 const vehicle = (id: number) => ({ id, marca: 'Toyota', modelo: `Car${id}`, version: null, anio: 2021, precio: 1, moneda: 'ARS' as const, kilometraje: 1, transmision: 'automatica' as const, combustible: 'nafta' as const, ubicacion: 'CABA', image_url: null })
 const response = (id: number, page: number, total = 8, lastPage = 2) => ({ data: [vehicle(id)], meta: { current_page: page, per_page: 6, total, last_page: lastPage } })

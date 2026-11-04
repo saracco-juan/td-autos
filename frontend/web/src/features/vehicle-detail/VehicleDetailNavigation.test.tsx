@@ -5,7 +5,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
 import { apiFetch, HttpError } from '../../lib/http'
 import OwnershipCostsPage from '../costs/pages/OwnershipCostsPage'
-import MatchingRecommendationsPage from '../recommendations/MatchingRecommendationsPage'
+import MatchingRecommendationsPage from '../recommendations/pages/MatchingRecommendationsPage'
 import VehicleDetailPage from './VehicleDetailPage'
 
 vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))

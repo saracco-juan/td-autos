@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { expect, it, vi } from 'vitest'
 import type { RecommendationFilters as Filters } from '@shared/recommendations/filters'
-import RecommendationFilters from './RecommendationFilters'
+import RecommendationFilters from '../../../features/recommendations/components/RecommendationFilters'
 
 function Harness({ changed = vi.fn() }) {
   const [value, setValue] = useState<Filters>({})

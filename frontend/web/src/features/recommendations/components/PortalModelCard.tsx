@@ -1,11 +1,11 @@
+import ButtonAnchor from '../../../components/Buttons/ButtonAnchor'
 import { useId, useState } from 'react'
 import {
   PORTAL_FILTERS_HEADING, PORTAL_KAVAK_NOTE, PORTAL_REASONS_HEADING, portalButtonLabel, portalInfoLabel,
   portalLinkName, portalModelTitle, portalPriceRange, portalPriceYear, portalYearsLabel,
 } from '@shared/portals/format'
 import type { PortalModel } from '@shared/portals/models'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import InfoTip from '../../components/InfoTip/InfoTip'
+import InfoTip from '../../../components/InfoTip/InfoTip'
 import PhotoPlaceholder from './PhotoPlaceholder'
 import cardStyles from './VehicleCard.module.css'
 import styles from './PortalModels.module.css'
@@ -54,10 +54,10 @@ export default function PortalModelCard({ model }: { model: PortalModel }) {
           {model.carroceria ? <p className={cardStyles.source}>{model.carroceria}</p> : null}
           <div className={`${cardStyles.actions} ${cardStyles.portalActions}`} role="group" aria-label={`Acciones de ${title}`}>
             {model.links.map((link) => (
-              <a key={link.portal} href={link.url} target="_blank" rel="noopener noreferrer"
-                className={`${buttonStyles.button} ${cardStyles.detail}`} aria-label={portalLinkName(link, model)}>
+              <ButtonAnchor key={link.portal} href={link.url} target="_blank" rel="noopener noreferrer"
+                className={`${cardStyles.detail}`} aria-label={portalLinkName(link, model)}>
                 {portalButtonLabel(link)}
-              </a>
+              </ButtonAnchor>
             ))}
           </div>
         </div>
