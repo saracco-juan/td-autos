@@ -1,4 +1,4 @@
-import buttonStyles from '../../../components/button.module.css'
+import buttonStyles from '../../../components/Buttons/button.module.css'
 import GoogleIcon from '../../../components/GoogleIcon'
 import { GOOGLE_REDIRECT_URL } from '../api'
 import styles from './GoogleAuthLink.module.css'

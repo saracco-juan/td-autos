@@ -1,7 +1,7 @@
 import type { Ref } from 'react'
 import { Link } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import ChecklistCardGrid from '../../components/checklist/ChecklistCardGrid'
 import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCard'
 import ChecklistProgressCard from '../../components/checklist/ChecklistProgressCard'

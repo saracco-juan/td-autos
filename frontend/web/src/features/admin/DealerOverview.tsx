@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import buttonStyles from "../../components/button.module.css";
+import buttonStyles from "../../components/Buttons/button.module.css";
 import ListFooter from "../../components/ListFooter";
 import Pagination from "../../components/Pagination";
 import ScrollArea from "../../components/ScrollArea";

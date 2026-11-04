@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import alertStyles from "../../components/alert.module.css";
-import buttonStyles from "../../components/button.module.css";
+import buttonStyles from "../../components/Buttons/button.module.css";
 import barStyles from "../../components/checklist/pinnedBar.module.css";
 import ScrollArea from "../../components/ScrollArea";
 import { HttpError } from "../../lib/http";

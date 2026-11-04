@@ -73,9 +73,9 @@
   min-width: 0;
 }
 
-.navAction { composes: fill from '../components/buttonHover.module.css'; }
-.logout { composes: fill from '../components/buttonHover.module.css'; }
-.menuToggle { composes: fill from '../components/buttonHover.module.css'; }
+.navAction { composes: fill from '../components/Buttons/buttonHover.module.css'; }
+.logout { composes: fill from '../components/Buttons/buttonHover.module.css'; }
+.menuToggle { composes: fill from '../components/Buttons/buttonHover.module.css'; }
 
 .navAction,
 .logout,

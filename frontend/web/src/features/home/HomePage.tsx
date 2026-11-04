@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { useAuth } from '../auth/session/useAuth'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './HomePage.module.css'
 import ScrollCue from '../../components/ScrollCue'
 

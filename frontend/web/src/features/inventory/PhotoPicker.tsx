@@ -1,5 +1,5 @@
 import { useId, useRef } from 'react'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './PhotoPicker.module.css'
 import type { PhotoDraft } from './usePhotoDraft'
 import { PHOTOS_MIN } from './vehicleFields'

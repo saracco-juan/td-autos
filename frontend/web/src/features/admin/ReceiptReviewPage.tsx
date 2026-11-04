@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
 import FlowLayout from '../../components/FlowLayout'

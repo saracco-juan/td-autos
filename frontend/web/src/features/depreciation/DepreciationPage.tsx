@@ -4,7 +4,7 @@ import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehic
 import type { DepreciationResponse } from '@shared/depreciation/types'
 import { depreciationCopy } from '@shared/depreciation/presentation'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState'
-import BackLink from '../../components/BackLink'
+import BackLink from '../../components/Buttons/BackLink'
 import { apiFetch, HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import styles from './DepreciationPage.module.css'

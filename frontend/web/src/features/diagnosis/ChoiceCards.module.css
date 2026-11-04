@@ -5,7 +5,7 @@
 }
 
 .card {
-  composes: fill from '../../components/buttonHover.module.css';
+  composes: fill from '../../components/Buttons/buttonHover.module.css';
   --button-hover-fill: var(--palette-charcoal);
   display: flex;
   align-items: center;

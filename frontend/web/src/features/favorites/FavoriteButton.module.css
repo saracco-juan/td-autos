@@ -1,5 +1,5 @@
 .button {
-  composes: fill from '../../components/buttonHover.module.css';
+  composes: fill from '../../components/Buttons/buttonHover.module.css';
   --button-hover-fill: var(--palette-red);
   display: grid;
   place-items: center;

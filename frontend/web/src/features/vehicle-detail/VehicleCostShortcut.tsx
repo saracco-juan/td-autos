@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { Link } from 'react-router'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import type { DetailContext } from './navigation'
 
 // HU10 owns the integrated calculator; this is only its entry point from the detail. The recommendation

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import ErrorState from '../../components/ErrorState'
 import ListFooter from '../../components/ListFooter'
 import Pagination from '../../components/Pagination'

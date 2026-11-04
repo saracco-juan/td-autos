@@ -1,4 +1,4 @@
-import buttonStyles from './button.module.css'
+import buttonStyles from './Buttons/button.module.css'
 import styles from './ErrorState.module.css'
 
 export type ErrorKind = 'network' | 'server' | 'sources'

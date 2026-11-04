@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import alertStyles from "../../components/alert.module.css";
-import buttonStyles from "../../components/button.module.css";
+import buttonStyles from "../../components/Buttons/button.module.css";
 import tableStyles from "../../components/dataTable.module.css";
 import ErrorState, { type ErrorKind } from "../../components/ErrorState";
 import ListFooter from "../../components/ListFooter";

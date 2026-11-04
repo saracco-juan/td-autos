@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type ReactNode } from 'react'
 import { appliedFilterChips, type RecommendationFilters as Filters } from '@shared/recommendations/filters'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './RecommendationFilters.module.css'
 
 type Props = {

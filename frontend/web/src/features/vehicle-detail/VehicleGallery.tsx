@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { DetailVehicle } from '@shared/vehicles/detail'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './VehicleGallery.module.css'
 
 type Props = { photos: DetailVehicle['fotos']; title: string }

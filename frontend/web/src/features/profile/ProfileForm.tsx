@@ -1,6 +1,6 @@
 import type { ChangeEvent, FormEvent } from 'react'
 import alertStyles from '../../components/alert.module.css'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import Field from '../auth/shared/Field'
 import type { ProfileFieldErrors, ProfileFieldName, ProfileValues } from './types'
 import styles from './ProfileForm.module.css'

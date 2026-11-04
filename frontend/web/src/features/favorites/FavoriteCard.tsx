@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { Link } from 'react-router'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import { formatKilometers, formatPrice } from '../inventory/format'
 import { COMBUSTIBLE_OPTIONS, TRANSMISION_OPTIONS } from '../inventory/vehicleFields'
 import CardPhotos from '../recommendations/CardPhotos'

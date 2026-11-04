@@ -7,7 +7,7 @@
 
 /* 24 px circle (the minimum target size). */
 .button {
-  composes: fill from './buttonHover.module.css';
+  composes: fill from './Buttons/buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import alertStyles from '../../components/alert.module.css'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import { HttpError } from '../../lib/http'
 import adminStyles from './admin.module.css'
 import { deleteDealer } from './api'

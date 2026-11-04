@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { canCompare } from '@shared/comparison/selection'
-import BackLink from '../../components/BackLink'
+import BackLink from '../../components/Buttons/BackLink'
 import screenStyles from '../../components/screen.module.css'
 import ErrorState from '../../components/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'

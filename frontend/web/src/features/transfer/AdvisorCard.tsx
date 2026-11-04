@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import buttonStyles from '../../components/button.module.css'
+import buttonStyles from '../../components/Buttons/button.module.css'
 import { ADVISOR_COPY } from '@shared/checklist/transfer/copy'
 import { advisorUrl } from '@shared/checklist/transfer/advisor'
 import styles from './AdvisorCard.module.css'

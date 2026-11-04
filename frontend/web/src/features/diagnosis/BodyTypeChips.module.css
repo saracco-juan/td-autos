@@ -5,7 +5,7 @@
 }
 
 .chip {
-  composes: button from '../../components/button.module.css';
+  composes: button from '../../components/Buttons/button.module.css';
   display: flex;
   flex-direction: column;
   align-items: center;
