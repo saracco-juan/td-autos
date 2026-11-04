@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import type { ErrorKind } from '../../components/ErrorState'
+import type { ErrorKind } from '../../components/ErrorState/ErrorState'
 import { NetworkError } from '../../lib/http'
 import { listFavorites, setFavorite } from './api'
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import alertStyles from '../../components/alert.module.css'
-import FlowLayout from '../../components/FlowLayout'
+import FlowLayout from '../../components/FlowLayout/FlowLayout'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import { formatDay, retentionReached } from '../admin/format'
 import { DEALER_STATE_ACTIVE } from '../auth/roles'

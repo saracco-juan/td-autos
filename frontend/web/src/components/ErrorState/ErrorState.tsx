@@ -1,4 +1,4 @@
-import buttonStyles from './Buttons/button.module.css'
+import Button from '../Buttons/Button'
 import styles from './ErrorState.module.css'
 
 export type ErrorKind = 'network' | 'server' | 'sources'
@@ -65,9 +65,9 @@ export default function ErrorState({ kind, onRetry }: { kind: ErrorKind; onRetry
       <h2 className={styles.title}>{title}</h2>
       <p className={styles.body}>{body}</p>
       {onRetry ? (
-        <button type="button" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.retry}`} onClick={onRetry}>
+        <Button type="button" variant="secondary" className={`${styles.retry}`} onClick={onRetry}>
           REINTENTAR
-        </button>
+        </Button>
       ) : null}
     </section>
   )

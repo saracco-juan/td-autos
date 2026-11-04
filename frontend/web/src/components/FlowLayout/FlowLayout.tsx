@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import barStyles from './checklist/pinnedBar.module.css'
+import barStyles from '../checklist/pinnedBar.module.css'
 import styles from './FlowLayout.module.css'
 
 type Props = {

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it, vi } from 'vitest'
-import InfoTip from './InfoTip'
+import InfoTip from '../../components/InfoTip/InfoTip'
 
 const renderTip = () => render(
   <div>

@@ -4,7 +4,7 @@ import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehic
 import { specificationGroups } from '@shared/vehicles/detail'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import screenStyles from '../../components/screen.module.css'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState'
+import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
 import { HttpError, NetworkError } from '../../lib/http'
 import SessionLoading from '../auth/session/SessionLoading'
 import FavoriteButton from '../favorites/FavoriteButton'

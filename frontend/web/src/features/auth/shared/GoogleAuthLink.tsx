@@ -1,5 +1,5 @@
 import buttonStyles from '../../../components/Buttons/button.module.css'
-import GoogleIcon from '../../../components/GoogleIcon'
+import GoogleIcon from '../../../components/GoogleIcon/GoogleIcon'
 import { GOOGLE_REDIRECT_URL } from '../api'
 import styles from './GoogleAuthLink.module.css'
 

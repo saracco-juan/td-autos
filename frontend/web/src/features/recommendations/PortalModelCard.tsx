@@ -5,7 +5,7 @@ import {
 } from '@shared/portals/format'
 import type { PortalModel } from '@shared/portals/models'
 import buttonStyles from '../../components/Buttons/button.module.css'
-import InfoTip from '../../components/InfoTip'
+import InfoTip from '../../components/InfoTip/InfoTip'
 import PhotoPlaceholder from './PhotoPlaceholder'
 import cardStyles from './VehicleCard.module.css'
 import styles from './PortalModels.module.css'

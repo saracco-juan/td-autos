@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { LeadPeriod, LeadSummary } from '@shared/leads/types'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState'
+import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
 import ListFooter from '../../components/ListFooter/ListFooter'
 import Pagination from '../../components/Pagination/Pagination'
 import ScrollArea from '../../components/ScrollArea/ScrollArea'

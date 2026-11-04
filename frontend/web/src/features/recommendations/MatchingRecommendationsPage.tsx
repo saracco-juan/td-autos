@@ -7,7 +7,7 @@ import { emptyStateCopy, exchangeRateNotice, vehicleCount, recommendationTitle }
 import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
 import alertStyles from '../../components/alert.module.css'
 import buttonStyles from '../../components/Buttons/button.module.css'
-import ErrorState from '../../components/ErrorState'
+import ErrorState from '../../components/ErrorState/ErrorState'
 import Pagination from '../../components/Pagination/Pagination'
 import Tabs from '../../components/Tabs/Tabs'
 import SessionLoading from '../auth/session/SessionLoading'

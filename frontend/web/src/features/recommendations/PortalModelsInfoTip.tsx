@@ -1,5 +1,5 @@
 import { PORTAL_MODELS_NOTICE } from '@shared/portals/format'
-import InfoTip from '../../components/InfoTip'
+import InfoTip from '../../components/InfoTip/InfoTip'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { hasPortalModels, PORTAL_MESSAGE_WIDE_QUERY } from './portalMessage'
 import type { PortalModelsView } from './portalModels'

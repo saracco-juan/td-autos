@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import FlowLayout from './FlowLayout'
+import FlowLayout from '../../components/FlowLayout/FlowLayout'
 
 describe('FlowLayout', () => {
   it('renders the body and puts the actions in a named bar after it', () => {

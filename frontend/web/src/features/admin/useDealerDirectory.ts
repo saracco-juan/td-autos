@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ErrorKind } from '../../components/ErrorState'
+import type { ErrorKind } from '../../components/ErrorState/ErrorState'
 import { NetworkError } from '../../lib/http'
 import { fetchDealerDirectory } from './api'
 import type { DealerDirectory } from './types'

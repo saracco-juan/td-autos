@@ -6,7 +6,7 @@ import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCar
 import ChecklistProgressCard from '../../components/checklist/ChecklistProgressCard'
 import barStyles from '../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '@shared/checklist/progress'
-import FlowLayout from '../../components/FlowLayout'
+import FlowLayout from '../../components/FlowLayout/FlowLayout'
 import checklistStyles from '../../components/checklist/ChecklistScreen.module.css'
 import { FLAG_LABEL, SUMMARY_LABELS } from '@shared/checklist/transfer/copy'
 import { toChecklistSteps } from '@shared/checklist/transfer/steps'

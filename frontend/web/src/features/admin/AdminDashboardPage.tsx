@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import buttonStyles from '../../components/Buttons/button.module.css'
-import ErrorState from '../../components/ErrorState'
+import ErrorState from '../../components/ErrorState/ErrorState'
 import screenStyles from '../../components/screen.module.css'
 import SessionLoading from '../auth/session/SessionLoading'
 import styles from './admin.module.css'

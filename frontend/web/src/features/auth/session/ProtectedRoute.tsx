@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router'
-import ErrorState from '../../../components/ErrorState'
+import ErrorState from '../../../components/ErrorState/ErrorState'
 import SessionLoading from './SessionLoading'
 import { useAuth } from './useAuth'
 

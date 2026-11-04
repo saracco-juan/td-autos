@@ -1,4 +1,4 @@
-import InfoTip from '../../components/InfoTip'
+import InfoTip from '../../components/InfoTip/InfoTip'
 import type { DetailContext } from './navigation'
 import styles from './VehicleCompatibility.module.css'
 
