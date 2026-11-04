@@ -73,3 +73,18 @@ it('keeps saved inspection usable when transfer fails and retries without changi
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(screen.getByRole('progressbar', { name: 'Inspección · Toyota Corolla XEI 2021' })).toHaveAttribute('aria-valuenow', '50')
 })
+
+it('keeps transfer usable when the inspection loader throws synchronously', async () => {
+  vi.mocked(fetchInspections).mockImplementationOnce(() => { throw new Error('loader failed') })
+  mount()
+  expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar tus inspecciones.')
+  expect(screen.getByRole('link', { name: 'EMPEZAR TRANSFERENCIA' })).toBeInTheDocument()
+})
+
+it('keeps inspections usable when the transfer loader throws synchronously', async () => {
+  vi.mocked(fetchTransfer).mockImplementationOnce(() => { throw new Error('loader failed') })
+  mount()
+  expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar tu transferencia.')
+  expect(screen.getByText('Todavía no empezaste una inspección.')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'REINTENTAR' })).toBeEnabled()
+})

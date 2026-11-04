@@ -9,20 +9,21 @@ import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { fetchInspections, type InspectionIndex } from '../../inspection/api/client'
 import { fetchTransfer } from '../../transfer/api/client'
 import styles from './PurchaseProgress.module.css'
+import accessibility from '../../../styles/accessibility.module.css'
 
 type Results = {
   inspections: PromiseSettledResult<InspectionIndex>
   transfer: PromiseSettledResult<TransferResponse>
 }
 
-function ChecklistResumeRow({ title, description, accessibleTitle = title, summary, to, action }: {
+function ChecklistResumeRow({ title, description, accessibleTitle = title, summary, to, action }: Readonly<{
   title: string
   description?: string | null
   accessibleTitle?: string
   summary: ChecklistSummary
   to: string
   action: string
-}) {
+}>) {
   const percentage = summary.total > 0 ? Math.round(summary.completed / summary.total * 100) : 0
 
   return (
@@ -33,9 +34,10 @@ function ChecklistResumeRow({ title, description, accessibleTitle = title, summa
           <span>{percentage}%</span>
         </div>
         {description && <p className={styles.vehicleVersion}>{description}</p>}
-        <div className={styles.track} role="progressbar" aria-label={accessibleTitle}
-          aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}
-          aria-valuetext={`${summary.completed} de ${summary.total} ítems marcados`}>
+        <div className={styles.track}>
+          <progress className={accessibility.visuallyHidden} value={percentage} max={100}
+            aria-label={accessibleTitle} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}
+            aria-valuetext={`${summary.completed} de ${summary.total} ítems marcados`} />
           <span className={styles.fill} style={{ '--checklist-progress': percentage / 100 } as CSSProperties} />
         </div>
         <p>{summary.completed} de {summary.total} ítems marcados</p>
@@ -51,7 +53,10 @@ export default function PurchaseProgress() {
 
   useEffect(() => {
     let cancelled = false
-    Promise.allSettled([fetchInspections(), fetchTransfer()]).then(([inspections, transfer]) => {
+    void Promise.allSettled([
+      Promise.resolve().then(fetchInspections),
+      Promise.resolve().then(fetchTransfer),
+    ]).then(([inspections, transfer]) => {
       if (!cancelled) setResults({ inspections, transfer })
     })
     return () => { cancelled = true }
@@ -61,12 +66,15 @@ export default function PurchaseProgress() {
   const transfer = results?.transfer.status === 'fulfilled' ? results.transfer.value : undefined
   const failed = results?.inspections.status === 'rejected' || results?.transfer.status === 'rejected'
   const transferSummary = transfer && summarizeChecklist(transferSteps(transfer.etapas), transfer.items_completados)
+  let transferAction = 'EMPEZAR TRANSFERENCIA'
+  if (transferSummary?.complete) transferAction = 'VER TRANSFERENCIA'
+  else if (transfer?.estado) transferAction = 'CONTINUAR TRANSFERENCIA'
 
   return (
     <section className={styles.section} aria-labelledby="purchase-progress-title">
       <h2 id="purchase-progress-title">Retomá tu compra</h2>
       <p className={styles.intro}>Seguí tus checklists donde los dejaste. El avance muestra los ítems que marcaste.</p>
-      {!results && <p role="status">Cargando tu avance…</p>}
+      {!results && <p><output>Cargando tu avance…</output></p>}
       {results && (
         <div className={styles.results}>
           {results.inspections.status === 'rejected' && <p role="alert">No pudimos cargar tus inspecciones.</p>}
@@ -94,7 +102,7 @@ export default function PurchaseProgress() {
           {transferSummary && (
             <ChecklistResumeRow
               title="Transferencia" summary={transferSummary} to="/transferencia"
-              action={transferSummary.complete ? 'VER TRANSFERENCIA' : transfer?.estado ? 'CONTINUAR TRANSFERENCIA' : 'EMPEZAR TRANSFERENCIA'}
+              action={transferAction}
             />
           )}
           {failed && (
