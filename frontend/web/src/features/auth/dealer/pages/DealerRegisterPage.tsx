@@ -1,12 +1,17 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { HttpError } from '../../../../lib/http'
 import { registerDealer } from '../../api/client'
 import { useAuth } from '../../session/hooks/useAuth'
 import type { DealerRegisterPayload } from '../../model/types'
-import AuthCard from '../../shared/components/AuthCard'
+import AuthPageHeader from '../../shared/components/AuthPageHeader'
+import AuthSwitchLink from '../../shared/components/AuthSwitchLink'
 import linkStyles from '../../shared/styles/authLinks.module.css'
 import DealerRegisterForm from '../components/DealerRegisterForm'
+import DealerRegistrationProgress from '../components/DealerRegistrationProgress'
+import useDealerRegistrationStep from '../hooks/useDealerRegistrationStep'
+import { DEALER_REGISTRATION_STEPS, firstInvalidDealerStep } from '../model/dealerRegistrationSteps'
+import pageStyles from './DealerRegisterPage.module.css'
 import {
   validateDealerRegisterForm,
   type DealerRegisterErrors,
@@ -66,17 +71,36 @@ export default function DealerRegisterPage() {
   const [errors, setErrors] = useState<DealerRegisterErrors>({})
   const [formError, setFormError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
+  const { step, changing, instant, containerRef, goToStep } = useDealerRegistrationStep()
 
   const handleChange = (field: DealerRegisterField, value: string) => {
     setValues((current) => ({ ...current, [field]: value }))
     setErrors((current) => ({ ...current, [field]: undefined }))
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (keyboard = false) => {
+    if (changing) return
     const validationErrors = validateDealerRegisterForm(values)
-    setErrors(validationErrors)
     setFormError(undefined)
-    if (Object.keys(validationErrors).length > 0) return
+
+    if (step < DEALER_REGISTRATION_STEPS.length - 1) {
+      const fields = DEALER_REGISTRATION_STEPS[step].fields
+      const stepErrors = Object.fromEntries(fields.flatMap((field) => {
+        const messages = validationErrors[field] ?? errors[field]
+        return messages?.length ? [[field, messages]] : []
+      })) as DealerRegisterErrors
+      setErrors((current) => ({ ...current, ...Object.fromEntries(fields.map((field) => [field, stepErrors[field]])) }))
+      if (Object.keys(stepErrors).length > 0) return
+      await goToStep(step + 1, keyboard)
+      return
+    }
+
+    setErrors(validationErrors)
+    const invalidStep = firstInvalidDealerStep(validationErrors)
+    if (invalidStep >= 0) {
+      await goToStep(invalidStep, keyboard)
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -92,6 +116,8 @@ export default function DealerRegisterPage() {
       } else if (error instanceof HttpError && error.status === 422) {
         const serverErrors = fieldErrorsFromServer(error.body as ValidationBody)
         setErrors(serverErrors)
+        const serverStep = firstInvalidDealerStep(serverErrors)
+        if (serverStep >= 0) await goToStep(serverStep, keyboard)
         if (Object.keys(serverErrors).length === 0) setFormError(GENERIC_ERROR)
       } else {
         setFormError(GENERIC_ERROR)
@@ -102,23 +128,31 @@ export default function DealerRegisterPage() {
   }
 
   return (
-    <AuthCard
-      wide
-      title="Registrá tu concesionaria"
-      titleId="dealer-register-title"
-      subtitle="Completá los datos para solicitar la adhesión a la plataforma."
-    >
-      <DealerRegisterForm
-        values={values}
-        errors={errors}
-        submitting={submitting}
-        formError={formError}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-      />
-      <p className={linkStyles.prompt}>
-        ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
-      </p>
-    </AuthCard>
+    <section className={pageStyles.page} aria-labelledby="dealer-register-title">
+      <AuthPageHeader className={pageStyles.header} />
+      <div className={pageStyles.intro}>
+        <h1 id="dealer-register-title">Registrá tu concesionaria</h1>
+        <p>Completá los datos para solicitar la adhesión a la plataforma.</p>
+      </div>
+      <DealerRegistrationProgress step={step} instant={instant} />
+      <div className={pageStyles.viewport}>
+        <div ref={containerRef} className={pageStyles.card} inert={changing}>
+        <DealerRegisterForm
+          values={values}
+          errors={errors}
+          submitting={submitting}
+          formError={formError}
+          step={step}
+          changing={changing}
+          onPrevious={(keyboard) => goToStep(Math.max(0, step - 1), keyboard)}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+        />
+        </div>
+      </div>
+        <p className={`${linkStyles.prompt} ${pageStyles.login}`}>
+          ¿Ya tenés cuenta? <AuthSwitchLink to="/login">Iniciar sesión</AuthSwitchLink>
+        </p>
+    </section>
   )
 }

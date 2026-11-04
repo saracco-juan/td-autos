@@ -29,11 +29,37 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   keep input and button sizes unchanged. Both normal buyer forms fit without page
   scrolling at 1920×900, 1366×768 and 1280×720. Extra validation content, zoom, very
   short windows and the mobile stack may still scroll rather than clipping controls.
-- Recovery, password reset and dealer registration keep their standalone cards.
+- Recovery and password reset keep their standalone cards.
   Auth validation, endpoints, OAuth origins and session guards are unchanged.
 - Approved divergence from the existing auth frames: sliding split composition,
   embedded buyer forms and mobile stack. No current buyer frame was verified for
   this revision; High v3 web/mobile Figma synchronization remains pending approval.
+
+## Dealer registration wizard (2026-11-04)
+
+- `/registro/concesionaria` groups the existing twelve fields into four steps:
+  Concesionaria, Ubicación, Responsable and Cuenta. Next validates only its step;
+  the original full validator still runs before sending the unchanged payload.
+  Back preserves values in React state. Credentials are never saved as a draft.
+- Server field errors return to the first affected step, preserving messages for
+  the other steps. Submission still refreshes the session before subscription
+  navigation. The existing 409, 422 and retry behavior remains covered by tests.
+- Reuse `AuthPageHeader` for the TD Autos brand/home action on buyer and dealer
+  access screens, plus `TextField`, password requirements and buttons.
+  Dealer inputs use 16px text on mobile and a compact two-column field grid on desktop.
+- The reference's segmented black progress advances with validated Next actions.
+  The title and description sit above the progress, outside the form card.
+  Fill uses an interruptible 250ms scale transform. The whole card exits left in
+  200ms, then the next card enters from the right in 250ms; Back reverses this.
+  A single live form retains values without duplicating credential inputs.
+  Navigation is disabled during travel and pending animations cancel on unmount.
+  First entry is already displayed. Keyboard
+  changes and reduced-motion preferences skip travel. No motion dependency is added.
+- Keep the dealer header/progress anchored near the top while content height
+  follows its step, avoiding a stretched empty card and a shifting progress row.
+  Keyboard-focused step headings have a visible outline. Button hover remains 550ms.
+- This user-approved staged layout replaces the old all-fields-at-once dealer
+  card. High v3 web/mobile synchronization remains pending separate approval.
 
 ## Web typography and footer (2026-11-03)
 

@@ -39,7 +39,7 @@ function renderPage() {
   )
 }
 
-// Labels in the Figma order (38:779): left column, then right column, row by row.
+// Full original payload fixture; the wizard shows only the fields of its current step.
 const validFields = {
   'Nombre de la concesionaria': 'Autos del Sur',
   Email: 'marta@autosdelsur.com',
@@ -61,14 +61,21 @@ type User = ReturnType<typeof userEvent.setup>
 // Pastes each value in one input event: typing ~130 keystrokes pushed these tests past the 5 s timeout under
 // full-suite load. Per-keystroke behavior is covered by the live checklist and error-clearing tests.
 async function fillForm(user: User, overrides: Partial<Record<Label, string>> = {}) {
-  for (const [label, value] of Object.entries({ ...validFields, ...overrides })) {
-    if (!value) continue
-    await user.click(screen.getByLabelText(label))
-    await user.paste(value)
+  for (let step = 1; step <= 4; step++) {
+    for (const [label, value] of Object.entries({ ...validFields, ...overrides })) {
+      const input = screen.queryByLabelText(label)
+      if (!value || !input) continue
+      await user.click(input)
+      await user.paste(value)
+    }
+    if (step === 4) return
+    const before = screen.getByRole('progressbar').getAttribute('aria-valuenow')
+    await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+    if (screen.getByRole('progressbar').getAttribute('aria-valuenow') === before) return
   }
 }
 
-const submit = (user: User) => user.click(screen.getByRole('button', { name: 'CREAR CUENTA' }))
+const submit = (user: User) => user.click(screen.getByRole('button', { name: /^(CREAR CUENTA|SIGUIENTE)$/ }))
 
 describe('DealerRegisterPage', () => {
   beforeEach(() => {
@@ -82,29 +89,31 @@ describe('DealerRegisterPage', () => {
     it('renders the wordmark, title, subtitle and login link, without Google', () => {
       renderPage()
 
-      expect(screen.getByText('TD AUTOS')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'TD Autos' })).toHaveAttribute('href', '/')
       expect(screen.getByRole('heading', { name: 'Registrá tu concesionaria' })).toBeInTheDocument()
       expect(screen.getByText('Completá los datos para solicitar la adhesión a la plataforma.')).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'Iniciar sesión' })).toHaveAttribute('href', '/login')
       expect(screen.queryByRole('link', { name: 'CONTINUAR CON GOOGLE' })).not.toBeInTheDocument()
     })
 
-    it('uses the wide card', () => {
+    it('keeps the page title and progress outside the form card', () => {
       renderPage()
-
-      expect(screen.getByRole('region', { name: 'Registrá tu concesionaria' }).className).toMatch(/wide/)
+      expect(screen.getByRole('heading', { name: 'Registrá tu concesionaria' }).closest('form')).toBeNull()
+      expect(screen.getByRole('progressbar').closest('form')).toBeNull()
     })
 
-    it('lists the twelve fields in the Figma order', () => {
+    it('shows only the current step fields', () => {
       renderPage()
 
       const labels = [...document.querySelectorAll('label')].map((label) => label.textContent)
-      expect(labels).toEqual(Object.keys(validFields))
+      expect(labels).toEqual(['Nombre de la concesionaria', 'Teléfono público'])
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '4')
     })
 
     it.each(['Contraseña', 'Confirmar contraseña'])('toggles the visibility of %s', async (label) => {
       const user = userEvent.setup()
       renderPage()
+      await fillForm(user)
       const input = screen.getByLabelText(label)
       const field = input.closest('div')!.parentElement!
 
@@ -118,6 +127,7 @@ describe('DealerRegisterPage', () => {
     it('checks off each password requirement live as the user types', async () => {
       const user = userEvent.setup()
       renderPage()
+      await fillForm(user, { Contraseña: '', 'Confirmar contraseña': '' })
       const password = screen.getByLabelText('Contraseña')
       const checklist = screen.getByRole('list', { name: 'Requisitos de la contraseña' })
       const metState = () =>
@@ -235,15 +245,16 @@ describe('DealerRegisterPage', () => {
       expect(registerDealer).not.toHaveBeenCalled()
     })
 
-    it('TC-80: flags every field of an empty form and does not call the API', async () => {
+    it('TC-80: flags the current step of an empty form and does not call the API', async () => {
       const user = userEvent.setup()
       renderPage()
 
       await submit(user)
 
-      for (const label of Object.keys(validFields).filter((label) => label !== 'Confirmar contraseña')) {
+      for (const label of ['Nombre de la concesionaria', 'Teléfono público']) {
         expect(screen.getByLabelText(label)).toBeInvalid()
       }
+      expect(screen.queryByText('El email es obligatorio.')).not.toBeInTheDocument()
       expect(registerDealer).not.toHaveBeenCalled()
     })
 
@@ -276,6 +287,7 @@ describe('DealerRegisterPage', () => {
     it('clears the error of a field as soon as it is edited', async () => {
       const user = userEvent.setup()
       renderPage()
+      await fillForm(user, { Dirección: '', Localidad: '', Provincia: '' })
 
       await submit(user)
       await user.type(screen.getByLabelText('Localidad'), 'A')
@@ -339,10 +351,26 @@ describe('DealerRegisterPage', () => {
         Provincia: 'La provincia no puede superar los 100 caracteres.',
         Contraseña: 'La contraseña debe incluir al menos un número.',
       }
-      await screen.findByText('El email ya está en uso.')
-      for (const [label, message] of Object.entries(expected)) {
-        expect(screen.getByLabelText(label)).toHaveAccessibleDescription(message)
+      await screen.findByText('El nombre de la concesionaria no puede superar los 150 caracteres.')
+      const seen = new Set<string>()
+      for (let step = 1; step <= 4; step++) {
+        for (const [label, message] of Object.entries(expected)) {
+          const input = screen.queryByLabelText(label)
+          if (!input) continue
+          expect(input).toHaveAccessibleDescription(message)
+          seen.add(label)
+        }
+        if (step === 4) break
+        for (const [label, value] of Object.entries(validFields)) {
+          const input = screen.queryByLabelText(label)
+          if (!input) continue
+          await user.clear(input)
+          await user.click(input)
+          await user.paste(value)
+        }
+        await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
       }
+      expect([...seen].sort()).toEqual(Object.keys(expected).sort())
       expect(screen.getByLabelText('Confirmar contraseña')).not.toBeInvalid()
       expect(screen.queryByText('Estado de la concesionaria')).not.toBeInTheDocument()
       expect(refresh).not.toHaveBeenCalled()
