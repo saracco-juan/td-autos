@@ -1,17 +1,17 @@
+import Button from '../../../components/Buttons/Button'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import barStyles from '../../components/checklist/pinnedBar.module.css'
-import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import { NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import { fetchDiagnosis, saveDiagnosis } from './api'
-import BodyTypeChips from './BodyTypeChips'
-import ChoiceCards from './ChoiceCards'
-import DiagnosisSummary from './DiagnosisSummary'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import alertStyles from '../../../styles/alert.module.css'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
+import FlowLayout from '../../../components/FlowLayout/FlowLayout'
+import { NetworkError } from '../../../lib/http'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import { useAuth } from '../../auth/session/hooks/useAuth'
+import { fetchDiagnosis, saveDiagnosis } from '../api/client'
+import BodyTypeChips from '../components/BodyTypeChips'
+import ChoiceCards from '../components/ChoiceCards'
+import DiagnosisSummary from '../components/DiagnosisSummary'
 import {
   UNANSWERED_STEP_MESSAGE,
   buildAnswers,
@@ -22,7 +22,7 @@ import {
 } from '@shared/diagnosis/diagnosisDraft'
 import styles from './DiagnosisPage.module.css'
 import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
-import StepProgress from './StepProgress'
+import StepProgress from '../components/StepProgress'
 import type { BodyType, DiagnosisDraft } from '@shared/diagnosis/types'
 
 const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
@@ -156,33 +156,33 @@ export default function DiagnosisPage() {
       actions={
         <div className={`${barStyles.actions} ${styles.actions}`}>
           {step > 0 ? (
-            <button
+            <Button
               type="button"
               disabled={saving}
-              className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
+              variant="secondary" className={`${barStyles.action}`}
               onClick={() => goToStep(step - 1)}
             >
               ATRÁS
-            </button>
+            </Button>
           ) : null}
           {isLast ? (
-            <button
+            <Button
               type="button"
               disabled={saving}
               aria-busy={saving}
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.actionWide}`}
+              variant="primary" className={`${barStyles.actionWide}`}
               onClick={handleFinish}
             >
               {saving ? 'GUARDANDO…' : 'VER RECOMENDACIONES'}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               type="button"
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
+              variant="primary" className={`${barStyles.action}`}
               onClick={handleNext}
             >
               CONTINUAR
-            </button>
+            </Button>
           )}
         </div>
       }

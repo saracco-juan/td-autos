@@ -1,4 +1,4 @@
-import { apiFetch } from '../../lib/http'
+import { apiFetch } from '../../../lib/http'
 import type { DiagnosisAnswers, DiagnosisResponse } from '@shared/diagnosis/types'
 
 export function fetchDiagnosis(): Promise<DiagnosisResponse> {

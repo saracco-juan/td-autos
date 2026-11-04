@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 
-import { apiFetch } from '../../lib/http'
-import { fetchDiagnosis, saveDiagnosis } from './api'
+import { apiFetch } from '../../../lib/http'
+import { fetchDiagnosis, saveDiagnosis } from '../../../features/diagnosis/api/client'
 import type { DiagnosisAnswers } from '@shared/diagnosis/types'
 
 const answers: DiagnosisAnswers = {

@@ -2,15 +2,15 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import { fetchDiagnosis, saveDiagnosis } from './api'
-import DiagnosisPage from './DiagnosisPage'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { useAuth } from '../../../features/auth/session/hooks/useAuth'
+import { fetchDiagnosis, saveDiagnosis } from '../../../features/diagnosis/api/client'
+import DiagnosisPage from '../../../features/diagnosis/pages/DiagnosisPage'
 import { UNANSWERED_STEP_MESSAGE } from '@shared/diagnosis/diagnosisDraft'
 import type { BodyType, DiagnosisAnswers, DiagnosisResponse } from '@shared/diagnosis/types'
 
-vi.mock('./api', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
-vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../features/diagnosis/api/client', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
+vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 // Saving the diagnosis refreshes the session (D6): the stub records the order of the calls.
 const refresh = vi.fn()

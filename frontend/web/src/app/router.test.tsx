@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
 import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api/client'
-import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
+import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api/client'
 import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api'
 import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
@@ -17,7 +17,7 @@ import { fetchRecommendations } from '../features/recommendations/matching'
 import { fetchPortalModels } from '../features/recommendations/portalModels'
 import { fetchTransfer } from '../features/transfer/api'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
-import type { DiagnosisAnswers } from '../features/diagnosis/types'
+import type { DiagnosisAnswers } from '../features/diagnosis/model/types'
 import { routes } from './router'
 
 // The session provider reads the current user: keep the router tests off the network.
@@ -32,7 +32,7 @@ vi.mock('../features/auth/api/client', () => ({
   GOOGLE_REDIRECT_URL: 'http://localhost:8000/auth/google/redirect',
 }))
 
-vi.mock('../features/diagnosis/api', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
+vi.mock('../features/diagnosis/api/client', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
 
 vi.mock('../features/inspection/api', () => ({
   fetchInspection: vi.fn(),

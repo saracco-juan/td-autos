@@ -1,5 +1,5 @@
 .page {
-  composes: container from '../../styles/screen.module.css';
+  composes: container from '../../../styles/screen.module.css';
   --diagnosis-motion-duration: 1000ms;
   --diagnosis-motion-ease: cubic-bezier(.37, 0, .63, 1);
   /* Travel stays inside the shell's 16–40px gutter, with 4px for focus outlines. */

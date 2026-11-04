@@ -1,6 +1,6 @@
 import { apiFetch, apiFetchBlob } from '../../lib/http'
-import { fetchDiagnosis } from '../diagnosis/api'
-import type { BodyType } from '../diagnosis/types'
+import { fetchDiagnosis } from '../diagnosis/api/client'
+import type { BodyType } from '../diagnosis/model/types'
 import type { ImportCounts, Vehiculo, VehiculoResponse, VehiculosResponse, VehicleCatalog } from './types'
 import { normalizePlate, type VehicleValues } from './vehicleFields'
 
