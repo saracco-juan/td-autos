@@ -7,7 +7,7 @@ import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorSta
 import FlowLayout from '../../components/FlowLayout/FlowLayout'
 import screenStyles from '../../styles/screen.module.css'
 import { NetworkError } from '../../lib/http'
-import { DEALER_STATE_ACTIVE } from '../auth/roles'
+import { DEALER_STATE_ACTIVE } from '../auth/model/roles'
 import SessionLoading from '../auth/session/components/SessionLoading'
 import { formatDay, retentionReached } from '../admin/format'
 import { accountStatusText } from '../dealer/accountStatus'

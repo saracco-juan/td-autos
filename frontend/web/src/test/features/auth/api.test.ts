@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 
-import { API_URL } from '../../lib/config'
-import { apiFetch } from '../../lib/http'
+import { API_URL } from '../../../lib/config'
+import { apiFetch } from '../../../lib/http'
 import {
   GOOGLE_REDIRECT_URL,
   fetchCurrentUser,
@@ -13,7 +13,7 @@ import {
   registerUser,
   requestPasswordReset,
   resetPassword,
-} from './api'
+} from '../../../features/auth/api/client'
 
 const user = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 

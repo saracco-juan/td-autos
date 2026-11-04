@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isActiveDealer, isAdmin, isBuyer, isDealer } from './roles'
-import type { User } from './types'
+import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../../../features/auth/model/roles'
+import type { User } from '../../../features/auth/model/types'
 
 const buyer: User = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 

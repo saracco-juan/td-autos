@@ -3,11 +3,11 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../../../lib/http'
-import { resetPassword } from '../../../../features/auth/api'
+import { resetPassword } from '../../../../features/auth/api/client'
 import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
 import ResetPasswordPage from '../../../../features/auth/recovery/pages/ResetPasswordPage'
 
-vi.mock('../../../../features/auth/api', () => ({ resetPassword: vi.fn() }))
+vi.mock('../../../../features/auth/api/client', () => ({ resetPassword: vi.fn() }))
 vi.mock('../../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const refresh = vi.fn()

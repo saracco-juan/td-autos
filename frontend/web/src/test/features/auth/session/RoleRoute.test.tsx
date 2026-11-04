@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { User } from '../../../../features/auth/types'
+import type { User } from '../../../../features/auth/model/types'
 import RoleRoute from '../../../../features/auth/session/components/RoleRoute'
 import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
 

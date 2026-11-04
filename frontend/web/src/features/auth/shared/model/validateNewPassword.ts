@@ -1,5 +1,5 @@
-import { PASSWORD_RULES } from '../../passwordRules'
-import type { FieldErrors } from '../../types'
+import { PASSWORD_RULES } from '../../model/passwordRules'
+import type { FieldErrors } from '../../model/types'
 
 // Client checks for a password being chosen (register, reset): strength rules plus the confirmation match.
 export function validateNewPassword(password: string, passwordConfirmation: string): FieldErrors {

@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../lib/http'
 import { useAuth } from '../auth/session/hooks/useAuth'
-import type { User } from '../auth/types'
+import type { User } from '../auth/model/types'
 import { updateProfile } from './api'
 import ProfilePage from './ProfilePage'
 

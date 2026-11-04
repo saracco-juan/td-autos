@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PASSWORD_RULES, unmetPasswordRules } from './passwordRules'
+import { PASSWORD_RULES, unmetPasswordRules } from '../../../features/auth/model/passwordRules'
 
 describe('unmetPasswordRules', () => {
   it('fails min_length at 7 characters and passes at 8', () => {

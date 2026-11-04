@@ -1,4 +1,4 @@
-import type { FieldErrors } from '../../types'
+import type { FieldErrors } from '../../model/types'
 import { validateEmail } from '../../shared/model/validateEmail'
 
 export type LoginFormValues = {

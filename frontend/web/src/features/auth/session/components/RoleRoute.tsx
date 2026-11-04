@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router'
 import alertStyles from '../../../../styles/alert.module.css'
-import type { User } from '../../types'
-import { isAdmin, isBuyer, isDealer } from '../../roles'
+import type { User } from '../../model/types'
+import { isAdmin, isBuyer, isDealer } from '../../model/roles'
 import styles from './RoleRoute.module.css'
 import { useAuth } from '../hooks/useAuth'
 

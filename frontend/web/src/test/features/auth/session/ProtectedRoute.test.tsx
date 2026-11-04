@@ -2,12 +2,12 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../../lib/http'
-import { fetchCurrentUser } from '../../../../features/auth/api'
+import { fetchCurrentUser } from '../../../../features/auth/api/client'
 import AuthProvider from '../../../../features/auth/session/components/AuthProvider'
 import ProtectedRoute from '../../../../features/auth/session/components/ProtectedRoute'
 
-vi.mock('../../../../features/auth/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../../../../features/auth/api')>()),
+vi.mock('../../../../features/auth/api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../../features/auth/api/client')>()),
   fetchCurrentUser: vi.fn(),
 }))
 

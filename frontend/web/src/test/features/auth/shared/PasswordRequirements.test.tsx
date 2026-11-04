@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { PASSWORD_RULES } from '../../../../features/auth/passwordRules'
+import { PASSWORD_RULES } from '../../../../features/auth/model/passwordRules'
 import PasswordRequirements from '../../../../features/auth/shared/components/PasswordRequirements'
 
 describe('PasswordRequirements', () => {

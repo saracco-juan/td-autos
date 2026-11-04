@@ -1,4 +1,4 @@
-import { PASSWORD_RULES } from '../../passwordRules'
+import { PASSWORD_RULES } from '../../model/passwordRules'
 import styles from './PasswordRequirements.module.css'
 
 type Props = {

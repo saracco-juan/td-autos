@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../auth/session/hooks/useAuth'
-import type { User } from '../auth/types'
+import type { User } from '../auth/model/types'
 import AppShell from '../../app/AppShell'
 
 vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))

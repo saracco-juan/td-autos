@@ -3,7 +3,7 @@ import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { HttpError, NetworkError } from '../lib/http'
-import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api'
+import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api/client'
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api'
 import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api'
 import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../features/inventory/fixtures'
@@ -21,7 +21,7 @@ import type { DiagnosisAnswers } from '../features/diagnosis/types'
 import { routes } from './router'
 
 // The session provider reads the current user: keep the router tests off the network.
-vi.mock('../features/auth/api', () => ({
+vi.mock('../features/auth/api/client', () => ({
   fetchCurrentUser: vi.fn(),
   registerUser: vi.fn(),
   registerDealer: vi.fn(),

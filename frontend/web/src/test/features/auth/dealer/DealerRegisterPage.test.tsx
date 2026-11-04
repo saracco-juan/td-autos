@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../../../lib/http'
-import { registerDealer } from '../../../../features/auth/api'
+import { registerDealer } from '../../../../features/auth/api/client'
 import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
 import DealerRegisterPage from '../../../../features/auth/dealer/pages/DealerRegisterPage'
 
-vi.mock('../../../../features/auth/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../../../../features/auth/api')>()),
+vi.mock('../../../../features/auth/api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../../features/auth/api/client')>()),
   registerDealer: vi.fn(),
 }))
 

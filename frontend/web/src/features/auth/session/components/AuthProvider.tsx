@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { ErrorKind } from '../../../../components/ErrorState/ErrorState'
 import { HttpError, NetworkError } from '../../../../lib/http'
-import { fetchCurrentUser, loginUser, logoutUser } from '../../api'
-import type { LoginCredentials, User } from '../../types'
+import { fetchCurrentUser, loginUser, logoutUser } from '../../api/client'
+import type { LoginCredentials, User } from '../../model/types'
 import { AuthContext, type AuthContextValue, type AuthStatus } from '../model/AuthContext'
 
 type Session = { user: User | null; status: AuthStatus; errorKind?: ErrorKind }

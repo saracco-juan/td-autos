@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { googleErrorMessage } from './googleErrors'
+import { googleErrorMessage } from '../../../features/auth/model/googleErrors'
 
 describe('googleErrorMessage', () => {
   it.each([

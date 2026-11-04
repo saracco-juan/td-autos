@@ -1,6 +1,6 @@
-import { API_URL } from '../../lib/config'
-import { apiFetch } from '../../lib/http'
-import type { DealerRegisterPayload, LoginCredentials, RegisterPayload, ResetPasswordPayload, User } from './types'
+import { API_URL } from '../../../lib/config'
+import { apiFetch } from '../../../lib/http'
+import type { DealerRegisterPayload, LoginCredentials, RegisterPayload, ResetPasswordPayload, User } from '../model/types'
 
 export const GOOGLE_REDIRECT_URL = `${API_URL}/auth/google/redirect`
 

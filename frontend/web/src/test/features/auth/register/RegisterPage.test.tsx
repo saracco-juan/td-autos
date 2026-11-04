@@ -4,12 +4,12 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_URL } from '../../../../lib/config'
 import { HttpError } from '../../../../lib/http'
-import { registerUser } from '../../../../features/auth/api'
+import { registerUser } from '../../../../features/auth/api/client'
 import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
 import RegisterPage from '../../../../features/auth/register/pages/RegisterPage'
 
-vi.mock('../../../../features/auth/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../../../../features/auth/api')>()),
+vi.mock('../../../../features/auth/api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../../features/auth/api/client')>()),
   registerUser: vi.fn(),
 }))
 

@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../auth/session/hooks/useAuth'
-import type { User } from '../auth/types'
+import type { User } from '../auth/model/types'
 import { fetchSubscription } from '../subscription/api'
 import { suscripcion, vigencia } from '../subscription/fixtures'
 import DealerStatusPage from './DealerStatusPage'

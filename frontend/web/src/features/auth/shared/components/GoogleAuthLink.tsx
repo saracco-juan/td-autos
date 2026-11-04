@@ -1,6 +1,6 @@
 import ButtonAnchor from '../../../../components/Buttons/ButtonAnchor'
 import GoogleIcon from '../../../../components/GoogleIcon/GoogleIcon'
-import { GOOGLE_REDIRECT_URL } from '../../api'
+import { GOOGLE_REDIRECT_URL } from '../../api/client'
 import styles from './GoogleAuthLink.module.css'
 
 type GoogleOrigin = 'registro' | 'login'

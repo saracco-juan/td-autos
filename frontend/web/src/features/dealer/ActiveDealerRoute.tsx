@@ -1,6 +1,6 @@
 import { Link, Outlet } from 'react-router'
 import alertStyles from '../../styles/alert.module.css'
-import { DEALER_STATE_PENDING, isActiveDealer } from '../auth/roles'
+import { DEALER_STATE_PENDING, isActiveDealer } from '../auth/model/roles'
 import { useAuth } from '../auth/session/hooks/useAuth'
 import styles from './ActiveDealerRoute.module.css'
 
