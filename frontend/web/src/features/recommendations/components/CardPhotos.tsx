@@ -2,7 +2,7 @@ import { useState } from 'react'
 import PhotoPlaceholder from './PhotoPlaceholder'
 import styles from './VehicleCard.module.css'
 
-export default function CardPhotos({ photos, title }: { photos: string[]; title: string }) {
+export default function CardPhotos({ photos, title }: Readonly<{ photos: string[]; title: string }>) {
   const [selected, setSelected] = useState(0)
   const [failed, setFailed] = useState<string[]>([])
   const [animate, setAnimate] = useState(false)
@@ -39,7 +39,7 @@ export default function CardPhotos({ photos, title }: { photos: string[]; title:
       ))}
       {!photos[index] || failed.includes(photos[index]) ? <PhotoPlaceholder className={styles.placeholder} /> : null}
       {photos.length > 1 ? (
-        <div className={styles.photoControls} data-animate={animate} role="group" aria-label={`Fotos de ${title}`}>
+        <fieldset className={styles.photoControls} data-animate={animate} aria-label={`Fotos de ${title}`}>
           <button type="button" aria-label="Foto anterior" onClick={(event) => choose(index - 1, event.detail > 0)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14" /></svg>
           </button>
@@ -67,7 +67,7 @@ export default function CardPhotos({ photos, title }: { photos: string[]; title:
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 5 7 7-7 7M5 12h14" /></svg>
           </button>
           <span className={styles.photoStatus} aria-live="polite">Foto {index + 1} de {photos.length}</span>
-        </div>
+        </fieldset>
       ) : null}
     </div>
   )

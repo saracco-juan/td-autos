@@ -15,18 +15,20 @@ import CardPhotos from './CardPhotos'
 import styles from './VehicleCard.module.css'
 
 // Photo-led redesign of High v3 Card/Vehicle (2373:7340); matching stays in the backend.
-export default function MatchingVehicleCard({ result, comparison, priorityLabel, usageLabel }: {
+export default function MatchingVehicleCard({ result, comparison, priorityLabel, usageLabel }: Readonly<{
   result: Recommendation; comparison?: { selected: boolean; toggle: () => void }; priorityLabel?: string; usageLabel?: string
-}) {
+}>) {
   const titleId = useId()
   const location = useLocation()
   const { vehicle, dealer, components } = result
+  let photos = vehicle.image_urls ?? []
+  if (!photos.length && vehicle.image_url) photos = [vehicle.image_url]
   const title = recommendationTitle(result)
 
   return (
     <li className={styles.card} aria-labelledby={titleId}>
       <div className={styles.surface}>
-        <CardPhotos title={title} photos={vehicle.image_urls?.length ? vehicle.image_urls : vehicle.image_url ? [vehicle.image_url] : []} />
+        <CardPhotos title={title} photos={photos} />
         <div className={styles.topline}>
           <div className={styles.matchingInfo}>
             <strong className={styles.compatibility}>{compatibilityLabel(result)}</strong>
@@ -61,7 +63,7 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel,
           <p className={styles.price}>Publicado: {formatPrice(result.published_price, result.published_currency).replace('US$', 'USD')}</p>
           <p className={styles.meta}>{equivalentPriceLabel(result).replace('US$', 'USD')}</p>
           <p className={styles.source}>{dealer.nombre} · {dealer.provincia}</p>
-          <div className={styles.actions} role="group" aria-label={`Acciones de ${title}`}>
+          <fieldset className={styles.actions} aria-label={`Acciones de ${title}`}>
             {comparison ? <Button type="button" className={`${styles.compare}`} aria-pressed={comparison.selected}
               aria-label={`${comparison.selected ? 'Quitar' : 'Comparar'} ${title}`} onClick={comparison.toggle}>
               {comparison.selected ? 'QUITAR' : 'COMPARAR'}
@@ -71,7 +73,7 @@ export default function MatchingVehicleCard({ result, comparison, priorityLabel,
                 factors: components, usageLabel, priorityLabel, returnTo: `${location.pathname}${location.search}` } }}>
               VER FICHA
             </ButtonLink>
-          </div>
+          </fieldset>
         </div>
       </div>
       {warningMessages({ ...result, warnings: result.warnings.filter((warning) => warning !== 'body_mismatch') }).map((message) => <p key={message} className={alertStyles.warning}>{message}</p>)}

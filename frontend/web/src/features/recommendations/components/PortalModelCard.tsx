@@ -52,14 +52,14 @@ export default function PortalModelCard({ model }: { model: PortalModel }) {
           <p className={cardStyles.price}>{portalPriceRange(model.precio)}</p>
           <p className={cardStyles.meta}>{portalPriceYear(model.precio)}</p>
           {model.carroceria ? <p className={cardStyles.source}>{model.carroceria}</p> : null}
-          <div className={`${cardStyles.actions} ${cardStyles.portalActions}`} role="group" aria-label={`Acciones de ${title}`}>
+          <fieldset className={`${cardStyles.actions} ${cardStyles.portalActions}`} aria-label={`Acciones de ${title}`}>
             {model.links.map((link) => (
               <ButtonAnchor key={link.portal} href={link.url} target="_blank" rel="noopener noreferrer"
                 className={`${cardStyles.detail}`} aria-label={portalLinkName(link, model)}>
                 {portalButtonLabel(link)}
               </ButtonAnchor>
             ))}
-          </div>
+          </fieldset>
         </div>
       </div>
     </li>

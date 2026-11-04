@@ -138,6 +138,10 @@
 }
 
 .actions {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -249,9 +253,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card :is(a, button) {
+  .card :is(a, button),
+  .card :is(a, button):active:not(:focus-visible):not(:disabled) {
     transition: none;
-    transform: none !important;
+    transform: none;
   }
 }
 
@@ -260,6 +265,9 @@
 .surface:has(.photoControls) .content { pointer-events: none; }
 .surface:has(.photoControls) .content > * { pointer-events: auto; }
 .photoControls {
+  min-width: 0;
+  margin: 0;
+  border: 0;
   position: absolute;
   z-index: 1;
   bottom: 25%;

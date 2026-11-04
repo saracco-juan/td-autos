@@ -15,6 +15,15 @@
   line-height: 1.5;
 }
 
+.actions {
+  min-width: 0;
+  margin: 20px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+
+
 .actions > a,
 .actions > button {
   flex-basis: auto;

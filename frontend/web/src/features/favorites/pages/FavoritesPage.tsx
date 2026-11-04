@@ -1,3 +1,4 @@
+import accessibility from '../../../styles/accessibility.module.css'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useEffect, useState } from 'react'
 import alertStyles from '../../../styles/alert.module.css'
@@ -42,16 +43,17 @@ export default function FavoritesPage() {
           <p className={styles.subtitle}>{total === 0 ? 'Sin vehículos guardados'
             : `${total} ${total === 1 ? 'vehículo guardado' : 'vehículos guardados'}`}</p>
         </div>
-        {total > 0 ? <div className={styles.headerActions} role="group" aria-label="Acciones de favoritos">
+        {total > 0 ? <fieldset className={styles.headerActions}>
+          <legend className={accessibility.visuallyHidden}>Acciones de favoritos</legend>
           {recommendationsLink}
           {view.status === 'ready' ? <ComparisonControls className={styles.comparison} selection={comparison} source="favorites"
             vehicles={items.map((vehicle) => ({ id: vehicle.id,
               label: `${vehicle.marca} ${vehicle.modelo} ${vehicle.anio}`,
               title: [vehicle.marca, vehicle.modelo, vehicle.version, vehicle.anio].filter(Boolean).join(' '), image: vehicle.image_url }))} /> : null}
-        </div> : null}
+        </fieldset> : null}
       </header>
       {actionError ? (
-        <p role="alert" className={alertStyles.alert}>
+        <p role="alert" className={`${alertStyles.alert} ${styles.retryAlert}`}>
           No pudimos actualizar tus favoritos. Intentá nuevamente.
           <button type="button" className={styles.retryAction} onClick={favorites.retryAction}>REINTENTAR</button>
         </p>

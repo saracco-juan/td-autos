@@ -5,10 +5,10 @@ import type { Recommendation } from '../../recommendations/api/matching'
 import FavoriteCard from './FavoriteCard'
 import styles from './FavoritesCarousel.module.css'
 
-type Props = {
+type Props = Readonly<{
   items: FavoriteVehicle[]; matches: Recommendation[]; selectedIds: number[]; pendingIds: number[]
   onToggle: (id: number) => void; onRemove: (vehicle: FavoriteVehicle) => void
-}
+}>
 
 export default function FavoritesCarousel({ items, matches, selectedIds, pendingIds, onToggle, onRemove }: Props) {
   const [compact, setCompact] = useState(() => window.matchMedia?.('(max-width: 1100px)').matches ?? false)
@@ -46,7 +46,7 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
       window.setTimeout(() => setInstant(false), 40)
     }
   }
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+  const onNavigationKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'ArrowRight') { event.preventDefault(); navigate(1, true) }
     if (event.key === 'ArrowLeft') { event.preventDefault(); navigate(-1, true) }
   }
@@ -74,8 +74,8 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
   </ul>
 
   return <section className={`${styles.carousel} ${instant ? styles.instant : ''} ${selected.length ? styles.hasSelected : ''}`}
-    role="region" aria-label="Carrusel de favoritos" aria-roledescription="carrusel" tabIndex={0}
-    data-current-id={currentId} onKeyDown={onKeyDown} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { pointer.current = null }}>
+    aria-label="Carrusel de favoritos" aria-roledescription="carrusel"
+    data-current-id={currentId} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => { pointer.current = null }}>
     <div className={styles.stage}>
       <div className={styles.deck}>
         {items.map((vehicle, itemIndex) => {
@@ -88,12 +88,14 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
           const lift = isSelected ? 0 : -165 * (1 - Math.cos(radians))
           const facing = isSelected ? 0 : 14 * Math.sin(radians)
           const radius = isSelected ? '0px' : 'var(--orbit-radius)'
-          const x = isSelected ? `calc(-50% + ${selectedIndex === 0 ? -200 : 200}px)` : '-50%'
+          const selectedX = selectedIndex === 0 ? -200 : 200
+          const x = isSelected ? `calc(-50% + ${selectedX}px)` : '-50%'
           const y = isSelected ? '-520px' : `calc(var(--wheel-y) + ${lift}px)`
           // Keep the same transform functions while lifting out of the orbit.
           const orbit = `translate(${x}, ${y}) translateZ(calc(-1 * ${radius})) rotateY(${angle}deg) translateZ(${radius}) rotateY(${-angle}deg) rotateY(${facing}deg)`
-          const position = selectedIndex >= 0 ? `selected-${selectedIndex}` : offset === 0 ? 'front'
-            : `side-${offset}`
+          let position = `side-${offset}`
+          if (offset === 0) position = 'front'
+          if (selectedIndex >= 0) position = `selected-${selectedIndex}`
           const active = offset === 0 || selectedIndex >= 0
           const side = selectedIndex < 0 && offset !== 0
           return <div key={vehicle.id} className={styles.card} data-position={position} data-active={active}
@@ -110,14 +112,15 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
           </div>
         })}
       </div>
-      {selected.length > 0 ? <div className={styles.selected} role="group" aria-label="Vehículos seleccionados" /> : null}
     </div>
     <div className={styles.controls}>
-      <Button type="button" className={`${styles.arrow}`} aria-label="Anterior favorito" disabled={available.length < 2} onClick={() => navigate(-1)}>
+      <Button type="button" className={styles.arrow} aria-label="Anterior favorito" disabled={available.length < 2}
+        onClick={() => navigate(-1)} onKeyDown={onNavigationKeyDown}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
       </Button>
       <span aria-live="polite">{length ? `${currentIndex + 1} de ${length}` : 'Sin favoritos'}</span>
-      <Button type="button" className={`${styles.arrow}`} aria-label="Siguiente favorito" disabled={available.length < 2} onClick={() => navigate(1)}>
+      <Button type="button" className={styles.arrow} aria-label="Siguiente favorito" disabled={available.length < 2}
+        onClick={() => navigate(1)} onKeyDown={onNavigationKeyDown}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
       </Button>
     </div>

@@ -50,13 +50,16 @@ it('shows every favorite as an actionable grid card on smaller screens', () => {
   expect(onToggle).toHaveBeenCalledWith(3)
 })
 
-it('navigates the current card with controls and keyboard', () => {
+it('keeps carousel navigation on its native controls for keyboard users', () => {
   render(<MemoryRouter><FavoritesCarousel {...props()} /></MemoryRouter>)
-  expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', '1')
-  fireEvent.click(screen.getByRole('button', { name: 'Siguiente favorito' }))
-  expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', '2')
-  fireEvent.keyDown(screen.getByRole('region', { name: 'Carrusel de favoritos' }), { key: 'ArrowLeft' })
-  expect(screen.getByRole('region', { name: 'Carrusel de favoritos' })).toHaveAttribute('data-current-id', '1')
+  const region = screen.getByRole('region', { name: 'Carrusel de favoritos' })
+  const next = screen.getByRole('button', { name: 'Siguiente favorito' })
+  expect(region).toHaveAttribute('data-current-id', '1')
+  expect(region).not.toHaveAttribute('tabindex')
+  fireEvent.click(next)
+  expect(region).toHaveAttribute('data-current-id', '2')
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Anterior favorito' }), { key: 'ArrowLeft' })
+  expect(region).toHaveAttribute('data-current-id', '1')
 })
 
 it('keeps complete turns when crossing the last and first cards in either direction', () => {
@@ -89,7 +92,6 @@ it('keeps side-card actions inert until that card is brought forward', () => {
 it('provides two selected upper slots', () => {
   const { rerender } = render(<MemoryRouter><FavoritesCarousel {...props()} /></MemoryRouter>)
   rerender(<MemoryRouter><FavoritesCarousel {...props({ selectedIds: [1, 2] })} /></MemoryRouter>)
-  expect(screen.getByRole('group', { name: 'Vehículos seleccionados' })).toBeInTheDocument()
   const selected = screen.getByRole('listitem', { name: /Modelo 1/ }).closest('[data-position="selected-0"]')
   expect(selected).toBeInTheDocument()
   expect(screen.getByRole('listitem', { name: /Modelo 2/ }).closest('[data-position="selected-1"]')).toBeInTheDocument()

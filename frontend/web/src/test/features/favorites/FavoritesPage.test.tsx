@@ -40,6 +40,7 @@ describe('FavoritesPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Vehículos guardados' })).toBeInTheDocument()
     expect(await screen.findByText('Toyota Corolla XEI 2021')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Acciones de favoritos' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'VER FICHA' })).toHaveAttribute('href', '/vehiculos/12')
     await userEvent.click(screen.getByRole('link', { name: 'VER FICHA' }))
     expect(await screen.findByText('Ficha {"returnTo":"/favoritos"}')).toBeInTheDocument()

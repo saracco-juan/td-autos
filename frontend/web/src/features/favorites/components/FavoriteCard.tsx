@@ -1,3 +1,4 @@
+import accessibility from '../../../styles/accessibility.module.css'
 import Button from '../../../components/Buttons/Button'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useId } from 'react'
@@ -13,10 +14,12 @@ function title(vehicle: FavoriteVehicle) {
     .filter((part) => part !== null && part !== '').join(' ')
 }
 
-export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch = false, comparison }: {
+type Props = Readonly<{
   vehicle: FavoriteVehicle; busy: boolean; onRemove: () => void; score?: number; bestMatch?: boolean
-  comparison?: { selected: boolean; toggle: () => void }
-}) {
+  comparison?: Readonly<{ selected: boolean; toggle: () => void }>
+}>
+
+export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch = false, comparison }: Props) {
   const name = title(vehicle)
   const titleId = useId()
   return (
@@ -41,7 +44,8 @@ export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch
           <p className={styles.price}>{vehicle.precio === null || vehicle.moneda === null
             ? 'Precio no disponible' : <>Publicado: <span>{formatPrice(vehicle.precio, vehicle.moneda).replace('US$', 'USD')}</span></>}</p>
           <p className={styles.meta}>{vehicle.ubicacion || 'Ubicación no disponible'}</p>
-          <div className={`${styles.actions} ${favoriteStyles.actions}`} role="group" aria-label={`Acciones de ${name}`}>
+          <fieldset className={`${styles.actions} ${favoriteStyles.actions}`}>
+            <legend className={accessibility.visuallyHidden}>Acciones de {name}</legend>
             {comparison ? <Button type="button" className={`${styles.compare}`}
               aria-pressed={comparison.selected} disabled={busy}
               aria-label={`${comparison.selected ? 'Dejar de comparar' : 'Comparar'} ${name}`} onClick={comparison.toggle}>
@@ -55,7 +59,7 @@ export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch
               to={`/vehiculos/${vehicle.id}`} state={{ returnTo: '/favoritos' }}>
               VER FICHA
             </ButtonLink>
-          </div>
+          </fieldset>
         </div>
       </div>
     </li>

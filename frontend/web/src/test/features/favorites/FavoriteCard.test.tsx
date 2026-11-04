@@ -16,6 +16,7 @@ it('formats public facts and exposes removal and detail actions', async () => {
   render(<MemoryRouter><FavoriteCard vehicle={vehicle} busy={false} onRemove={remove} /></MemoryRouter>)
   expect(screen.getByText('$ 28.900.000')).toBeInTheDocument()
   expect(screen.getByText('Automática · Nafta · 62.000 km')).toBeInTheDocument()
+  expect(screen.getByRole('group', { name: 'Acciones de Toyota Corolla XEI 2021' })).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'VER FICHA' })).toHaveAttribute('href', '/vehiculos/12')
   await userEvent.click(screen.getByRole('button', { name: 'QUITAR' }))
   expect(remove).toHaveBeenCalledOnce()
