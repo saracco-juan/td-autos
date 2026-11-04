@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 
-import { apiFetch } from '../../lib/http'
-import { fetchInspection, finishInspection, setItemCompleted } from './api'
+import { apiFetch } from '../../../lib/http'
+import { fetchInspection, finishInspection, setItemCompleted } from '../../../features/inspection/api/client'
 import type { InspectionProgress, InspectionResponse } from '@shared/checklist/inspection/types'
 
 const inspection: InspectionResponse = {

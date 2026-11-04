@@ -2,13 +2,13 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { fetchInspection, finishInspection, setItemCompleted } from './api'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { fetchInspection, finishInspection, setItemCompleted } from '../../../features/inspection/api/client'
 import { CRITICAL_CODES, inspectionResponse } from '@shared/checklist/inspection/fixtures'
-import InspectionPage from './InspectionPage'
+import InspectionPage from '../../../features/inspection/pages/InspectionPage'
 import type { InspectionProgress, InspectionResponse } from '@shared/checklist/inspection/types'
 
-vi.mock('./api', () => ({ fetchInspection: vi.fn(), setItemCompleted: vi.fn(), finishInspection: vi.fn() }))
+vi.mock('../../../features/inspection/api/client', () => ({ fetchInspection: vi.fn(), setItemCompleted: vi.fn(), finishInspection: vi.fn() }))
 
 const SAVE_ERROR = 'No pudimos guardar el cambio. Probá de nuevo.'
 const FINISH_ERROR = 'No pudimos finalizar la inspección. Probá de nuevo.'

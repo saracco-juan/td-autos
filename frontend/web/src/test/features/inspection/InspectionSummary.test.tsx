@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 import { CRITICAL_CODES, STEPS, VEHICLE } from '@shared/checklist/inspection/fixtures'
-import InspectionSummary from './InspectionSummary'
+import InspectionSummary from '../../../features/inspection/components/InspectionSummary'
 
 const ALL_CODES = STEPS.flatMap((step) => step.items.map((item) => item.codigo))
 // Everything ticked except these codes.

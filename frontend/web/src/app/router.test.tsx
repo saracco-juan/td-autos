@@ -7,7 +7,7 @@ import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword 
 import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api/client'
 import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api'
 import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../features/inventory/fixtures'
-import { fetchInspection } from '../features/inspection/api'
+import { fetchInspection } from '../features/inspection/api/client'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api/client'
 import { dealerDetail, directory, receipt } from '../test/fixtures/admin/fixtures'
@@ -34,7 +34,7 @@ vi.mock('../features/auth/api/client', () => ({
 
 vi.mock('../features/diagnosis/api/client', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
 
-vi.mock('../features/inspection/api', () => ({
+vi.mock('../features/inspection/api/client', () => ({
   fetchInspection: vi.fn(),
   setItemCompleted: vi.fn(),
   finishInspection: vi.fn(),

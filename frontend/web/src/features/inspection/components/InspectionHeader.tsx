@@ -1,7 +1,7 @@
 import type { Ref } from 'react'
 import { BACK_TO_SHEET, reviewedCounter } from '@shared/checklist/inspection/copy'
-import BackLink from '../../components/Buttons/BackLink'
-import styles from '../../components/checklist/ChecklistScreen.module.css'
+import BackLink from '../../../components/Buttons/BackLink'
+import styles from '../../../components/checklist/ChecklistScreen.module.css'
 
 type Props = {
   vehicleId: number

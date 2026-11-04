@@ -1,14 +1,14 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
+import Button from '../../../components/Buttons/Button'
 import type { Ref } from 'react'
-import { Link } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import ChecklistCardGrid from '../../components/checklist/ChecklistCardGrid'
-import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCard'
-import ChecklistProgressCard from '../../components/checklist/ChecklistProgressCard'
-import barStyles from '../../components/checklist/pinnedBar.module.css'
+import alertStyles from '../../../styles/alert.module.css'
+import ChecklistCardGrid from '../../../components/checklist/ChecklistCardGrid'
+import ChecklistPendingCard from '../../../components/checklist/ChecklistPendingCard'
+import ChecklistProgressCard from '../../../components/checklist/ChecklistProgressCard'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '@shared/checklist/progress'
-import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import checklistStyles from '../../components/checklist/ChecklistScreen.module.css'
+import FlowLayout from '../../../components/FlowLayout/FlowLayout'
+import checklistStyles from '../../../components/checklist/ChecklistScreen.module.css'
 import { toChecklistSteps } from '@shared/checklist/inspection/steps'
 import { FLAG_LABEL, SUMMARY_LABELS } from '@shared/checklist/inspection/copy'
 import InspectionHeader from './InspectionHeader'
@@ -40,19 +40,19 @@ export default function InspectionSummary({ vehicle, steps, completedCodes, onKe
       className={`${checklistStyles.layout} ${checklistStyles.summary}`}
       actions={
         <div className={barStyles.actions}>
-          <Link
+          <ButtonLink
             to={`/vehiculos/${vehicle.id}`}
-            className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}
+            variant="secondary" className={`${barStyles.action}`}
           >
             {SUMMARY_LABELS.backToSheet}
-          </Link>
-          <button
+          </ButtonLink>
+          <Button
             type="button"
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
+            variant="primary" className={`${barStyles.action}`}
             onClick={onKeepReviewing}
           >
             {SUMMARY_LABELS.keepReviewing}
-          </button>
+          </Button>
         </div>
       }
     >
