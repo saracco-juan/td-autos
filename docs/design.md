@@ -18,9 +18,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - At 800px and below, keep the form first and a compact, static red panel below.
   Reduced-motion preferences disable travel. Keyboard activation of the companion
   action switches immediately and the new form title receives focus without scrolling.
-- Desktop has a shared 840px minimum stage height to avoid a login/register height
-  jump with the current content. The document may scroll on shorter displays; do
-  not add an internal form scrollbar or clip validation messages to fit one viewport.
+- The desktop stage fills the remaining viewport below the access navigation.
+  Use smaller outer vertical padding and embedded-card gaps on shorter displays;
+  keep input and button sizes unchanged. Both normal buyer forms fit without page
+  scrolling at1920x900,1366x768 and1280x720. Extra validation content, zoom, very
+  short windows and the mobile stack may still scroll rather than clipping controls.
 - Recovery, password reset and dealer registration keep their standalone cards.
   Auth validation, endpoints, OAuth origins and session guards are unchanged.
 - Approved divergence from the existing auth frames: sliding split composition,

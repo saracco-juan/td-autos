@@ -9,13 +9,17 @@
 
 .accessLayout {
   composes: layout;
+  --auth-page-padding-y: clamp(12px, 2dvh, 20px);
   display: block;
-  padding: clamp(16px, 3vw, 40px);
+  padding: var(--auth-page-padding-y) clamp(16px, 3vw, 40px);
 }
 
 .frame {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 1280px;
+  min-height: calc(100dvh - 2 * var(--auth-page-padding-y));
   margin-inline: auto;
 }
 
@@ -24,7 +28,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 24px;
+  flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
 .brand {
@@ -45,7 +50,8 @@
   isolation: isolate;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  min-height: 840px;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid var(--border-default);
   border-radius: 16px;

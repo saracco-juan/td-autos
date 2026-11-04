@@ -1,13 +1,13 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--auth-form-gap, 24px);
 }
 
 .fields {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--auth-fields-gap, 20px);
 }
 
 /* Figma 38:779: fields in two columns, one column on narrow screens. */
