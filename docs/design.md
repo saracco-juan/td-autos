@@ -125,6 +125,9 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Forward moves right and Back reverses it. Inactive panels are inert and hidden
   from assistive technology. The old question fades out in 160ms before the next
   fades in over 400ms, so text never overlaps during the longer movement.
+  Keep question travel within the shell gutter and leave the question stack
+  unclipped, including focus outlines. This prevents cropped text and
+  horizontal overflow without changing the motion duration or settled layout.
   Reduced motion removes travel; an offscreen next question scrolls into view
   smoothly, or instantly with reduced motion. Answer controls reuse the shared
   550ms hover and 10px corners. Saving and validation rules remain unchanged.
@@ -142,6 +145,9 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   door seams and decorative wheel rings that are absent from the reference.
   Body illustrations are unfilled outlines, with rounded joins and simplified
   wheel/detail lines; only the moving sports car retains its red fill.
+  Trying a third body type preserves both selections and replaces the question's
+  helper text with a concise, politely announced explanation of the two-choice
+  limit. Restore the helper text after a valid selection change or step navigation.
   Figma synchronization and native mobile adaptation remain separate pending work.
 
 ### Buyer catalog redesign (2026-11-02)

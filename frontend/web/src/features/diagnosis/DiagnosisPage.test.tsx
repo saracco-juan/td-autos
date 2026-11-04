@@ -403,7 +403,7 @@ describe('DiagnosisPage', () => {
       expect(saveDiagnosis).not.toHaveBeenCalled()
     })
 
-    it('ignores a third body type while two are chosen, and lets the user deselect', async () => {
+    it('explains the two-body limit without changing selections and clears the hint on recovery', async () => {
       const user = userEvent.setup()
       await renderPage()
       await answerUntilLastStep(user)
@@ -414,12 +414,23 @@ describe('DiagnosisPage', () => {
 
       expect(chip('SUV')).toHaveAttribute('aria-pressed', 'false')
       expect(summaryValue('Carrocería')).toHaveTextContent(/^Sedán, Hatchback$/)
+      const limitHint = screen.getByRole('status')
+      expect(limitHint).toHaveTextContent('Podés elegir hasta dos. Desmarcá una para cambiarla.')
+      expect(screen.getByRole('group', { name: '¿Qué tipo de carrocería preferís?' })).toHaveAttribute('aria-describedby', limitHint.id)
+      expect(saveDiagnosis).not.toHaveBeenCalled()
 
       await user.click(chip('Sedán'))
+      expect(screen.queryByText('Podés elegir hasta dos. Desmarcá una para cambiarla.')).not.toBeInTheDocument()
       await user.click(chip('SUV'))
 
       expect(chip('Sedán')).toHaveAttribute('aria-pressed', 'false')
       expect(chip('SUV')).toHaveAttribute('aria-pressed', 'true')
+      expect(summaryValue('Carrocería')).toHaveTextContent(/^Hatchback, SUV$/)
+
+      await user.click(chip('Sedán'))
+      await back(user)
+      await next(user)
+      expect(screen.queryByText('Podés elegir hasta dos. Desmarcá una para cambiarla.')).not.toBeInTheDocument()
       expect(summaryValue('Carrocería')).toHaveTextContent(/^Hatchback, SUV$/)
     })
   })

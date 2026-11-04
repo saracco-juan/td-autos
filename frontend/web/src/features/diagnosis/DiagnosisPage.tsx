@@ -28,6 +28,8 @@ import type { BodyType, DiagnosisDraft } from '@shared/diagnosis/types'
 const SAVE_ERROR = 'No se pudieron guardar las respuestas. Intentá nuevamente.'
 const TITLE_ID = 'diagnosis-step-title'
 const MESSAGE_ID = 'diagnosis-step-message'
+const BODY_TYPE_HINT_ID = 'diagnosis-body-type-hint'
+const BODY_TYPE_LIMIT_MESSAGE = 'Podés elegir hasta dos. Desmarcá una para cambiarla.'
 const LAST_STEP = DIAGNOSIS_STEPS.length - 1
 
 type LoadState = 'loading' | 'ready' | { error: ErrorKind }
@@ -40,6 +42,7 @@ export default function DiagnosisPage() {
   const [bodyTypes, setBodyTypes] = useState<BodyType[]>([])
   const [step, setStep] = useState(0)
   const [unanswered, setUnanswered] = useState(false)
+  const [bodyTypeLimitReached, setBodyTypeLimitReached] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveFailed, setSaveFailed] = useState(false)
   const [passengersNeedConfirmation, setPassengersNeedConfirmation] = useState(false)
@@ -84,12 +87,23 @@ export default function DiagnosisPage() {
     stepChanged.current = index !== step
     setStep(index)
     setUnanswered(false)
+    setBodyTypeLimitReached(false)
   }
 
   const handleDraftChange = (next: DiagnosisDraft) => {
     setDraft(next)
     setUnanswered(false)
     setSaveFailed(false)
+    setBodyTypeLimitReached(false)
+  }
+
+  const handleBodyTypeToggle = (id: number) => {
+    const next = toggleBodyType(draft, id)
+    if (next === draft) {
+      setBodyTypeLimitReached(true)
+      return
+    }
+    handleDraftChange(next)
   }
 
   const handleNext = () => {
@@ -182,10 +196,14 @@ export default function DiagnosisPage() {
             const messageId = active && unanswered ? MESSAGE_ID : undefined
             return <section key={current.field} className={styles.question}
               aria-labelledby={titleId} aria-hidden={!active} inert={!active}
-              style={{ transform: `translateX(${active ? 0 : index < step ? 48 : -48}px)`, opacity: active ? 1 : 0 }}>
+              style={{ transform: `translateX(${active ? '0px' : index < step ? 'var(--diagnosis-motion-distance)' : 'calc(-1 * var(--diagnosis-motion-distance))'})`, opacity: active ? 1 : 0 }}>
               <div className={styles.header}>
                 <h1 id={titleId} ref={active ? titleRef : null} tabIndex={-1} className={styles.title}>{current.title}</h1>
-                {current.subtitle ? <p className={styles.subtitle}>{current.subtitle}</p> : null}
+                {current.subtitle ? <p className={styles.subtitle}
+                  id={current.kind === 'multi' ? BODY_TYPE_HINT_ID : undefined}
+                  role={current.kind === 'multi' ? 'status' : undefined}>
+                  {current.kind === 'multi' && bodyTypeLimitReached ? BODY_TYPE_LIMIT_MESSAGE : current.subtitle}
+                </p> : null}
               </div>
               <div className={styles.options}>
                 {active && passengersNeedConfirmation && current.field === 'pasajeros' && draft.pasajeros === null && !unanswered ? (
@@ -198,8 +216,8 @@ export default function DiagnosisPage() {
                     labelledBy={titleId}
                     bodyTypes={bodyTypes}
                     selected={draft.carrocerias}
-                    describedBy={messageId}
-                    onToggle={(id) => handleDraftChange(toggleBodyType(draft, id))}
+                    describedBy={messageId ?? (bodyTypeLimitReached ? BODY_TYPE_HINT_ID : undefined)}
+                    onToggle={handleBodyTypeToggle}
                   />
                 ) : (
                   <ChoiceCards
