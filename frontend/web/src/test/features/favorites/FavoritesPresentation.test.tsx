@@ -1,12 +1,12 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { fetchRecommendations, type RecommendationsResponse } from '../recommendations/matching'
-import { listFavorites, setFavorite } from './api'
-import FavoritesPage from './FavoritesPage'
+import { fetchRecommendations, type RecommendationsResponse } from '../../../features/recommendations/matching'
+import { listFavorites, setFavorite } from '../../../features/favorites/api/client'
+import FavoritesPage from '../../../features/favorites/pages/FavoritesPage'
 
-vi.mock('./api', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn() }))
-vi.mock('../recommendations/matching', () => ({ fetchRecommendations: vi.fn() }))
+vi.mock('../../../features/favorites/api/client', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn() }))
+vi.mock('../../../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn() }))
 
 beforeEach(() => {
   vi.mocked(listFavorites).mockResolvedValue({

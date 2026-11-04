@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router'
 import type { ComponentProps } from 'react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import FavoritesCarousel from './FavoritesCarousel'
+import FavoritesCarousel from '../../../features/favorites/components/FavoritesCarousel'
 
 const items: FavoriteVehicle[] = [1, 2, 3].map((id) => ({
   id, marca: 'Toyota', modelo: `Modelo ${id}`, version: 'XEI', anio: 2021,

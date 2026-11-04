@@ -1,7 +1,7 @@
+import Button from '../../../components/Buttons/Button'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import type { Recommendation } from '../recommendations/matching'
+import type { Recommendation } from '../../recommendations/matching'
 import FavoriteCard from './FavoriteCard'
 import styles from './FavoritesCarousel.module.css'
 
@@ -113,13 +113,13 @@ export default function FavoritesCarousel({ items, matches, selectedIds, pending
       {selected.length > 0 ? <div className={styles.selected} role="group" aria-label="Vehículos seleccionados" /> : null}
     </div>
     <div className={styles.controls}>
-      <button type="button" className={`${buttonStyles.button} ${styles.arrow}`} aria-label="Anterior favorito" disabled={available.length < 2} onClick={() => navigate(-1)}>
+      <Button type="button" className={`${styles.arrow}`} aria-label="Anterior favorito" disabled={available.length < 2} onClick={() => navigate(-1)}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg>
-      </button>
+      </Button>
       <span aria-live="polite">{length ? `${currentIndex + 1} de ${length}` : 'Sin favoritos'}</span>
-      <button type="button" className={`${buttonStyles.button} ${styles.arrow}`} aria-label="Siguiente favorito" disabled={available.length < 2} onClick={() => navigate(1)}>
+      <Button type="button" className={`${styles.arrow}`} aria-label="Siguiente favorito" disabled={available.length < 2} onClick={() => navigate(1)}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
-      </button>
+      </Button>
     </div>
   </section>
 }

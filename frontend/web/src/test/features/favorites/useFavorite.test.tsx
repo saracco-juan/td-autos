@@ -1,9 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import { setFavorite } from './api'
-import { useFavorite } from './useFavorite'
+import { setFavorite } from '../../../features/favorites/api/client'
+import { useFavorite } from '../../../features/favorites/hooks/useFavorite'
 
-vi.mock('./api', () => ({ setFavorite: vi.fn() }))
+vi.mock('../../../features/favorites/api/client', () => ({ setFavorite: vi.fn() }))
 
 it('updates optimistically, ignores overlapping toggles, and rolls back with an error', async () => {
   let rejectSave!: (error: Error) => void

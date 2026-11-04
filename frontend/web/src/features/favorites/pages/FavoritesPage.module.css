@@ -1,5 +1,5 @@
 .page {
-  composes: container from '../../styles/screen.module.css';
+  composes: container from '../../../styles/screen.module.css';
   display: flex;
   width: 100%;
   min-height: 0;
@@ -150,11 +150,11 @@
 }
 
 .undo {
-  composes: button from '../../components/Buttons/button.module.css';
+  composes: button from '../../../components/Buttons/button.module.css';
 }
 
 .retryAction {
-  composes: button from '../../components/Buttons/button.module.css';
+  composes: button from '../../../components/Buttons/button.module.css';
 }
 
 .undo,

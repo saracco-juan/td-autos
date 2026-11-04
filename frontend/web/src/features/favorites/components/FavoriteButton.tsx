@@ -1,5 +1,5 @@
-import alertStyles from '../../styles/alert.module.css'
-import { useFavorite } from './useFavorite'
+import alertStyles from '../../../styles/alert.module.css'
+import { useFavorite } from '../hooks/useFavorite'
 import styles from './FavoriteButton.module.css'
 
 export default function FavoriteButton({ vehicleId, vehicleName, isFavorite = false }: {

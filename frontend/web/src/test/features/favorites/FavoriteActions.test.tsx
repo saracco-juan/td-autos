@@ -2,11 +2,11 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { listFavorites, setFavorite } from './api'
-import FavoritesPage from './FavoritesPage'
+import { listFavorites, setFavorite } from '../../../features/favorites/api/client'
+import FavoritesPage from '../../../features/favorites/pages/FavoritesPage'
 
-vi.mock('./api', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn() }))
-vi.mock('../recommendations/matching', () => ({ fetchRecommendations: vi.fn().mockResolvedValue({ results: [] }) }))
+vi.mock('../../../features/favorites/api/client', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn() }))
+vi.mock('../../../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn().mockResolvedValue({ results: [] }) }))
 
 const vehicle = {
   id: 12, marca: 'Toyota', modelo: 'Corolla', version: 'XEI', anio: 2021,

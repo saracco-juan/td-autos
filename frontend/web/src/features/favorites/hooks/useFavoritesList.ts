@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import type { ErrorKind } from '../../components/ErrorState/ErrorState'
-import { NetworkError } from '../../lib/http'
-import { listFavorites, setFavorite } from './api'
+import type { ErrorKind } from '../../../components/ErrorState/ErrorState'
+import { NetworkError } from '../../../lib/http'
+import { listFavorites, setFavorite } from '../api/client'
 
 type FavoritesView = { status: 'loading' } | { status: 'error'; kind: ErrorKind } | { status: 'ready' }
 type FavoriteAction = { vehicle: FavoriteVehicle; saved: boolean }

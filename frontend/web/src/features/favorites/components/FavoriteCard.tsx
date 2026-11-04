@@ -1,11 +1,11 @@
+import Button from '../../../components/Buttons/Button'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useId } from 'react'
-import { Link } from 'react-router'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import { formatKilometers, formatPrice } from '../inventory/format'
-import { COMBUSTIBLE_OPTIONS, TRANSMISION_OPTIONS } from '../inventory/vehicleFields'
-import CardPhotos from '../recommendations/CardPhotos'
-import styles from '../recommendations/VehicleCard.module.css'
+import { formatKilometers, formatPrice } from '../../inventory/format'
+import { COMBUSTIBLE_OPTIONS, TRANSMISION_OPTIONS } from '../../inventory/vehicleFields'
+import CardPhotos from '../../recommendations/CardPhotos'
+import styles from '../../recommendations/VehicleCard.module.css'
 import favoriteStyles from './FavoriteCard.module.css'
 
 function title(vehicle: FavoriteVehicle) {
@@ -42,19 +42,19 @@ export default function FavoriteCard({ vehicle, busy, onRemove, score, bestMatch
             ? 'Precio no disponible' : <>Publicado: <span>{formatPrice(vehicle.precio, vehicle.moneda).replace('US$', 'USD')}</span></>}</p>
           <p className={styles.meta}>{vehicle.ubicacion || 'Ubicación no disponible'}</p>
           <div className={`${styles.actions} ${favoriteStyles.actions}`} role="group" aria-label={`Acciones de ${name}`}>
-            {comparison ? <button type="button" className={`${buttonStyles.button} ${styles.compare}`}
+            {comparison ? <Button type="button" className={`${styles.compare}`}
               aria-pressed={comparison.selected} disabled={busy}
               aria-label={`${comparison.selected ? 'Dejar de comparar' : 'Comparar'} ${name}`} onClick={comparison.toggle}>
               {comparison.selected ? 'SELECCIONADO' : 'COMPARAR'}
-            </button> : null}
-            <button type="button" className={`${buttonStyles.button} ${styles.compare}`}
+            </Button> : null}
+            <Button type="button" className={`${styles.compare}`}
               onClick={onRemove} disabled={busy} aria-busy={busy}>
               QUITAR
-            </button>
-            <Link className={`${buttonStyles.button} ${styles.detail}`}
+            </Button>
+            <ButtonLink className={`${styles.detail}`}
               to={`/vehiculos/${vehicle.id}`} state={{ returnTo: '/favoritos' }}>
               VER FICHA
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </div>

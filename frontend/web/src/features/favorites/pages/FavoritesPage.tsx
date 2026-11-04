@@ -1,18 +1,17 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import ErrorState from '../../components/ErrorState/ErrorState'
-import ListFooter from '../../components/ListFooter/ListFooter'
-import Pagination from '../../components/Pagination/Pagination'
-import screenStyles from '../../styles/screen.module.css'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import { fetchRecommendations, type Recommendation } from '../recommendations/matching'
-import FavoritesCarousel from './FavoritesCarousel'
+import alertStyles from '../../../styles/alert.module.css'
+import ErrorState from '../../../components/ErrorState/ErrorState'
+import ListFooter from '../../../components/ListFooter/ListFooter'
+import Pagination from '../../../components/Pagination/Pagination'
+import screenStyles from '../../../styles/screen.module.css'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import { fetchRecommendations, type Recommendation } from '../../recommendations/matching'
+import FavoritesCarousel from '../components/FavoritesCarousel'
 import styles from './FavoritesPage.module.css'
-import { useFavoritesList } from './useFavoritesList'
-import ComparisonControls from '../comparison/components/ComparisonControls'
-import { useComparisonSelection } from '../comparison/hooks/useComparisonSelection'
+import { useFavoritesList } from '../hooks/useFavoritesList'
+import ComparisonControls from '../../comparison/components/ComparisonControls'
+import { useComparisonSelection } from '../../comparison/hooks/useComparisonSelection'
 
 const PAGE_SIZES = [6, 12, 24]
 
@@ -31,9 +30,9 @@ export default function FavoritesPage() {
   useEffect(() => {
     if (removed && comparison.ids.includes(removed.vehicle.id)) comparison.toggle(removed.vehicle.id)
   }, [removed, comparison])
-  const recommendationsLink = <Link to="/recomendaciones" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.footerAction}`}>
+  const recommendationsLink = <ButtonLink to="/recomendaciones" variant="secondary" className={`${styles.footerAction}`}>
     VER RECOMENDADOS
-  </Link>
+  </ButtonLink>
   return (
     <section className={styles.page}>
       <header className={styles.header}>
@@ -71,9 +70,9 @@ export default function FavoritesPage() {
           <div className={styles.empty}>
             <h2>Todavía no guardaste vehículos</h2>
             <p>Guardá los que te interesen desde Recomendaciones y encontralos acá.</p>
-            <Link to="/recomendaciones" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.recommendations}`}>
+            <ButtonLink to="/recomendaciones" variant="secondary" className={`${styles.recommendations}`}>
               VER RECOMENDADOS
-            </Link>
+            </ButtonLink>
           </div>
         ) : null}
         {view.status === 'ready' && items.length > 0 ? (

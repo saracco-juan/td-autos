@@ -2,11 +2,11 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { expect, it, vi } from 'vitest'
-import { listFavorites, setFavorite } from './api'
-import FavoritesPage from './FavoritesPage'
+import { listFavorites, setFavorite } from '../../../features/favorites/api/client'
+import FavoritesPage from '../../../features/favorites/pages/FavoritesPage'
 
-vi.mock('./api', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn().mockResolvedValue(undefined) }))
-vi.mock('../recommendations/matching', () => ({ fetchRecommendations: vi.fn().mockRejectedValue(new Error('offline')) }))
+vi.mock('../../../features/favorites/api/client', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn().mockResolvedValue(undefined) }))
+vi.mock('../../../features/recommendations/matching', () => ({ fetchRecommendations: vi.fn().mockRejectedValue(new Error('offline')) }))
 
 const vehicle = (id: number) => ({ id, marca: 'Toyota', modelo: `Auto ${id}`, version: null, anio: 2021,
   precio: 100, moneda: 'USD' as const, kilometraje: 1000, transmision: null, combustible: null,

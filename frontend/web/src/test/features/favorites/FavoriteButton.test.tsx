@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { setFavorite } from './api'
-import FavoriteButton from './FavoriteButton'
+import { setFavorite } from '../../../features/favorites/api/client'
+import FavoriteButton from '../../../features/favorites/components/FavoriteButton'
 
-vi.mock('./api', () => ({ setFavorite: vi.fn() }))
+vi.mock('../../../features/favorites/api/client', () => ({ setFavorite: vi.fn() }))
 
 beforeEach(() => { vi.mocked(setFavorite).mockReset().mockResolvedValue(undefined) })
 

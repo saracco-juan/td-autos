@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { expect, it, vi } from 'vitest'
 import type { FavoriteVehicle } from '@shared/favorites/types'
-import FavoriteCard from './FavoriteCard'
+import FavoriteCard from '../../../features/favorites/components/FavoriteCard'
 
 const vehicle: FavoriteVehicle = {
   id: 12, marca: 'Toyota', modelo: 'Corolla', version: 'XEI', anio: 2021,

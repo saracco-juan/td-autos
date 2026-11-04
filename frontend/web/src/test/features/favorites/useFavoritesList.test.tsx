@@ -1,9 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { listFavorites, setFavorite } from './api'
-import { useFavoritesList } from './useFavoritesList'
+import { listFavorites, setFavorite } from '../../../features/favorites/api/client'
+import { useFavoritesList } from '../../../features/favorites/hooks/useFavoritesList'
 
-vi.mock('./api', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn() }))
+vi.mock('../../../features/favorites/api/client', () => ({ listFavorites: vi.fn(), setFavorite: vi.fn() }))
 
 const vehicle = {
   id: 12, marca: 'Toyota', modelo: 'Corolla', version: null, anio: 2021,

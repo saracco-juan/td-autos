@@ -8,7 +8,7 @@ import {
   warningMessages,
 } from '@shared/recommendations/format'
 import { formatKilometers, formatPrice } from '../inventory/format'
-import FavoriteButton from '../favorites/FavoriteButton'
+import FavoriteButton from '../favorites/components/FavoriteButton'
 import type { Recommendation } from './matching'
 import CardPhotos from './CardPhotos'
 import styles from './VehicleCard.module.css'

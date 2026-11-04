@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { setFavorite } from './api'
+import { setFavorite } from '../api/client'
 
 const UPDATE_ERROR = 'No se pudo actualizar el favorito. Intentá de nuevo.'
 

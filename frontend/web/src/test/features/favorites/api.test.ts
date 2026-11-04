@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch } from '../../lib/http'
-import { listFavorites, setFavorite } from './api'
+import { apiFetch } from '../../../lib/http'
+import { listFavorites, setFavorite } from '../../../features/favorites/api/client'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 beforeEach(() => { vi.mocked(apiFetch).mockReset().mockResolvedValue(undefined) })
 
 it('HU11 reads the saved list with its pagination and optional visible vehicle IDs', async () => {
