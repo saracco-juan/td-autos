@@ -71,10 +71,14 @@ async function renderPage(response: DiagnosisResponse = { diagnostico: null, car
   await screen.findByRole('heading', { level: 1 })
 }
 
-const choose = (user: UserEventInstance, label: string) => user.click(screen.getByRole('radio', { name: label }))
-const next = (user: UserEventInstance) => user.click(screen.getByRole('button', { name: 'CONTINUAR' }))
-const back = (user: UserEventInstance) => user.click(screen.getByRole('button', { name: 'ATRÁS' }))
-const finish = (user: UserEventInstance) => user.click(screen.getByRole('button', { name: 'VER RECOMENDACIONES' }))
+const choose = (user: UserEventInstance, label: string) => {
+  const question = within(screen.getByRole('radiogroup'))
+  return user.click(question.getByLabelText(label))
+}
+const actions = () => within(screen.getByRole('group', { name: 'Acciones' }))
+const next = (user: UserEventInstance) => user.click(actions().getByRole('button', { name: 'CONTINUAR' }))
+const back = (user: UserEventInstance) => user.click(actions().getByRole('button', { name: 'ATRÁS' }))
+const finish = (user: UserEventInstance) => user.click(actions().getByRole('button', { name: 'VER RECOMENDACIONES' }))
 const chip = (name: string) => screen.getByRole('button', { name })
 
 // Answers steps 1-6 with the first option of each one and lands on step 7.
