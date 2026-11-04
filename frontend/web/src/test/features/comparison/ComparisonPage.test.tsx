@@ -2,11 +2,11 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch, HttpError } from '../../lib/http'
-import { entry } from '../../test/comparison'
-import ComparisonPage from './ComparisonPage'
+import { apiFetch, HttpError } from '../../../lib/http'
+import { entry } from '../../comparison'
+import ComparisonPage from '../../../features/comparison/pages/ComparisonPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 function respond(path: string) {
   if (path === '/api/recomendaciones') return { status: 'ready', results: [7, 8, 9].map((listing_id) => ({ listing_id, ...entry(listing_id).recommendation })) }
   const id = Number(path.split('/')[3])

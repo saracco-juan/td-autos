@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router'
 import { expect, it, vi } from 'vitest'
-import ComparisonControls from './ComparisonControls'
-import { useComparisonSelection } from './useComparisonSelection'
+import ComparisonControls from '../../../features/comparison/components/ComparisonControls'
+import { useComparisonSelection } from '../../../features/comparison/hooks/useComparisonSelection'
 
 const vehicles = [{ id: 193, title: 'Hyundai Tucson 2019', image: '/tucson.jpg' },
   { id: 399, title: 'Fiat Strada 2023', image: null }]

@@ -1,9 +1,9 @@
+import Button from '../../../components/Buttons/Button'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { canCompare } from '@shared/comparison/selection'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import alertStyles from '../../styles/alert.module.css'
-import type { useComparisonSelection } from './useComparisonSelection'
+import alertStyles from '../../../styles/alert.module.css'
+import type { useComparisonSelection } from '../hooks/useComparisonSelection'
 import styles from './ComparisonControls.module.css'
 
 type SelectionVehicle = { id: number; title: string; label?: string; image?: string | null }
@@ -39,14 +39,14 @@ export default function ComparisonControls({ selection, source, vehicles = [], c
   return <section className={`${styles.selection} ${className}`} aria-label="Selección para comparar">
     <div className={styles.controls}>
       {slot(0)}
-      <button type="button" aria-label="COMPARAR" className={`${buttonStyles.button} ${styles.compare}`} onClick={() => {
+      <Button type="button" aria-label="COMPARAR" className={`${styles.compare}`} onClick={() => {
         if (canCompare(ids)) {
           const params = new URLSearchParams(search)
           if (source) params.set('source', source)
           navigate(`/comparar?${params}`)
         }
         else setNotice('Seleccioná exactamente dos vehículos para comparar.')
-      }}>Comparar</button>
+      }}>Comparar</Button>
       {slot(1)}
     </div>
     {notice ? <p role="alert" className={`${alertStyles.warning} ${styles.notice}`}>{notice}</p> : null}

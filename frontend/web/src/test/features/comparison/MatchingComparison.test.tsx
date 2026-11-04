@@ -2,12 +2,12 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch } from '../../lib/http'
-import { entry, recommendation } from '../../test/comparison'
-import MatchingRecommendationsPage from '../recommendations/MatchingRecommendationsPage'
-import ComparisonPage from './ComparisonPage'
+import { apiFetch } from '../../../lib/http'
+import { entry, recommendation } from '../../comparison'
+import MatchingRecommendationsPage from '../../../features/recommendations/MatchingRecommendationsPage'
+import ComparisonPage from '../../../features/comparison/pages/ComparisonPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 beforeEach(() => {
   vi.mocked(apiFetch).mockReset().mockImplementation(async (path) => {
     if (path === '/api/recomendaciones') return { status: 'ready', results: [7, 8, 9].map(recommendation), exchange_rate: null }

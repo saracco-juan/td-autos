@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { expect, it, vi } from 'vitest'
-import { entry } from '../../test/comparison'
-import ComparisonTable from './ComparisonTable'
+import { entry } from '../../comparison'
+import ComparisonTable from '../../../features/comparison/components/ComparisonTable'
 
 const choose = (name: string) => fireEvent.click(screen.getAllByRole('tab', { name })[0])
 

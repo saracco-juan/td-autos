@@ -11,8 +11,8 @@ import { fetchRecommendations, type Recommendation } from '../recommendations/ma
 import FavoritesCarousel from './FavoritesCarousel'
 import styles from './FavoritesPage.module.css'
 import { useFavoritesList } from './useFavoritesList'
-import ComparisonControls from '../comparison/ComparisonControls'
-import { useComparisonSelection } from '../comparison/useComparisonSelection'
+import ComparisonControls from '../comparison/components/ComparisonControls'
+import { useComparisonSelection } from '../comparison/hooks/useComparisonSelection'
 
 const PAGE_SIZES = [6, 12, 24]
 

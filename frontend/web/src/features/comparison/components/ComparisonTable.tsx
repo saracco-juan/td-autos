@@ -1,11 +1,12 @@
+import Button from '../../../components/Buttons/Button'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useState, type CSSProperties } from 'react'
-import { Link, useLocation } from 'react-router'
+import { useLocation } from 'react-router'
 import { vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import type { SpecificationRow } from '@shared/vehicles/detail'
 import { comparisonGroups, type ComparisonEntry } from '@shared/comparison/groups'
-import InfoTip from '../../components/InfoTip/InfoTip'
-import Tabs from '../../components/Tabs/Tabs'
-import buttonStyles from '../../components/Buttons/button.module.css'
+import InfoTip from '../../../components/InfoTip/InfoTip'
+import Tabs from '../../../components/Tabs/Tabs'
 import styles from './ComparisonTable.module.css'
 
 export type { ComparisonEntry } from '@shared/comparison/groups'
@@ -65,8 +66,8 @@ export default function ComparisonTable({ entries, onRemove }: {
           <Photo url={detail.vehicle.fotos[0]?.url} title={title} />
           <div className={styles.intro}>
             <h2 id={`comparison-${id}`}>{title}</h2>
-            <button type="button" className={`${buttonStyles.button} ${styles.remove}`}
-              aria-label={`Quitar ${title}`} onClick={() => onRemove(id)}>QUITAR</button>
+            <Button type="button" className={`${styles.remove}`}
+              aria-label={`Quitar ${title}`} onClick={() => onRemove(id)}>QUITAR</Button>
           </div>
         </article>)}
       </div>
@@ -98,8 +99,8 @@ export default function ComparisonTable({ entries, onRemove }: {
           </>}
         </Tabs>
         {section === 'Costos estimados en ARS' ? <div className={styles.costLinks}>
-          {columns.map(({ id, title }) => <Link key={id} className={buttonStyles.button} to={`/vehiculos/${id}/costos`}
-            state={{ comparisonReturnTo }} aria-label={`Ver cálculo completo de ${title}`}>VER CÁLCULO COMPLETO</Link>)}
+          {columns.map(({ id, title }) => <ButtonLink key={id}  to={`/vehiculos/${id}/costos`}
+            state={{ comparisonReturnTo }} aria-label={`Ver cálculo completo de ${title}`}>VER CÁLCULO COMPLETO</ButtonLink>)}
         </div> : null}
       </section>
     </div>
