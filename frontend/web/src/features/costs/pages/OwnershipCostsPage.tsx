@@ -1,0 +1,243 @@
+import Button from '../../../components/Buttons/Button'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { useLocation, useParams } from 'react-router'
+import alertStyles from '../../../styles/alert.module.css'
+import InfoTip from '../../../components/InfoTip/InfoTip'
+import BackLink from '../../../components/Buttons/BackLink'
+import { HttpError } from '../../../lib/http'
+import Field from '../../auth/shared/components/Field'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import { fetchCosts } from '../api/client'
+import { formatDate } from '@shared/costs/format'
+import { monthlyLines, purchaseLines } from '@shared/costs/summary'
+import styles from './OwnershipCostsPage.module.css'
+import type { Coverage, CostsQuery, OwnershipCosts } from '@shared/costs/types'
+import { validateKm } from '@shared/costs/validateKm'
+
+const GENERIC_ERROR = 'No pudimos calcular los costos. Intentá de nuevo en unos minutos.'
+const COVERAGES: { value: Coverage; label: string }[] = [
+  { value: 'terceros_completo', label: 'Terceros completo' },
+  { value: 'todo_riesgo', label: 'Todo riesgo' },
+]
+const KM_HINTS = {
+  diagnostico: undefined,
+  default: 'Usamos un valor estimado.',
+  usuario: undefined,
+}
+
+type FieldErrors = Readonly<{ km?: string[]; coverage?: string[] }>
+type ValidationBody = { errors?: { km?: string[]; cobertura?: string[] } }
+
+type RowProps = Readonly<{ label: string; value: string; strong?: boolean; info?: Readonly<{ name: string; text: string }> }>
+
+function Row({ label, value, strong = false, info }: RowProps) {
+  return (
+    <div className={`${styles.row} ${strong ? styles.total : ''}`}>
+      <dt>
+        {label}
+        {info ? <InfoTip label={`Cómo calculamos ${info.name}`}>{info.text}</InfoTip> : null}
+      </dt>
+      <dd>{value}</dd>
+    </div>
+  )
+}
+
+function messageOf(error: unknown): string {
+  if (error instanceof HttpError && (error.status === 404 || error.status === 503)) {
+    const message = (error.body as { message?: string } | null)?.message
+    if (message) return message
+  }
+  return GENERIC_ERROR
+}
+
+function fieldErrorsOf(error: unknown): FieldErrors | null {
+  if (!(error instanceof HttpError) || error.status !== 422) return null
+  const errors = (error.body as ValidationBody | null)?.errors
+  const found: FieldErrors = { km: errors?.km, coverage: errors?.cobertura }
+  return found.km?.length || found.coverage?.length ? found : null
+}
+
+function MonthlyCard({ data }: Readonly<{ data: OwnershipCosts }>) {
+  const { lines, note } = monthlyLines(data)
+  return (
+    <section className={styles.card} aria-labelledby="costs-monthly">
+      <h2 id="costs-monthly" className={styles.cardTitle}>Para mantenerlo</h2>
+      <dl className={styles.rows}>
+        {lines.map((line) => <Row key={line.label} {...line} />)}
+      </dl>
+      {note ? <p className={styles.note}>{note}</p> : null}
+    </section>
+  )
+}
+
+function PurchaseCard({ data }: Readonly<{ data: OwnershipCosts }>) {
+  const { lines, usdNote, budget } = purchaseLines(data, 'Precio')
+  return (
+    <section className={styles.card} aria-labelledby="costs-purchase">
+      <h2 id="costs-purchase" className={styles.cardTitle}>Para comprarlo</h2>
+      <dl className={styles.rows}>
+        {lines.map((line) => <Row key={line.label} {...line} />)}
+      </dl>
+      {usdNote ? <p className={styles.note}>{usdNote}</p> : null}
+      {budget ? <p className={budget.fits ? alertStyles.notice : alertStyles.warning}>{budget.message}</p> : null}
+    </section>
+  )
+}
+
+function useOwnershipCosts(id: string) {
+  const [data, setData] = useState<OwnershipCosts | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [pageError, setPageError] = useState<string>()
+  const [km, setKm] = useState('')
+  const [coverage, setCoverage] = useState<Coverage>('terceros_completo')
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+  const latest = useRef(0)
+
+  const load = useCallback((query: CostsQuery, first: boolean) => {
+    const request = ++latest.current
+    fetchCosts(id, query)
+      .then((result) => {
+        if (request !== latest.current) return
+        setData(result)
+        setKm(String(result.inputs.km_per_month))
+        setCoverage(result.inputs.coverage)
+        setLoading(false)
+      })
+      .catch((error: unknown) => {
+        if (request !== latest.current) return
+        const invalid = first ? null : fieldErrorsOf(error)
+        if (invalid) setFieldErrors(invalid)
+        else setPageError(messageOf(error))
+        setLoading(false)
+      })
+  }, [id])
+
+  useEffect(() => {
+    load({}, true)
+    return () => { latest.current += 1 }
+  }, [load])
+
+  const recalculate = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const checked = validateKm(km)
+    if ('error' in checked) {
+      setFieldErrors({ km: [checked.error] })
+      return
+    }
+    setLoading(true)
+    setPageError(undefined)
+    setFieldErrors({})
+    load({ km: checked.km, coverage }, false)
+  }
+
+  return { data, loading, pageError, km, setKm, coverage, setCoverage, fieldErrors, recalculate }
+}
+
+type CostInputsProps = Readonly<{
+  data: OwnershipCosts
+  km: string
+  coverage: Coverage
+  loading: boolean
+  fieldErrors: FieldErrors
+  onKmChange: (value: string) => void
+  onCoverageChange: (value: Coverage) => void
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+}>
+
+function CostInputs({ data, km, coverage, loading, fieldErrors, onKmChange, onCoverageChange, onSubmit }: CostInputsProps) {
+  const kmHint = KM_HINTS[data.inputs.km_source]
+  return (
+    <form className={styles.form} noValidate onSubmit={onSubmit} aria-label="Datos para el cálculo">
+      <div className={styles.formHeading}>
+        <h2>Ajustá tu estimación</h2>
+        <p>Indicá cuánto vas a manejar y la cobertura que preferís.</p>
+      </div>
+      <Field
+        id="costs-km"
+        label="Kilómetros por mes"
+        errors={fieldErrors.km}
+        hint={kmHint ? <p id="costs-km-hint" className={styles.hint}>{kmHint}</p> : undefined}
+      >
+        {(control) => (
+          <input
+            {...control}
+            type="number"
+            name="km"
+            inputMode="numeric"
+            value={km}
+            onChange={(event) => onKmChange(event.target.value)}
+          />
+        )}
+      </Field>
+      <Field id="costs-coverage" label="Cobertura del seguro" errors={fieldErrors.coverage}>
+        {(control) => (
+          <select {...control} name="cobertura" value={coverage}
+            onChange={(event) => onCoverageChange(event.target.value as Coverage)}>
+            {COVERAGES.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        )}
+      </Field>
+      <div className={styles.action}>
+        <Button type="submit" disabled={loading} aria-busy={loading} variant="primary" className={styles.submit}>
+          RECALCULAR
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function CostResults({ loading, data }: Readonly<{ loading: boolean; data: OwnershipCosts | null }>) {
+  if (!loading && !data) return null
+  const province = data?.vehicle.province
+  return (
+    <div className={styles.results}>
+      {loading ? <SessionLoading /> : null}
+      {!loading && data ? (
+        <>
+          <MonthlyCard data={data} />
+          <p className={styles.disclaimer}>
+            Estimación orientativa con valores actualizados al {formatDate(data.rates_updated_at)}
+            {province ? `, en la provincia de ${province}` : ''}. Es un estimativo aproximado.
+          </p>
+        </>
+      ) : null}
+    </div>
+  )
+}
+
+export default function OwnershipCostsPage() {
+  const { id = '' } = useParams()
+  // The detail's recommendation context (score, return to the filtered list) goes back with "Volver a la ficha".
+  const { state: detailState } = useLocation()
+  const comparisonReturnTo = typeof detailState?.comparisonReturnTo === 'string'
+    && detailState.comparisonReturnTo.startsWith('/comparar?') ? detailState.comparisonReturnTo : null
+  const costs = useOwnershipCosts(id)
+
+  const vehicle = costs.data?.vehicle
+  const title = vehicle ? [vehicle.make, vehicle.model, vehicle.version, vehicle.year].filter(Boolean).join(' ') : ''
+  return (
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <BackLink to={comparisonReturnTo ?? `/vehiculos/${encodeURIComponent(id)}`} state={comparisonReturnTo ? undefined : detailState}>
+          {comparisonReturnTo ? 'Volver a la comparación' : 'Volver a la ficha'}
+        </BackLink>
+        {vehicle ? (
+          <div className={styles.titleBlock}>
+            <h1 className={styles.title}>{title}</h1>
+            <p className={styles.subtitle}>Cuánto te costaría comprarlo y mantenerlo, más allá del precio publicado.</p>
+          </div>
+        ) : null}
+      </div>
+      {costs.pageError ? <p role="alert" className={alertStyles.alert}>{costs.pageError}</p> : null}
+      <div className={styles.workspace}>
+        <div className={styles.inputs}>
+          {costs.data ? <CostInputs data={costs.data} km={costs.km} coverage={costs.coverage}
+            loading={costs.loading} fieldErrors={costs.fieldErrors}
+            onKmChange={costs.setKm} onCoverageChange={costs.setCoverage} onSubmit={costs.recalculate} /> : null}
+          {!costs.loading && costs.data ? <PurchaseCard data={costs.data} /> : null}
+        </div>
+        <CostResults loading={costs.loading} data={costs.data} />
+      </div>
+    </div>
+  )
+}

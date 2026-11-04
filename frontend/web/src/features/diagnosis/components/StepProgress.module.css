@@ -1,0 +1,73 @@
+.group {
+  padding-block: 12px 8px;
+  overflow: clip;
+}
+
+.track {
+  --car-width: 112px;
+  position: relative;
+  height: 58px;
+}
+
+.road {
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  border-radius: 1px;
+  overflow: hidden;
+  background: var(--border-default);
+}
+
+.fill {
+  height: 100%;
+  background: var(--palette-charcoal);
+  border-radius: inherit;
+  transform-origin: left;
+  transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease);
+}
+
+.carPosition {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(100% - var(--car-width));
+  pointer-events: none;
+  transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease);
+}
+
+.car {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--car-width);
+  height: auto;
+  color: var(--palette-red);
+}
+
+.caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.label {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .track {
+    --car-width: 88px;
+    height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill, .carPosition {
+    transition: none;
+  }
+}

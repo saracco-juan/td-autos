@@ -1,0 +1,59 @@
+.figure {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.windows {
+  stroke-width: 1.4;
+}
+
+.details,
+.spokes {
+  stroke-width: 1;
+  opacity: .55;
+}
+
+.rim {
+  stroke-width: 1;
+}
+
+.sport .body {
+  fill: currentColor;
+}
+
+.sport .windows,
+.sport .tire {
+  fill: var(--palette-charcoal);
+  fill-opacity: 1;
+  stroke: var(--palette-charcoal);
+}
+
+.sport .details {
+  stroke: #761407;
+  opacity: .8;
+}
+
+.sport .rim {
+  fill: #d8d5d1;
+  stroke: #d8d5d1;
+}
+
+.sport .spokes {
+  stroke: var(--palette-charcoal);
+}
+
+.sport .hub {
+  fill: var(--palette-charcoal);
+  stroke: none;
+}
+
+.headlight {
+  fill: #fff;
+  stroke: none;
+}

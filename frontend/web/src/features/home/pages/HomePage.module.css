@@ -1,0 +1,115 @@
+.home { width: 100%; }
+.home p { text-wrap: pretty; }
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 720px;
+  height: 100svh;
+  max-height: 1120px;
+  background: #090202;
+  color: #fff;
+}
+.heroImage {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 60%;
+  animation: cameraSettle 1800ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(0 0 0 / 18%), transparent 52% 82%, rgb(0 0 0 / 65%));
+}
+.heroContent { position: relative; padding: 116px 24px 0; text-align: center; }
+.heroContent h1, .stepTitle, .dealers h2 { text-wrap: balance; }
+.heroContent h1 { margin: 0; font-size: clamp(56px, 4.8vw, 80px); font-weight: 500; line-height: 1.03; letter-spacing: -0.04em; }
+.heroContent h1 span { color: #e7d9d7; }
+.heroContent p { margin: 24px auto 0; max-width: 52ch; color: #ddd0ce; font-size: 16px; line-height: 1.6; }
+.heroBottom { position: absolute; bottom: 40px; left: clamp(24px, 5vw, 96px); right: clamp(24px, 5vw, 96px); display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 24px; }
+.action { display: inline-flex; width: fit-content; height: auto; min-height: 46px; padding: 14px 22px; gap: 32px; font-size: 13px; }
+.heroButton { --button-hover-fill: #fff; --button-hover-color: var(--palette-red); --button-hover-border: #fff; border-color: var(--palette-red); background: var(--palette-red); color: #fff; }
+.journey { background: #fff; }
+.step { scroll-margin-top: 88px; }
+.stepInner { max-width: 1600px; margin: 0 auto; padding: 136px clamp(24px, 5vw, 80px); display: grid; grid-template-columns: 1.3fr 1fr; gap: 72px 10%; align-items: center; }
+.stepTitle { margin: 0; font-size: clamp(44px, 4.6vw, 76px); font-weight: 500; line-height: 1.08; letter-spacing: -0.04em; }
+.stepTitle span { display: block; }
+.stepTitle span:last-child { color: #79716c; }
+.stepCopy h3 { font-size: 22px; line-height: 1.35; font-weight: 500; margin: 0 0 20px; letter-spacing: -0.02em; }
+.stepCopy p { margin: 0; font-size: 17px; line-height: 1.75; color: var(--text-secondary); max-width: 48ch; }
+.stepDetails { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8%; margin: 0; padding-top: 32px; border-top: 1px solid #e6e2df; }
+.stepDetails dt { font-size: 17px; font-weight: 500; margin-bottom: 12px; }
+.stepDetails dd { margin: 0; max-width: 34ch; font-size: 15px; line-height: 1.65; color: var(--text-secondary); }
+.step:nth-child(2), .step:nth-child(5) { background: #f7f6f4; }
+.darkStep { background: #110b0a; color: #fff; }
+.darkStep .stepTitle span:last-child { color: #ef4b32; }
+.darkStep .stepCopy p, .darkStep .stepDetails dd { color: #c7bdbb; }
+.darkStep .stepDetails { border-color: #3b302d; }
+.journeyAction { background: #f7f6f4; display: flex; justify-content: center; padding: 0 24px 96px; }
+.dealers { background: #110b0a; color: #fff; scroll-margin-top: 88px; }
+.dealerInner { max-width: 1600px; margin: 0 auto; padding: 120px clamp(24px, 5vw, 80px); display: grid; grid-template-columns: 1.2fr 1fr; gap: 10%; }
+.dealers h2 { margin: 0; font-size: clamp(44px, 5vw, 80px); font-weight: 500; letter-spacing: -0.04em; line-height: 1.06; }
+.dealers h2 span { color: #ef4b32; }
+.dealerContent p { font-size: 23px; line-height: 1.4; margin: 0 0 28px; color: #f1e9e7; }
+.dealerContent ul { padding: 0; list-style: none; color: #c7bdbb; font-size: 15px; line-height: 1.6; }
+.dealerContent li { padding: 14px 0; border-top: 1px solid #3b302d; }
+.dealerActions { display: flex; flex-direction: column; align-items: start; gap: 12px; margin-top: 32px; }
+.dealerLogin {
+  --button-hover-fill: #fff8f6;
+  --button-hover-color: #110b0a;
+  --button-hover-border: #fff8f6;
+  background: transparent;
+  border-color: #76645f;
+  color: #fff8f6;
+}
+@keyframes cameraSettle { from { transform: scale(1.06); } to { transform: scale(1); } }
+/* Both viewport edges reveal content; the center stays still and fully readable. */
+@keyframes scrollReveal {
+  0% { opacity: 0; transform: translateY(44px); }
+  30%, 80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-44px); }
+}
+@supports (animation-timeline: view()) and (animation-range: cover 0% cover 100%) {
+  @media (prefers-reduced-motion: no-preference) {
+    .home [data-reveal] {
+      animation: scrollReveal linear both;
+      animation-timeline: view(block 88px 0px);
+      animation-range: cover 0% cover 100%;
+    }
+    .home [data-reveal]:focus-within { animation: none; }
+  }
+}
+@media (max-width: 1100px) {
+  .heroContent { padding-top: 120px; }
+  .heroImage { object-position: center 65%; }
+  .heroBottom { grid-template-columns: 1fr auto; }
+  .stepInner { padding-top: 96px; padding-bottom: 96px; gap: 48px; }
+  .dealerInner { padding-top: 88px; padding-bottom: 88px; gap: 44px; }
+}
+@media (max-width: 600px) {
+  .hero { min-height: 760px; height: calc(500px + 70vw); max-height: 940px; }
+  .heroContent { padding: 120px 24px 0; text-align: left; }
+  .heroContent h1 { font-size: clamp(40px, 10vw, 58px); line-height: 1.05; }
+  .heroContent p { font-size: 16px; margin-top: 20px; }
+  .heroContent p br { display: none; }
+  .heroImage { inset: 250px auto auto -7.5%; width: 115%; max-width: none; height: auto; object-fit: contain; mask-image: linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent); }
+  .heroBottom { bottom: 24px; grid-template-columns: 1fr; gap: 12px; }
+  .stepInner { grid-template-columns: 1fr; padding: 72px 24px; gap: 32px; }
+  .stepTitle { font-size: clamp(38px, 10vw, 50px); }
+  .stepCopy h3 { font-size: 21px; }
+  .stepCopy p { font-size: 16px; }
+  .stepDetails { grid-template-columns: 1fr; gap: 24px; padding-top: 28px; }
+  .stepDetails dt { margin-bottom: 6px; }
+  .journeyAction { justify-content: flex-start; padding-bottom: 64px; }
+  .dealerInner { grid-template-columns: 1fr; gap: 32px; padding: 64px 24px; }
+  .dealers h2 { font-size: 44px; }
+  .dealerContent p { font-size: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .heroImage { animation: none; } }

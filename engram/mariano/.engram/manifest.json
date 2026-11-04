@@ -424,6 +424,54 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "30974ec2",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:08:38.2050957Z",
+      "sessions": 5,
+      "memories": 214,
+      "prompts": 154
+    },
+    {
+      "id": "ba247bbd",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:33:50.7573255Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 4
+    },
+    {
+      "id": "b5d3f4cb",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:37:32.4683387Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 1
+    },
+    {
+      "id": "efde4349",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:51:24.6020404Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
+    },
+    {
+      "id": "e7725bb5",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:51:50.1804111Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "044b4d3b",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T21:36:28.3434927Z",
+      "sessions": 1,
+      "memories": 15,
+      "prompts": 2
     }
   ]
 }

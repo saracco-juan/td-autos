@@ -13,6 +13,26 @@ use Illuminate\Support\Facades\DB;
 class InspeccionController extends Controller
 {
     /**
+     * Saved inspections belonging to the current user, most recently updated first.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $checklists = ChecklistInspeccion::where('usuario_id', $request->user()->id)
+            ->with(['vehiculo', 'items'])
+            ->whereHas('vehiculo')
+            ->orderByDesc('actualizado_en')
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json([
+            'pasos' => InspeccionChecklist::steps(),
+            'inspecciones' => $checklists->map(fn (ChecklistInspeccion $checklist) => [
+                'vehiculo' => $checklist->vehiculo->only(['id', 'marca', 'modelo', 'version', 'anio']),
+            ] + $this->progress($checklist))->values(),
+        ]);
+    }
+
+    /**
      * The vehicle, the item catalog and the authenticated user's marks (without creating a checklist).
      */
     public function show(Request $request, Vehiculo $vehiculo): JsonResponse
@@ -106,7 +126,7 @@ class InspeccionController extends Controller
      */
     private function completedCodes(ChecklistInspeccion $checklist): array
     {
-        $ticked = $checklist->items()->pluck('item_codigo')->all();
+        $ticked = $checklist->items->pluck('item_codigo')->all();
 
         return array_values(array_intersect(InspeccionChecklist::codes(), $ticked));
     }

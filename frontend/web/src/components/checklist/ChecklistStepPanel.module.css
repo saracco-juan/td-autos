@@ -13,14 +13,14 @@
  * Footer content under the rows (children) is not part of the reservation: give it the same height in every step.
  */
 .panel {
-  --row-h: 44px;
-  --row-gap: 8px;
-  --card-pad: 20px;
-  --card-border: 1px;
-  --section-gap: 16px;
-  --title-h: 24px;
-  --hint-h: 18px;
-  --head-gap: 4px;
+  --row-h: 64px;
+  --row-gap: 0px;
+  --card-pad: 0px;
+  --card-border: 0px;
+  --section-gap: 24px;
+  --title-h: 32px;
+  --hint-h: 24px;
+  --head-gap: 12px;
   --message-h: 40px;
 
   display: flex;
@@ -28,9 +28,6 @@
   gap: var(--section-gap);
   padding: var(--card-pad);
   background: var(--surface-default);
-  border: var(--card-border) solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 24px -4px rgba(26, 20, 15, 0.1);
 }
 
 @media (min-width: 768px) {
@@ -52,7 +49,8 @@
 
 .title {
   margin: 0;
-  font-size: 16px;
+  font-size: 24px;
+  letter-spacing: -0.02em;
   font-weight: 600;
   line-height: var(--title-h);
   outline: none;
@@ -60,7 +58,7 @@
 
 .hint {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 15px;
   line-height: var(--hint-h);
 }
 
@@ -77,6 +75,7 @@
 .row {
   composes: row from './checklistRow.module.css';
   cursor: pointer;
+  transition: background-color 550ms ease;
 }
 
 .row:has(.checkbox:focus-visible) {
@@ -84,17 +83,76 @@
   outline-offset: 2px;
 }
 
-.checked .text {
-  color: var(--text-secondary);
+.checked { background: #f6f5f4; }
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover { background: #f6f5f4; }
 }
 
 .checkbox {
+  appearance: none;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   margin: 0;
-  accent-color: var(--action-primary);
+  border: 1px solid var(--text-secondary);
+  border-radius: 50%;
+  background: var(--surface-default);
   cursor: inherit;
+  transition: background-color 250ms ease, border-color 250ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.checkbox::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  opacity: 0;
+  transform: translateY(-1px) rotate(-45deg) scale(0.9);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 250ms cubic-bezier(0.23, 1, 0.32, 1), opacity 160ms ease, transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.checkbox:checked {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+}
+
+.checkbox:checked::after {
+  opacity: 1;
+  transform: translateY(-1px) rotate(-45deg) scale(1);
+  clip-path: inset(0);
+}
+
+.row:active .checkbox { transform: scale(0.92); }
+
+.itemLabel {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: left 55%;
+  background-size: 0% 1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-size 250ms cubic-bezier(0.23, 1, 0.32, 1), color 250ms ease;
+}
+
+.checked .itemLabel {
+  background-size: 100% 1px;
+  color: var(--text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row, .checkbox, .checkbox::after, .itemLabel { transition: none; }
+  .row:active .checkbox { transform: none; }
+}
+
+@media (forced-colors: active) {
+  .checkbox { appearance: auto; }
+  .checkbox::after { display: none; }
+  .checked .itemLabel { text-decoration: line-through; }
 }
 
 .text {

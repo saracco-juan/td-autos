@@ -1,0 +1,265 @@
+/* A broad catalog column keeps controls and cards aligned on large displays. */
+.page {
+  composes: container from '../../../styles/screen.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-top: 40px;
+}
+
+.tabPanel {
+  flex: none;
+  min-width: 0;
+  min-height: auto;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-block: 20px;
+  border-top: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pager nav > div {
+  gap: 6px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pager nav ul { gap: 6px; }
+
+.pager nav button {
+  min-width: 44px;
+  height: 36px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  font-size: 14px;
+}
+
+.pager nav button[aria-current='page'] {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+  color: var(--text-on-color);
+}
+
+.pager nav button:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+.dealersLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.dealersLayout .comparison {
+  --comparison-control-height: 36px;
+  --comparison-control-font-size: 12px;
+  --comparison-control-padding: 14px;
+  width: 108px;
+  max-width: 100%;
+  margin-left: auto;
+  transition: width 550ms cubic-bezier(.32, .72, 0, 1);
+}
+
+.comparison:has([data-open='true'], [role='alert']) { width: 600px; }
+
+.dealersLayout .comparison > div > button {
+  width: 108px;
+  justify-self: end;
+}
+
+@media (min-width: 601px) {
+  .comparison > div {
+    grid-template-columns: minmax(0, 1fr) 108px minmax(0, 0fr);
+    transition: grid-template-columns 550ms cubic-bezier(.32, .72, 0, 1);
+  }
+  .comparison > div:has(> div:last-child[data-open='true']) {
+    grid-template-columns: minmax(0, 1fr) 108px minmax(0, 1fr);
+  }
+}
+
+/* Empty selection slots must not center the action inside unused space. */
+.comparison:not(:has([data-open='true'])) > div {
+  grid-template-columns: 0 108px 0;
+  grid-template-rows: var(--comparison-control-height) 0;
+  justify-content: end;
+}
+
+@media (max-width: 600px) {
+  /* Keep the action beside filters; selected vehicles stack below it. */
+  .comparison:has([data-open='true']) > div {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--comparison-control-height) auto 0;
+  }
+  .comparison:has([data-open='true']) > div > div:first-child { grid-column: 1; grid-row: 2; }
+  .comparison:has([data-open='true']) > div > div:last-child { grid-column: 1; grid-row: 3; }
+  .comparison > div:has(> div:last-child[data-open='true']) {
+    grid-template-rows: var(--comparison-control-height) auto auto;
+  }
+}
+
+@media (pointer: coarse) {
+  .dealersLayout .comparison { --comparison-control-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dealersLayout .comparison { transition: none; }
+  .comparison > div { transition: none; }
+}
+
+.adjust {
+  flex: none;
+  width: clamp(180px, 20%, 236px);
+  height: 36px;
+  min-height: 36px;
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 12px;
+}
+
+@media (pointer: coarse) {
+  .adjust { min-height: 44px; }
+}
+
+.adjust:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+/* Exchange-rate details stay secondary to the recommendations. */
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.notice p {
+  margin: 0;
+}
+
+.exchangeRate {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right. */
+.headerRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+/* The title carries the page identity; the count stays quiet beneath it. */
+.header {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  scroll-margin-top: 100px;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Loading and empty states use the same natural page flow as the cards. */
+.results {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* Three columns on wide screens; every row remains in the document flow. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 32px;
+  margin: 0;
+  padding: 2px 4px 10px;
+  list-style: none;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 48px 0;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emptyHint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Tablets: two columns. */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 28px;
+  }
+
+  .page {
+    gap: 20px;
+    padding-top: 12px;
+  }
+
+  /* Phones: the button drops under the title, full width; one card per row. */
+  .headerRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adjust {
+    width: 100%;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}

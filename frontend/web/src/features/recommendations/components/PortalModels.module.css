@@ -1,0 +1,116 @@
+/* The "Otros portales" panel: a natural-flow grid (same 3 / 2 / 1 columns and width as the dealers cards) and the source.
+   The models-not-units message never takes width from the grid: it sits above the cards on wide
+   screens (PortalModelsPanel) and in an info button on the tabs row otherwise (PortalModelsInfoTip). The card itself is the dealers card (VehicleCard.module.css). */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* The notice and grid share the broader catalog column. */
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* Wide screens show the note inline; smaller screens retain the existing info control. */
+.aside {
+  max-width: 75ch;
+}
+
+.message {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Cards of a row share their height. */
+.panel .grid {
+  align-items: stretch;
+}
+
+/* The info button sits at the right end of the title row. */
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.titleRow > span {
+  flex: none;
+}
+
+.titleRow button {
+  width: 44px;
+  height: 44px;
+}
+
+/* The tooltip content: reasons, filter chips and the portals note. */
+.reasons,
+.chips {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reasons li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.check {
+  flex: none;
+  margin-top: 1px;
+  color: var(--action-success);
+}
+
+.heading {
+  display: block;
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+
+.heading:first-child {
+  margin-top: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chips li {
+  padding: 1px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.note {
+  display: block;
+  margin-top: 10px;
+}
