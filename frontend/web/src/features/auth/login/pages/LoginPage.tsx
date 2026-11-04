@@ -68,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthCard title="Ingresá a tu cuenta" titleId="login-title" subtitle="Accedé para guardar tus favoritos.">
+    <AuthCard embedded title="Ingresá a tu cuenta" titleId="login-title" subtitle="Accedé para guardar tus favoritos.">
       {notice ? (
         <p role="status" className={alertStyles.notice}>
           {notice}

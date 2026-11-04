@@ -85,6 +85,7 @@ export default function RegisterPage() {
 
   return (
     <AuthCard
+      embedded
       title="Registrá tu cuenta"
       titleId="register-title"
       subtitle="Por favor, introducí tus datos para registrarte."

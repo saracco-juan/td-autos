@@ -57,6 +57,29 @@
   font-size: 14px;
 }
 
+.embedded {
+  max-width: none;
+  padding: clamp(24px, 3.5vw, 48px);
+  gap: 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.embedded .title {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  outline: none;
+}
+
+.embedded .subtitle {
+  margin: 0;
+  line-height: 1.6;
+}
+
 @media (max-width: 600px) {
   .card {
     padding: 24px 20px;

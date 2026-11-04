@@ -179,7 +179,7 @@ describe('app routes', () => {
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('Sin conexión con el servidor')
-    expect(alert.parentElement).toBe(screen.getByRole('main'))
+    expect(alert.closest('main')).toBe(screen.getByRole('main'))
     expect(screen.queryByRole('button', { name: 'INGRESAR' })).not.toBeInTheDocument()
   })
 
@@ -576,14 +576,14 @@ describe('app routes', () => {
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 
-  it('renders /registro without nav or footer and with a single main landmark', async () => {
+  it('renders /registro with access navigation, no shared shell and a single main landmark', async () => {
     asGuest()
     renderAt('/registro')
     await screen.findByRole('heading', { name: 'Registrá tu cuenta' })
 
     expect(screen.queryByRole('banner')).not.toBeInTheDocument()
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
-    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Navegación de acceso' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
   })
 

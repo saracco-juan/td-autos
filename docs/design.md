@@ -2,6 +2,27 @@
 
 Visual and interaction rules for every web screen (and the mobile app where the pattern exists). Read this file before building or changing a screen. Figma (`TD Autos · Wireframes High v3`, see `AGENTS.md`) is the visual source of truth; these rules cover what Figma does not say and win over it when they conflict, and every difference is logged for the Figma sync described in `AGENTS.md`.
 
+## Buyer login and registration panel (2026-11-04)
+
+- `/login` and `/registro` use one persistent red companion panel in `AuthLayout`.
+  It slides from right to left for registration and reverses for login, using a
+  550ms interruptible transform with `cubic-bezier(0.32, 0.72, 0, 1)`. This follows
+  the approved video reference; no illustration or photo is part of this direction.
+- Reuse `AuthCard` in its embedded variant, `ButtonLink` and `BackLink`. Preserve
+  Archivo, TD red, white surfaces, rectangular controls and the shared 550ms hover.
+  The outer layout owns the single brand link and return-to-home action.
+- At 800px and below, keep the form first and a compact, static red panel below.
+  Reduced-motion preferences disable travel. Keyboard activation of the companion
+  action switches immediately and the new form title receives focus without scrolling.
+- Desktop has a shared 840px minimum stage height to avoid a login/register height
+  jump with the current content. The document may scroll on shorter displays; do
+  not add an internal form scrollbar or clip validation messages to fit one viewport.
+- Recovery, password reset and dealer registration keep their standalone cards.
+  Auth validation, endpoints, OAuth origins and session guards are unchanged.
+- Approved divergence from the existing auth frames: sliding split composition,
+  embedded buyer forms and mobile stack. No current buyer frame was verified for
+  this revision; High v3 web/mobile Figma synchronization remains pending approval.
+
 ## Web typography and footer (2026-11-03)
 
 - After trying Archivo on the public Home, the user approved it for the entire

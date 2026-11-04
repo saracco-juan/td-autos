@@ -6,3 +6,109 @@
   padding: 16px;
   background: var(--bg-base);
 }
+
+.accessLayout {
+  composes: layout;
+  display: block;
+  padding: clamp(16px, 3vw, 40px);
+}
+
+.frame {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.brand {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand span {
+  color: var(--palette-red);
+  margin-right: 6px;
+}
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 840px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  background: var(--surface-default);
+}
+
+.formSlot {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.panel {
+  position: absolute;
+  z-index: 1;
+  inset: 0 auto 0 0;
+  width: 50%;
+  contain: paint;
+  will-change: transform;
+  transform: translate3d(100%, 0, 0);
+  transition: transform 550ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.stage[data-mode='register'] .formSlot {
+  grid-column: 2;
+}
+
+.stage[data-mode='register'] .panel {
+  transform: translate3d(0, 0, 0);
+}
+
+.stage[data-instant] .panel {
+  transition: none;
+}
+
+@media (max-width: 800px) {
+  .stage {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .panel {
+    position: static;
+    width: 100%;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+
+  .stage[data-mode='register'] .panel {
+    transform: none;
+  }
+
+  .brand {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none;
+  }
+}
