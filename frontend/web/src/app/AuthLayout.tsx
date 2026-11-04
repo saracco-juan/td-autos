@@ -1,5 +1,5 @@
-import { Link, Outlet, useLocation } from 'react-router'
-import BackLink from '../components/Buttons/BackLink'
+import { Outlet, useLocation } from 'react-router'
+import AuthPageHeader from '../features/auth/shared/components/AuthPageHeader'
 import AuthSwitchPanel from '../features/auth/shared/components/AuthSwitchPanel'
 import styles from './AuthLayout.module.css'
 
@@ -11,10 +11,7 @@ export default function AuthLayout() {
     return (
       <main className={styles.accessLayout}>
         <div className={styles.frame}>
-          <nav className={styles.topbar} aria-label="Navegación de acceso">
-            <Link to="/" className={styles.brand} aria-label="TD Autos"><span>TD</span> Autos</Link>
-            <BackLink to="/">Volver al inicio</BackLink>
-          </nav>
+          <AuthPageHeader className={styles.topbar} />
           <div className={styles.stage} data-mode={mode} data-instant={location.state?.authMotion === 'reduced' || undefined}>
             <div className={styles.formSlot}><Outlet /></div>
             <AuthSwitchPanel mode={mode} className={styles.panel} />
