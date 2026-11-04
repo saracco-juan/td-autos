@@ -1,0 +1,44 @@
+name: Release
+
+# Tags every promotion to production. Each push to `main` (a merged pull request) gets the next semantic
+# version tag and a GitHub Release whose notes list the pull requests merged since the previous tag.
+# Bump: `patch` when the merged branch is `hotfix/*`, `minor` otherwise. A manual run (Actions -> Release ->
+# Run workflow, branch `main`) picks the bump, for example `major` for the final delivery. The first tag is
+# `v0.1.0`. A commit that already carries a version tag is skipped, so a re-run never creates a second tag.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version part to increase
+        type: choice
+        options: [minor, patch, major]
+        default: minor
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  release:
+    name: Tag and release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Create the version tag and the GitHub Release
+        env:
+          BUMP: ${{ inputs.bump }}
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/release-tag.sh

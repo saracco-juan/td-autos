@@ -12,7 +12,7 @@ Everything runs on free plans: the SPA on Vercel, the API as a Docker web servic
 | development | `develop` | `https://td-autos-git-develop-<scope>.vercel.app` | `td-autos-api-dev` | Supabase project `td-autos-dev` |
 | production | `main` | `https://td-autos.vercel.app` | `td-autos-api` | Supabase project `td-autos-prod` |
 
-A push to `develop` or `main` redeploys both sides of that environment. Other Vercel previews (feature branches, PRs) are proxied to the development API, never to production.
+A push to `develop` or `main` redeploys both sides of that environment. Each push to `main` is also tagged with the next version and gets a GitHub Release (see [Releases](contributing.md#releases)), so the previous tag is the rollback target. Other Vercel previews (feature branches, PRs) are proxied to the development API, never to production.
 
 ## Hostnames: where to adjust them
 
