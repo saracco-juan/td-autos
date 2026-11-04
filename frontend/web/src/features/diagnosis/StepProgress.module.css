@@ -4,16 +4,17 @@
 }
 
 .track {
+  --car-width: 112px;
   position: relative;
-  height: 52px;
-  margin-inline: 44px;
+  height: 58px;
 }
 
 .road {
   position: absolute;
   inset: auto 0 0;
   height: 4px;
-  border-radius: 2px;
+  border-radius: 1px;
+  overflow: hidden;
   background: var(--border-default);
 }
 
@@ -25,35 +26,20 @@
   transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease);
 }
 
-.milestone {
-  position: absolute;
-  bottom: -2px;
-  width: 8px;
-  height: 8px;
-  margin-left: -4px;
-  border-radius: 50%;
-  background: var(--border-default);
-  transition: background-color 550ms ease;
-}
-
-.milestone[data-reached='true'] {
-  background: var(--palette-charcoal);
-}
-
 .carPosition {
   position: absolute;
-  inset: 0;
+  inset: 0 auto 0 0;
+  width: calc(100% - var(--car-width));
   pointer-events: none;
   transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease);
 }
 
 .car {
   position: absolute;
-  bottom: 6px;
+  bottom: 0;
   left: 0;
-  width: 88px;
+  width: var(--car-width);
   height: auto;
-  transform: translateX(-50%);
   color: var(--palette-red);
 }
 
@@ -75,11 +61,8 @@
 
 @media (max-width: 600px) {
   .track {
-    margin-inline: 32px;
-    height: 40px;
-  }
-  .car {
-    width: 64px;
+    --car-width: 88px;
+    height: 46px;
   }
 }
 

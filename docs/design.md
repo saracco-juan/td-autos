@@ -123,6 +123,12 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Reduced motion removes travel; an offscreen next question scrolls into view
   smoothly, or instantly with reduced motion. Answer controls reuse the shared
   550ms hover and 10px corners. Saving and validation rules remain unchanged.
+  The track spans the full content width, is 4px high with 1px corners, and has
+  no milestone dots. Keep the complete car inside its endpoints. Body choices
+  use wide rectangular cards with monochrome side profiles above their labels;
+  the red sports profile and the six body profiles share one inline SVG component.
+  SVG Vector's contour/layering guidance informs the drawings; its isometric
+  renderer is not required for these side profiles.
   Figma synchronization and native mobile adaptation remain separate pending work.
 
 ### Buyer catalog redesign (2026-11-02)
