@@ -1,13 +1,13 @@
+import Button from '../../../components/Buttons/Button'
 import type { Ref } from 'react'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import ChecklistCardGrid from '../../components/checklist/ChecklistCardGrid'
-import ChecklistPendingCard from '../../components/checklist/ChecklistPendingCard'
-import ChecklistProgressCard from '../../components/checklist/ChecklistProgressCard'
-import barStyles from '../../components/checklist/pinnedBar.module.css'
+import alertStyles from '../../../styles/alert.module.css'
+import ChecklistCardGrid from '../../../components/checklist/ChecklistCardGrid'
+import ChecklistPendingCard from '../../../components/checklist/ChecklistPendingCard'
+import ChecklistProgressCard from '../../../components/checklist/ChecklistProgressCard'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
 import { summarizeChecklist } from '@shared/checklist/progress'
-import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import checklistStyles from '../../components/checklist/ChecklistScreen.module.css'
+import FlowLayout from '../../../components/FlowLayout/FlowLayout'
+import checklistStyles from '../../../components/checklist/ChecklistScreen.module.css'
 import { FLAG_LABEL, SUMMARY_LABELS } from '@shared/checklist/transfer/copy'
 import { toChecklistSteps } from '@shared/checklist/transfer/steps'
 import { summaryMessage, summaryPendingItems } from '@shared/checklist/transfer/summaryMessage'
@@ -36,13 +36,13 @@ export default function TransferSummary({ stages, completedCodes, onKeepCompleti
       className={`${checklistStyles.layout} ${checklistStyles.summary}`}
       actions={
         <div className={barStyles.actions}>
-          <button
+          <Button
             type="button"
-            className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.action}`}
+            variant="primary" className={`${barStyles.action}`}
             onClick={onKeepCompleting}
           >
             {showPending ? SUMMARY_LABELS.keepCompleting : SUMMARY_LABELS.backToChecklist}
-          </button>
+          </Button>
         </div>
       }
     >

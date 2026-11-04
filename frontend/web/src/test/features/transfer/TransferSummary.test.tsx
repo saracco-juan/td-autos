@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { ALL_CODES, MANDATORY_CODES, STAGES } from '@shared/checklist/transfer/fixtures'
-import TransferSummary from './TransferSummary'
+import TransferSummary from '../../../features/transfer/components/TransferSummary'
 
 // Everything ticked except these codes.
 const allExcept = (...pending: string[]) => ALL_CODES.filter((code) => !pending.includes(code))

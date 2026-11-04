@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 
-import { apiFetch } from '../../lib/http'
-import { fetchTransfer, finishTransfer, setItemCompleted } from './api'
+import { apiFetch } from '../../../lib/http'
+import { fetchTransfer, finishTransfer, setItemCompleted } from '../../../features/transfer/api/client'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
 import type { TransferProgress } from '@shared/checklist/transfer/types'
 

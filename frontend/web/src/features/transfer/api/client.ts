@@ -1,4 +1,4 @@
-import { apiFetch } from '../../lib/http'
+import { apiFetch } from '../../../lib/http'
 import type { TransferProgress, TransferResponse } from '@shared/checklist/transfer/types'
 
 export function fetchTransfer(): Promise<TransferResponse> {

@@ -1,5 +1,5 @@
+import ButtonAnchor from '../../../components/Buttons/ButtonAnchor'
 import { useId } from 'react'
-import buttonStyles from '../../components/Buttons/button.module.css'
 import { ADVISOR_COPY } from '@shared/checklist/transfer/copy'
 import { advisorUrl } from '@shared/checklist/transfer/advisor'
 import styles from './AdvisorCard.module.css'
@@ -22,14 +22,14 @@ export default function AdvisorCard({ whatsapp }: Props) {
         {ADVISOR_COPY.title}
       </h2>
       <p className={styles.text}>{ADVISOR_COPY.text}</p>
-      <a
+      <ButtonAnchor
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.link}`}
+        variant="primary" className={`${styles.link}`}
       >
         {ADVISOR_COPY.action}
-      </a>
+      </ButtonAnchor>
     </section>
   )
 }

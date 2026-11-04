@@ -1,6 +1,6 @@
 import type { Ref } from 'react'
 import { TITLE, completedCounter } from '@shared/checklist/transfer/copy'
-import styles from '../../components/checklist/ChecklistScreen.module.css'
+import styles from '../../../components/checklist/ChecklistScreen.module.css'
 
 type Props = {
   completed: number

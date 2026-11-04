@@ -15,7 +15,7 @@ import { fetchSubscription } from '../features/subscription/api/client'
 import { suscripcion } from '../test/fixtures/subscription/fixtures'
 import { fetchRecommendations } from '../features/recommendations/api/matching'
 import { fetchPortalModels } from '../features/recommendations/api/portalModels'
-import { fetchTransfer } from '../features/transfer/api'
+import { fetchTransfer } from '../features/transfer/api/client'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
 import type { DiagnosisAnswers } from '../features/diagnosis/model/types'
 import { routes } from './router'
@@ -67,7 +67,7 @@ vi.mock('../features/recommendations/api/portalModels', () => ({ fetchPortalMode
 
 vi.mock('../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
-vi.mock('../features/transfer/api', () => ({
+vi.mock('../features/transfer/api/client', () => ({
   fetchTransfer: vi.fn(),
   setItemCompleted: vi.fn(),
   finishTransfer: vi.fn(),

@@ -2,13 +2,13 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { fetchTransfer, finishTransfer, setItemCompleted } from './api'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { fetchTransfer, finishTransfer, setItemCompleted } from '../../../features/transfer/api/client'
 import { ALL_CODES, MANDATORY_CODES, transferResponse } from '@shared/checklist/transfer/fixtures'
-import TransferPage from './TransferPage'
+import TransferPage from '../../../features/transfer/pages/TransferPage'
 import type { TransferProgress, TransferResponse } from '@shared/checklist/transfer/types'
 
-vi.mock('./api', () => ({ fetchTransfer: vi.fn(), setItemCompleted: vi.fn(), finishTransfer: vi.fn() }))
+vi.mock('../../../features/transfer/api/client', () => ({ fetchTransfer: vi.fn(), setItemCompleted: vi.fn(), finishTransfer: vi.fn() }))
 
 const SAVE_ERROR = 'No pudimos guardar el cambio. Probá de nuevo.'
 const FINISH_ERROR = 'No pudimos finalizar el checklist. Probá de nuevo.'
