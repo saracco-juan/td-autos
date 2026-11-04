@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import { fetchInspections } from '../../../features/inspection/api/client'
 import { fetchTransfer } from '../../../features/transfer/api/client'
 import PurchaseProgress from '../../../features/profile/components/PurchaseProgress'
@@ -35,6 +36,8 @@ it('uses saved marks and catalog totals and links to the inspected vehicle', asy
 
   const inspection = await screen.findByRole('progressbar', { name: 'Inspección · Toyota Corolla XEI 2021' })
   expect(inspection).toHaveAttribute('aria-valuenow', '50')
+  expect(screen.getByRole('heading', { name: 'Inspección · Toyota Corolla 2021' })).toBeInTheDocument()
+  expect(screen.getByText('XEI')).toBeInTheDocument()
   expect(screen.getByRole('progressbar', { name: 'Transferencia' })).toHaveAttribute('aria-valuenow', '100')
   expect(screen.getByRole('link', { name: 'CONTINUAR INSPECCIÓN' })).toHaveAttribute('href', '/vehiculos/7/inspeccion')
   expect(screen.getByRole('link', { name: 'VER TRANSFERENCIA' })).toHaveAttribute('href', '/transferencia')
@@ -50,6 +53,23 @@ it('explains an empty inspection history and offers transfer without fabricated 
 it('keeps transfer usable when inspection progress cannot be loaded', async () => {
   vi.mocked(fetchInspections).mockRejectedValue(new Error('offline'))
   mount()
-  expect(await screen.findByText('No pudimos cargar tus inspecciones.')).toBeInTheDocument()
+  expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar tus inspecciones.')
   expect(await screen.findByRole('link', { name: 'EMPEZAR TRANSFERENCIA' })).toBeInTheDocument()
+})
+
+it('keeps saved inspection usable when transfer fails and retries without changing saved marks', async () => {
+  vi.mocked(fetchInspections).mockResolvedValue({ pasos: steps, inspecciones: [{
+    vehiculo: { id: 7, marca: 'Toyota', modelo: 'Corolla', version: 'XEI', anio: 2021 },
+    estado: 'en_curso', items_completados: ['a'],
+  }] })
+  vi.mocked(fetchTransfer).mockRejectedValueOnce(new Error('offline'))
+  mount()
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos cargar tu transferencia.')
+  expect(screen.getByRole('progressbar', { name: 'Inspección · Toyota Corolla XEI 2021' })).toHaveAttribute('aria-valuenow', '50')
+  expect(screen.getByRole('link', { name: 'CONTINUAR INSPECCIÓN' })).toHaveAttribute('href', '/vehiculos/7/inspeccion')
+  await userEvent.setup().click(screen.getByRole('button', { name: 'REINTENTAR' }))
+  expect(await screen.findByRole('link', { name: 'EMPEZAR TRANSFERENCIA' })).toBeInTheDocument()
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.getByRole('progressbar', { name: 'Inspección · Toyota Corolla XEI 2021' })).toHaveAttribute('aria-valuenow', '50')
 })

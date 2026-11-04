@@ -48,9 +48,26 @@
 }
 
 .label span {
+  flex-shrink: 0;
   font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+.content .vehicleVersion {
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.results {
+  opacity: 1;
+  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .results {
+    opacity: 0;
+  }
 }
 
 .track {
@@ -83,12 +100,17 @@
 .row a,
 .retry {
   width: auto;
+  max-width: 100%;
   flex-shrink: 0;
 }
 
 .empty {
   padding-block: 24px;
   border-top: 1px solid var(--border-default);
+}
+
+.row a {
+  width: 220px;
 }
 
 .empty p {
@@ -108,7 +130,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fill {
+  .fill,
+  .results {
     transition: none;
   }
 }

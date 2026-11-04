@@ -15,8 +15,10 @@ type Results = {
   transfer: PromiseSettledResult<TransferResponse>
 }
 
-function ChecklistResumeRow({ title, summary, to, action }: {
+function ChecklistResumeRow({ title, description, accessibleTitle = title, summary, to, action }: {
   title: string
+  description?: string | null
+  accessibleTitle?: string
   summary: ChecklistSummary
   to: string
   action: string
@@ -30,7 +32,8 @@ function ChecklistResumeRow({ title, summary, to, action }: {
           <h3>{title}</h3>
           <span>{percentage}%</span>
         </div>
-        <div className={styles.track} role="progressbar" aria-label={title}
+        {description && <p className={styles.vehicleVersion}>{description}</p>}
+        <div className={styles.track} role="progressbar" aria-label={accessibleTitle}
           aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}
           aria-valuetext={`${summary.completed} de ${summary.total} ítems marcados`}>
           <span className={styles.fill} style={{ '--checklist-progress': percentage / 100 } as CSSProperties} />
@@ -64,27 +67,44 @@ export default function PurchaseProgress() {
       <h2 id="purchase-progress-title">Retomá tu compra</h2>
       <p className={styles.intro}>Seguí tus checklists donde los dejaste. El avance muestra los ítems que marcaste.</p>
       {!results && <p role="status">Cargando tu avance…</p>}
-      {results?.inspections.status === 'rejected' && <p>No pudimos cargar tus inspecciones.</p>}
-      {inspections?.inspecciones.length === 0 && (
-        <div className={styles.empty}>
-          <h3>Todavía no empezaste una inspección.</h3>
-          <p>Cuando revises un auto desde su ficha, vas a poder retomar el checklist desde acá.</p>
+      {results && (
+        <div className={styles.results}>
+          {results.inspections.status === 'rejected' && <p role="alert">No pudimos cargar tus inspecciones.</p>}
+          {inspections?.inspecciones.length === 0 && (
+            <div className={styles.empty}>
+              <h3>Todavía no empezaste una inspección.</h3>
+              <p>Cuando revises un auto desde su ficha, vas a poder retomar el checklist desde acá.</p>
+            </div>
+          )}
+          {inspections?.inspecciones.map(inspection => {
+            const summary = summarizeChecklist(inspectionSteps(inspections.pasos), inspection.items_completados)
+            return (
+              <ChecklistResumeRow
+                key={inspection.vehiculo.id}
+                title={`Inspección · ${vehicleTitle({ ...inspection.vehiculo, version: null })}`}
+                description={inspection.vehiculo.version}
+                accessibleTitle={`Inspección · ${vehicleTitle(inspection.vehiculo)}`}
+                summary={summary}
+                to={`/vehiculos/${inspection.vehiculo.id}/inspeccion`}
+                action={summary.complete ? 'VER INSPECCIÓN' : 'CONTINUAR INSPECCIÓN'}
+              />
+            )
+          })}
+          {results.transfer.status === 'rejected' && <p role="alert">No pudimos cargar tu transferencia.</p>}
+          {transferSummary && (
+            <ChecklistResumeRow
+              title="Transferencia" summary={transferSummary} to="/transferencia"
+              action={transferSummary.complete ? 'VER TRANSFERENCIA' : transfer?.estado ? 'CONTINUAR TRANSFERENCIA' : 'EMPEZAR TRANSFERENCIA'}
+            />
+          )}
+          {failed && (
+            <Button type="button" variant="secondary" className={styles.retry} onClick={() => {
+              setResults(undefined)
+              setAttempt(current => current + 1)
+            }}>REINTENTAR</Button>
+          )}
         </div>
       )}
-      {inspections?.inspecciones.map(inspection => {
-        const summary = summarizeChecklist(inspectionSteps(inspections.pasos), inspection.items_completados)
-        return <ChecklistResumeRow key={inspection.vehiculo.id}
-          title={`Inspección · ${vehicleTitle(inspection.vehiculo)}`} summary={summary}
-          to={`/vehiculos/${inspection.vehiculo.id}/inspeccion`}
-          action={summary.complete ? 'VER INSPECCIÓN' : 'CONTINUAR INSPECCIÓN'} />
-      })}
-      {results?.transfer.status === 'rejected' && <p>No pudimos cargar tu transferencia.</p>}
-      {transferSummary && <ChecklistResumeRow title="Transferencia" summary={transferSummary} to="/transferencia"
-        action={transferSummary.complete ? 'VER TRANSFERENCIA' : transfer?.estado ? 'CONTINUAR TRANSFERENCIA' : 'EMPEZAR TRANSFERENCIA'} />}
-      {failed && <Button type="button" variant="secondary" className={styles.retry} onClick={() => {
-        setResults(undefined)
-        setAttempt(current => current + 1)
-      }}>REINTENTAR</Button>}
     </section>
   )
 }

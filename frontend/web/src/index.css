@@ -33,7 +33,7 @@ input[type='number']::-webkit-outer-spin-button {
   --accent-default: var(--palette-red);
   --border-default: #e4dcd7;
   --border-strong: #111111;
-  --border-input: #c8c8c8;
+  --border-input: #858585;
   /* Not in Figma yet: success state for the live password checklist. */
   --status-success: #1e7f45;
   /* Not in Figma yet: tinted fills and borders of the message boxes (error, success, warning). */

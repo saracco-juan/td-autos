@@ -40,16 +40,6 @@ export default function ProfileForm({
         DATOS PERSONALES
       </h2>
       <p className={styles.intro}>Podés actualizar tu nombre y apellido para identificar tu cuenta.</p>
-      {successMessage ? (
-        <p role="status" className={alertStyles.notice}>
-          {successMessage}
-        </p>
-      ) : null}
-      {formError ? (
-        <p role="alert" className={alertStyles.alert}>
-          {formError}
-        </p>
-      ) : null}
       <div className={styles.fields}>
         <Field id="profile-name" label="Nombre" errors={errors.name}>
           {(control) => (
@@ -101,6 +91,18 @@ export default function ProfileForm({
       >
         {submitting ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}
       </Button>
+      <div className={styles.feedback}>
+        {successMessage ? (
+          <p role="status" className={`${alertStyles.notice} ${styles.success}`}>
+            {successMessage}
+          </p>
+        ) : null}
+        {formError ? (
+          <p role="alert" className={alertStyles.alert}>
+            {formError}
+          </p>
+        ) : null}
+      </div>
     </form>
   )
 }
