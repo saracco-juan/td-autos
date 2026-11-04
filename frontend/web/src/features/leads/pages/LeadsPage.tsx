@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { LeadPeriod, LeadSummary } from '@shared/leads/types'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import ListFooter from '../../components/ListFooter/ListFooter'
-import Pagination from '../../components/Pagination/Pagination'
-import ScrollArea from '../../components/ScrollArea/ScrollArea'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import screenStyles from '../../styles/screen.module.css'
-import { NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import { fetchLeads } from './api'
-import MetricsOverview from './MetricsOverview'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import ListFooter from '../../../components/ListFooter/ListFooter'
+import Pagination from '../../../components/Pagination/Pagination'
+import ScrollArea from '../../../components/ScrollArea/ScrollArea'
+import Button from '../../../components/Buttons/Button'
+import screenStyles from '../../../styles/screen.module.css'
+import { NetworkError } from '../../../lib/http'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import { fetchLeads } from '../api/client'
+import MetricsOverview from '../components/MetricsOverview'
 import styles from './LeadsPage.module.css'
 
 const PERIODS: { value: LeadPeriod; label: string }[] = [
@@ -56,10 +56,10 @@ export default function LeadsPage() {
       </header>
       <div role="group" aria-label="Período de consulta" className={styles.filters}>
         {PERIODS.map(({ value, label }) => (
-          <button key={value} type="button" aria-pressed={period === value} onClick={() => selectPeriod(value)}
-            className={`${buttonStyles.button} ${period === value ? buttonStyles.primary : buttonStyles.secondary}`}>
+          <Button key={value} type="button" aria-pressed={period === value} onClick={() => selectPeriod(value)}
+            variant={period === value ? 'primary' : 'secondary'}>
             {label}
-          </button>
+          </Button>
         ))}
       </div>
       <div className={styles.results} aria-busy={view.status === 'loading'}>

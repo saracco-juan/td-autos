@@ -1,15 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { expect, it, vi } from 'vitest'
-import { routes } from '../../app/router'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import { fetchLeads } from './api'
+import { routes } from '../../../app/router'
+import { useAuth } from '../../../features/auth/session/hooks/useAuth'
+import { fetchLeads } from '../../../features/leads/api/client'
 
-vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../auth/session/components/AuthProvider', () => ({ default: ({ children }: { children: React.ReactNode }) => children }))
-vi.mock('./api', () => ({ fetchLeads: vi.fn() }))
-vi.mock('../home/components/HomeRoute', () => ({ default: () => <p>Buyer home</p> }))
-vi.mock('../admin/pages/AdminDashboardPage', () => ({ default: () => <p>Admin home</p> }))
+vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../features/auth/session/components/AuthProvider', () => ({ default: ({ children }: { children: React.ReactNode }) => children }))
+vi.mock('../../../features/leads/api/client', () => ({ fetchLeads: vi.fn() }))
+vi.mock('../../../features/home/components/HomeRoute', () => ({ default: () => <p>Buyer home</p> }))
+vi.mock('../../../features/admin/pages/AdminDashboardPage', () => ({ default: () => <p>Admin home</p> }))
 
 it.each(['pendiente', 'activa'])('opens metrics from the dealer navigation for a %s account', async (state) => {
   vi.mocked(useAuth).mockReturnValue({ status: 'authenticated', user: {

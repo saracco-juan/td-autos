@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch } from '../../lib/http'
-import LeadsPage from './LeadsPage'
+import { apiFetch } from '../../../lib/http'
+import LeadsPage from '../../../features/leads/pages/LeadsPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<typeof import('../../lib/http')>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<typeof import('../../../lib/http')>(), apiFetch: vi.fn() }))
 beforeEach(() => vi.mocked(apiFetch).mockReset())
 
 it('updates every dashboard card when the selected period changes', async () => {

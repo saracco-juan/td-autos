@@ -1,10 +1,10 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch, NetworkError } from '../../lib/http'
-import LeadsPage from './LeadsPage'
+import { apiFetch, NetworkError } from '../../../lib/http'
+import LeadsPage from '../../../features/leads/pages/LeadsPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<typeof import('../../lib/http')>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<typeof import('../../../lib/http')>(), apiFetch: vi.fn() }))
 
 const summary = { period: 'month', total: 3, vehicles: [
   { id: 1, label: 'Toyota Corolla XEI 2021', leads: 2 },

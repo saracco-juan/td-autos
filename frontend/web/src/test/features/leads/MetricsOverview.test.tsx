@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { expect, it } from 'vitest'
-import MetricsOverview from './MetricsOverview'
+import MetricsOverview from '../../../features/leads/components/MetricsOverview'
 
 it('shows total contacts and inventory coverage with separate, correctly scaled indicators', () => {
   render(<MetricsOverview data={{ period: 'month', total: 10, vehicles: [

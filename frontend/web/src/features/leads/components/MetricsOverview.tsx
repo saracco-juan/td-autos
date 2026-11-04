@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { LeadSummary } from '@shared/leads/types'
 import { calculateLeadMetrics } from '@shared/leads/metrics'
-import pageStyles from './LeadsPage.module.css'
+import pageStyles from '../pages/LeadsPage.module.css'
 import styles from './MetricsOverview.module.css'
 
 function ConcentrationGauge({ value }: { value: number }) {
