@@ -448,6 +448,22 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 1
+    },
+    {
+      "id": "efde4349",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:51:24.6020404Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
+    },
+    {
+      "id": "e7725bb5",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:51:50.1804111Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
