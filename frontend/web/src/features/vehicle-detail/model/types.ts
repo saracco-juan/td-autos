@@ -1,5 +1,5 @@
 import type { DetailVehicle } from '@shared/vehicles/detail'
-import type { MatchingFacts } from '../inventory/model/matchingFields'
+import type { MatchingFacts } from '../../inventory/model/matchingFields'
 
 export type BuyerVehicle = DetailVehicle & Partial<Omit<MatchingFacts, 'moneda'>>
 export type VehicleDetailResponse = {

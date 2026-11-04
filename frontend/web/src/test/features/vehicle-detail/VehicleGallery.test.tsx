@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
-import VehicleGallery from './VehicleGallery'
+import VehicleGallery from '../../../features/vehicle-detail/components/VehicleGallery'
 
 it('HU09 / TC-26 selects gallery photos with keyboard-accessible controls', async () => {
   const photos = [...vehicle.fotos, { id: 2, url: 'https://example.test/second.jpg', orden: 2 }]

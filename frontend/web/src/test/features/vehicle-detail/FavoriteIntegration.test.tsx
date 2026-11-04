@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
-import { apiFetch } from '../../lib/http'
-import VehicleDetailPage from './VehicleDetailPage'
+import { apiFetch } from '../../../lib/http'
+import VehicleDetailPage from '../../../features/vehicle-detail/pages/VehicleDetailPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 
 it('uses the shared heart and returns to favorites without recommendation ranking context', async () => {
   vi.mocked(apiFetch).mockResolvedValue({

@@ -5,7 +5,7 @@ import { beforeEach, expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
 import type { DepreciationResponse } from '@shared/depreciation/types'
 import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
-import VehicleDetailPage from '../../../features/vehicle-detail/VehicleDetailPage'
+import VehicleDetailPage from '../../../features/vehicle-detail/pages/VehicleDetailPage'
 import DepreciationPage from '../../../features/depreciation/pages/DepreciationPage'
 
 vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))

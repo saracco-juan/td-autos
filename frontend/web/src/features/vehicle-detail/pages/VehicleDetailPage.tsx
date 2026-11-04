@@ -1,23 +1,23 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router'
+import { useLocation, useParams } from 'react-router'
 import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import { specificationGroups } from '@shared/vehicles/detail'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import screenStyles from '../../styles/screen.module.css'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import { HttpError, NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import FavoriteButton from '../favorites/components/FavoriteButton'
-import { formatPrice } from '../inventory/model/format'
-import { fetchVehicleDetail } from './api'
-import { readDetailContext, readDetailReturn, type DetailContext } from './navigation'
-import type { VehicleDetailResponse } from './types'
-import VehicleCostShortcut from './VehicleCostShortcut'
-import VehicleGallery from './VehicleGallery'
-import VehicleSpecifications from './VehicleSpecifications'
-import VehicleCompatibility from './VehicleCompatibility'
-import VehicleContact from './VehicleContact'
-import BackLink from '../../components/Buttons/BackLink'
+import screenStyles from '../../../styles/screen.module.css'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import { HttpError, NetworkError } from '../../../lib/http'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import FavoriteButton from '../../favorites/components/FavoriteButton'
+import { formatPrice } from '../../inventory/model/format'
+import { fetchVehicleDetail } from '../api/client'
+import { readDetailContext, readDetailReturn, type DetailContext } from '../model/navigation'
+import type { VehicleDetailResponse } from '../model/types'
+import VehicleCostShortcut from '../components/VehicleCostShortcut'
+import VehicleGallery from '../components/VehicleGallery'
+import VehicleSpecifications from '../components/VehicleSpecifications'
+import VehicleCompatibility from '../components/VehicleCompatibility'
+import VehicleContact from '../components/VehicleContact'
+import BackLink from '../../../components/Buttons/BackLink'
 import styles from './VehicleDetailPage.module.css'
 
 type View = { status: 'loading' | 'unavailable' }
@@ -87,12 +87,12 @@ function DetailScreen({ id, context, returnTo, returnState }: { id: number | nul
                 <p className={styles.muted}>Concesionaria verificada · {data.dealer.nombre}</p>
                 <VehicleContact vehicleId={data.vehicle.id} available={data.whatsapp_available === true} />
                 <VehicleCostShortcut vehicleId={data.vehicle.id} context={context} />
-                <Link to={`/vehiculos/${id}/depreciacion`} state={returnState} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+                <ButtonLink to={`/vehiculos/${id}/depreciacion`} state={returnState} variant="secondary">
                   DEPRECIACIÓN Y REVENTA
-                </Link>
-                <Link to={`/vehiculos/${id}/inspeccion`} className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+                </ButtonLink>
+                <ButtonLink to={`/vehiculos/${id}/inspeccion`} variant="secondary">
                   CHECKLIST DE INSPECCIÓN
-                </Link>
+                </ButtonLink>
               </aside>
               <VehicleSpecifications vehicle={data.vehicle} />
             </div>

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { expect, it } from 'vitest'
-import VehicleCompatibility from './VehicleCompatibility'
+import VehicleCompatibility from '../../../features/vehicle-detail/components/VehicleCompatibility'
 
 it('names the selected use and priority and exposes each factor as a percentage', () => {
   render(<VehicleCompatibility context={{ listingId: 7, score: 81.1,

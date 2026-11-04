@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, it } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
-import VehicleSpecifications from './VehicleSpecifications'
+import VehicleSpecifications from '../../../features/vehicle-detail/components/VehicleSpecifications'
 
 it('starts each selected specification tab at the top without moving the surrounding content', async () => {
   render(<VehicleSpecifications vehicle={vehicle} />)

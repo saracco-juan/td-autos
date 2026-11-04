@@ -1,6 +1,6 @@
+import Button from '../../../components/Buttons/Button'
 import { useState } from 'react'
 import type { DetailVehicle } from '@shared/vehicles/detail'
-import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './VehicleGallery.module.css'
 
 type Props = { photos: DetailVehicle['fotos']; title: string }
@@ -25,14 +25,14 @@ export default function VehicleGallery({ photos, title }: Props) {
       {photos.length > 0 ? (
         <div className={styles.thumbnails} role="group" aria-label="Elegí una foto">
           {photos.map((photo, position) => (
-            <button type="button" key={photo.id}
-              className={`${buttonStyles.button} ${styles.thumbnail}`}
+            <Button type="button" key={photo.id}
+              className={`${styles.thumbnail}`}
               aria-label={`Ver foto ${position + 1} de ${title}`}
               aria-pressed={photo.id === selected?.id} onClick={() => setSelectedId(photo.id)}>
               {failed.has(photo.url) ? <span>Foto {position + 1} no disponible</span> : (
                 <img src={photo.url} alt="" loading="lazy" onError={() => markFailed(photo.url)} />
               )}
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}

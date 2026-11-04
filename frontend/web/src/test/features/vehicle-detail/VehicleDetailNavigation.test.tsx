@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
-import { apiFetch, HttpError } from '../../lib/http'
-import OwnershipCostsPage from '../costs/pages/OwnershipCostsPage'
-import MatchingRecommendationsPage from '../recommendations/pages/MatchingRecommendationsPage'
-import VehicleDetailPage from './VehicleDetailPage'
+import { apiFetch, HttpError } from '../../../lib/http'
+import OwnershipCostsPage from '../../../features/costs/pages/OwnershipCostsPage'
+import MatchingRecommendationsPage from '../../../features/recommendations/pages/MatchingRecommendationsPage'
+import VehicleDetailPage from '../../../features/vehicle-detail/pages/VehicleDetailPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 const recommendation = {
   listing_id: 7, score: 88.5, components: { usage: 90, body: 100, comfort: 60, priority: null },
   published_price: 28900000, published_currency: 'ARS', price_ars: 28900000, price_usd: null,

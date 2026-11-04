@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
-import { apiFetch, HttpError, NetworkError } from '../../lib/http'
-import VehicleDetailPage from './VehicleDetailPage'
+import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
+import VehicleDetailPage from '../../../features/vehicle-detail/pages/VehicleDetailPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 const response = { vehicle, dealer: { id: 2, nombre: 'Autos del Sur', provincia: 'CABA' } }
 const mount = (path = '/vehiculos/7') => render(
   <MemoryRouter initialEntries={[path]}>

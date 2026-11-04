@@ -1,5 +1,5 @@
-import InfoTip from '../../components/InfoTip/InfoTip'
-import type { DetailContext } from './navigation'
+import InfoTip from '../../../components/InfoTip/InfoTip'
+import type { DetailContext } from '../model/navigation'
 import styles from './VehicleCompatibility.module.css'
 
 const number = (value: number) => value.toLocaleString('es-AR', { maximumFractionDigits: 1 })

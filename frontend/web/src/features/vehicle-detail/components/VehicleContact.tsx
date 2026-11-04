@@ -1,8 +1,8 @@
+import Button from '../../../components/Buttons/Button'
 import { useEffect, useRef, useState } from 'react'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import { HttpError } from '../../lib/http'
-import { contactVehicle } from './api'
+import alertStyles from '../../../styles/alert.module.css'
+import { HttpError } from '../../../lib/http'
+import { contactVehicle } from '../api/client'
 
 export default function VehicleContact({ vehicleId, available }: { vehicleId: number; available: boolean }) {
   const [busy, setBusy] = useState(false)
@@ -38,10 +38,10 @@ export default function VehicleContact({ vehicleId, available }: { vehicleId: nu
 
   if (!available) return <p>WhatsApp no disponible</p>
   return <>
-    <button type="button" className={`${buttonStyles.button} ${buttonStyles.success}`}
+    <Button type="button" variant="success"
       disabled={busy} aria-busy={busy} onClick={() => void contact()}>
       {busy ? 'ABRIENDO WHATSAPP…' : 'CONTACTAR POR WHATSAPP'}
-    </button>
+    </Button>
     {error ? <p role="alert" className={alertStyles.alert}>{error}</p> : null}
   </>
 }
