@@ -5,7 +5,7 @@ namespace Database\Seeders\RealDemo;
 use App\Models\Concesionaria;
 use App\Models\Suscripcion;
 use App\Models\User;
-use Database\Seeders\DemoDealersSeeder;
+use Database\Seeders\Support\DemoCredentials;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -40,7 +40,7 @@ final class RealDemoDealers
     public function create(bool $skipExisting = false): array
     {
         // One hash for every account: hashing ten times would only slow the load down.
-        $password = Hash::make(DemoDealersSeeder::DEMO_PASSWORD);
+        $password = Hash::make(DemoCredentials::password());
         $now = now();
         $result = [];
 

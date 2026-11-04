@@ -7,6 +7,7 @@ use App\Models\Concesionaria;
 use App\Models\Suscripcion;
 use App\Models\User;
 use App\Support\PaymentReceipts;
+use Database\Seeders\Support\DemoCredentials;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -17,13 +18,13 @@ use Illuminate\Support\Str;
  */
 class DemoDealersSeeder extends Seeder
 {
-    public const DEMO_PASSWORD = 'TdAutos2026!';
-
     // 1x1 transparent PNG, enough for the receipt preview.
     private const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
     public function run(): void
     {
+        $password = DemoCredentials::password();
+
         $dealers = [
             ['Autos del Sur', 'sur', 'Córdoba', 'Córdoba', 'pending', 'pdf'],
             ['Rosario Motors', 'rosario', 'Rosario', 'Santa Fe', 'pending', 'png'],
@@ -50,7 +51,7 @@ class DemoDealersSeeder extends Seeder
                     'name' => 'Responsable',
                     'apellido' => $name,
                     'email' => $email,
-                    'password' => self::DEMO_PASSWORD,
+                    'password' => $password,
                 ]),
                 'nombre' => $name,
                 'localidad' => $city,
@@ -90,7 +91,7 @@ class DemoDealersSeeder extends Seeder
             ]);
         }
 
-        $this->command?->info('Demo dealers ready. Password: '.self::DEMO_PASSWORD);
+        $this->command?->info('Demo dealers ready. Use your configured DEMO_PASSWORD.');
     }
 
     private function storeFile(int $dealerId, string $format): string

@@ -4,7 +4,6 @@ namespace Tests\Feature\RealDemo;
 
 use App\Models\Concesionaria;
 use App\Models\User;
-use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\RealDemo\RealDemoInventory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,6 +18,12 @@ use Tests\TestCase;
 class RealDemoDealersCommandTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['demo.password' => bin2hex(random_bytes(24))]);
+    }
 
     private function reales(): Builder
     {
@@ -40,7 +45,7 @@ class RealDemoDealersCommandTest extends TestCase
     public function test_confirm_creates_ten_active_dealers_that_can_log_in_with_an_active_subscription(): void
     {
         $this->artisan('demo:reales-concesionarias', ['--confirm' => true])
-            ->expectsOutputToContain('contraseña de demo: la de DemoDealersSeeder')
+            ->expectsOutputToContain('contraseña de demo: la configurada en DEMO_PASSWORD')
             ->assertExitCode(0);
 
         $this->assertSame(10, $this->reales()->count());
@@ -48,7 +53,7 @@ class RealDemoDealersCommandTest extends TestCase
             $user = User::query()->where('email', $dealer['slug'].'@reales.tdautos.test')->firstOrFail();
             $this->assertSame(User::ROL_CONCESIONARIA, $user->rol);
             $this->assertNotNull($user->email_verified_at);
-            $this->assertTrue(Hash::check(DemoDealersSeeder::DEMO_PASSWORD, $user->password));
+            $this->assertTrue(Hash::check(config('demo.password'), $user->password));
 
             $row = Concesionaria::query()->where('usuario_id', $user->id)->firstOrFail();
             $this->assertSame(Concesionaria::ESTADO_ACTIVA, $row->estado_alta);
@@ -56,7 +61,7 @@ class RealDemoDealersCommandTest extends TestCase
             $this->assertNotEmpty($row->telefono_publico);
             $this->assertNotEmpty($row->responsable_dni);
             $this->assertTrue(DB::table('suscripcion')->where('concesionaria_id', $row->id)->where('estado', 'activa')->where('vigente_hasta', '>=', now()->addMonths(11)->toDateString())->exists());
-            $this->assertTrue(auth()->validate(['email' => $user->email, 'password' => DemoDealersSeeder::DEMO_PASSWORD]));
+            $this->assertTrue(auth()->validate(['email' => $user->email, 'password' => config('demo.password')]));
         }
         $this->assertSame(0, DB::table('vehiculo')->count());
     }

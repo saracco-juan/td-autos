@@ -7,6 +7,7 @@ use App\Models\Suscripcion;
 use App\Models\User;
 use App\Support\Patente;
 use App\Support\VehiculoOptions;
+use Database\Seeders\Support\DemoCredentials;
 use Database\Seeders\Support\DemoVehicleFacts;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -95,7 +96,7 @@ class VolumeInventorySeeder extends Seeder
     private function createDealers(): array
     {
         // One hash for every account: hashing 50 times would only slow the seed down.
-        $password = Hash::make(DemoDealersSeeder::DEMO_PASSWORD);
+        $password = Hash::make(DemoCredentials::password());
         $now = now();
         $dealers = [];
 

@@ -28,6 +28,7 @@ class RealDemoImportCommandTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['demo.password' => bin2hex(random_bytes(24))]);
 
         Storage::fake(config('filesystems.vehicle_photos_disk'));
         app(FixedAcaraCatalog::class)->import((new LocalAcaraCatalogData)->load());

@@ -10,7 +10,6 @@ use App\Support\Patente;
 use App\Support\VehiculoFields;
 use App\Support\VehiculoFotos;
 use App\Support\VehiculoOptions;
-use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\VolumeInventorySeeder;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,6 +33,7 @@ class VolumeInventorySeedTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['demo.password' => bin2hex(random_bytes(24))]);
 
         Storage::fake(config('filesystems.receipts_disk'));
         Storage::fake(config('filesystems.vehicle_photos_disk'));
@@ -110,7 +110,7 @@ class VolumeInventorySeedTest extends TestCase
         $this->assertContains('concesionaria01@volumen.tdautos.test', $emails->all());
 
         $user = User::where('email', 'concesionaria01@volumen.tdautos.test')->first();
-        $this->assertTrue(Hash::check(DemoDealersSeeder::DEMO_PASSWORD, $user->password));
+        $this->assertTrue(Hash::check(config('demo.password'), $user->password));
 
         $perDealer = DB::table('vehiculo_concesionaria')
             ->selectRaw('concesionaria_id, count(*) as total')

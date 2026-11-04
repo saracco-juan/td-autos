@@ -7,7 +7,6 @@ use App\Models\Vehiculo;
 use App\Services\Catalog\FixedAcaraCatalog;
 use App\Support\VehiculoFields;
 use App\Support\VehiculoOptions;
-use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\Support\LocalAcaraCatalogData;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,6 +25,7 @@ class LocalDevDatabaseTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['demo.password' => bin2hex(random_bytes(24))]);
 
         Storage::fake('local');
         Storage::fake('public');
@@ -128,7 +128,7 @@ class LocalDevDatabaseTest extends TestCase
             ->expectsOutputToContain('DB_CONNECTION=sqlite')
             ->expectsOutputToContain('DB_URL=')
             ->expectsOutputToContain('admin@demo.tdautos.test')
-            ->expectsOutputToContain(DemoDealersSeeder::DEMO_PASSWORD)
+            ->doesntExpectOutputToContain(config('demo.password'))
             ->assertExitCode(0);
 
         $this->assertFileExists($this->path);
