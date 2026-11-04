@@ -1,14 +1,14 @@
+import ButtonLink from '../../../../components/Buttons/ButtonLink'
 import { useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
-import { HttpError } from '../../../lib/http'
-import { resetPassword } from '../api'
-import { useAuth } from '../session/hooks/useAuth'
-import type { FieldErrors } from '../types'
-import alertStyles from '../../../styles/alert.module.css'
-import buttonStyles from '../../../components/Buttons/button.module.css'
-import AuthCard from '../shared/AuthCard'
-import { validateNewPassword } from '../shared/validateNewPassword'
-import ResetPasswordForm, { type ResetPasswordValues } from './ResetPasswordForm'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { HttpError } from '../../../../lib/http'
+import { resetPassword } from '../../api'
+import { useAuth } from '../../session/hooks/useAuth'
+import type { FieldErrors } from '../../types'
+import alertStyles from '../../../../styles/alert.module.css'
+import AuthCard from '../../shared/AuthCard'
+import { validateNewPassword } from '../../shared/validateNewPassword'
+import ResetPasswordForm, { type ResetPasswordValues } from '../components/ResetPasswordForm'
 import styles from './ResetPasswordPage.module.css'
 
 const GENERIC_ERROR = 'No se pudo actualizar la contraseña. Intentá nuevamente.'
@@ -92,12 +92,12 @@ export default function ResetPasswordPage() {
             {linkError}
           </p>
           <div className={styles.actions}>
-            <Link to="/recuperar" className={`${buttonStyles.button} ${buttonStyles.primary}`}>
+            <ButtonLink to="/recuperar" variant="primary">
               SOLICITAR NUEVO ENLACE
-            </Link>
-            <Link to="/login" className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+            </ButtonLink>
+            <ButtonLink to="/login" variant="secondary">
               VOLVER AL ACCESO
-            </Link>
+            </ButtonLink>
           </div>
         </>
       ) : (
@@ -110,9 +110,9 @@ export default function ResetPasswordPage() {
             onChange={handleChange}
             onSubmit={handleSubmit}
           />
-          <Link to="/login" className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+          <ButtonLink to="/login" variant="secondary">
             VOLVER AL ACCESO
-          </Link>
+          </ButtonLink>
         </>
       )}
     </AuthCard>

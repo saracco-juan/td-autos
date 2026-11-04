@@ -1,9 +1,9 @@
+import Button from '../../../../components/Buttons/Button'
 import type { ChangeEvent, FormEvent } from 'react'
-import type { FieldErrors } from '../types'
-import alertStyles from '../../../styles/alert.module.css'
-import buttonStyles from '../../../components/Buttons/button.module.css'
-import Field from '../shared/Field'
-import styles from '../shared/authForm.module.css'
+import type { FieldErrors } from '../../types'
+import alertStyles from '../../../../styles/alert.module.css'
+import Field from '../../shared/Field'
+import styles from '../../shared/authForm.module.css'
 
 type Props = {
   email: string
@@ -33,14 +33,14 @@ export default function RecoveryForm({ email, errors, submitting, formError, onC
           <input {...control} type="email" name="email" autoComplete="email" value={email} onChange={handleChange} />
         )}
       </Field>
-      <button
+      <Button
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.primary}`}
+        variant="primary"
       >
         {submitting ? 'SOLICITANDO…' : 'SOLICITAR RECUPERACIÓN'}
-      </button>
+      </Button>
     </form>
   )
 }

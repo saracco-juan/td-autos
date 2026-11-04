@@ -1,14 +1,14 @@
+import ButtonLink from '../../../../components/Buttons/ButtonLink'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { HttpError } from '../../../lib/http'
-import { requestPasswordReset } from '../api'
-import { useAuth } from '../session/hooks/useAuth'
-import type { FieldErrors } from '../types'
-import alertStyles from '../../../styles/alert.module.css'
-import buttonStyles from '../../../components/Buttons/button.module.css'
-import AuthCard from '../shared/AuthCard'
-import { validateEmail } from '../shared/validateEmail'
-import RecoveryForm from './RecoveryForm'
+import { useNavigate } from 'react-router'
+import { HttpError } from '../../../../lib/http'
+import { requestPasswordReset } from '../../api'
+import { useAuth } from '../../session/hooks/useAuth'
+import type { FieldErrors } from '../../types'
+import alertStyles from '../../../../styles/alert.module.css'
+import AuthCard from '../../shared/AuthCard'
+import { validateEmail } from '../../shared/validateEmail'
+import RecoveryForm from '../components/RecoveryForm'
 import styles from './RecoveryPage.module.css'
 
 const HELPER = 'Si existe una cuenta asociada, recibirás instrucciones por email.'
@@ -73,9 +73,9 @@ export default function RecoveryPage() {
       ) : (
         <p className={styles.helper}>{HELPER}</p>
       )}
-      <Link to="/login" className={`${buttonStyles.button} ${buttonStyles.secondary}`}>
+      <ButtonLink to="/login" variant="secondary">
         VOLVER AL ACCESO
-      </Link>
+      </ButtonLink>
     </AuthCard>
   )
 }
