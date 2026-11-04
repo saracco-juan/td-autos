@@ -1,4 +1,4 @@
-import { apiFetch } from '../../lib/http'
+import { apiFetch } from '../../../lib/http'
 import type { CostsQuery, OwnershipCosts } from '@shared/costs/types'
 
 // Without a query the backend uses the km range of the diagnosis and the default coverage.

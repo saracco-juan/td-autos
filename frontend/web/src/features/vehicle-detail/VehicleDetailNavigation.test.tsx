@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
 import { apiFetch, HttpError } from '../../lib/http'
-import OwnershipCostsPage from '../costs/OwnershipCostsPage'
+import OwnershipCostsPage from '../costs/pages/OwnershipCostsPage'
 import MatchingRecommendationsPage from '../recommendations/MatchingRecommendationsPage'
 import VehicleDetailPage from './VehicleDetailPage'
 

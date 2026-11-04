@@ -1,13 +1,13 @@
+import Button from '../../../components/Buttons/Button'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation, useParams } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import InfoTip from '../../components/InfoTip/InfoTip'
-import BackLink from '../../components/Buttons/BackLink'
-import { HttpError } from '../../lib/http'
-import Field from '../auth/shared/components/Field'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import { fetchCosts } from './api'
+import alertStyles from '../../../styles/alert.module.css'
+import InfoTip from '../../../components/InfoTip/InfoTip'
+import BackLink from '../../../components/Buttons/BackLink'
+import { HttpError } from '../../../lib/http'
+import Field from '../../auth/shared/components/Field'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import { fetchCosts } from '../api/client'
 import { formatDate } from '@shared/costs/format'
 import { monthlyLines, purchaseLines } from '@shared/costs/summary'
 import styles from './OwnershipCostsPage.module.css'
@@ -186,14 +186,14 @@ export default function OwnershipCostsPage() {
                 )}
               </Field>
               <div className={styles.action}>
-                <button
+                <Button
                   type="submit"
                   disabled={loading}
                   aria-busy={loading}
-                  className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
+                  variant="primary" className={`${styles.submit}`}
                 >
                   RECALCULAR
-                </button>
+                </Button>
               </div>
             </form>
           ) : null}

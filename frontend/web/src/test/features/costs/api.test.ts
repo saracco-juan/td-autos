@@ -1,8 +1,8 @@
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch } from '../../lib/http'
-import { fetchCosts } from './api'
+import { apiFetch } from '../../../lib/http'
+import { fetchCosts } from '../../../features/costs/api/client'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 
 beforeEach(() => {
   vi.mocked(apiFetch).mockReset().mockResolvedValue({})

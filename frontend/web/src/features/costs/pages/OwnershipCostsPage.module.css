@@ -1,5 +1,5 @@
 .page {
-  composes: container from '../../styles/screen.module.css';
+  composes: container from '../../../styles/screen.module.css';
   display: flex;
   flex-direction: column;
   gap: 40px;

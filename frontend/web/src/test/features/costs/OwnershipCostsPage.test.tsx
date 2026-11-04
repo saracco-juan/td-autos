@@ -2,11 +2,11 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
-import { apiFetch, HttpError, NetworkError } from '../../lib/http'
-import OwnershipCostsPage from './OwnershipCostsPage'
+import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
+import OwnershipCostsPage from '../../../features/costs/pages/OwnershipCostsPage'
 import type { OwnershipCosts } from '@shared/costs/types'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 
 const costs = (): OwnershipCosts => ({
   vehicle: { id: 1, make: 'Toyota', model: 'Corolla', version: 'XEI', year: 2022, fuel: 'nafta', province: 'Córdoba',
