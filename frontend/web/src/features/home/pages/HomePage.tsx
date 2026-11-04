@@ -1,8 +1,7 @@
-import { Link } from 'react-router'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import buttonStyles from '../../components/Buttons/button.module.css'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
+import { useAuth } from '../../auth/session/hooks/useAuth'
 import styles from './HomePage.module.css'
-import ScrollCue from '../../components/ScrollCue/ScrollCue'
+import ScrollCue from '../../../components/ScrollCue/ScrollCue'
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -15,10 +14,10 @@ export default function HomePage() {
           <p>Descubrí el vehículo que acompaña tu forma de vivir. <br />Compará tus opciones y elegí con más información.</p>
         </div>
         <div className={styles.heroBottom}>
-          <Link className={`${buttonStyles.button} ${styles.action} ${styles.heroButton}`} to={user ? '/recomendaciones' : '/registro'}>
+          <ButtonLink className={`${styles.action} ${styles.heroButton}`} to={user ? '/recomendaciones' : '/registro'}>
             {user ? 'Ver mis recomendados' : 'Encontrar mi auto'}
             <Arrow />
-          </Link>
+          </ButtonLink>
           <ScrollCue to="#diagnostico">Descubrí TD Autos</ScrollCue>
         </div>
       </section>
@@ -43,7 +42,7 @@ export default function HomePage() {
           </section>
         ))}
         <div className={styles.journeyAction}>
-          <Link className={`${buttonStyles.button} ${styles.action}`} to={user ? '/diagnostico' : '/registro'}>Empezar mi búsqueda <Arrow /></Link>
+          <ButtonLink className={`${styles.action}`} to={user ? '/diagnostico' : '/registro'}>Empezar mi búsqueda <Arrow /></ButtonLink>
         </div>
       </div>
 
@@ -54,8 +53,8 @@ export default function HomePage() {
             <p>Un espacio para que tu concesionaria conecte con quienes están buscando un vehículo.</p>
             <ul><li>Publicá y mantené actualizado tu inventario.</li><li>Recibí consultas de compradores interesados.</li><li>Gestioná tus vehículos desde un mismo lugar.</li></ul>
             <div className={styles.dealerActions}>
-              <Link className={`${buttonStyles.button} ${styles.action}`} to="/registro/concesionaria">Registrar mi concesionaria <Arrow /></Link>
-              <Link className={`${buttonStyles.button} ${styles.action} ${styles.dealerLogin}`} to="/login">Ingresar como concesionaria <Arrow /></Link>
+              <ButtonLink className={`${styles.action}`} to="/registro/concesionaria">Registrar mi concesionaria <Arrow /></ButtonLink>
+              <ButtonLink className={`${styles.action} ${styles.dealerLogin}`} to="/login">Ingresar como concesionaria <Arrow /></ButtonLink>
             </div>
           </div>
         </div>

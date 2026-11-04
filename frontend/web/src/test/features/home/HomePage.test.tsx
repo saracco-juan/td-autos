@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import HomePage from './HomePage'
+import { useAuth } from '../../../features/auth/session/hooks/useAuth'
+import HomePage from '../../../features/home/pages/HomePage'
 
-vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 function renderHome(authenticated = false) {
   vi.mocked(useAuth).mockReturnValue({

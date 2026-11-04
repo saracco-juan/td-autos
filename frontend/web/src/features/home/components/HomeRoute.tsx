@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import HomePage from './HomePage'
+import { useAuth } from '../../auth/session/hooks/useAuth'
+import HomePage from '../pages/HomePage'
 
 // Route element for /: a user with no saved diagnosis is sent to the questionnaire first (D6).
 // It is not a lock: every other route stays reachable, and /diagnostico itself never redirects.
