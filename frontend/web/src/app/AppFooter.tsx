@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import styles from './AppFooter.module.css'
-import ScrollCue from '../components/ScrollCue'
+import ScrollCue from '../components/ScrollCue/ScrollCue'
 
 export default function AppFooter({ home }: { home: boolean }) {
   return (

@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
-import Scrollbar from './Scrollbar'
+import Scrollbar from '../../components/Scrollbar/Scrollbar'
 
 it('uses the full viewport on screens without a header or footer', () => {
   const height = vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(1800)

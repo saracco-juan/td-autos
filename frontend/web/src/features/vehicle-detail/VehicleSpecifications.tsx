@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { detailSections } from '@shared/vehicles/detail'
 import Tabs from '../../components/Tabs'
-import Scrollbar from '../../components/Scrollbar'
+import Scrollbar from '../../components/Scrollbar/Scrollbar'
 import type { BuyerVehicle } from './types'
 import styles from './VehicleSpecifications.module.css'
 

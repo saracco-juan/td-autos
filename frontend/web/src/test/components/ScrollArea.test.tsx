@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import ScrollArea from "./ScrollArea";
+import ScrollArea from "../../components/ScrollArea/ScrollArea";
 
 describe("ScrollArea", () => {
   it("wraps its children in a named, keyboard-focusable region", () => {

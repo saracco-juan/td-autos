@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useAuth } from '../auth/session/useAuth'
 import buttonStyles from '../../components/Buttons/button.module.css'
 import styles from './HomePage.module.css'
-import ScrollCue from '../../components/ScrollCue'
+import ScrollCue from '../../components/ScrollCue/ScrollCue'
 
 export default function HomePage() {
   const { user } = useAuth()

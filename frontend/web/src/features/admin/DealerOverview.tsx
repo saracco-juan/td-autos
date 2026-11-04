@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import buttonStyles from "../../components/Buttons/button.module.css";
 import ListFooter from "../../components/ListFooter";
 import Pagination from "../../components/Pagination";
-import ScrollArea from "../../components/ScrollArea";
+import ScrollArea from "../../components/ScrollArea/ScrollArea";
 import usePagedItems from "../../components/usePagedItems";
 import { formatSentDate } from "../subscription/format";
 import adminStyles from "./admin.module.css";
