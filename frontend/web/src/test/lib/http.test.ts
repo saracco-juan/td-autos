@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { API_URL } from './config'
-import { apiFetch, apiFetchBlob, HttpError, NetworkError } from './http'
+import { API_URL } from '../../lib/config'
+import { apiFetch, apiFetchBlob, HttpError, NetworkError } from '../../lib/http'
 
 const fetchMock = vi.fn()
 

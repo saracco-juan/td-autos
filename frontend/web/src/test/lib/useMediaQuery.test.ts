@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useMediaQuery } from './useMediaQuery'
+import { useMediaQuery } from '../../lib/useMediaQuery'
 
 afterEach(() => {
   vi.unstubAllGlobals()

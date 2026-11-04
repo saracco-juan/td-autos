@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import AuthLayout from './AuthLayout'
+import AuthLayout from '../../app/AuthLayout'
 
 describe('AuthLayout', () => {
   it('renders only the routed content inside a single main landmark', () => {

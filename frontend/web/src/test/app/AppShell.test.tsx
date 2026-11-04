@@ -2,11 +2,11 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useAuth } from '../features/auth/session/hooks/useAuth'
-import type { User } from '../features/auth/model/types'
-import AppShell from './AppShell'
+import { useAuth } from '../../features/auth/session/hooks/useAuth'
+import type { User } from '../../features/auth/model/types'
+import AppShell from '../../app/AppShell'
 
-vi.mock('../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const ana = {
   id: 1,

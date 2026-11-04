@@ -2,26 +2,26 @@ import { act, render, screen, within, waitFor } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import { HttpError, NetworkError } from '../lib/http'
-import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../features/auth/api/client'
-import { fetchDiagnosis, saveDiagnosis } from '../features/diagnosis/api/client'
-import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../features/inventory/api/client'
-import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../test/fixtures/inventory/fixtures'
-import { fetchInspection } from '../features/inspection/api/client'
+import { HttpError, NetworkError } from '../../lib/http'
+import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword } from '../../features/auth/api/client'
+import { fetchDiagnosis, saveDiagnosis } from '../../features/diagnosis/api/client'
+import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../../features/inventory/api/client'
+import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../fixtures/inventory/fixtures'
+import { fetchInspection } from '../../features/inspection/api/client'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
-import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api/client'
-import { dealerDetail, directory, receipt } from '../test/fixtures/admin/fixtures'
-import { fetchSubscription } from '../features/subscription/api/client'
-import { suscripcion } from '../test/fixtures/subscription/fixtures'
-import { fetchRecommendations } from '../features/recommendations/api/matching'
-import { fetchPortalModels } from '../features/recommendations/api/portalModels'
-import { fetchTransfer } from '../features/transfer/api/client'
+import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../../features/admin/api/client'
+import { dealerDetail, directory, receipt } from '../fixtures/admin/fixtures'
+import { fetchSubscription } from '../../features/subscription/api/client'
+import { suscripcion } from '../fixtures/subscription/fixtures'
+import { fetchRecommendations } from '../../features/recommendations/api/matching'
+import { fetchPortalModels } from '../../features/recommendations/api/portalModels'
+import { fetchTransfer } from '../../features/transfer/api/client'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
-import type { DiagnosisAnswers } from '../features/diagnosis/model/types'
-import { routes } from './router'
+import type { DiagnosisAnswers } from '../../features/diagnosis/model/types'
+import { routes } from '../../app/router'
 
 // The session provider reads the current user: keep the router tests off the network.
-vi.mock('../features/auth/api/client', () => ({
+vi.mock('../../features/auth/api/client', () => ({
   fetchCurrentUser: vi.fn(),
   registerUser: vi.fn(),
   registerDealer: vi.fn(),
@@ -32,15 +32,15 @@ vi.mock('../features/auth/api/client', () => ({
   GOOGLE_REDIRECT_URL: 'http://localhost:8000/auth/google/redirect',
 }))
 
-vi.mock('../features/diagnosis/api/client', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
+vi.mock('../../features/diagnosis/api/client', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
 
-vi.mock('../features/inspection/api/client', () => ({
+vi.mock('../../features/inspection/api/client', () => ({
   fetchInspection: vi.fn(),
   setItemCompleted: vi.fn(),
   finishInspection: vi.fn(),
 }))
 
-vi.mock('../features/inventory/api/client', () => ({
+vi.mock('../../features/inventory/api/client', () => ({
   fetchVehicles: vi.fn(),
   deleteVehicle: vi.fn(),
   fetchVehicle: vi.fn(),
@@ -52,7 +52,7 @@ vi.mock('../features/inventory/api/client', () => ({
   confirmImport: vi.fn(),
 }))
 
-vi.mock('../features/admin/api/client', () => ({
+vi.mock('../../features/admin/api/client', () => ({
   fetchDealerDirectory: vi.fn(),
   fetchDealer: vi.fn(),
   updateDealer: vi.fn(),
@@ -62,12 +62,12 @@ vi.mock('../features/admin/api/client', () => ({
   rejectReceipt: vi.fn(),
 }))
 
-vi.mock('../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn() }))
-vi.mock('../features/recommendations/api/portalModels', () => ({ fetchPortalModels: vi.fn() }))
+vi.mock('../../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn() }))
+vi.mock('../../features/recommendations/api/portalModels', () => ({ fetchPortalModels: vi.fn() }))
 
-vi.mock('../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
+vi.mock('../../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
-vi.mock('../features/transfer/api/client', () => ({
+vi.mock('../../features/transfer/api/client', () => ({
   fetchTransfer: vi.fn(),
   setItemCompleted: vi.fn(),
   finishTransfer: vi.fn(),
