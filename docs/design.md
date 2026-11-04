@@ -177,6 +177,16 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Favorites groups View recommendations and Compare in its header. The comparison
   control starts compact, expands for selections or validation, and wraps within
   narrow screens. Card actions size to their labels so selected text stays on one line.
+- Recommendations keeps Filters and Compare on one aligned toolbar row. Both
+  actions are 36px high (44px for coarse pointers), with 12px labels and 10px corners;
+  Compare is 108px wide and sits at the right edge while no vehicles are selected.
+  The comparison group expands only for selected vehicles or validation, within
+  its available grid column. A single selection extends left of the action;
+  two selections keep the integrated compartments. On narrow screens, selected
+  vehicles stack below Compare while the action stays aligned with Filters.
+  Reuse ComparisonControls directly with scoped sizing variables; its default
+  dimensions on Favorites stay unchanged. Keep the shared 550ms hover and respect
+  reduced motion. Web Figma synchronization remains pending approval.
 - Filter disclosure opens and closes with a short interruptible CSS accordion
   transition. Keyboard activation is immediate; reduced motion removes the layout
   transition. Closed fields are inert and excluded from the accessibility tree.

@@ -112,10 +112,10 @@ export default function MatchingRecommendationsPage() {
   const dealersPanel = (
     <div className={styles.dealersLayout}>
       {response?.status === 'ready' ? (
-        <RecommendationFilters value={filters} actions={<div className={styles.comparison}><ComparisonControls selection={comparison}
+        <RecommendationFilters value={filters} actions={<ComparisonControls className={styles.comparison} selection={comparison}
           vehicles={(response.results ?? []).map((result) => ({ id: result.listing_id, title: recommendationTitle(result),
             label: `${result.vehicle.marca} ${result.vehicle.modelo} ${result.vehicle.anio}`,
-            image: result.vehicle.image_urls?.[0] ?? result.vehicle.image_url }))} /></div>}
+            image: result.vehicle.image_urls?.[0] ?? result.vehicle.image_url }))} />}
           onChange={(next) => {
             applyFilters(next)
             setPage(1)

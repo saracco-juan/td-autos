@@ -1,21 +1,19 @@
 /* One row under the tabs: the filters and their chips on the left, the comparison group on the right. */
 .toolbar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(108px, 1fr) minmax(108px, 3fr);
   align-items: flex-start;
-  justify-content: space-between;
   gap: 16px 24px;
 }
 
 /* Toolbar left side: the FILTROS button and the applied chips on one wrapping row. */
 .controls {
   display: flex;
-  flex: 1 1 320px;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   min-width: 0;
-  min-height: 44px;
+  min-height: 36px;
   max-width: 100%;
 }
 
@@ -211,6 +209,7 @@
 }
 
 @media (pointer: coarse) {
+  .controls { min-height: 44px; }
   .toggle, .chip, .clear, .field input, .field select,
   .field option, .form button[type='submit'] { min-height: 44px; }
 }
@@ -222,8 +221,7 @@
 
 @media (max-width: 800px) {
   /* Controls wrap while the filter form stays in the document flow. */
-  .toolbar,
-  .controls {
+  .toolbar {
     width: 100%;
   }
 

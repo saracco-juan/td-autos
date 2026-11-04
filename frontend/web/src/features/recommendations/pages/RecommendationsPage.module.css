@@ -63,10 +63,60 @@
   gap: 32px;
 }
 
-.comparison {
-  flex: 0 1 600px;
-  width: 600px;
+.dealersLayout .comparison {
+  --comparison-control-height: 36px;
+  --comparison-control-font-size: 12px;
+  --comparison-control-padding: 14px;
+  width: 108px;
   max-width: 100%;
+  margin-left: auto;
+  transition: width 550ms cubic-bezier(.32, .72, 0, 1);
+}
+
+.comparison:has([data-open='true'], [role='alert']) { width: 600px; }
+
+.dealersLayout .comparison > div > button {
+  width: 108px;
+  justify-self: end;
+}
+
+@media (min-width: 601px) {
+  .comparison > div {
+    grid-template-columns: minmax(0, 1fr) 108px minmax(0, 0fr);
+    transition: grid-template-columns 550ms cubic-bezier(.32, .72, 0, 1);
+  }
+  .comparison > div:has(> div:last-child[data-open='true']) {
+    grid-template-columns: minmax(0, 1fr) 108px minmax(0, 1fr);
+  }
+}
+
+/* Empty selection slots must not center the action inside unused space. */
+.comparison:not(:has([data-open='true'])) > div {
+  grid-template-columns: 0 108px 0;
+  grid-template-rows: var(--comparison-control-height) 0;
+  justify-content: end;
+}
+
+@media (max-width: 600px) {
+  /* Keep the action beside filters; selected vehicles stack below it. */
+  .comparison:has([data-open='true']) > div {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--comparison-control-height) auto 0;
+  }
+  .comparison:has([data-open='true']) > div > div:first-child { grid-column: 1; grid-row: 2; }
+  .comparison:has([data-open='true']) > div > div:last-child { grid-column: 1; grid-row: 3; }
+  .comparison > div:has(> div:last-child[data-open='true']) {
+    grid-template-rows: var(--comparison-control-height) auto auto;
+  }
+}
+
+@media (pointer: coarse) {
+  .dealersLayout .comparison { --comparison-control-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dealersLayout .comparison { transition: none; }
+  .comparison > div { transition: none; }
 }
 
 .adjust {
@@ -106,17 +156,6 @@
   font-size: 12px;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 800px) {
-  /* Filters first, the comparison group below at full width. */
-  .comparison {
-    width: 100%;
-  }
-
-  .comparison > section > div {
-    justify-content: space-between;
-  }
 }
 
 /* Figma 38:168: the title block on the left and AJUSTAR DIAGNÓSTICO on the right. */
