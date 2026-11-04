@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateRegisterForm, type RegisterFormValues } from './validateRegisterForm'
+import { validateRegisterForm, type RegisterFormValues } from '../../../../features/auth/register/model/validateRegisterForm'
 
 const valid: RegisterFormValues = {
   name: 'Ana',

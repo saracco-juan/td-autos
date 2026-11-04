@@ -1,6 +1,6 @@
-import type { FieldErrors } from '../types'
-import { validateEmail } from '../shared/validateEmail'
-import { validateNewPassword } from '../shared/validateNewPassword'
+import type { FieldErrors } from '../../types'
+import { validateEmail } from '../../shared/validateEmail'
+import { validateNewPassword } from '../../shared/validateNewPassword'
 
 export type RegisterFormValues = {
   name: string

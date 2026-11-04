@@ -1,11 +1,11 @@
+import Button from '../../../../components/Buttons/Button'
 import type { FormEvent } from 'react'
-import type { FieldErrors } from '../types'
-import alertStyles from '../../../styles/alert.module.css'
-import buttonStyles from '../../../components/Buttons/button.module.css'
-import PasswordRequirements from '../shared/PasswordRequirements'
-import TextField, { type TextFieldProps } from '../shared/TextField'
-import styles from '../shared/authForm.module.css'
-import type { RegisterFormValues } from './validateRegisterForm'
+import type { FieldErrors } from '../../types'
+import alertStyles from '../../../../styles/alert.module.css'
+import PasswordRequirements from '../../shared/PasswordRequirements'
+import TextField, { type TextFieldProps } from '../../shared/TextField'
+import styles from '../../shared/authForm.module.css'
+import type { RegisterFormValues } from '../model/validateRegisterForm'
 
 type Props = {
   values: RegisterFormValues
@@ -69,14 +69,14 @@ export default function RegisterForm({ values, errors, submitting, formError, on
           autoComplete="new-password"
         />
       </div>
-      <button
+      <Button
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.primary}`}
+        variant="primary"
       >
         {submitting ? 'CREANDO CUENTA…' : 'CREAR CUENTA'}
-      </button>
+      </Button>
     </form>
   )
 }

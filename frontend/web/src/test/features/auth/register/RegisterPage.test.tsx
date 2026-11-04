@@ -2,18 +2,18 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { API_URL } from '../../../lib/config'
-import { HttpError } from '../../../lib/http'
-import { registerUser } from '../api'
-import { useAuth } from '../session/hooks/useAuth'
-import RegisterPage from './RegisterPage'
+import { API_URL } from '../../../../lib/config'
+import { HttpError } from '../../../../lib/http'
+import { registerUser } from '../../../../features/auth/api'
+import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
+import RegisterPage from '../../../../features/auth/register/pages/RegisterPage'
 
-vi.mock('../api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../api')>()),
+vi.mock('../../../../features/auth/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../../features/auth/api')>()),
   registerUser: vi.fn(),
 }))
 
-vi.mock('../session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const refresh = vi.fn()
 
