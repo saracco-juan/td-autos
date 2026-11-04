@@ -1,7 +1,7 @@
 .page {
   composes: container from '../../components/screen.module.css';
-  --diagnosis-motion-duration: 700ms;
-  --diagnosis-motion-ease: cubic-bezier(.32, .72, 0, 1);
+  --diagnosis-motion-duration: 1000ms;
+  --diagnosis-motion-ease: cubic-bezier(.37, 0, .63, 1);
   padding-top: 32px;
 }
 
@@ -24,7 +24,13 @@
   grid-area: 1 / 1;
   min-width: 0;
   transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease),
-    opacity var(--diagnosis-motion-duration) var(--diagnosis-motion-ease);
+    opacity 160ms ease;
+}
+
+/* Clear the previous text before revealing the next question during the same drive. */
+.question[aria-hidden='false'] {
+  transition-duration: var(--diagnosis-motion-duration), 400ms;
+  transition-delay: 0ms, 160ms;
 }
 
 .header {
@@ -88,7 +94,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .question {
+  .question,
+  .question[aria-hidden='false'] {
     transform: none !important;
     transition: opacity 120ms ease;
   }

@@ -118,8 +118,13 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   of the historical narrow flow. Keep questions left and the summary right, stacking
   below 900px. The user's latest progress reference supersedes the previous bar:
   a red sports-car SVG follows the black track from the first question to the last.
-  Car, track and question panels share a 700ms transition; forward moves right and
-  Back reverses it. Inactive panels are inert and hidden from assistive technology.
+  Car, track and question panels share a 1000ms ease-in-out-sine movement
+  (`cubic-bezier(.37, 0, .63, 1)`): gradual acceleration and braking make each step
+  feel like a continuous drive. This deliberate pace follows the user's motion
+  preference; controls remain immediately usable and transitions can reverse.
+  Forward moves right and Back reverses it. Inactive panels are inert and hidden
+  from assistive technology. The old question fades out in 160ms before the next
+  fades in over 400ms, so text never overlaps during the longer movement.
   Reduced motion removes travel; an offscreen next question scrolls into view
   smoothly, or instantly with reduced motion. Answer controls reuse the shared
   550ms hover and 10px corners. Saving and validation rules remain unchanged.
