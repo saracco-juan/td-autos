@@ -195,11 +195,13 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - These changes implement the user's approved references in the real frontend.
   Figma synchronization remains pending approval.
 
-- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text, the admin dashboard (1040 px), the buyer profile (760 px, the width of its form card), recommendations (1200 px) and the flows that do not need the width (diagnosis, inspection, transfer and dealer verification: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width.
+- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text, the admin dashboard (1040 px), recommendations (1200 px) and the flows that do not need the width (diagnosis, inspection, transfer and dealer verification: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width. The buyer Profile redesign uses the shared 1600px container, with account identity beside the form and stacked content below 800px.
 - Every screen fills the viewport height: header on top, footer at the bottom, content in between with no empty band under the actions.
 - On flow and form screens (diagnosis, transfer and inspection checklists, subscription, vehicle form, CSV import, dealer edit), the primary actions sit in a bar pinned to the bottom of the content area, never in the middle of the page. If the content is taller than the screen, the content scrolls and the action bar stays visible.
 
 ## Responsive
+
+- Profile redesign (2026-11-04): a saved identity overview, personal-data editor, real checklist progress and links to diagnosis/favorites replace the narrow isolated form. Reuse Archivo, the shared 1600px width, Button/ButtonLink/Field and 550ms hover. Thin charcoal progress bars use saved marks and honor reduced motion. No fabricated counts, settings or purchase-completion claim. High v3 Profile `2373:7499` could not be read through the connector; synchronization is pending approval. Web implemented; mobile adaptation pending its profile redesign.
 
 - Use fluid units for layout: `%`, `fr`, `min()`, `max()`, `clamp()`, `width: 100%` with `max-width`, `minmax(min(100%, X), 1fr)` grids and `flex-wrap`. Fixed pixels only for borders, radii, icons, small gaps and font sizes.
 - Check every screen at 1280×800, 768×1024 and 375×812 in a browser before handing it over. No horizontal page scroll at any width; no text overflowing its box.

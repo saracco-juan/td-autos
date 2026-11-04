@@ -1,12 +1,13 @@
-/* Figma "Form card" (2083:1304): white surface, 1px default border, 24 padding and gap, square corners. */
 .card {
   display: flex;
   flex-direction: column;
   gap: 24px;
   width: 100%;
-  padding: clamp(16px, 4vw, 24px);
+  min-width: 0;
+  padding: clamp(20px, 3vw, 36px);
   background: var(--surface-default);
   border: 1px solid var(--border-default);
+  border-radius: 16px;
 }
 
 .title {
@@ -15,25 +16,49 @@
   font-weight: 700;
 }
 
-/* Figma "Row": two fields side by side, 24 apart; the read-only email takes its own full row. */
+.intro,
+.hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.intro {
+  margin-top: -12px;
+  max-width: 65ch;
+}
+
 .fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 20px 24px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.fields input {
+  min-width: 0;
 }
 
 .email {
   grid-column: 1 / -1;
+  min-width: 0;
 }
 
-/* Non-editable look: the value stays readable and focusable, but it is secondary text on the page background. */
 input.readOnly {
   border-color: var(--border-default);
   color: var(--text-secondary);
+  background: var(--surface-raised);
 }
 
 .submit {
-  width: min(100%, 220px);
+  align-self: flex-end;
+  width: auto;
+}
+
+@media (min-width: 801px) and (max-width: 1000px) {
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 600px) {

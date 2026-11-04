@@ -10,6 +10,7 @@ import ProfilePage from '../../../features/profile/pages/ProfilePage'
 
 vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('../../../features/profile/api/client', () => ({ updateProfile: vi.fn() }))
+vi.mock('../../../features/profile/components/PurchaseProgress', () => ({ default: () => null }))
 
 const refresh = vi.fn()
 
@@ -54,12 +55,29 @@ describe('ProfilePage', () => {
   })
 
   describe('layout', () => {
+    it('shows the saved identity and a direct way to review an existing diagnosis', () => {
+      renderPage()
+
+      expect(screen.getByRole('heading', { name: 'Ana Pérez' })).toBeInTheDocument()
+      expect(screen.getByText('Perfil completo')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'REVISAR DIAGNÓSTICO' })).toHaveAttribute('href', '/diagnostico')
+      expect(screen.getByRole('link', { name: 'VER FAVORITOS' })).toHaveAttribute('href', '/favoritos')
+    })
+
+    it('offers a first diagnosis without claiming that one exists', () => {
+      renderPage({ ...incompleteUser, tiene_diagnostico: false })
+
+      expect(screen.getByText('Datos por completar')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'CREAR DIAGNÓSTICO' })).toHaveAttribute('href', '/diagnostico')
+      expect(screen.queryByRole('link', { name: 'REVISAR DIAGNÓSTICO' })).not.toBeInTheDocument()
+    })
+
     it('renders the header, the section title and the prefilled fields', () => {
       renderPage()
 
       expect(screen.queryByText('PERFIL')).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument()
-      expect(screen.getByText('Datos personales')).toBeInTheDocument()
+      expect(screen.getByText('Tu cuenta y el punto de partida de tu próximo auto.')).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'DATOS PERSONALES' })).toBeInTheDocument()
       expect(screen.getByLabelText('Nombre')).toHaveValue('Ana')
       expect(screen.getByLabelText('Apellido')).toHaveValue('Pérez')

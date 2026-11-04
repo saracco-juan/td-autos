@@ -39,6 +39,7 @@ export default function ProfileForm({
       <h2 id="profile-form-title" className={styles.title}>
         DATOS PERSONALES
       </h2>
+      <p className={styles.intro}>Podés actualizar tu nombre y apellido para identificar tu cuenta.</p>
       {successMessage ? (
         <p role="status" className={alertStyles.notice}>
           {successMessage}
@@ -75,7 +76,9 @@ export default function ProfileForm({
           )}
         </Field>
         <div className={styles.email}>
-          <Field id="profile-email" label="Email">
+          <Field id="profile-email" label="Email" hint={
+            <p id="profile-email-hint" className={styles.hint}>Es el email con el que iniciás sesión y no se puede editar desde acá.</p>
+          }>
             {(control) => (
               <input
                 {...control}
@@ -94,7 +97,7 @@ export default function ProfileForm({
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        variant="primary" className={`${styles.submit}`}
+        variant="secondary" className={styles.submit}
       >
         {submitting ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}
       </Button>
