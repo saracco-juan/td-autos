@@ -48,6 +48,8 @@ describe('RecoveryPage', () => {
       renderPage()
 
       expect(screen.getByRole('heading', { name: 'Recuperá tu contraseña' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'TD Autos' })).toHaveAttribute('href', '/')
+      expect(screen.getByRole('link', { name: 'Volver al inicio' })).toHaveAttribute('href', '/')
       expect(screen.getByLabelText('Email')).toHaveAttribute('autocomplete', 'email')
       expect(screen.getByRole('button', { name: 'SOLICITAR RECUPERACIÓN' })).toBeEnabled()
       expect(screen.getByText(HELPER)).toBeInTheDocument()

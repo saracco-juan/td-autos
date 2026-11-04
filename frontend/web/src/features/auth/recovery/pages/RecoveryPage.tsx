@@ -7,6 +7,7 @@ import { useAuth } from '../../session/hooks/useAuth'
 import type { FieldErrors } from '../../model/types'
 import alertStyles from '../../../../styles/alert.module.css'
 import AuthCard from '../../shared/components/AuthCard'
+import AuthPageHeader from '../../shared/components/AuthPageHeader'
 import { validateEmail } from '../../shared/model/validateEmail'
 import RecoveryForm from '../components/RecoveryForm'
 import styles from './RecoveryPage.module.css'
@@ -57,25 +58,28 @@ export default function RecoveryPage() {
   }
 
   return (
-    <AuthCard title="Recuperá tu contraseña" titleId="recovery-title">
-      <RecoveryForm
-        email={email}
-        errors={errors}
-        submitting={submitting}
-        formError={formError}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-      />
-      {confirmation ? (
-        <p role="status" className={alertStyles.notice}>
-          {confirmation}
-        </p>
-      ) : (
-        <p className={styles.helper}>{HELPER}</p>
-      )}
-      <ButtonLink to="/login" variant="secondary">
-        VOLVER AL ACCESO
-      </ButtonLink>
-    </AuthCard>
+    <div className={styles.page}>
+      <AuthPageHeader />
+      <AuthCard embedded title="Recuperá tu contraseña" titleId="recovery-title">
+        <RecoveryForm
+          email={email}
+          errors={errors}
+          submitting={submitting}
+          formError={formError}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+        />
+        {confirmation ? (
+          <p role="status" className={alertStyles.notice}>
+            {confirmation}
+          </p>
+        ) : (
+          <p className={styles.helper}>{HELPER}</p>
+        )}
+        <ButtonLink to="/login" variant="secondary">
+          VOLVER AL ACCESO
+        </ButtonLink>
+      </AuthCard>
+    </div>
   )
 }
