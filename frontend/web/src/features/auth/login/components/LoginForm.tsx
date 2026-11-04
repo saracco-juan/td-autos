@@ -1,11 +1,11 @@
+import Button from '../../../../components/Buttons/Button'
 import type { ChangeEvent, FormEvent } from 'react'
-import type { FieldErrors } from '../types'
-import alertStyles from '../../../styles/alert.module.css'
-import buttonStyles from '../../../components/Buttons/button.module.css'
-import Field from '../shared/Field'
-import PasswordInput from '../shared/PasswordInput'
-import styles from '../shared/authForm.module.css'
-import type { LoginFormValues } from './validateLoginForm'
+import type { FieldErrors } from '../../types'
+import alertStyles from '../../../../styles/alert.module.css'
+import Field from '../../shared/Field'
+import PasswordInput from '../../shared/PasswordInput'
+import styles from '../../shared/authForm.module.css'
+import type { LoginFormValues } from '../model/validateLoginForm'
 
 type Props = {
   values: LoginFormValues
@@ -56,14 +56,14 @@ export default function LoginForm({ values, errors, submitting, formError, onCha
           )}
         </Field>
       </div>
-      <button
+      <Button
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.primary}`}
+        variant="primary"
       >
         {submitting ? 'INGRESANDO…' : 'INGRESAR'}
-      </button>
+      </Button>
     </form>
   )
 }

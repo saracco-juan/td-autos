@@ -2,12 +2,12 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { API_URL } from '../../../lib/config'
-import { HttpError } from '../../../lib/http'
-import { useAuth } from '../session/hooks/useAuth'
-import LoginPage from './LoginPage'
+import { API_URL } from '../../../../lib/config'
+import { HttpError } from '../../../../lib/http'
+import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
+import LoginPage from '../../../../features/auth/login/pages/LoginPage'
 
-vi.mock('../session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const login = vi.fn()
 const refresh = vi.fn()

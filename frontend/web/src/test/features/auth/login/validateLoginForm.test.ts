@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateLoginForm } from './validateLoginForm'
+import { validateLoginForm } from '../../../../features/auth/login/model/validateLoginForm'
 
 describe('validateLoginForm', () => {
   it('returns no errors for a filled, well-formed form', () => {
