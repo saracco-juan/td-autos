@@ -28,7 +28,7 @@ import RecommendationsPage from '../features/recommendations/MatchingRecommendat
 import SubscriptionPage from '../features/subscription/SubscriptionPage'
 import TransferPage from '../features/transfer/TransferPage'
 import VehicleDetailPage from '../features/vehicle-detail/VehicleDetailPage'
-import DepreciationPage from '../features/depreciation/DepreciationPage'
+import DepreciationPage from '../features/depreciation/pages/DepreciationPage'
 import FavoritesPage from '../features/favorites/FavoritesPage'
 import LeadsPage from '../features/leads/LeadsPage'
 import RootLayout from './RootLayout'

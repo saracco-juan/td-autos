@@ -4,11 +4,11 @@ import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { vehicle } from '@shared/vehicles/fixtures'
 import type { DepreciationResponse } from '@shared/depreciation/types'
-import { apiFetch, HttpError, NetworkError } from '../../lib/http'
-import VehicleDetailPage from '../vehicle-detail/VehicleDetailPage'
-import DepreciationPage from './DepreciationPage'
+import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
+import VehicleDetailPage from '../../../features/vehicle-detail/VehicleDetailPage'
+import DepreciationPage from '../../../features/depreciation/pages/DepreciationPage'
 
-vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 const response: DepreciationResponse = { vehicle, projection: { current_value: 20000, currency: 'USD',
   annual_depreciation_percent: 10, points: [{ years: 1, value: 18000, retained_percent: 90 },
     { years: 3, value: 14580, retained_percent: 72.9 }, { years: 5, value: 11809.8, retained_percent: 59.049 }] },

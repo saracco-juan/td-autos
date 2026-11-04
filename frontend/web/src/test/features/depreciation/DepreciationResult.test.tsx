@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { expect, it } from 'vitest'
-import DepreciationResult from './DepreciationResult'
+import DepreciationResult from '../../../features/depreciation/components/DepreciationResult'
 
 const projection = { current_value: 20000, currency: 'USD' as const, annual_depreciation_percent: 10,
   points: [{ years: 1, value: 18000, retained_percent: 90 },

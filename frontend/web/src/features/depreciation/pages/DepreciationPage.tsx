@@ -3,12 +3,12 @@ import { Link, useLocation, useParams } from 'react-router'
 import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import type { DepreciationResponse } from '@shared/depreciation/types'
 import { depreciationCopy } from '@shared/depreciation/presentation'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import BackLink from '../../components/Buttons/BackLink'
-import { apiFetch, HttpError, NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/components/SessionLoading'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import BackLink from '../../../components/Buttons/BackLink'
+import { apiFetch, HttpError, NetworkError } from '../../../lib/http'
+import SessionLoading from '../../auth/session/components/SessionLoading'
 import styles from './DepreciationPage.module.css'
-import DepreciationResult from './DepreciationResult'
+import DepreciationResult from '../components/DepreciationResult'
 
 type View = { status: 'loading' | 'unavailable' }
   | { status: 'error'; kind: ErrorKind }
