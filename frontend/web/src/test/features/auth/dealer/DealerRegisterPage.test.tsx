@@ -69,7 +69,8 @@ async function fillForm(user: User, overrides: Partial<Record<Label, string>> = 
       await user.paste(value)
     }
     if (step === 4) return
-    const before = screen.getByRole('progressbar').getAttribute('aria-valuenow')
+    const progress = screen.getByRole('progressbar')
+    const before = progress.getAttribute('aria-valuenow')
     await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
     if (screen.getByRole('progressbar').getAttribute('aria-valuenow') === before) return
   }
@@ -107,7 +108,10 @@ describe('DealerRegisterPage', () => {
 
       const labels = [...document.querySelectorAll('label')].map((label) => label.textContent)
       expect(labels).toEqual(['Nombre de la concesionaria', 'Teléfono público'])
+      expect(screen.getByRole('progressbar')).toHaveAttribute('max', '4')
       expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuemax', '4')
+      expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+      expect(screen.getByRole('progressbar')).toHaveValue(1)
     })
 
     it.each(['Contraseña', 'Confirmar contraseña'])('toggles the visibility of %s', async (label) => {

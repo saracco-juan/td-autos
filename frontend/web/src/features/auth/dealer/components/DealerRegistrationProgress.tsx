@@ -1,18 +1,25 @@
 import { DEALER_REGISTRATION_STEPS } from '../model/dealerRegistrationSteps'
+import accessibilityStyles from '../../../../styles/accessibility.module.css'
 import styles from './DealerRegisterForm.module.css'
 
-export default function DealerRegistrationProgress({ step, instant = false }: { step: number; instant?: boolean }) {
+type Props = Readonly<{ step: number; instant?: boolean }>
+
+export default function DealerRegistrationProgress({ step, instant = false }: Props) {
   return (
     <div
-      role="progressbar"
       className={styles.progressRoot}
       data-instant={instant || undefined}
-      aria-label="Registro de concesionaria"
-      aria-valuemin={1}
-      aria-valuemax={DEALER_REGISTRATION_STEPS.length}
-      aria-valuenow={step + 1}
-      aria-valuetext={`Paso ${step + 1} de ${DEALER_REGISTRATION_STEPS.length}: ${DEALER_REGISTRATION_STEPS[step].title}`}
     >
+      <progress
+        className={accessibilityStyles.visuallyHidden}
+        aria-label="Registro de concesionaria"
+        aria-valuemin={1}
+        aria-valuemax={DEALER_REGISTRATION_STEPS.length}
+        aria-valuenow={step + 1}
+        aria-valuetext={`Paso ${step + 1} de ${DEALER_REGISTRATION_STEPS.length}: ${DEALER_REGISTRATION_STEPS[step].title}`}
+        value={step + 1}
+        max={DEALER_REGISTRATION_STEPS.length}
+      />
       <p className={styles.progressCaption} aria-hidden="true">
         Paso {step + 1} de {DEALER_REGISTRATION_STEPS.length}
         <span>{DEALER_REGISTRATION_STEPS[step].title}</span>

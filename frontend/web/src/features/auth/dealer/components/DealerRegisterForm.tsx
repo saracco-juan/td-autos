@@ -8,7 +8,7 @@ import type { DealerRegisterErrors, DealerRegisterField, DealerRegisterFormValue
 import { DEALER_REGISTRATION_STEPS } from '../model/dealerRegistrationSteps'
 import wizardStyles from './DealerRegisterForm.module.css'
 
-type Props = {
+type Props = Readonly<{
   values: DealerRegisterFormValues
   errors: DealerRegisterErrors
   submitting: boolean
@@ -18,7 +18,7 @@ type Props = {
   onPrevious: (keyboard: boolean) => void
   onChange: (field: DealerRegisterField, value: string) => void
   onSubmit: (keyboard: boolean) => void
-}
+}>
 
 type FieldConfig = Pick<TextFieldProps, 'label' | 'type' | 'autoComplete'> & { field: DealerRegisterField }
 
@@ -43,6 +43,8 @@ const FIELDS: FieldConfig[] = [
 export default function DealerRegisterForm({ values, errors, submitting, formError, step, changing, onPrevious, onChange, onSubmit }: Props) {
   const activeStep = DEALER_REGISTRATION_STEPS[step]
   const lastStep = step === DEALER_REGISTRATION_STEPS.length - 1
+  let submitLabel = lastStep ? 'CREAR CUENTA' : 'SIGUIENTE'
+  if (submitting) submitLabel = 'CREANDO CUENTA…'
   const formRef = useRef<HTMLFormElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const previousStep = useRef(step)
@@ -111,7 +113,7 @@ export default function DealerRegisterForm({ values, errors, submitting, formErr
           className={wizardStyles.next}
           onClick={(event) => { keyboardSubmit.current = event.detail === 0 }}
         >
-          {submitting ? 'CREANDO CUENTA…' : lastStep ? 'CREAR CUENTA' : 'SIGUIENTE'}
+          {submitLabel}
         </Button>
       </div>
     </form>

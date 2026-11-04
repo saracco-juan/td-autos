@@ -78,23 +78,19 @@ export default function DealerRegisterPage() {
     setErrors((current) => ({ ...current, [field]: undefined }))
   }
 
-  const handleSubmit = async (keyboard = false) => {
-    if (changing) return
-    const validationErrors = validateDealerRegisterForm(values)
-    setFormError(undefined)
+  const submitCurrentStep = async (keyboard: boolean, validationErrors: DealerRegisterErrors) => {
+    const fields = DEALER_REGISTRATION_STEPS[step].fields
+    const stepErrors = Object.fromEntries(fields.flatMap((field) => {
+      const messages = validationErrors[field] ?? errors[field]
+      return messages?.length ? [[field, messages]] : []
+    })) as DealerRegisterErrors
+    const currentStepErrors = Object.fromEntries(fields.map((field) => [field, stepErrors[field]]))
+    setErrors((current) => ({ ...current, ...currentStepErrors }))
+    if (Object.keys(stepErrors).length > 0) return
+    await goToStep(step + 1, keyboard)
+  }
 
-    if (step < DEALER_REGISTRATION_STEPS.length - 1) {
-      const fields = DEALER_REGISTRATION_STEPS[step].fields
-      const stepErrors = Object.fromEntries(fields.flatMap((field) => {
-        const messages = validationErrors[field] ?? errors[field]
-        return messages?.length ? [[field, messages]] : []
-      })) as DealerRegisterErrors
-      setErrors((current) => ({ ...current, ...Object.fromEntries(fields.map((field) => [field, stepErrors[field]])) }))
-      if (Object.keys(stepErrors).length > 0) return
-      await goToStep(step + 1, keyboard)
-      return
-    }
-
+  const submitCompleteForm = async (keyboard: boolean, validationErrors: DealerRegisterErrors) => {
     setErrors(validationErrors)
     const invalidStep = firstInvalidDealerStep(validationErrors)
     if (invalidStep >= 0) {
@@ -125,6 +121,19 @@ export default function DealerRegisterPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleSubmit = async (keyboard = false) => {
+    if (changing) return
+    const validationErrors = validateDealerRegisterForm(values)
+    setFormError(undefined)
+
+    if (step < DEALER_REGISTRATION_STEPS.length - 1) {
+      await submitCurrentStep(keyboard, validationErrors)
+      return
+    }
+
+    await submitCompleteForm(keyboard, validationErrors)
   }
 
   return (
