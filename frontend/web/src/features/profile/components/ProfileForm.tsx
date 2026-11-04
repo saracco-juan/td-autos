@@ -1,8 +1,8 @@
+import Button from '../../../components/Buttons/Button'
 import type { ChangeEvent, FormEvent } from 'react'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import Field from '../auth/shared/components/Field'
-import type { ProfileFieldErrors, ProfileFieldName, ProfileValues } from './types'
+import alertStyles from '../../../styles/alert.module.css'
+import Field from '../../auth/shared/components/Field'
+import type { ProfileFieldErrors, ProfileFieldName, ProfileValues } from '../model/types'
 import styles from './ProfileForm.module.css'
 
 type Props = {
@@ -90,14 +90,14 @@ export default function ProfileForm({
           </Field>
         </div>
       </div>
-      <button
+      <Button
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.primary} ${styles.submit}`}
+        variant="primary" className={`${styles.submit}`}
       >
         {submitting ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}
-      </button>
+      </Button>
     </form>
   )
 }

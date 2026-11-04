@@ -2,14 +2,14 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../lib/http'
-import { useAuth } from '../auth/session/hooks/useAuth'
-import type { User } from '../auth/model/types'
-import { updateProfile } from './api'
-import ProfilePage from './ProfilePage'
+import { HttpError } from '../../../lib/http'
+import { useAuth } from '../../../features/auth/session/hooks/useAuth'
+import type { User } from '../../../features/auth/model/types'
+import { updateProfile } from '../../../features/profile/api/client'
+import ProfilePage from '../../../features/profile/pages/ProfilePage'
 
-vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('./api', () => ({ updateProfile: vi.fn() }))
+vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../features/profile/api/client', () => ({ updateProfile: vi.fn() }))
 
 const refresh = vi.fn()
 

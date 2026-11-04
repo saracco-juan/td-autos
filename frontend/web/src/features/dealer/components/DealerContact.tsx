@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { apiFetch, HttpError } from '../../../lib/http'
 import alertStyles from '../../../styles/alert.module.css'
 import Field from '../../auth/shared/components/Field'
-import styles from '../../profile/ProfileForm.module.css'
+import styles from '../../profile/components/ProfileForm.module.css'
 
 type Contact = { telefono_publico: string | null }
 const ENDPOINT = '/api/concesionaria/contacto'

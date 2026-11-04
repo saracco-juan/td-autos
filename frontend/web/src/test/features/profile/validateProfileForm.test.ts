@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateProfileForm } from './validateProfileForm'
+import { validateProfileForm } from '../../../features/profile/model/validateProfileForm'
 
 const valid = { name: 'Ana', apellido: 'Pérez' }
 

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 
-import { apiFetch } from '../../lib/http'
-import { updateProfile } from './api'
+import { apiFetch } from '../../../lib/http'
+import { updateProfile } from '../../../features/profile/api/client'
 
 const user = {
   id: 1,
