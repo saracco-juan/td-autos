@@ -6,6 +6,7 @@ import { useAuth } from '../../session/hooks/useAuth'
 import type { FieldErrors } from '../../model/types'
 import alertStyles from '../../../../styles/alert.module.css'
 import AuthCard from '../../shared/components/AuthCard'
+import AuthSwitchLink from '../../shared/components/AuthSwitchLink'
 import GoogleAuthLink from '../../shared/components/GoogleAuthLink'
 import linkStyles from '../../shared/styles/authLinks.module.css'
 import LoginForm from '../components/LoginForm'
@@ -68,7 +69,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthCard embedded title="Ingresá a tu cuenta" titleId="login-title" subtitle="Accedé para guardar tus favoritos.">
+    <AuthCard embedded focusTitle={state?.authFocus === 'title'} title="Ingresá a tu cuenta" titleId="login-title" subtitle="Accedé para guardar tus favoritos.">
       {notice ? (
         <p role="status" className={alertStyles.notice}>
           {notice}
@@ -90,7 +91,7 @@ export default function LoginPage() {
       <GoogleAuthLink from="login" />
       <div className={styles.links}>
         <p className={linkStyles.prompt}>
-          ¿No tenés cuenta? <Link to="/registro">Crear cuenta</Link>
+          ¿No tenés cuenta? <AuthSwitchLink to="/registro">Crear cuenta</AuthSwitchLink>
         </p>
         <Link to="/recuperar" className={styles.forgot}>
           ¿Olvidaste tu contraseña?

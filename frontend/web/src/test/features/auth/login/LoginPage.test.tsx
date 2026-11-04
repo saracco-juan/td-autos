@@ -38,6 +38,16 @@ async function fillForm(user: User, email = 'ana@example.com', password = 'Abcde
 const submit = (user: User) => user.click(screen.getByRole('button', { name: 'INGRESAR' }))
 
 describe('LoginPage', () => {
+  it('focuses the title when keyboard navigation requests it', () => {
+    renderPage({ pathname: '/login', state: { authFocus: 'title' } })
+    expect(screen.getByRole('heading', { name: 'Ingresá a tu cuenta' })).toHaveFocus()
+  })
+
+  it('leaves focus alone on direct entry', () => {
+    renderPage()
+    expect(screen.getByRole('heading', { name: 'Ingresá a tu cuenta' })).not.toHaveFocus()
+  })
+
   beforeEach(() => {
     login.mockReset().mockResolvedValue(undefined)
     refresh.mockReset().mockResolvedValue(undefined)

@@ -50,7 +50,7 @@
   border: 1px solid var(--border-input);
   border-radius: 8px;
   color: var(--text-primary);
-  font: 400 14px/normal var(--font-sans);
+  font: 400 var(--auth-input-font-size, 14px)/normal var(--font-sans);
 }
 
 /* Figma "Input" with chevron: our own arrow, 16 px in from the right edge, instead of the browser's flush one. */

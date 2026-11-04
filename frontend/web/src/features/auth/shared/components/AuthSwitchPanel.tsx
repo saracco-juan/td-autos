@@ -1,21 +1,11 @@
-import type { MouseEvent } from 'react'
-import { useNavigate } from 'react-router'
-import ButtonLink from '../../../../components/Buttons/ButtonLink'
+import AuthSwitchLink from './AuthSwitchLink'
 import styles from './AuthSwitchPanel.module.css'
 
 export type AuthAccessMode = 'login' | 'register'
 
 export default function AuthSwitchPanel({ mode, className }: { mode: AuthAccessMode; className: string }) {
-  const navigate = useNavigate()
   const registering = mode === 'register'
   const destination = registering ? '/login' : '/registro'
-
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (event.detail === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-      event.preventDefault()
-      navigate(destination, { state: { authMotion: 'reduced' } })
-    }
-  }
 
   return (
     <aside className={`${styles.panel} ${className}`} aria-labelledby="auth-panel-title">
@@ -24,9 +14,9 @@ export default function AuthSwitchPanel({ mode, className }: { mode: AuthAccessM
         <p>{registering
           ? 'Ingresá a tu cuenta para seguir explorando tus opciones.'
           : 'Creá tu cuenta para guardar tus favoritos y retomar tu búsqueda.'}</p>
-        <ButtonLink to={destination} onClick={handleClick} variant="secondary" className={styles.action}>
+        <AuthSwitchLink to={destination} button className={styles.action}>
           {registering ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}
-        </ButtonLink>
+        </AuthSwitchLink>
       </div>
     </aside>
   )

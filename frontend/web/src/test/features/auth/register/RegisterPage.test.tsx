@@ -19,7 +19,7 @@ const refresh = vi.fn()
 
 const createdUser = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 
-function renderPage(entry = '/registro') {
+function renderPage(entry: string | { pathname: string; state?: unknown } = '/registro') {
   render(
     <MemoryRouter initialEntries={[entry]}>
       <Routes>
@@ -56,6 +56,16 @@ const validFields: Fields = {
 const submit = (user: User) => user.click(screen.getByRole('button', { name: 'CREAR CUENTA' }))
 
 describe('RegisterPage', () => {
+  it('focuses the title when keyboard navigation requests it', () => {
+    renderPage({ pathname: '/registro', state: { authFocus: 'title' } })
+    expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).toHaveFocus()
+  })
+
+  it('leaves focus alone on direct entry', () => {
+    renderPage()
+    expect(screen.getByRole('heading', { name: 'Registrá tu cuenta' })).not.toHaveFocus()
+  })
+
   beforeEach(() => {
     vi.mocked(registerUser).mockReset()
     vi.mocked(registerUser).mockResolvedValue(createdUser)

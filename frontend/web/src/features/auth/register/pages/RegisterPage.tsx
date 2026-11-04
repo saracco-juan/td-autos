@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { HttpError } from '../../../../lib/http'
 import { registerUser } from '../../api/client'
 import { googleErrorMessage } from '../../model/googleErrors'
@@ -7,6 +7,7 @@ import { useAuth } from '../../session/hooks/useAuth'
 import type { FieldErrors } from '../../model/types'
 import alertStyles from '../../../../styles/alert.module.css'
 import AuthCard from '../../shared/components/AuthCard'
+import AuthSwitchLink from '../../shared/components/AuthSwitchLink'
 import GoogleAuthLink from '../../shared/components/GoogleAuthLink'
 import linkStyles from '../../shared/styles/authLinks.module.css'
 import RegisterForm from '../components/RegisterForm'
@@ -35,6 +36,7 @@ function fieldErrorsFromServer(body: ValidationBody | undefined): FieldErrors {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const { refresh } = useAuth()
   const [searchParams] = useSearchParams()
   const [values, setValues] = useState(EMPTY_VALUES)
@@ -86,6 +88,7 @@ export default function RegisterPage() {
   return (
     <AuthCard
       embedded
+      focusTitle={state?.authFocus === 'title'}
       title="Registrá tu cuenta"
       titleId="register-title"
       subtitle="Por favor, introducí tus datos para registrarte."
@@ -105,7 +108,7 @@ export default function RegisterPage() {
       />
       <GoogleAuthLink from="registro" />
       <p className={linkStyles.prompt}>
-        ¿Ya tenés cuenta? <Link to="/login">Iniciar sesión</Link>
+        ¿Ya tenés cuenta? <AuthSwitchLink to="/login">Iniciar sesión</AuthSwitchLink>
       </p>
       <p className={linkStyles.prompt}>
         ¿Tenés una concesionaria? <Link to="/registro/concesionaria">Registrala</Link>

@@ -16,8 +16,14 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Archivo, TD red, white surfaces, rectangular controls and the shared 550ms hover.
   The outer layout owns the single brand link and return-to-home action.
 - At 800px and below, keep the form first and a compact, static red panel below.
-  Reduced-motion preferences disable travel. Keyboard activation of the companion
-  action switches immediately and the new form title receives focus without scrolling.
+  Reduced-motion preferences disable travel. Both panel and inline switch actions
+  reuse `AuthSwitchLink`: keyboard activation switches immediately and explicitly
+  requests title focus through navigation state, without scrolling. Pointer and
+  direct entry leave focus alone. `AuthCard` keeps `embedded` presentation separate
+  from its optional `focusTitle` behavior.
+- Embedded buyer inputs use16px text through800px width to avoid the small-input
+  focus zoom risk on mobile Safari. Desktop and standalone auth fields retain
+  their existing sizing; no viewport zoom restriction is added.
 - The desktop stage fills the remaining viewport below the access navigation.
   Use smaller outer vertical padding and embedded-card gaps on shorter displays;
   keep input and button sizes unchanged. Both normal buyer forms fit without page

@@ -3,6 +3,16 @@ import { describe, expect, it } from 'vitest'
 import AuthCard from '../../../../features/auth/shared/components/AuthCard'
 
 describe('AuthCard', () => {
+  it('does not move focus just because the card is embedded', () => {
+    render(<AuthCard embedded titleId="buyer-title" title="Buyer access"><input aria-label="Email" /></AuthCard>)
+    expect(screen.getByRole('heading', { name: 'Buyer access' })).not.toHaveFocus()
+  })
+
+  it('focuses the title only when explicitly requested, independently of presentation', () => {
+    render(<AuthCard focusTitle titleId="focus-title" title="Requested focus"><p>Content</p></AuthCard>)
+    expect(screen.getByRole('heading', { name: 'Requested focus' })).toHaveFocus()
+  })
+
   it('renders the title, the wordmark, the subtitle and the children', () => {
     render(
       <AuthCard titleId="login-title" title="Iniciá sesión" subtitle="Accedé para guardar tus favoritos.">
