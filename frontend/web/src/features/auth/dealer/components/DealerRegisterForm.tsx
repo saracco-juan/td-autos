@@ -1,10 +1,10 @@
+import Button from '../../../../components/Buttons/Button'
 import type { FormEvent } from 'react'
-import alertStyles from '../../../styles/alert.module.css'
-import buttonStyles from '../../../components/Buttons/button.module.css'
-import PasswordRequirements from '../shared/PasswordRequirements'
-import TextField, { type TextFieldProps } from '../shared/TextField'
-import styles from '../shared/authForm.module.css'
-import type { DealerRegisterErrors, DealerRegisterField, DealerRegisterFormValues } from './validateDealerRegisterForm'
+import alertStyles from '../../../../styles/alert.module.css'
+import PasswordRequirements from '../../shared/PasswordRequirements'
+import TextField, { type TextFieldProps } from '../../shared/TextField'
+import styles from '../../shared/authForm.module.css'
+import type { DealerRegisterErrors, DealerRegisterField, DealerRegisterFormValues } from '../model/validateDealerRegisterForm'
 
 type Props = {
   values: DealerRegisterFormValues
@@ -68,14 +68,14 @@ export default function DealerRegisterForm({ values, errors, submitting, formErr
           </div>
         )}
       </div>
-      <button
+      <Button
         type="submit"
         disabled={submitting}
         aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.primary}`}
+        variant="primary"
       >
         {submitting ? 'CREANDO CUENTA…' : 'CREAR CUENTA'}
-      </button>
+      </Button>
     </form>
   )
 }

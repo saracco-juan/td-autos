@@ -1,18 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { HttpError } from '../../../lib/http'
-import { registerDealer } from '../api'
-import { useAuth } from '../session/hooks/useAuth'
-import type { DealerRegisterPayload } from '../types'
-import AuthCard from '../shared/AuthCard'
-import linkStyles from '../shared/authLinks.module.css'
-import DealerRegisterForm from './DealerRegisterForm'
+import { HttpError } from '../../../../lib/http'
+import { registerDealer } from '../../api'
+import { useAuth } from '../../session/hooks/useAuth'
+import type { DealerRegisterPayload } from '../../types'
+import AuthCard from '../../shared/AuthCard'
+import linkStyles from '../../shared/authLinks.module.css'
+import DealerRegisterForm from '../components/DealerRegisterForm'
 import {
   validateDealerRegisterForm,
   type DealerRegisterErrors,
   type DealerRegisterField,
   type DealerRegisterFormValues,
-} from './validateDealerRegisterForm'
+} from '../model/validateDealerRegisterForm'
 
 const GENERIC_ERROR = 'No se pudo completar el registro. Intentá nuevamente.'
 

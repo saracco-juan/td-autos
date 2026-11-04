@@ -1,5 +1,5 @@
-import { validateEmail } from '../shared/validateEmail'
-import { validateNewPassword } from '../shared/validateNewPassword'
+import { validateEmail } from '../../shared/validateEmail'
+import { validateNewPassword } from '../../shared/validateNewPassword'
 
 export type DealerRegisterFormValues = {
   dealerName: string

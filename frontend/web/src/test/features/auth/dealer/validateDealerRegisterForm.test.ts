@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validateDealerRegisterForm, type DealerRegisterFormValues } from './validateDealerRegisterForm'
+import { validateDealerRegisterForm, type DealerRegisterFormValues } from '../../../../features/auth/dealer/model/validateDealerRegisterForm'
 
 const valid: DealerRegisterFormValues = {
   dealerName: 'Autos del Sur',

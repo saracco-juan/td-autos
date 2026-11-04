@@ -2,17 +2,17 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '../../../lib/http'
-import { registerDealer } from '../api'
-import { useAuth } from '../session/hooks/useAuth'
-import DealerRegisterPage from './DealerRegisterPage'
+import { HttpError } from '../../../../lib/http'
+import { registerDealer } from '../../../../features/auth/api'
+import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
+import DealerRegisterPage from '../../../../features/auth/dealer/pages/DealerRegisterPage'
 
-vi.mock('../api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../api')>()),
+vi.mock('../../../../features/auth/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../../features/auth/api')>()),
   registerDealer: vi.fn(),
 }))
 
-vi.mock('../session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const refresh = vi.fn()
 
