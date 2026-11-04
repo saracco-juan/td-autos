@@ -1,13 +1,13 @@
 import { act, render, screen } from '@testing-library/react'
 import { useEffect } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../../lib/http'
-import { fetchCurrentUser, loginUser, logoutUser } from '../api'
-import AuthProvider from './AuthProvider'
-import { useAuth } from './useAuth'
+import { HttpError, NetworkError } from '../../../../lib/http'
+import { fetchCurrentUser, loginUser, logoutUser } from '../../../../features/auth/api'
+import AuthProvider from '../../../../features/auth/session/components/AuthProvider'
+import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
 
-vi.mock('../api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../api')>()),
+vi.mock('../../../../features/auth/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../../features/auth/api')>()),
   fetchCurrentUser: vi.fn(),
   loginUser: vi.fn(),
   logoutUser: vi.fn(),

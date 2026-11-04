@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import alertStyles from '../styles/alert.module.css'
 import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/roles'
-import { useAuth } from '../features/auth/session/useAuth'
+import { useAuth } from '../features/auth/session/hooks/useAuth'
 import styles from './AppShell.module.css'
 import AppFooter from './AppFooter'
 

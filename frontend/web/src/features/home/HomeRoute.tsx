@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router'
-import { useAuth } from '../auth/session/useAuth'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import HomePage from './HomePage'
 
 // Route element for /: a user with no saved diagnosis is sent to the questionnaire first (D6).

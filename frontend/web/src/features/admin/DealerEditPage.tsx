@@ -7,7 +7,7 @@ import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorSta
 import FlowLayout from '../../components/FlowLayout/FlowLayout'
 import screenStyles from '../../styles/screen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/SessionLoading'
+import SessionLoading from '../auth/session/components/SessionLoading'
 import TextField, { type TextFieldProps } from '../auth/shared/TextField'
 import adminStyles from './admin.module.css'
 import { fetchDealer, updateDealer } from './api'

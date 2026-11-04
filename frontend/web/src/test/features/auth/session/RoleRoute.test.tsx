@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { User } from '../types'
-import RoleRoute from './RoleRoute'
-import { useAuth } from './useAuth'
+import type { User } from '../../../../features/auth/types'
+import RoleRoute from '../../../../features/auth/session/components/RoleRoute'
+import { useAuth } from '../../../../features/auth/session/hooks/useAuth'
 
-vi.mock('./useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const buyer: User = { id: 1, name: 'Ana', apellido: null, email: 'ana@example.com', rol: 'comprador', perfil_completo: false, tiene_diagnostico: true }
 const dealer: User = { ...buyer, rol: 'concesionaria', concesionaria: { id: 5, nombre: 'Autos del Sur', estado_alta: 'pendiente' } }

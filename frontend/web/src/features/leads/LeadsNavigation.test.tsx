@@ -2,11 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { expect, it, vi } from 'vitest'
 import { routes } from '../../app/router'
-import { useAuth } from '../auth/session/useAuth'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import { fetchLeads } from './api'
 
-vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../auth/session/AuthProvider', () => ({ default: ({ children }: { children: React.ReactNode }) => children }))
+vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../auth/session/components/AuthProvider', () => ({ default: ({ children }: { children: React.ReactNode }) => children }))
 vi.mock('./api', () => ({ fetchLeads: vi.fn() }))
 vi.mock('../home/HomeRoute', () => ({ default: () => <p>Buyer home</p> }))
 vi.mock('../admin/AdminDashboardPage', () => ({ default: () => <p>Admin home</p> }))

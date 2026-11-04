@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../../lib/http'
 import { registerDealer } from '../api'
-import { useAuth } from '../session/useAuth'
+import { useAuth } from '../session/hooks/useAuth'
 import DealerRegisterPage from './DealerRegisterPage'
 
 vi.mock('../api', async (importOriginal) => ({
@@ -12,7 +12,7 @@ vi.mock('../api', async (importOriginal) => ({
   registerDealer: vi.fn(),
 }))
 
-vi.mock('../session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const refresh = vi.fn()
 

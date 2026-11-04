@@ -4,10 +4,10 @@ import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_URL } from '../../../lib/config'
 import { HttpError } from '../../../lib/http'
-import { useAuth } from '../session/useAuth'
+import { useAuth } from '../session/hooks/useAuth'
 import LoginPage from './LoginPage'
 
-vi.mock('../session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const login = vi.fn()
 const refresh = vi.fn()

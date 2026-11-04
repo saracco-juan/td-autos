@@ -3,12 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../lib/http'
-import { useAuth } from '../auth/session/useAuth'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import type { User } from '../auth/types'
 import { updateProfile } from './api'
 import ProfilePage from './ProfilePage'
 
-vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('./api', () => ({ updateProfile: vi.fn() }))
 
 const refresh = vi.fn()

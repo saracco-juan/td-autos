@@ -1,5 +1,5 @@
-import ProtectedRoute from '../auth/session/ProtectedRoute'
-import { useAuth } from '../auth/session/useAuth'
+import ProtectedRoute from '../auth/session/components/ProtectedRoute'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import HomePage from './HomePage'
 
 // Only the landing is public. Existing guards still own signed-in routing.

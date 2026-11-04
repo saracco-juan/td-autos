@@ -3,14 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../lib/http'
-import { useAuth } from '../auth/session/useAuth'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import { fetchDiagnosis, saveDiagnosis } from './api'
 import DiagnosisPage from './DiagnosisPage'
 import { UNANSWERED_STEP_MESSAGE } from '@shared/diagnosis/diagnosisDraft'
 import type { BodyType, DiagnosisAnswers, DiagnosisResponse } from '@shared/diagnosis/types'
 
 vi.mock('./api', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
-vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 // Saving the diagnosis refreshes the session (D6): the stub records the order of the calls.
 const refresh = vi.fn()

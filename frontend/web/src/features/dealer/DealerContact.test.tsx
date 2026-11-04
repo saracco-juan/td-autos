@@ -2,11 +2,11 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { apiFetch, HttpError } from '../../lib/http'
-import { useAuth } from '../auth/session/useAuth'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import DealerStatusPage from './DealerStatusPage'
 
 vi.mock('../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
-vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('../subscription/api', () => ({ fetchSubscription: vi.fn() }))
 const endpoint = '/api/concesionaria/contacto'
 const mount = (rol = 'concesionaria') => {

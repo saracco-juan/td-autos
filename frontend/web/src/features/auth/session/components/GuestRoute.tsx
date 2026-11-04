@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router'
-import ErrorState from '../../../components/ErrorState/ErrorState'
+import ErrorState from '../../../../components/ErrorState/ErrorState'
 import SessionLoading from './SessionLoading'
-import { useAuth } from './useAuth'
+import { useAuth } from '../hooks/useAuth'
 
 // Layout route: screens for guests only (register, login, recovery); authenticated users go to /.
 export default function GuestRoute() {

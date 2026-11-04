@@ -5,7 +5,7 @@ import buttonStyles from "../../components/Buttons/button.module.css";
 import barStyles from "../../components/checklist/pinnedBar.module.css";
 import ScrollArea from "../../components/ScrollArea/ScrollArea";
 import { HttpError } from "../../lib/http";
-import SessionLoading from "../auth/session/SessionLoading";
+import SessionLoading from "../auth/session/components/SessionLoading";
 import { confirmImport, fetchInventoryTemplate, previewImport } from "./api";
 import {
   inactiveSubscription,

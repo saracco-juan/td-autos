@@ -1,7 +1,7 @@
 import { Link, Outlet } from 'react-router'
 import alertStyles from '../../styles/alert.module.css'
 import { DEALER_STATE_PENDING, isActiveDealer } from '../auth/roles'
-import { useAuth } from '../auth/session/useAuth'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import styles from './ActiveDealerRoute.module.css'
 
 // Same messages as the backend dealer.active middleware (EnsureDealerIsActive).

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import SessionLoading from './SessionLoading'
+import SessionLoading from '../../../../features/auth/session/components/SessionLoading'
 
 describe('SessionLoading', () => {
   it('announces the loading state as a status with its text', () => {

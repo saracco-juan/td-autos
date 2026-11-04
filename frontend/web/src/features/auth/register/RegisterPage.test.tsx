@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { API_URL } from '../../../lib/config'
 import { HttpError } from '../../../lib/http'
 import { registerUser } from '../api'
-import { useAuth } from '../session/useAuth'
+import { useAuth } from '../session/hooks/useAuth'
 import RegisterPage from './RegisterPage'
 
 vi.mock('../api', async (importOriginal) => ({
@@ -13,7 +13,7 @@ vi.mock('../api', async (importOriginal) => ({
   registerUser: vi.fn(),
 }))
 
-vi.mock('../session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const refresh = vi.fn()
 

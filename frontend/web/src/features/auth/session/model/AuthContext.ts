@@ -1,6 +1,6 @@
 import { createContext } from 'react'
-import type { ErrorKind } from '../../../components/ErrorState/ErrorState'
-import type { LoginCredentials, User } from '../types'
+import type { ErrorKind } from '../../../../components/ErrorState/ErrorState'
+import type { LoginCredentials, User } from '../../types'
 
 // 'error': the server could not tell whether there is a session (unreachable or failing), unlike 'guest' (401).
 export type AuthStatus = 'loading' | 'authenticated' | 'guest' | 'error'

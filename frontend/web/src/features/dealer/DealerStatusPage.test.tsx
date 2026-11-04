@@ -1,12 +1,12 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useAuth } from '../auth/session/useAuth'
+import { useAuth } from '../auth/session/hooks/useAuth'
 import type { User } from '../auth/types'
 import { fetchSubscription } from '../subscription/api'
 import { suscripcion, vigencia } from '../subscription/fixtures'
 import DealerStatusPage from './DealerStatusPage'
 
-vi.mock('../auth/session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('../subscription/api', () => ({ fetchSubscription: vi.fn() }))
 
 const marta: User = { id: 2, name: 'Marta', apellido: 'Gómez', email: 'marta@autosdelsur.com', rol: 'concesionaria', perfil_completo: true, tiene_diagnostico: false }

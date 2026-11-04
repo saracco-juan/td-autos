@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from 'react-router'
 import Scrollbar from '../components/Scrollbar/Scrollbar'
-import AuthProvider from '../features/auth/session/AuthProvider'
+import AuthProvider from '../features/auth/session/components/AuthProvider'
 
 export default function RootLayout() {
   const { pathname } = useLocation()

@@ -9,7 +9,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import ScrollArea from "../../components/ScrollArea/ScrollArea";
 import screenStyles from "../../styles/screen.module.css";
 import usePagedItems from "../../hooks/usePagedItems";
-import SessionLoading from "../auth/session/SessionLoading";
+import SessionLoading from "../auth/session/components/SessionLoading";
 import styles from "./admin.module.css";
 import {
   accountState,

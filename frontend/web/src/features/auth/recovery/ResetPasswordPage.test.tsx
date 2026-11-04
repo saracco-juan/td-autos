@@ -4,11 +4,11 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '../../../lib/http'
 import { resetPassword } from '../api'
-import { useAuth } from '../session/useAuth'
+import { useAuth } from '../session/hooks/useAuth'
 import ResetPasswordPage from './ResetPasswordPage'
 
 vi.mock('../api', () => ({ resetPassword: vi.fn() }))
-vi.mock('../session/useAuth', () => ({ useAuth: vi.fn() }))
+vi.mock('../session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 
 const refresh = vi.fn()
 

@@ -13,7 +13,7 @@ import FlowLayout from '../../components/FlowLayout/FlowLayout'
 import checklistStyles from '../../components/checklist/ChecklistScreen.module.css'
 import { HttpError, NetworkError } from '../../lib/http'
 import { useMediaQuery } from '../../lib/useMediaQuery'
-import SessionLoading from '../auth/session/SessionLoading'
+import SessionLoading from '../auth/session/components/SessionLoading'
 import { fetchInspection, finishInspection, setItemCompleted } from './api'
 import {
   ACTION_LABELS,

@@ -6,7 +6,7 @@ import { depreciationCopy } from '@shared/depreciation/presentation'
 import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
 import BackLink from '../../components/Buttons/BackLink'
 import { apiFetch, HttpError, NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/SessionLoading'
+import SessionLoading from '../auth/session/components/SessionLoading'
 import styles from './DepreciationPage.module.css'
 import DepreciationResult from './DepreciationResult'
 
