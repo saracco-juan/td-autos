@@ -129,6 +129,10 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   the red sports profile and the six body profiles share one inline SVG component.
   SVG Vector's contour/layering guidance informs the drawings; its isometric
   renderer is not required for these side profiles.
+  Follow the user's body-reference sheet: CUV proportions illustrate SUV, and
+  minivan proportions illustrate Furgón. Keep the catalogue labels unchanged.
+  Body illustrations are unfilled outlines, with rounded joins and simplified
+  wheel/detail lines; only the moving sports car retains its red fill.
   Figma synchronization and native mobile adaptation remain separate pending work.
 
 ### Buyer catalog redesign (2026-11-02)

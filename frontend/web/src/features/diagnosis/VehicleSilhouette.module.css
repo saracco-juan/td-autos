@@ -9,14 +9,7 @@
   stroke-linejoin: round;
 }
 
-.body {
-  fill: currentColor;
-  fill-opacity: .04;
-}
-
 .windows {
-  fill: currentColor;
-  fill-opacity: .08;
   stroke-width: 1.4;
 }
 
@@ -30,13 +23,8 @@
   stroke-width: 1;
 }
 
-.hub {
-  fill: currentColor;
-  stroke: none;
-}
-
 .sport .body {
-  fill-opacity: 1;
+  fill: currentColor;
 }
 
 .sport .windows,
@@ -62,6 +50,7 @@
 
 .sport .hub {
   fill: var(--palette-charcoal);
+  stroke: none;
 }
 
 .headlight {
