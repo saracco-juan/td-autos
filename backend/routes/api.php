@@ -64,6 +64,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/vehiculos/{id}/depreciacion', VehicleDepreciationController::class)->whereNumber('id');
     Route::get('/vehiculos/{id}/costos', [VehiculoCostosController::class, 'show']);
 
+    Route::get('/inspecciones', [InspeccionController::class, 'index']);
     Route::get('/vehiculos/{vehiculo}/inspeccion', [InspeccionController::class, 'show']);
     Route::put('/vehiculos/{vehiculo}/inspeccion/items/{codigo}', [InspeccionController::class, 'toggle']);
     Route::post('/vehiculos/{vehiculo}/inspeccion/finalizar', [InspeccionController::class, 'finish']);
