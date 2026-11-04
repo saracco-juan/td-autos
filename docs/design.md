@@ -6,7 +6,11 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - `/login` and `/registro` use one persistent red companion panel in `AuthLayout`.
   It slides from right to left for registration and reverses for login, using a
-  550ms interruptible transform with `cubic-bezier(0.32, 0.72, 0, 1)`. This follows
+  550ms interruptible transform with `cubic-bezier(0.32, 0.72, 0, 1)`. The red
+  surface stays stationary behind an animated rectangular `clip-path` window;
+  only the transparent companion content translates. This avoids translating
+  a large opaque red layer, which left transient stripes in the reported browser.
+  Both transitions share the same duration and curve. This follows
   the approved video reference; no illustration or photo is part of this direction.
 - Reuse `AuthCard` in its embedded variant, `ButtonLink` and `BackLink`. Preserve
   Archivo, TD red, white surfaces, rectangular controls and the shared 550ms hover.

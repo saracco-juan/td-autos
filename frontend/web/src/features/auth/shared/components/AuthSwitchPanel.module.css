@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: center;
   padding: clamp(24px, 4vw, 64px);
-  background: var(--palette-red);
+  background: transparent;
   color: var(--text-on-color);
 }
 
@@ -54,6 +54,7 @@
 @media (max-width: 800px) {
   .panel {
     padding: 28px 24px;
+    background: var(--palette-red);
   }
 
   .content {
