@@ -1,23 +1,23 @@
+import Button from '../../../components/Buttons/Button'
 import { useCallback, useEffect, useId, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import barStyles from '../../components/checklist/pinnedBar.module.css'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import screenStyles from '../../styles/screen.module.css'
-import { HttpError, NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import TextField, { type TextFieldProps } from '../auth/shared/components/TextField'
-import adminStyles from './admin.module.css'
-import { fetchDealer, updateDealer } from './api'
-import BackLink from './BackLink'
+import alertStyles from '../../../styles/alert.module.css'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import FlowLayout from '../../../components/FlowLayout/FlowLayout'
+import screenStyles from '../../../styles/screen.module.css'
+import { HttpError, NetworkError } from '../../../lib/http'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import TextField, { type TextFieldProps } from '../../auth/shared/components/TextField'
+import adminStyles from '../styles/admin.module.css'
+import { fetchDealer, updateDealer } from '../api/client'
+import BackLink from '../components/BackLink'
 import styles from './DealerEditPage.module.css'
-import DealerOverview from './DealerOverview'
-import DealerRemoval from './DealerRemoval'
-import MissingState from './MissingState'
-import type { DealerDetail, DealerFormField, DealerFormValues } from './types'
-import { validateDealerForm, type DealerFormErrors } from './validateDealerForm'
+import DealerOverview from '../components/DealerOverview'
+import DealerRemoval from '../components/DealerRemoval'
+import MissingState from '../components/MissingState'
+import type { DealerDetail, DealerFormField, DealerFormValues } from '../model/types'
+import { validateDealerForm, type DealerFormErrors } from '../model/validateDealerForm'
 
 type LoadState = 'loading' | 'missing' | { error: ErrorKind } | { dealer: DealerDetail }
 
@@ -110,22 +110,22 @@ function DealerForm({ dealer, onSaved, onMissing, header, children }: FormProps)
 
   const actions = (
     <div className={barStyles.actions}>
-      <button
+      <Button
         type="button"
-        className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}
+        variant="danger" className={`${barStyles.action}`}
         onClick={() => void navigate('/admin/concesionarias')}
       >
         CANCELAR
-      </button>
-      <button
+      </Button>
+      <Button
         type="submit"
         form={formId}
         disabled={submitting}
         aria-busy={submitting}
-        className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+        variant="success" className={`${barStyles.actionWide}`}
       >
         {submitting ? 'GUARDANDO…' : 'GUARDAR CONCESIONARIA'}
-      </button>
+      </Button>
     </div>
   )
 

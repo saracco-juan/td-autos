@@ -1,4 +1,4 @@
-import { validateEmail } from '../auth/shared/model/validateEmail'
+import { validateEmail } from '../../auth/shared/model/validateEmail'
 import type { DealerFormField, DealerFormValues } from './types'
 
 export type DealerFormErrors = Partial<Record<DealerFormField, string[]>>

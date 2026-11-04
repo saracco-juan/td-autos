@@ -1,12 +1,11 @@
-import { Link } from "react-router";
-import buttonStyles from "../../components/Buttons/button.module.css";
-import ListFooter from "../../components/ListFooter/ListFooter";
-import Pagination from "../../components/Pagination/Pagination";
-import ScrollArea from "../../components/ScrollArea/ScrollArea";
-import usePagedItems from "../../hooks/usePagedItems";
-import { formatSentDate } from "../subscription/format";
-import adminStyles from "./admin.module.css";
-import styles from "./DealerEditPage.module.css";
+import ButtonLink from "../../../components/Buttons/ButtonLink";
+import ListFooter from "../../../components/ListFooter/ListFooter";
+import Pagination from "../../../components/Pagination/Pagination";
+import ScrollArea from "../../../components/ScrollArea/ScrollArea";
+import usePagedItems from "../../../hooks/usePagedItems";
+import { formatSentDate } from "../../subscription/format";
+import adminStyles from "../styles/admin.module.css";
+import styles from "../pages/DealerEditPage.module.css";
 import {
   accountState,
   dealerState,
@@ -14,9 +13,9 @@ import {
   receiptState,
   receiptTone,
   retentionReached,
-} from "./format";
+} from "../model/format";
 import StateTag from "./StateTag";
-import type { DealerDetail, DealerReceiptRow } from "./types";
+import type { DealerDetail, DealerReceiptRow } from "../model/types";
 
 const PENDING = "pendiente de revisión";
 // Receipts per page of the history card: a dealer rarely has many, so the size is fixed.
@@ -102,12 +101,13 @@ function ReceiptItem({ receipt }: { receipt: DealerReceiptRow }) {
           </span>
         ) : null}
       </div>
-      <Link
+      <ButtonLink
         to={`/admin/comprobantes/${receipt.id}`}
-        className={`${buttonStyles.button} ${pending ? buttonStyles.primary : buttonStyles.secondary} ${styles.receiptLink}`}
+        variant={pending ? 'primary' : 'secondary'}
+        className={styles.receiptLink}
       >
         {pending ? "REVISAR" : "VER"}
-      </Link>
+      </ButtonLink>
     </li>
   );
 }

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn(), apiFetchBlob: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn(), apiFetchBlob: vi.fn() }))
 
-import { apiFetch, apiFetchBlob } from '../../lib/http'
-import { approveReceipt, deleteDealer, fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile, rejectReceipt, updateDealer } from './api'
-import { dealerDetail, directory, receipt } from './fixtures'
+import { apiFetch, apiFetchBlob } from '../../../lib/http'
+import { approveReceipt, deleteDealer, fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile, rejectReceipt, updateDealer } from '../../../features/admin/api/client'
+import { dealerDetail, directory, receipt } from '../../fixtures/admin/fixtures'
 
 describe('admin api', () => {
   beforeEach(() => {

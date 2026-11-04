@@ -2,8 +2,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
-import DealerOverview from './DealerOverview'
-import { dealerDetail } from './fixtures'
+import DealerOverview from '../../../features/admin/components/DealerOverview'
+import { dealerDetail } from '../../fixtures/admin/fixtures'
 
 const receipts = (count: number) =>
   Array.from({ length: count }, (_, index) => ({

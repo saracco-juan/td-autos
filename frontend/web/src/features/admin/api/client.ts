@@ -1,5 +1,5 @@
-import { apiFetch, apiFetchBlob } from '../../lib/http'
-import type { AdminReceipt, DealerDetail, DealerDirectory, DealerFormValues } from './types'
+import { apiFetch, apiFetchBlob } from '../../../lib/http'
+import type { AdminReceipt, DealerDetail, DealerDirectory, DealerFormValues } from '../model/types'
 
 export function fetchDealerDirectory(): Promise<DealerDirectory> {
   return apiFetch<DealerDirectory>('/api/admin/concesionarias')

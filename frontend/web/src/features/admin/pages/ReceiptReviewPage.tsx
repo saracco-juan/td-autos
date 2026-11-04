@@ -1,24 +1,25 @@
+import ButtonLink from '../../../components/Buttons/ButtonLink'
+import Button from '../../../components/Buttons/Button'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import barStyles from '../../components/checklist/pinnedBar.module.css'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import screenStyles from '../../styles/screen.module.css'
-import { HttpError, NetworkError } from '../../lib/http'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import Field from '../auth/shared/components/Field'
-import fieldStyles from '../auth/shared/styles/authForm.module.css'
-import { formatSentDate } from '../subscription/format'
-import { approveReceipt, fetchReceipt, rejectReceipt } from './api'
-import { accountState, dealerLocation, formatDay, receiptState, receiptTone, validateRejectReason } from './format'
-import BackLink from './BackLink'
-import MissingState from './MissingState'
-import ReceiptPreview from './ReceiptPreview'
+import { useParams } from 'react-router'
+import alertStyles from '../../../styles/alert.module.css'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import FlowLayout from '../../../components/FlowLayout/FlowLayout'
+import screenStyles from '../../../styles/screen.module.css'
+import { HttpError, NetworkError } from '../../../lib/http'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import Field from '../../auth/shared/components/Field'
+import fieldStyles from '../../auth/shared/styles/authForm.module.css'
+import { formatSentDate } from '../../subscription/format'
+import { approveReceipt, fetchReceipt, rejectReceipt } from '../api/client'
+import { accountState, dealerLocation, formatDay, receiptState, receiptTone, validateRejectReason } from '../model/format'
+import BackLink from '../components/BackLink'
+import MissingState from '../components/MissingState'
+import ReceiptPreview from '../components/ReceiptPreview'
 import styles from './ReceiptReviewPage.module.css'
-import StateTag from './StateTag'
-import type { AdminReceipt } from './types'
+import StateTag from '../components/StateTag'
+import type { AdminReceipt } from '../model/types'
 
 type LoadState = 'loading' | 'missing' | { error: ErrorKind } | { receipt: AdminReceipt }
 
@@ -190,32 +191,32 @@ export default function ReceiptReviewPage() {
 
   const actions = (
     <div className={barStyles.actions}>
-      <Link
+      <ButtonLink
         to="/admin/concesionarias"
-        className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.actionWide}`}
+        variant="secondary" className={`${barStyles.actionWide}`}
       >
         VOLVER A CONCESIONARIAS
-      </Link>
+      </ButtonLink>
       {pending ? (
         <>
-          <button
+          <Button
             type="button"
-            className={`${buttonStyles.button} ${buttonStyles.danger} ${barStyles.action}`}
+            variant="danger" className={`${barStyles.action}`}
             disabled={submitting !== null}
             aria-busy={submitting === 'reject'}
             onClick={() => void decide(receipt.id, 'reject')}
           >
             RECHAZAR COMPROBANTE
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={`${buttonStyles.button} ${buttonStyles.success} ${barStyles.actionWide}`}
+            variant="success" className={`${barStyles.actionWide}`}
             disabled={submitting !== null}
             aria-busy={submitting === 'approve'}
             onClick={() => void decide(receipt.id, 'approve')}
           >
             APROBAR COMPROBANTE
-          </button>
+          </Button>
         </>
       ) : null}
     </div>

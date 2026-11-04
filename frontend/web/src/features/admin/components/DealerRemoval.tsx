@@ -1,12 +1,12 @@
+import Button from '../../../components/Buttons/Button'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import { HttpError } from '../../lib/http'
-import adminStyles from './admin.module.css'
-import { deleteDealer } from './api'
-import styles from './DealerEditPage.module.css'
-import type { DealerDetail } from './types'
+import alertStyles from '../../../styles/alert.module.css'
+import { HttpError } from '../../../lib/http'
+import adminStyles from '../styles/admin.module.css'
+import { deleteDealer } from '../api/client'
+import styles from '../pages/DealerEditPage.module.css'
+import type { DealerDetail } from '../model/types'
 
 const REMOVABLE_TEXT = 'Se borran la concesionaria, su cuenta y todos sus datos.'
 const BLOCKED_REASON = 'No podés eliminarla mientras tenga la suscripción vigente.'
@@ -81,27 +81,27 @@ export default function DealerRemoval({ dealer }: { dealer: DealerDetail }) {
             </p>
           ) : null}
           <div className={styles.removalActions}>
-            <button
+            <Button
               ref={confirmRef}
               type="button"
               disabled={deleting}
               aria-busy={deleting}
-              className={`${buttonStyles.button} ${buttonStyles.danger} ${styles.removalAction}`}
+              variant="danger" className={`${styles.removalAction}`}
               onClick={() => void confirmDelete()}
             >
               {deleting ? 'ELIMINANDO…' : 'ELIMINAR'}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               disabled={deleting}
-              className={`${buttonStyles.button} ${styles.removalAction}`}
+              className={`${styles.removalAction}`}
               onClick={() => {
                 setFailure(null)
                 setConfirming(false)
               }}
             >
               CANCELAR
-            </button>
+            </Button>
           </div>
         </>
       ) : (
@@ -109,16 +109,16 @@ export default function DealerRemoval({ dealer }: { dealer: DealerDetail }) {
           <p id={reasonId} className={adminStyles.cardBody}>
             {dealer.puede_eliminarse ? REMOVABLE_TEXT : BLOCKED_REASON}
           </p>
-          <button
+          <Button
             ref={askRef}
             type="button"
             disabled={!dealer.puede_eliminarse}
             aria-describedby={reasonId}
-            className={`${buttonStyles.button} ${buttonStyles.danger} ${styles.removalAction}`}
+            variant="danger" className={`${styles.removalAction}`}
             onClick={() => setConfirming(true)}
           >
             ELIMINAR
-          </button>
+          </Button>
         </>
       )}
     </section>

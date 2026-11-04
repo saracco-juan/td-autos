@@ -9,7 +9,7 @@ vi.mock('../auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
 vi.mock('../auth/session/components/AuthProvider', () => ({ default: ({ children }: { children: React.ReactNode }) => children }))
 vi.mock('./api', () => ({ fetchLeads: vi.fn() }))
 vi.mock('../home/HomeRoute', () => ({ default: () => <p>Buyer home</p> }))
-vi.mock('../admin/AdminDashboardPage', () => ({ default: () => <p>Admin home</p> }))
+vi.mock('../admin/pages/AdminDashboardPage', () => ({ default: () => <p>Admin home</p> }))
 
 it.each(['pendiente', 'activa'])('opens metrics from the dealer navigation for a %s account', async (state) => {
   vi.mocked(useAuth).mockReturnValue({ status: 'authenticated', user: {

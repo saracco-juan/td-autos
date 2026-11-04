@@ -9,8 +9,8 @@ import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from
 import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../features/inventory/fixtures'
 import { fetchInspection } from '../features/inspection/api'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
-import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api'
-import { dealerDetail, directory, receipt } from '../features/admin/fixtures'
+import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api/client'
+import { dealerDetail, directory, receipt } from '../test/fixtures/admin/fixtures'
 import { fetchSubscription } from '../features/subscription/api'
 import { suscripcion } from '../features/subscription/fixtures'
 import { fetchRecommendations } from '../features/recommendations/matching'
@@ -52,7 +52,7 @@ vi.mock('../features/inventory/api', () => ({
   confirmImport: vi.fn(),
 }))
 
-vi.mock('../features/admin/api', () => ({
+vi.mock('../features/admin/api/client', () => ({
   fetchDealerDirectory: vi.fn(),
   fetchDealer: vi.fn(),
   updateDealer: vi.fn(),

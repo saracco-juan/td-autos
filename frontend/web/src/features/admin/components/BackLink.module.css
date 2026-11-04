@@ -1,6 +1,6 @@
 /* Figma "Back Link": a boxed chevron (soft button look, docs/design.md) and the text. */
 .backLink {
-  composes: trigger from '../../components/Buttons/buttonHover.module.css';
+  composes: trigger from '../../../components/Buttons/buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
@@ -12,7 +12,7 @@
 }
 
 .backIcon {
-  composes: fill from '../../components/Buttons/buttonHover.module.css';
+  composes: fill from '../../../components/Buttons/buttonHover.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;

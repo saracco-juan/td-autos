@@ -1,5 +1,5 @@
-import styles from './admin.module.css'
-import type { StateTag as Tag } from './format'
+import styles from '../styles/admin.module.css'
+import type { StateTag as Tag } from '../model/format'
 
 // Small pill under a state label: a rejected receipt, an expired subscription or its grace period.
 export default function StateTag({ tag }: { tag: Tag }) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { fetchReceiptFile } from './api'
-import styles from './ReceiptReviewPage.module.css'
+import { fetchReceiptFile } from '../api/client'
+import styles from '../pages/ReceiptReviewPage.module.css'
 
 type Props = {
   receiptId: number

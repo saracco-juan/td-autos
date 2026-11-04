@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { dealerLocation, dealerState, formatDay, receiptState, receiptTarget, validateRejectReason } from './format'
-import { dealerRow } from './fixtures'
+import { dealerLocation, dealerState, formatDay, receiptState, receiptTarget, validateRejectReason } from '../../../features/admin/model/format'
+import { dealerRow } from '../../fixtures/admin/fixtures'
 
 describe('admin format', () => {
   it.each([

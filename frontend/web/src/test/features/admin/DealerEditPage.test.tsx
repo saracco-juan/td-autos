@@ -2,12 +2,12 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { deleteDealer, fetchDealer, updateDealer } from './api'
-import DealerEditPage from './DealerEditPage'
-import { dealerDetail, dealerSubscription } from './fixtures'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { deleteDealer, fetchDealer, updateDealer } from '../../../features/admin/api/client'
+import DealerEditPage from '../../../features/admin/pages/DealerEditPage'
+import { dealerDetail, dealerSubscription } from '../../fixtures/admin/fixtures'
 
-vi.mock('./api', () => ({ fetchDealer: vi.fn(), updateDealer: vi.fn(), deleteDealer: vi.fn() }))
+vi.mock('../../../features/admin/api/client', () => ({ fetchDealer: vi.fn(), updateDealer: vi.fn(), deleteDealer: vi.fn() }))
 
 const SAVE = 'GUARDAR CONCESIONARIA'
 const SUCCESS = 'Guardaste los cambios de la concesionaria.'

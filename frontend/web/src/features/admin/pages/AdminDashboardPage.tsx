@@ -1,10 +1,9 @@
-import { Link } from 'react-router'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import ErrorState from '../../components/ErrorState/ErrorState'
-import screenStyles from '../../styles/screen.module.css'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import styles from './admin.module.css'
-import { useDealerDirectory } from './useDealerDirectory'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
+import ErrorState from '../../../components/ErrorState/ErrorState'
+import screenStyles from '../../../styles/screen.module.css'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import styles from '../styles/admin.module.css'
+import { useDealerDirectory } from '../hooks/useDealerDirectory'
 
 // Admin dashboard (Figma 2101:1493, UH19): dealer counts and the Concesionarias area.
 export default function AdminDashboardPage() {
@@ -43,9 +42,9 @@ export default function AdminDashboardPage() {
           Concesionarias
         </h2>
         <p className={styles.cardBody}>Revisá altas nuevas, aprobá comprobantes y editá los datos de cada concesionaria.</p>
-        <Link to="/admin/concesionarias" className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.areaAction}`}>
+        <ButtonLink to="/admin/concesionarias" variant="secondary" className={`${styles.areaAction}`}>
           VER CONCESIONARIAS
-        </Link>
+        </ButtonLink>
       </section>
     </div>
   )

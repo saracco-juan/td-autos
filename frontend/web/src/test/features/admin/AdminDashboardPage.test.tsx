@@ -2,12 +2,12 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import AdminDashboardPage from './AdminDashboardPage'
-import { fetchDealerDirectory } from './api'
-import { directory } from './fixtures'
+import { HttpError, NetworkError } from '../../../lib/http'
+import AdminDashboardPage from '../../../features/admin/pages/AdminDashboardPage'
+import { fetchDealerDirectory } from '../../../features/admin/api/client'
+import { directory } from '../../fixtures/admin/fixtures'
 
-vi.mock('./api', () => ({ fetchDealerDirectory: vi.fn() }))
+vi.mock('../../../features/admin/api/client', () => ({ fetchDealerDirectory: vi.fn() }))
 
 function renderPage() {
   render(

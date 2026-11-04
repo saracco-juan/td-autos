@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import alertStyles from "../../styles/alert.module.css";
-import groupStyles from "../../styles/buttonGroup.module.css";
-import tableStyles from "../../styles/dataTable.module.css";
-import ErrorState from "../../components/ErrorState/ErrorState";
-import ListFooter from "../../components/ListFooter/ListFooter";
-import Pagination from "../../components/Pagination/Pagination";
-import ScrollArea from "../../components/ScrollArea/ScrollArea";
-import screenStyles from "../../styles/screen.module.css";
-import usePagedItems from "../../hooks/usePagedItems";
-import SessionLoading from "../auth/session/components/SessionLoading";
-import styles from "./admin.module.css";
+import alertStyles from "../../../styles/alert.module.css";
+import groupStyles from "../../../styles/buttonGroup.module.css";
+import tableStyles from "../../../styles/dataTable.module.css";
+import ErrorState from "../../../components/ErrorState/ErrorState";
+import ListFooter from "../../../components/ListFooter/ListFooter";
+import Pagination from "../../../components/Pagination/Pagination";
+import ScrollArea from "../../../components/ScrollArea/ScrollArea";
+import screenStyles from "../../../styles/screen.module.css";
+import usePagedItems from "../../../hooks/usePagedItems";
+import SessionLoading from "../../auth/session/components/SessionLoading";
+import styles from "../styles/admin.module.css";
 import {
   accountState,
   dealerLocation,
   hasRejectedReceipt,
   receiptTarget,
-} from "./format";
-import StateTag from "./StateTag";
-import type { AdminDealerRow } from "./types";
-import { useDealerDirectory } from "./useDealerDirectory";
+} from "../model/format";
+import StateTag from "../components/StateTag";
+import type { AdminDealerRow } from "../model/types";
+import { useDealerDirectory } from "../hooks/useDealerDirectory";
 
 // "Mostrar" options; the page size is the user's choice, never the screen's, so zooming does not change it (docs/design.md).
 const PAGE_SIZES = [10, 25, 50];

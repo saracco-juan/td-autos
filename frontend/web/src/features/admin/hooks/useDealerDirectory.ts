@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ErrorKind } from '../../components/ErrorState/ErrorState'
-import { NetworkError } from '../../lib/http'
-import { fetchDealerDirectory } from './api'
-import type { DealerDirectory } from './types'
+import type { ErrorKind } from '../../../components/ErrorState/ErrorState'
+import { NetworkError } from '../../../lib/http'
+import { fetchDealerDirectory } from '../api/client'
+import type { DealerDirectory } from '../model/types'
 
 export type DirectoryState = 'loading' | { error: ErrorKind } | { data: DealerDirectory }
 

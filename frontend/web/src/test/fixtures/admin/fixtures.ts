@@ -1,4 +1,4 @@
-import type { AdminDealerRow, AdminReceipt, DealerDetail, DealerDirectory, DealerSubscription } from './types'
+import type { AdminDealerRow, AdminReceipt, DealerDetail, DealerDirectory, DealerSubscription } from '../../../features/admin/model/types'
 
 export function dealerRow(overrides: Partial<AdminDealerRow> = {}): AdminDealerRow {
   return {

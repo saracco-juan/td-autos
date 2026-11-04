@@ -1,4 +1,4 @@
-import alertStyles from '../../styles/alert.module.css'
+import alertStyles from '../../../styles/alert.module.css'
 import BackLink from './BackLink'
 import styles from './MissingState.module.css'
 

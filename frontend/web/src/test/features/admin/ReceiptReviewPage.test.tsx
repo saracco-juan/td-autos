@@ -2,12 +2,12 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { approveReceipt, fetchReceipt, fetchReceiptFile, rejectReceipt } from './api'
-import { receipt } from './fixtures'
-import ReceiptReviewPage from './ReceiptReviewPage'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { approveReceipt, fetchReceipt, fetchReceiptFile, rejectReceipt } from '../../../features/admin/api/client'
+import { receipt } from '../../fixtures/admin/fixtures'
+import ReceiptReviewPage from '../../../features/admin/pages/ReceiptReviewPage'
 
-vi.mock('./api', () => ({
+vi.mock('../../../features/admin/api/client', () => ({
   fetchReceipt: vi.fn(),
   fetchReceiptFile: vi.fn(),
   approveReceipt: vi.fn(),

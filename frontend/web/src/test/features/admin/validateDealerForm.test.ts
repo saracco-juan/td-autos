@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { dealerDetail } from './fixtures'
-import { validateDealerForm } from './validateDealerForm'
+import { dealerDetail } from '../../fixtures/admin/fixtures'
+import { validateDealerForm } from '../../../features/admin/model/validateDealerForm'
 
 const values = () => {
   const { id, estado_alta, suscripcion, comprobantes, ...form } = dealerDetail()
