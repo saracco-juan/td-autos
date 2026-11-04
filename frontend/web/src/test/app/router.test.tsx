@@ -7,7 +7,7 @@ import { fetchCurrentUser, loginUser, logoutUser, registerDealer, resetPassword 
 import { fetchDiagnosis, saveDiagnosis } from '../../features/diagnosis/api/client'
 import { fetchBodyTypes, fetchVehicle, fetchVehicles, fetchVehicleCatalog } from '../../features/inventory/api/client'
 import { VEHICULOS, VEHICLE_CATALOG, vehiculo } from '../fixtures/inventory/fixtures'
-import { fetchInspection } from '../../features/inspection/api/client'
+import { fetchInspection, fetchInspections } from '../../features/inspection/api/client'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../../features/admin/api/client'
 import { dealerDetail, directory, receipt } from '../fixtures/admin/fixtures'
@@ -35,6 +35,7 @@ vi.mock('../../features/auth/api/client', () => ({
 vi.mock('../../features/diagnosis/api/client', () => ({ fetchDiagnosis: vi.fn(), saveDiagnosis: vi.fn() }))
 
 vi.mock('../../features/inspection/api/client', () => ({
+  fetchInspections: vi.fn(),
   fetchInspection: vi.fn(),
   setItemCompleted: vi.fn(),
   finishInspection: vi.fn(),
@@ -124,7 +125,9 @@ describe('app routes', () => {
     vi.mocked(fetchDiagnosis).mockResolvedValue({ diagnostico: null, carrocerias: [] })
     vi.mocked(saveDiagnosis).mockReset()
     vi.mocked(fetchInspection).mockReset()
+    vi.mocked(fetchInspections).mockReset().mockResolvedValue({ pasos: [], inspecciones: [] })
     vi.mocked(fetchTransfer).mockReset()
+    vi.mocked(fetchTransfer).mockResolvedValue(transferResponse())
     vi.mocked(fetchRecommendations).mockReset()
     vi.mocked(fetchRecommendations).mockResolvedValue({ status: 'ready', results: [], exchange_rate: null })
     vi.mocked(fetchPortalModels).mockReset()
@@ -217,6 +220,7 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/perfil')
+    expect(await screen.findByText('Todavía no empezaste una inspección.')).toBeInTheDocument()
   })
 
   it('D6: /diagnostico never redirects a user who has a diagnosis', async () => {
@@ -308,6 +312,9 @@ describe('app routes', () => {
     expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
     expect(within(screen.getByRole('banner')).getByRole('link', { name: 'TD Autos' })).toBeInTheDocument()
     expect(screen.getAllByRole('main')).toHaveLength(1)
+    expect(await screen.findByText('Todavía no empezaste una inspección.')).toBeInTheDocument()
+    expect(fetchInspections).toHaveBeenCalledTimes(1)
+    expect(fetchTransfer).toHaveBeenCalledTimes(1)
   })
 
   it('redirects a guest opening /perfil to the login screen', async () => {
