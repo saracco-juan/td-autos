@@ -1,22 +1,23 @@
+import Button from '../../../components/Buttons/Button'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { Link } from 'react-router'
-import alertStyles from '../../styles/alert.module.css'
-import buttonStyles from '../../components/Buttons/button.module.css'
-import barStyles from '../../components/checklist/pinnedBar.module.css'
-import ErrorState, { type ErrorKind } from '../../components/ErrorState/ErrorState'
-import FlowLayout from '../../components/FlowLayout/FlowLayout'
-import screenStyles from '../../styles/screen.module.css'
-import { NetworkError } from '../../lib/http'
-import { DEALER_STATE_ACTIVE } from '../auth/model/roles'
-import SessionLoading from '../auth/session/components/SessionLoading'
-import { formatDay, retentionReached } from '../admin/model/format'
-import { accountStatusText } from '../dealer/model/accountStatus'
-import { INVENTORY_PATH } from '../inventory/model/inventoryRoutes'
-import { fetchSubscription, sendReceipt } from './api'
-import { formatMonthlyAmount, formatSentDate } from './format'
-import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from './receipt'
+import alertStyles from '../../../styles/alert.module.css'
+import buttonStyles from '../../../components/Buttons/button.module.css'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
+import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
+import FlowLayout from '../../../components/FlowLayout/FlowLayout'
+import screenStyles from '../../../styles/screen.module.css'
+import { NetworkError } from '../../../lib/http'
+import { DEALER_STATE_ACTIVE } from '../../auth/model/roles'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import { formatDay, retentionReached } from '../../admin/model/format'
+import { accountStatusText } from '../../dealer/model/accountStatus'
+import { INVENTORY_PATH } from '../../inventory/model/inventoryRoutes'
+import { fetchSubscription, sendReceipt } from '../api/client'
+import { formatMonthlyAmount, formatSentDate } from '../model/format'
+import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from '../model/receipt'
 import styles from './SubscriptionPage.module.css'
-import type { DatosTransferencia, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from './types'
+import type { DatosTransferencia, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from '../model/types'
 
 function reviewText(pending: boolean, rejected: boolean): string {
   if (pending) return 'Tu comprobante está en revisión.'
@@ -207,21 +208,21 @@ export default function SubscriptionPage() {
                 }}
               />
             </label>
-            <button
+            <Button
               type="button"
-              className={`${buttonStyles.button} ${buttonStyles.primary} ${barStyles.actionWide}`}
+              variant="primary" className={`${barStyles.actionWide}`}
               disabled={submitting || !summary.transferencia}
               aria-busy={submitting}
               onClick={() => void handleSend()}
             >
               ENVIAR COMPROBANTE
-            </button>
+            </Button>
           </>
         ) : null}
         {showInventory ? (
-          <Link to={INVENTORY_PATH} className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.action}`}>
+          <ButtonLink to={INVENTORY_PATH} variant="secondary" className={`${barStyles.action}`}>
             VER INVENTARIO
-          </Link>
+          </ButtonLink>
         ) : null}
       </div>
     ) : null

@@ -1,4 +1,4 @@
-import { HttpError } from '../../lib/http'
+import { HttpError } from '../../../lib/http'
 
 const MAX_BYTES = 5 * 1024 * 1024
 const ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png']

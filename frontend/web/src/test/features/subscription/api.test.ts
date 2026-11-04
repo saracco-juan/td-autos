@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
 
-import { apiFetch } from '../../lib/http'
-import { fetchSubscription, sendReceipt } from './api'
-import { comprobantePendiente, suscripcion } from './fixtures'
+import { apiFetch } from '../../../lib/http'
+import { fetchSubscription, sendReceipt } from '../../../features/subscription/api/client'
+import { comprobantePendiente, suscripcion } from '../../fixtures/subscription/fixtures'
 
 describe('subscription api', () => {
   beforeEach(() => {

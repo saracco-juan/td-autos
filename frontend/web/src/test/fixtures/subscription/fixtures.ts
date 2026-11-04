@@ -1,4 +1,4 @@
-import type { ComprobantePendiente, DatosTransferencia, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from './types'
+import type { ComprobantePendiente, DatosTransferencia, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from '../../../features/subscription/model/types'
 
 export const TRANSFERENCIA: DatosTransferencia = {
   titular: 'TD Autos S.A.',

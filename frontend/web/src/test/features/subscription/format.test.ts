@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatMonthlyAmount, formatSentDate } from './format'
+import { formatMonthlyAmount, formatSentDate } from '../../../features/subscription/model/format'
 
 describe('formatSentDate', () => {
   it('formats the instant as dd/mm/aaaa in the local time zone', () => {

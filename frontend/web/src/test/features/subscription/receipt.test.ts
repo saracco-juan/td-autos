@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from './receipt'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from '../../../features/subscription/model/receipt'
 
 const MB = 1024 * 1024
 const file = (name: string, type: string, size = 10) => new File([new Uint8Array(size)], name, { type })

@@ -2,12 +2,12 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError, NetworkError } from '../../lib/http'
-import { fetchSubscription, sendReceipt } from './api'
-import { TRANSFERENCIA, comprobantePendiente, comprobanteRechazado, suscripcion, vigencia } from './fixtures'
-import SubscriptionPage from './SubscriptionPage'
+import { HttpError, NetworkError } from '../../../lib/http'
+import { fetchSubscription, sendReceipt } from '../../../features/subscription/api/client'
+import { TRANSFERENCIA, comprobantePendiente, comprobanteRechazado, suscripcion, vigencia } from '../../fixtures/subscription/fixtures'
+import SubscriptionPage from '../../../features/subscription/pages/SubscriptionPage'
 
-vi.mock('./api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
+vi.mock('../../../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
 const SELECT = 'SELECCIONAR COMPROBANTE'
 const SEND = 'ENVIAR COMPROBANTE'

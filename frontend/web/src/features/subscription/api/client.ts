@@ -1,5 +1,5 @@
-import { apiFetch } from '../../lib/http'
-import type { Suscripcion } from './types'
+import { apiFetch } from '../../../lib/http'
+import type { Suscripcion } from '../model/types'
 
 export function fetchSubscription(): Promise<Suscripcion> {
   return apiFetch<Suscripcion>('/api/concesionaria/suscripcion')

@@ -1,4 +1,4 @@
-import { formatPrice } from '../inventory/model/format'
+import { formatPrice } from '../../inventory/model/format'
 
 const twoDigits = (value: number) => String(value).padStart(2, '0')
 

@@ -3,7 +3,7 @@ import ListFooter from "../../../components/ListFooter/ListFooter";
 import Pagination from "../../../components/Pagination/Pagination";
 import ScrollArea from "../../../components/ScrollArea/ScrollArea";
 import usePagedItems from "../../../hooks/usePagedItems";
-import { formatSentDate } from "../../subscription/format";
+import { formatSentDate } from "../../subscription/model/format";
 import adminStyles from "../styles/admin.module.css";
 import styles from "../pages/DealerEditPage.module.css";
 import {

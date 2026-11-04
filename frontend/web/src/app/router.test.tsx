@@ -11,8 +11,8 @@ import { fetchInspection } from '../features/inspection/api/client'
 import { inspectionResponse } from '@shared/checklist/inspection/fixtures'
 import { fetchDealer, fetchDealerDirectory, fetchReceipt, fetchReceiptFile } from '../features/admin/api/client'
 import { dealerDetail, directory, receipt } from '../test/fixtures/admin/fixtures'
-import { fetchSubscription } from '../features/subscription/api'
-import { suscripcion } from '../features/subscription/fixtures'
+import { fetchSubscription } from '../features/subscription/api/client'
+import { suscripcion } from '../test/fixtures/subscription/fixtures'
 import { fetchRecommendations } from '../features/recommendations/api/matching'
 import { fetchPortalModels } from '../features/recommendations/api/portalModels'
 import { fetchTransfer } from '../features/transfer/api'
@@ -65,7 +65,7 @@ vi.mock('../features/admin/api/client', () => ({
 vi.mock('../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn() }))
 vi.mock('../features/recommendations/api/portalModels', () => ({ fetchPortalModels: vi.fn() }))
 
-vi.mock('../features/subscription/api', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
+vi.mock('../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
 
 vi.mock('../features/transfer/api', () => ({
   fetchTransfer: vi.fn(),

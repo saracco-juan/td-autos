@@ -7,7 +7,7 @@ import DealerStatusPage from '../../../features/dealer/pages/DealerStatusPage'
 
 vi.mock('../../../lib/http', async (original) => ({ ...await original<object>(), apiFetch: vi.fn() }))
 vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../../../features/subscription/api', () => ({ fetchSubscription: vi.fn() }))
+vi.mock('../../../features/subscription/api/client', () => ({ fetchSubscription: vi.fn() }))
 const endpoint = '/api/concesionaria/contacto'
 const mount = (rol = 'concesionaria') => {
   vi.mocked(useAuth).mockReturnValue({ user: { id: 1, name: 'Ana', apellido: 'Pérez', rol,

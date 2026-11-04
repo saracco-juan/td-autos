@@ -2,12 +2,12 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuth } from '../../../features/auth/session/hooks/useAuth'
 import type { User } from '../../../features/auth/model/types'
-import { fetchSubscription } from '../../../features/subscription/api'
-import { suscripcion, vigencia } from '../../../features/subscription/fixtures'
+import { fetchSubscription } from '../../../features/subscription/api/client'
+import { suscripcion, vigencia } from '../../fixtures/subscription/fixtures'
 import DealerStatusPage from '../../../features/dealer/pages/DealerStatusPage'
 
 vi.mock('../../../features/auth/session/hooks/useAuth', () => ({ useAuth: vi.fn() }))
-vi.mock('../../../features/subscription/api', () => ({ fetchSubscription: vi.fn() }))
+vi.mock('../../../features/subscription/api/client', () => ({ fetchSubscription: vi.fn() }))
 
 const marta: User = { id: 2, name: 'Marta', apellido: 'Gómez', email: 'marta@autosdelsur.com', rol: 'concesionaria', perfil_completo: true, tiene_diagnostico: false }
 
