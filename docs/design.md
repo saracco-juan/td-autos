@@ -136,6 +136,10 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   renderer is not required for these side profiles.
   Follow the user's body-reference sheet: CUV proportions illustrate SUV, and
   minivan proportions illustrate Furgón. Keep the catalogue labels unchanged.
+  Trace the reference contours rather than inventing generic car shapes: retain
+  the left-facing direction, rooflines, window openings and wheelbases. The rural
+  profile uses the sheet's long, square-bodied silhouette. Omit door handles,
+  door seams and decorative wheel rings that are absent from the reference.
   Body illustrations are unfilled outlines, with rounded joins and simplified
   wheel/detail lines; only the moving sports car retains its red fill.
   Figma synchronization and native mobile adaptation remain separate pending work.
