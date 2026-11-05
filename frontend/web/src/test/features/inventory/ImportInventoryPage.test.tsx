@@ -79,6 +79,7 @@ describe('ImportInventoryPage', () => {
     expect(screen.getByText(/no se aplicará ningún cambio/)).toBeInTheDocument()
     expect(screen.getByText('Arrastrá el archivo XLSX acá')).toBeInTheDocument()
     expect(screen.getByText('o seleccioná un archivo de tu dispositivo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Archivo XLSX')).toBeEnabled()
     expect(screen.getByLabelText('Archivo XLSX')).toHaveAttribute('accept', '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     expect(screen.getByRole('link', { name: 'VOLVER AL INVENTARIO' })).toHaveAttribute('href', '/concesionaria/inventario')
     expect(confirmButton()).toBeDisabled()
