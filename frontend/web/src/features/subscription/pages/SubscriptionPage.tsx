@@ -18,14 +18,7 @@ import ReceiptHistory from '../components/ReceiptHistory'
 import { formatMonthlyAmount, formatSentDate } from '../model/format'
 import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from '../model/receipt'
 import styles from './SubscriptionPage.module.css'
-import type { DatosTransferencia, EstadoComprobante, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from '../model/types'
-
-function reviewText(state: EstadoComprobante | undefined): string {
-  if (state === 'pendiente de revisión') return 'Tu comprobante está en revisión.'
-  if (state === 'rechazado') return 'Tu comprobante fue rechazado. Podés enviar uno nuevo.'
-  if (state === 'aprobado') return 'Tu último comprobante fue aprobado.'
-  return 'La administración aprueba o rechaza el comprobante.'
-}
+import type { DatosTransferencia, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from '../model/types'
 
 type LoadState = 'loading' | { ready: Suscripcion } | { error: ErrorKind }
 type Message = { kind: 'error' | 'success'; text: string }
@@ -186,8 +179,7 @@ export default function SubscriptionPage() {
   const kind = summary.tipo_pago === 'alta' ? 'Pago de alta inicial' : 'Renovación mensual'
   const receiptText = receipt
     ? `${receipt.nombre_archivo} · enviado el ${formatSentDate(receipt.enviado_en)}`
-    : (file?.name ?? (summary.ultimo_comprobante?.estado === 'aprobado'
-      ? 'Tu último comprobante está guardado en el historial.' : 'Todavía no seleccionaste un comprobante.'))
+    : (file?.name ?? 'Todavía no seleccionaste un comprobante.')
 
   const showSend = !receipt
   const showInventory = summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva'
@@ -251,15 +243,6 @@ export default function SubscriptionPage() {
           {validity.estado === 'activa' && validity.vigente_hasta ? (
             <Body>{`Suscripción vigente hasta el ${formatDay(validity.vigente_hasta)}`}</Body>
           ) : null}
-        </Card>
-        <Card title="Comprobante">
-          <Body>{receiptText}</Body>
-        </Card>
-        <Card title="Revisión">
-          <Body success={summary.ultimo_comprobante?.estado === 'aprobado' && !receipt}>
-            {reviewText(receipt ? 'pendiente de revisión' : summary.ultimo_comprobante?.estado)}
-          </Body>
-          {receipt ? <Body>La administración tiene que aprobarlo o rechazarlo. Mientras tanto, no hace falta enviar otro.</Body> : null}
         </Card>
       </div>
       <ReceiptHistory revision={summary.comprobante_pendiente?.id ?? summary.ultimo_comprobante?.id ?? null} />

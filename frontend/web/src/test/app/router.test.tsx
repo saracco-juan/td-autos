@@ -600,7 +600,7 @@ describe('app routes', () => {
   })
 
   describe('dealer session (UH17)', () => {
-    const statusHeading = () => screen.findByRole('heading', { level: 1, name: 'Verificación de suscripción' })
+    const statusHeading = () => screen.findByRole('heading', { level: 1, name: 'Suscripción y comprobantes' })
     const landingHeading = () => screen.findByRole('heading', { level: 1, name: 'Suscripción y comprobantes' })
 
     it('TC-46: a pending dealer sees the request status at /concesionaria inside the shell', async () => {
@@ -609,7 +609,7 @@ describe('app routes', () => {
 
       expect(await statusHeading()).toBeInTheDocument()
       expect(screen.getByText('Pendiente de aprobación inicial · inventario bloqueado')).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
       expect(screen.getByRole('banner')).toHaveTextContent('Autos del Sur')
       expect(screen.getAllByRole('main')).toHaveLength(1)
     })
@@ -747,10 +747,10 @@ describe('app routes', () => {
       )
       expect(router.state.location.pathname).toBe('/concesionaria/inventario')
 
-      await userEvent.setup().click(screen.getByRole('link', { name: 'Volver a verificación' }))
+      await userEvent.setup().click(screen.getByRole('link', { name: 'Volver a suscripción' }))
 
       expect(await statusHeading()).toBeInTheDocument()
-      expect(router.state.location.pathname).toBe('/concesionaria')
+      expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
     })
 
     it('UH21: an active dealer opening /concesionaria/inventario sees its vehicles inside the shell', async () => {

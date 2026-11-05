@@ -48,6 +48,13 @@ describe('SubscriptionPage', () => {
   })
 
   describe('payment dialog', () => {
+    it('keeps only account state in the overview, without redundant receipt and review cards', async () => {
+      await loaded(false)
+      expect(screen.getByRole('region', { name: 'Estado de la cuenta' })).toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: 'Comprobante' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: 'Revisión' })).not.toBeInTheDocument()
+      expect(screen.queryByText('Tu último comprobante está guardado en el historial.')).not.toBeInTheDocument()
+    })
     it('opens the transfer data and receipt actions in a dialog instead of a pinned bar', async () => {
       await loaded(false)
 
@@ -147,8 +154,7 @@ describe('SubscriptionPage', () => {
     it('invites to select a receipt while there is none', async () => {
       await loaded()
 
-      expect(card('Comprobante').getByText('Todavía no seleccionaste un comprobante.')).toBeInTheDocument()
-      expect(card('Revisión').getByText('La administración aprueba o rechaza el comprobante.')).toBeInTheDocument()
+      expect(card('Adjuntar comprobante').getByText('Todavía no seleccionaste un comprobante.')).toBeInTheDocument()
     })
 
     it('shows the pending receipt with the local date it was sent, and that it is in review', async () => {
@@ -156,9 +162,8 @@ describe('SubscriptionPage', () => {
       vi.mocked(fetchSubscription).mockResolvedValue(suscripcion({ comprobante_pendiente: comprobantePendiente({ enviado_en: sent }) }))
       await loaded()
 
-      expect(card('Comprobante').getByText('comprobante-transferencia.pdf · enviado el 14/10/2026')).toBeInTheDocument()
-      expect(card('Revisión').getByText('Tu comprobante está en revisión.')).toBeInTheDocument()
-      expect(card('Revisión').queryByText('La administración aprueba o rechaza el comprobante.')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'REALIZAR TRANSFERENCIA' })).toBeDisabled()
+      expect(screen.queryByRole('region', { name: 'Revisión' })).not.toBeInTheDocument()
     })
 
     it('tells the dealer the latest receipt was rejected, with the reason and the local date, and keeps the upload', async () => {
@@ -171,7 +176,6 @@ describe('SubscriptionPage', () => {
       const notice = within(screen.getByRole('region', { name: 'Tu comprobante fue rechazado' }))
       expect(notice.getByText('Lo rechazamos el 15/10/2026. Enviá uno nuevo para continuar.')).toBeInTheDocument()
       expect(notice.getByText('El monto no coincide con la cuota.')).toBeInTheDocument()
-      expect(card('Revisión').getByText('Tu comprobante fue rechazado. Podés enviar uno nuevo.')).toBeInTheDocument()
       expect(screen.getByLabelText(SELECT)).toHaveAttribute('type', 'file')
       expect(sendButton()).toBeEnabled()
     })
@@ -193,8 +197,7 @@ describe('SubscriptionPage', () => {
       )
       await loaded()
       expect(screen.queryByRole('region', { name: 'Tu comprobante fue rechazado' })).not.toBeInTheDocument()
-      expect(card('Revisión').getByText('Tu último comprobante fue aprobado.')).toBeInTheDocument()
-      expect(card('Comprobante').queryByText('Todavía no seleccionaste un comprobante.')).not.toBeInTheDocument()
+      expect(screen.queryByText('Tu último comprobante está guardado en el historial.')).not.toBeInTheDocument()
     })
 
     it('shows the name of the selected file before it is sent', async () => {
@@ -202,8 +205,8 @@ describe('SubscriptionPage', () => {
 
       await userEvent.setup().upload(screen.getByLabelText(SELECT), pdf())
 
-      expect(card('Comprobante').getByText('pago-octubre.pdf')).toBeInTheDocument()
-      expect(card('Comprobante').queryByText('Todavía no seleccionaste un comprobante.')).not.toBeInTheDocument()
+      expect(card('Adjuntar comprobante').getByText('pago-octubre.pdf')).toBeInTheDocument()
+      expect(card('Adjuntar comprobante').queryByText('Todavía no seleccionaste un comprobante.')).not.toBeInTheDocument()
     })
   })
 
@@ -422,8 +425,7 @@ describe('SubscriptionPage', () => {
       expect(notice).toHaveTextContent('Enviaste el comprobante. Queda pendiente de revisión.')
       expect(notice).toHaveFocus()
       expect(sendReceipt).toHaveBeenCalledWith(file)
-      expect(card('Revisión').getByText('Tu comprobante está en revisión.')).toBeInTheDocument()
-      expect(card('Comprobante').getByText(/^comprobante-transferencia\.pdf · enviado el /)).toBeInTheDocument()
+      expect(card('Adjuntar comprobante').getByText(/^comprobante-transferencia\.pdf · enviado el /)).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: SEND })).not.toBeInTheDocument()
       expect(screen.queryByLabelText(SELECT)).not.toBeInTheDocument()
     })
@@ -464,7 +466,7 @@ describe('SubscriptionPage', () => {
       const alert = await screen.findByRole('alert')
       expect(alert).toHaveTextContent(message)
       expect(alert).toHaveFocus()
-      expect(card('Comprobante').getByText('pago-octubre.pdf')).toBeInTheDocument()
+      expect(card('Adjuntar comprobante').getByText('pago-octubre.pdf')).toBeInTheDocument()
       expect(sendButton()).toBeEnabled()
       expect(sendButton()).not.toHaveAttribute('aria-busy', 'true')
 
