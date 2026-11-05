@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn() }))
+vi.mock('../../../lib/http', () => ({ apiFetch: vi.fn(), apiFetchBlob: vi.fn() }))
 
-import { apiFetch } from '../../../lib/http'
-import { fetchSubscription, sendReceipt } from '../../../features/subscription/api/client'
+import { apiFetch, apiFetchBlob } from '../../../lib/http'
+import { fetchReceiptFile, fetchReceipts, fetchSubscription, sendReceipt } from '../../../features/subscription/api/client'
 import { comprobantePendiente, suscripcion } from '../../fixtures/subscription/fixtures'
 
 describe('subscription api', () => {
@@ -17,6 +17,16 @@ describe('subscription api', () => {
 
     await expect(fetchSubscription()).resolves.toEqual(summary)
     expect(apiFetch).toHaveBeenCalledWith('/api/concesionaria/suscripcion')
+  })
+
+  it('fetches the signed-in dealership history and uses its private file endpoint', async () => {
+    vi.mocked(apiFetch).mockResolvedValue([])
+    await expect(fetchReceipts()).resolves.toEqual([])
+    expect(apiFetch).toHaveBeenCalledWith('/api/concesionaria/suscripcion/comprobantes')
+    const blob = new Blob(['receipt'])
+    vi.mocked(apiFetchBlob).mockResolvedValue(blob)
+    await expect(fetchReceiptFile(7)).resolves.toBe(blob)
+    expect(apiFetchBlob).toHaveBeenCalledWith('/api/concesionaria/suscripcion/comprobantes/7/archivo')
   })
 
   it('sendReceipt POSTs the file as the comprobante field and returns the new summary', async () => {

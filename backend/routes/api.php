@@ -18,6 +18,7 @@ use App\Http\Controllers\Mobile\MobileGoogleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecomendacionesController;
 use App\Http\Controllers\RecomendacionesModelosController;
+use App\Http\Controllers\SubscriptionReceiptController;
 use App\Http\Controllers\SuscripcionController;
 use App\Http\Controllers\TransferenciaController;
 use App\Http\Controllers\VehicleCatalogController;
@@ -76,6 +77,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Reachable by a pending dealer too: it is how the first payment is sent (RF16, RF17).
     Route::middleware('dealer')->prefix('concesionaria/suscripcion')->group(function () {
         Route::get('/', [SuscripcionController::class, 'show']);
+        Route::get('/comprobantes', [SubscriptionReceiptController::class, 'index']);
+        Route::get('/comprobantes/{id}/archivo', [SubscriptionReceiptController::class, 'file'])->whereNumber('id');
         Route::post('/comprobantes', [SuscripcionController::class, 'storeComprobante']);
     });
 

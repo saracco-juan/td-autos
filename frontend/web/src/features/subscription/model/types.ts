@@ -25,6 +25,17 @@ export type ComprobantePendiente = {
 
 export type EstadoComprobante = 'pendiente de revisión' | 'aprobado' | 'rechazado'
 
+export type ReceiptHistoryEntry = {
+  id: number
+  nombre_archivo: string
+  periodo_desde: string
+  periodo_hasta: string
+  enviado_en: string | null
+  estado: EstadoComprobante
+  fecha_revision: string | null
+  motivo_rechazo: string | null
+}
+
 // Outcome of the latest receipt in any state, so the dealer learns about a rejection and its reason.
 export type UltimoComprobante = {
   id: number
