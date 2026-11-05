@@ -5,6 +5,10 @@ payment receipts. REALIZAR TRANSFERENCIA opens bank details and receipt upload i
 a modal. A pending receipt prevents a second submission; active subscriptions
 can renew before expiry. Approval and rejection remain administrator decisions.
 
+Account state and expiry live in Subscription. The redundant Verification menu
+entry, receipt overview and review card are removed. The legacy `/concesionaria`
+entry redirects to Subscription; contact editing placement remains deferred.
+
 ## Private receipt history
 
 These routes use the existing authenticated `dealer` middleware, including for
@@ -26,6 +30,9 @@ The web client paginates the array with the existing page-size choices. Both
 recommendations and receipt history use `ResultsPagination`; history uses the
 shared `ScrollArea` in fill mode. Downloads use the authenticated blob client
 and release temporary URLs when the row unmounts or another download begins.
+VER reuses the same private endpoint to preview JPG/PNG images or PDFs in the
+shared dialog. Closing the preview releases its temporary URL. No public file
+links or additional backend endpoints are introduced.
 
 ## Manual verification
 
@@ -33,7 +40,8 @@ Start the backend and web app as described in [getting-started.md](getting-start
 then sign in as a dealership and open Suscripción:
 
 1. Verify that the overview matches its account state and receipt history.
-2. Change the history page and page size. Download an owned receipt.
+2. Change the history page and page size. Preview and download an owned receipt;
+   close the preview with CERRAR or Escape and confirm focus returns to VER.
 3. Open REALIZAR TRANSFERENCIA. Confirm that bank details and upload share the modal.
 4. Select a valid PDF/JPG/PNG up to 5 MB; close and reopen the modal. The selection remains.
 5. Submit only in a disposable environment. The receipt becomes pending, history

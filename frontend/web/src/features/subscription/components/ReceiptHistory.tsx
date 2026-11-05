@@ -7,7 +7,7 @@ import { formatDay, receiptState, receiptTone } from '../../admin/model/format'
 import { fetchReceipts } from '../api/client'
 import { formatSentDate } from '../model/format'
 import type { ReceiptHistoryEntry } from '../model/types'
-import ReceiptDownload from './ReceiptDownload'
+import ReceiptActions from './ReceiptActions'
 import styles from './ReceiptHistory.module.css'
 
 export default function ReceiptHistory({ revision }: { revision: number | null }) {
@@ -61,7 +61,7 @@ export default function ReceiptHistory({ revision }: { revision: number | null }
               {receipt.enviado_en ? <span>Enviado el {formatSentDate(receipt.enviado_en)}</span> : null}
               {receipt.fecha_revision ? <span>Revisado el {formatSentDate(receipt.fecha_revision)}</span> : null}
             </div>
-            <ReceiptDownload receipt={receipt} />
+            <ReceiptActions receipt={receipt} />
           </li>)}
         </ul>
       </ScrollArea>
