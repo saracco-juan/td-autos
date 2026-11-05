@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import BackLink from '../../../components/Buttons/BackLink'
 import FlowLayout from '../../../components/FlowLayout/FlowLayout'
 import screenStyles from '../../../styles/screen.module.css'
 import { INVENTORY_PATH } from '../model/inventoryRoutes'
@@ -19,14 +19,9 @@ export default function VehicleFormPage({ title, subtitle, children, actions = n
   return (
     <FlowLayout actions={actions}>
       <div className={styles.header}>
-        <Link to={INVENTORY_PATH} className={styles.back}>
-          <span aria-hidden="true" className={styles.arrow}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
+        <BackLink to={INVENTORY_PATH}>
           Volver al inventario
-        </Link>
+        </BackLink>
         <div className={styles.titles}>
           <p className={screenStyles.eyebrow}>INVENTARIO</p>
           <h1 className={screenStyles.title}>{title}</h1>

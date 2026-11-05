@@ -48,7 +48,6 @@ type Props = {
   // Photos the vehicle already has (edit); empty on create.
   initialPhotos: FotoVehiculo[]
   isEditing?: boolean
-  createWizard?: boolean
   submitLabel: string
   // Saves the vehicle. A rejection stays in the form: 422 as field errors, anything else as a message; on success the caller leaves the screen.
   onSubmit: (submission: VehicleSubmission) => Promise<void>
@@ -61,8 +60,8 @@ function focusField(name: VehicleErrorKey) {
   document.getElementById(fieldId(name))?.focus()
 }
 
-// Shared by loading and editing a vehicle (Figma 38:923 / 2119:1841): fields on the left, photos on the right, actions below.
-export default function VehicleForm({ title, subtitle, initialValues, initialPhotos, isEditing = false, createWizard = false, submitLabel, onSubmit }: Props) {
+// Shared by create and edit routes (Figma 38:923 / 2119:1841); both use the same stepped flow.
+export default function VehicleForm({ title, subtitle, initialValues, initialPhotos, isEditing = false, submitLabel, onSubmit }: Props) {
   const formId = useId()
   const [catalog, setCatalog] = useState<CatalogState>('loading')
   const [values, setValues] = useState(initialValues)
@@ -126,12 +125,8 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
     const first = firstInvalidField(found)
     if (first) {
       setFormError(`No se guardó el vehículo. ${found[first]?.join(' ')}`)
-      if (createWizard) {
-        pendingFocus.current = { field: first }
-        setStep(vehicleStepForError(first))
-      } else {
-        focusField(first)
-      }
+      pendingFocus.current = { field: first }
+      setStep(vehicleStepForError(first))
     }
     return first !== undefined
   }
@@ -157,7 +152,7 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (createWizard && step < VEHICLE_FORM_STEPS.length - 1) {
+    if (step < VEHICLE_FORM_STEPS.length - 1) {
       handleNext()
       return
     }
@@ -198,13 +193,14 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
     )
   }
 
-  const text = (name: VehicleFieldName, label: string, inputMode?: 'numeric' | 'decimal') => (
+  const text = (name: VehicleFieldName, label: string, inputMode?: 'numeric' | 'decimal', placeholder?: string) => (
     <TextField
       id={fieldId(name)}
       name={name}
       label={label}
       autoComplete="off"
       inputMode={inputMode}
+      placeholder={placeholder}
       value={values[name]}
       errors={errors[name]}
       onChange={handleChange(name)}
@@ -214,21 +210,12 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
   const actions = (
     <div className={styles.actionArea}>
       {formError ? <p role="alert" className={alertStyles.alert}>{formError}</p> : null}
-      {createWizard ? (
-        <div className={barStyles.actions}>
-          {step === 0 ? <ButtonLink to={INVENTORY_PATH} variant="danger" className={barStyles.action}>CANCELAR</ButtonLink> : <Button type="button" variant="secondary" className={barStyles.action} onClick={handlePrevious}>ANTERIOR</Button>}
-          <Button type="submit" form={formId} disabled={submitting} aria-busy={submitting} variant="primary" className={barStyles.actionWide}>
-            {step === VEHICLE_FORM_STEPS.length - 1 ? (submitting ? 'GUARDANDO…' : submitLabel) : 'SIGUIENTE'}
-          </Button>
-        </div>
-      ) : (
-        <div className={barStyles.actions}>
-          <ButtonLink to={INVENTORY_PATH} variant="danger" className={`${barStyles.action}`}>CANCELAR</ButtonLink>
-          <Button type="submit" form={formId} disabled={submitting} aria-busy={submitting} variant="success" className={`${barStyles.actionWide}`}>
-            {submitting ? 'GUARDANDO…' : submitLabel}
-          </Button>
-        </div>
-      )}
+      <div className={barStyles.actions}>
+        {step === 0 ? <ButtonLink to={INVENTORY_PATH} variant="danger" className={barStyles.action}>CANCELAR</ButtonLink> : <Button type="button" variant="secondary" className={barStyles.action} onClick={handlePrevious}>ANTERIOR</Button>}
+        <Button type="submit" form={formId} disabled={submitting} aria-busy={submitting} variant="primary" className={barStyles.actionWide}>
+          {step < VEHICLE_FORM_STEPS.length - 1 ? 'SIGUIENTE' : (submitting ? 'GUARDANDO…' : submitLabel)}
+        </Button>
+      </div>
     </div>
   )
 
@@ -245,29 +232,30 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
   )
 
   const entries = catalog.identities?.entries ?? []
-  const visible = (target: number) => !createWizard || step === target
+  const visible = (target: number) => step === target
   const identity = (name: 'marca' | 'modelo' | 'version', label: string) => {
     const filtered = entries.filter((entry) => name === 'marca' || (entry.marca === values.marca && (name === 'modelo' || entry.modelo === values.modelo)))
+    const options = [...new Set(filtered.map((entry) => entry[name]))]
+    if (isEditing && initialValues.acara_version_id && values[name] && !options.includes(values[name])) options.push(values[name])
     return <CatalogField id={fieldId(name)} name={name} label={label} value={values[name]}
-      options={[...new Set(filtered.map((entry) => entry[name]))]} errors={errors[name]} onChange={handleChange(name)} />
+      options={options} errors={errors[name]} onChange={handleChange(name)} />
   }
 
   return (
-    <VehicleFormPage title={title} subtitle={subtitle} actions={actions} beforeForm={createWizard ? <FormProgress ariaLabel="Carga de vehículo" labels={VEHICLE_FORM_STEPS.map(({ title: label }) => label)} step={step} /> : null}>
+    <VehicleFormPage title={title} subtitle={subtitle} actions={actions} beforeForm={<FormProgress ariaLabel="Carga de vehículo" labels={VEHICLE_FORM_STEPS.map(({ title: label }) => label)} step={step} />}>
       <form id={formId} noValidate onSubmit={(event) => void handleSubmit(event)} className={styles.form}>
-        <section className={createWizard ? styles.wizardPanel : undefined} key={createWizard ? step : 'full-form'}>
-          {createWizard ? <><h2 ref={stepHeading} tabIndex={-1} className={styles.wizardHeading}>{VEHICLE_FORM_STEPS[step].title}</h2><p className={styles.stepDescription}>{VEHICLE_FORM_STEPS[step].description}</p></> : null}
+        <section className={styles.wizardPanel} key={step}>
+          <h2 ref={stepHeading} tabIndex={-1} className={styles.wizardHeading}>{VEHICLE_FORM_STEPS[step].title}</h2><p className={styles.stepDescription}>{VEHICLE_FORM_STEPS[step].description}</p>
           <div className={styles.body}>
-            {!(createWizard && step === VEHICLE_FORM_STEPS.length - 1) ? <div className={styles.fields}>
+            {step < VEHICLE_FORM_STEPS.length - 1 ? <div className={styles.fields}>
               {visible(0) ? <>
-                {!createWizard ? <h2 className={styles.sectionTitle}>Datos del vehículo</h2> : null}
                 <div className={styles.fullRow}>
                   <p>Buscá y elegí la marca, el modelo y la versión del catálogo.</p>
                   {!catalog.identities ? <p className={alertStyles.alert}>El catálogo no está disponible. Podés guardar cambios de vehículos vinculados, pero no vincular una versión nueva. <Button type="button" onClick={retry}>REINTENTAR</Button></p> : null}
                   {catalog.identities?.stale ? <p>Usamos el último catálogo disponible. Sus precios pueden estar desactualizados.</p> : null}
                   {isEditing && !initialValues.acara_version_id ? <p>Este vehículo no está vinculado al catálogo. Elegí una versión del catálogo para guardar cambios.</p> : null}
                 </div>
-                {text('patente', 'Patente')}
+                {text('patente', 'Patente', undefined, 'Ej.: AB123CD o ABC123')}
                 {identity('marca', 'Marca')}
                 {identity('modelo', 'Modelo')}
                 {identity('version', 'Versión')}
@@ -276,27 +264,19 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
               {visible(1) ? <>
                 {text('kilometraje', 'Kilometraje', 'numeric')}
                 {text('precio', 'Precio', 'decimal')}
-                {createWizard ? <>
-                  {choice('moneda', 'Moneda del precio', [{ value: 'ARS', label: 'Pesos (ARS)' }, { value: 'USD', label: 'Dólares (USD)' }])}
-                  {text('ubicacion', 'Ubicación')}
-                  <div className={styles.fullRow}><TextAreaField id={fieldId('descripcion')} name="descripcion" label="Descripción (opcional)" value={values.descripcion} errors={errors.descripcion} onChange={handleChange('descripcion')} /></div>
-                </> : null}
+                {choice('moneda', 'Moneda del precio', [{ value: 'ARS', label: 'Pesos (ARS)' }, { value: 'USD', label: 'Dólares (USD)' }])}
+                {text('ubicacion', 'Ubicación')}
+                <div className={styles.fullRow}><TextAreaField id={fieldId('descripcion')} name="descripcion" label="Descripción (opcional)" value={values.descripcion} errors={errors.descripcion} onChange={handleChange('descripcion')} /></div>
               </> : null}
               {visible(2) ? <>
                 <SelectField id={fieldId('transmision')} name="transmision" label="Transmisión" value={values.transmision} options={TRANSMISION_OPTIONS} errors={errors.transmision} onChange={handleChange('transmision')} />
                 <SelectField id={fieldId('combustible')} name="combustible" label="Combustible" value={values.combustible} options={COMBUSTIBLE_OPTIONS} errors={errors.combustible} onChange={handleChange('combustible')} />
                 <SelectField id={fieldId('carroceria_id')} name="carroceria_id" label="Carrocería" value={values.carroceria_id} options={catalog.ready.map((bodyType) => ({ value: String(bodyType.id), label: bodyType.nombre }))} errors={errors.carroceria_id} onChange={handleChange('carroceria_id')} />
-                {!createWizard ? <>
-                  {text('ubicacion', 'Ubicación')}
-                  <div className={styles.fullRow}><TextAreaField id={fieldId('descripcion')} name="descripcion" label="Descripción (opcional)" value={values.descripcion} errors={errors.descripcion} onChange={handleChange('descripcion')} /></div>
-                  <h2 className={styles.sectionTitle}>Especificaciones</h2>
-                  {choice('moneda', 'Moneda del precio', [{ value: 'ARS', label: 'Pesos (ARS)' }, { value: 'USD', label: 'Dólares (USD)' }])}
-                </> : null}
                 {text('plazas', 'Plazas (incluye conductor)', 'numeric')}
                 {text('motor', 'Motor (ej. 1.8)')}
                 {choice('turbo', 'Turbo', YES_NO)}
                 {text('potencia', 'Potencia (CV)', 'numeric')}
-                {!createWizard ? <><h2 className={styles.sectionTitle}>Consumo</h2><p className={styles.fullRow}>Informá L/100 km. Obligatorio para nafta y diésel; opcional para los demás combustibles.</p></> : <p className={styles.fullRow}>Informá L/100 km. Obligatorio para nafta y diésel; opcional para los demás combustibles.</p>}
+                <p className={styles.fullRow}>Informá L/100 km. Obligatorio para nafta y diésel; opcional para los demás combustibles.</p>
                 {text('consumo_urbano', 'Consumo urbano (L/100 km)', 'decimal')}
                 {text('consumo_ruta', 'Consumo en ruta (L/100 km)', 'decimal')}
               </> : null}
@@ -310,7 +290,7 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
                 ))}
               </> : null}
             </div> : null}
-            {visible(4) || !createWizard ? <PhotoPicker draft={draft} errors={errors.fotos} /> : null}
+            {visible(4) ? <PhotoPicker draft={draft} errors={errors.fotos} /> : null}
           </div>
         </section>
         {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
