@@ -66,7 +66,12 @@ vi.mock('../../features/admin/api/client', () => ({
 vi.mock('../../features/recommendations/api/matching', () => ({ fetchRecommendations: vi.fn() }))
 vi.mock('../../features/recommendations/api/portalModels', () => ({ fetchPortalModels: vi.fn() }))
 
-vi.mock('../../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
+vi.mock('../../features/subscription/api/client', () => ({
+  fetchSubscription: vi.fn(),
+  sendReceipt: vi.fn(),
+  fetchReceipts: vi.fn().mockResolvedValue([]),
+  fetchReceiptFile: vi.fn(),
+}))
 
 vi.mock('../../features/transfer/api/client', () => ({
   fetchTransfer: vi.fn(),

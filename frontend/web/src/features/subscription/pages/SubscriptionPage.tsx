@@ -1,9 +1,9 @@
 import Button from '../../../components/Buttons/Button'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
+import Dialog from '../../../components/Dialog/Dialog'
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import alertStyles from '../../../styles/alert.module.css'
 import buttonStyles from '../../../components/Buttons/button.module.css'
-import barStyles from '../../../components/checklist/pinnedBar.module.css'
 import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
 import FlowLayout from '../../../components/FlowLayout/FlowLayout'
 import screenStyles from '../../../styles/screen.module.css'
@@ -14,21 +14,23 @@ import { formatDay, retentionReached } from '../../admin/model/format'
 import { accountStatusText } from '../../dealer/model/accountStatus'
 import { INVENTORY_PATH } from '../../inventory/model/inventoryRoutes'
 import { fetchSubscription, sendReceipt } from '../api/client'
+import ReceiptHistory from '../components/ReceiptHistory'
 import { formatMonthlyAmount, formatSentDate } from '../model/format'
 import { RECEIPT_ACCEPT, sendErrorMessage, validateReceipt } from '../model/receipt'
 import styles from './SubscriptionPage.module.css'
-import type { DatosTransferencia, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from '../model/types'
+import type { DatosTransferencia, EstadoComprobante, Suscripcion, UltimoComprobante, VigenciaSuscripcion } from '../model/types'
 
-function reviewText(pending: boolean, rejected: boolean): string {
-  if (pending) return 'Tu comprobante está en revisión.'
-  if (rejected) return 'Tu comprobante fue rechazado. Podés enviar uno nuevo.'
+function reviewText(state: EstadoComprobante | undefined): string {
+  if (state === 'pendiente de revisión') return 'Tu comprobante está en revisión.'
+  if (state === 'rechazado') return 'Tu comprobante fue rechazado. Podés enviar uno nuevo.'
+  if (state === 'aprobado') return 'Tu último comprobante fue aprobado.'
   return 'La administración aprueba o rechaza el comprobante.'
 }
 
 type LoadState = 'loading' | { ready: Suscripcion } | { error: ErrorKind }
 type Message = { kind: 'error' | 'success'; text: string }
 
-const NO_TRANSFER_DATA = 'Los datos de transferencia no están disponibles por el momento. Probá más tarde.'
+const NO_TRANSFER_DATA = 'Los datos para pagar todavía no están configurados. Contactá a la administración para que los complete; hasta entonces no podés enviar un comprobante.'
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   const titleId = useId()
@@ -118,6 +120,8 @@ export default function SubscriptionPage() {
   const [load, setLoad] = useState<LoadState>('loading')
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [animatePayment, setAnimatePayment] = useState(true)
   const [message, setMessage] = useState<Message | null>(null)
   const messageRef = useRef<HTMLParagraphElement>(null)
 
@@ -182,65 +186,68 @@ export default function SubscriptionPage() {
   const kind = summary.tipo_pago === 'alta' ? 'Pago de alta inicial' : 'Renovación mensual'
   const receiptText = receipt
     ? `${receipt.nombre_archivo} · enviado el ${formatSentDate(receipt.enviado_en)}`
-    : (file?.name ?? 'Todavía no seleccionaste un comprobante.')
+    : (file?.name ?? (summary.ultimo_comprobante?.estado === 'aprobado'
+      ? 'Tu último comprobante está guardado en el historial.' : 'Todavía no seleccionaste un comprobante.'))
 
   const showSend = !receipt
   const showInventory = summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva'
   const actions =
-    showSend || showInventory ? (
-      <div className={`${barStyles.actions} ${styles.actions}`}>
-        {showSend ? (
-          <>
-            <label className={`${buttonStyles.button} ${buttonStyles.secondary} ${barStyles.actionWide} ${styles.pick}`}>
-              SELECCIONAR COMPROBANTE
-              <input
-                type="file"
-                accept={RECEIPT_ACCEPT}
-                className={styles.fileInput}
-                disabled={submitting}
-                onChange={(event) => {
-                  const picked = event.target.files?.[0]
-                  // The same file can be picked again after a failure.
-                  event.target.value = ''
-                  if (!picked) return
-                  setFile(picked)
-                  setMessage(null)
-                }}
-              />
-            </label>
-            <Button
-              type="button"
-              variant="primary" className={`${barStyles.actionWide}`}
-              disabled={submitting || !summary.transferencia}
-              aria-busy={submitting}
-              onClick={() => void handleSend()}
-            >
-              ENVIAR COMPROBANTE
-            </Button>
-          </>
-        ) : null}
-        {showInventory ? (
-          <ButtonLink to={INVENTORY_PATH} variant="secondary" className={`${barStyles.action}`}>
-            VER INVENTARIO
-          </ButtonLink>
-        ) : null}
+    showSend ? (
+      <div className={styles.actions}>
+        <label className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.pick}`}>
+          SELECCIONAR COMPROBANTE
+          <input
+            type="file"
+            accept={RECEIPT_ACCEPT}
+            className={styles.fileInput}
+            disabled={submitting}
+            onChange={(event) => {
+              const picked = event.target.files?.[0]
+              // The same file can be picked again after a failure.
+              event.target.value = ''
+              if (!picked) return
+              setFile(picked)
+              setMessage(null)
+            }}
+          />
+        </label>
+        <Button
+          type="button"
+          variant="primary" className={styles.send}
+          disabled={submitting || !summary.transferencia}
+          aria-busy={submitting}
+          onClick={() => void handleSend()}
+        >
+          ENVIAR COMPROBANTE
+        </Button>
       </div>
     ) : null
 
   return (
-    <FlowLayout actions={actions}>
+    <FlowLayout actions={null}>
       <div className={styles.header}>
-        <p className={screenStyles.eyebrow}>SUSCRIPCIÓN</p>
-        <h1 className={screenStyles.title}>Suscripción y comprobantes</h1>
-        <p className={styles.subtitle}>Transferencia bancaria para el alta inicial y la renovación mensual.</p>
+        <div>
+          <h1 className={screenStyles.title}>Suscripción y comprobantes</h1>
+          <p className={styles.subtitle}>Transferencia bancaria para el alta inicial y la renovación mensual.</p>
+        </div>
+        <div className={styles.headerActions}>
+          {showInventory ? <ButtonLink to={INVENTORY_PATH} variant="secondary" className={styles.inventory}>VER INVENTARIO</ButtonLink> : null}
+          <Button type="button" className={styles.send} disabled={Boolean(receipt)}
+            onClick={(event) => { setAnimatePayment(event.detail > 0); setPaymentOpen(true) }}>
+            REALIZAR TRANSFERENCIA
+          </Button>
+        </div>
       </div>
       <ValidityNotice validity={validity} />
       {rejected ? <RejectedNotice receipt={rejected} /> : null}
       <div className={styles.cards}>
         <Card title="Estado de la cuenta">
-          <Body accent success={summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva'}>
-            {validity.estado === 'inactiva' ? 'Inactiva · suscripción vencida' : accountStatusText(summary.estado_alta)}
-          </Body>
+          <div className={styles.accountSummary}>
+            {summary.transferencia ? <p className={styles.amount}>{formatMonthlyAmount(summary.transferencia.monto_mensual)}<span> / mes</span></p> : null}
+            <Body accent success={summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva'}>
+              {validity.estado === 'inactiva' ? 'Inactiva · suscripción vencida' : accountStatusText(summary.estado_alta)}
+            </Body>
+          </div>
           {validity.estado === 'activa' && validity.vigente_hasta ? (
             <Body>{`Suscripción vigente hasta el ${formatDay(validity.vigente_hasta)}`}</Body>
           ) : null}
@@ -249,28 +256,47 @@ export default function SubscriptionPage() {
           <Body>{receiptText}</Body>
         </Card>
         <Card title="Revisión">
-          <Body>{reviewText(Boolean(receipt), rejected !== null)}</Body>
+          <Body success={summary.ultimo_comprobante?.estado === 'aprobado' && !receipt}>
+            {reviewText(receipt ? 'pendiente de revisión' : summary.ultimo_comprobante?.estado)}
+          </Body>
+          {receipt ? <Body>La administración tiene que aprobarlo o rechazarlo. Mientras tanto, no hace falta enviar otro.</Body> : null}
         </Card>
       </div>
-      <Card title="Datos para la transferencia">
-        <TransferData data={summary.transferencia} kind={kind} />
-      </Card>
-      <Card title="Renovación y recuperación">
-        <Body>
-          Tras vencer el pago: 3 días plenamente operativos; después, inventario oculto durante 30 días. Al aprobar la renovación
-          dentro de la retención, tus vehículos se publican de nuevo automáticamente; pasados los 30 días se eliminan definitivamente.
-        </Body>
-      </Card>
-      {message ? (
-        <p
-          ref={messageRef}
-          tabIndex={-1}
-          role={message.kind === 'error' ? 'alert' : 'status'}
-          className={`${message.kind === 'error' ? alertStyles.alert : alertStyles.notice} ${styles.message}`}
-        >
-          {message.text}
-        </p>
-      ) : null}
+      <ReceiptHistory revision={summary.comprobante_pendiente?.id ?? summary.ultimo_comprobante?.id ?? null} />
+      <Dialog open={paymentOpen} title="Realizar transferencia" busy={submitting} animate={animatePayment}
+        onClose={() => setPaymentOpen(false)}>
+        <p className={styles.modalHint}>Podés renovar antes del vencimiento. La administración revisa el comprobante antes de aplicar el nuevo período.</p>
+        <div className={styles.payment}>
+          <section aria-labelledby="transfer-heading" className={styles.transfer}>
+            <h2 id="transfer-heading" className={styles.cardTitle}>Datos para la transferencia</h2>
+            <TransferData data={summary.transferencia} kind={kind} />
+          </section>
+          <section aria-labelledby="upload-heading" className={styles.upload}>
+            <h2 id="upload-heading" className={styles.cardTitle}>Adjuntar comprobante</h2>
+            <Body>{receiptText}</Body>
+            <Body>Adjuntá el comprobante de tu transferencia en PDF, JPG o PNG, de hasta 5 MB.</Body>
+            {actions}
+            {!summary.transferencia && !receipt ? <Body>El envío se habilita cuando la administración completa los datos para pagar.</Body> : null}
+            {message ? (
+              <p
+                ref={messageRef}
+                tabIndex={-1}
+                role={message.kind === 'error' ? 'alert' : 'status'}
+                className={`${message.kind === 'error' ? alertStyles.alert : alertStyles.notice} ${styles.message}`}
+              >
+                {message.text}
+              </p>
+            ) : null}
+          </section>
+        </div>
+        <section aria-labelledby="renewal-heading" className={styles.renewal}>
+          <h2 id="renewal-heading" className={styles.cardTitle}>Renovación y recuperación</h2>
+          <Body>
+            Tras vencer el pago: 3 días plenamente operativos; después, inventario oculto durante 30 días. Al aprobar la renovación
+            dentro de la retención, tus vehículos se publican de nuevo automáticamente; pasados los 30 días se eliminan definitivamente.
+          </Body>
+        </section>
+      </Dialog>
     </FlowLayout>
   )
 }

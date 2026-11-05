@@ -1,25 +1,27 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../lib/http'
-import { fetchSubscription, sendReceipt } from '../../../features/subscription/api/client'
+import { fetchReceipts, fetchSubscription, sendReceipt } from '../../../features/subscription/api/client'
 import { TRANSFERENCIA, comprobantePendiente, comprobanteRechazado, suscripcion, vigencia } from '../../fixtures/subscription/fixtures'
 import SubscriptionPage from '../../../features/subscription/pages/SubscriptionPage'
 
-vi.mock('../../../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn() }))
+vi.mock('../../../features/subscription/api/client', () => ({ fetchSubscription: vi.fn(), sendReceipt: vi.fn(), fetchReceipts: vi.fn(), fetchReceiptFile: vi.fn() }))
 
 const SELECT = 'SELECCIONAR COMPROBANTE'
 const SEND = 'ENVIAR COMPROBANTE'
 const pdf = () => new File(['x'], 'pago-octubre.pdf', { type: 'application/pdf' })
 
-async function loaded() {
+async function loaded(openPayment = true) {
   render(
     <MemoryRouter>
       <SubscriptionPage />
     </MemoryRouter>,
   )
   await screen.findByRole('heading', { level: 1, name: 'Suscripción y comprobantes' })
+  const trigger = screen.queryByRole('button', { name: 'REALIZAR TRANSFERENCIA' })
+  if (openPayment && trigger && !trigger.hasAttribute('disabled')) await userEvent.setup().click(trigger)
 }
 
 const card = (name: string) => within(screen.getByRole('region', { name }))
@@ -28,24 +30,67 @@ const pending = suscripcion({ comprobante_pendiente: comprobantePendiente() })
 
 describe('SubscriptionPage', () => {
   beforeEach(() => {
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: { configurable: true, value: vi.fn(function (this: HTMLDialogElement) { this.setAttribute('open', '') }) },
+      close: { configurable: true, value: vi.fn(function (this: HTMLDialogElement) { this.removeAttribute('open') }) },
+    })
     vi.mocked(fetchSubscription).mockReset()
     vi.mocked(sendReceipt).mockReset()
     vi.mocked(fetchSubscription).mockResolvedValue(suscripcion())
+    vi.mocked(fetchReceipts).mockResolvedValue([])
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 9, 15, 12))
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
-  describe('pinned actions', () => {
-    it('keeps the receipt buttons in the bar pinned to the bottom of the screen', async () => {
-      await loaded()
+  describe('payment dialog', () => {
+    it('opens the transfer data and receipt actions in a dialog instead of a pinned bar', async () => {
+      await loaded(false)
 
-      const bar = screen.getByRole('group', { name: 'Acciones' })
-      expect(within(bar).getByText(SELECT)).toBeInTheDocument()
-      expect(within(bar).getByRole('button', { name: SEND })).toBeInTheDocument()
+      expect(screen.queryByRole('group', { name: 'Acciones' })).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(SELECT)).not.toBeVisible()
+      await userEvent.setup().click(screen.getByRole('button', { name: 'REALIZAR TRANSFERENCIA' }))
+      const modal = within(screen.getByRole('dialog', { name: 'Realizar transferencia' }))
+      expect(modal.getByRole('region', { name: 'Datos para la transferencia' })).toBeInTheDocument()
+      expect(modal.getByRole('button', { name: SEND })).toBeInTheDocument()
+    })
+
+    it('keeps the selected file when closing and reopening the dialog', async () => {
+      await loaded()
+      const user = userEvent.setup()
+      await user.upload(screen.getByLabelText(SELECT), pdf())
+      screen.getByRole('dialog').scrollTop = 300
+      await user.click(screen.getByRole('button', { name: 'CERRAR' }))
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(document.body.style.overflow).toBe('')
+      await user.click(screen.getByRole('button', { name: 'REALIZAR TRANSFERENCIA' }))
+      expect(within(screen.getByRole('dialog')).getByText('pago-octubre.pdf')).toBeInTheDocument()
+      expect(screen.getByRole('dialog').scrollTop).toBe(0)
+    })
+
+    it('closes with Escape and skips motion for keyboard activation', async () => {
+      await loaded(false)
+      const user = userEvent.setup()
+      screen.getByRole('button', { name: 'REALIZAR TRANSFERENCIA' }).focus()
+      await user.keyboard('{Enter}')
+      const dialog = screen.getByRole('dialog')
+      expect(dialog).toHaveAttribute('data-motion', 'none')
+      fireEvent(dialog, new Event('cancel', { bubbles: true, cancelable: true }))
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('wraps Tab in both directions between the first and last modal controls', async () => {
+      await loaded()
+      const close = screen.getByRole('button', { name: 'CERRAR' })
+      sendButton().focus()
+      fireEvent.keyDown(sendButton(), { key: 'Tab', code: 'Tab' })
+      expect(close).toHaveFocus()
+      fireEvent.keyDown(close, { key: 'Tab', code: 'Tab', shiftKey: true })
+      expect(sendButton()).toHaveFocus()
     })
   })
 
@@ -85,7 +130,6 @@ describe('SubscriptionPage', () => {
     it('renders the header and the renewal card', async () => {
       await loaded()
 
-      expect(screen.getByText('SUSCRIPCIÓN')).toBeInTheDocument()
       expect(screen.getByText('Transferencia bancaria para el alta inicial y la renovación mensual.')).toBeInTheDocument()
       expect(card('Renovación y recuperación').getByText(/^Tras vencer el pago: 3 días plenamente operativos/)).toBeInTheDocument()
     })
@@ -149,6 +193,8 @@ describe('SubscriptionPage', () => {
       )
       await loaded()
       expect(screen.queryByRole('region', { name: 'Tu comprobante fue rechazado' })).not.toBeInTheDocument()
+      expect(card('Revisión').getByText('Tu último comprobante fue aprobado.')).toBeInTheDocument()
+      expect(card('Comprobante').queryByText('Todavía no seleccionaste un comprobante.')).not.toBeInTheDocument()
     })
 
     it('shows the name of the selected file before it is sent', async () => {
@@ -184,17 +230,13 @@ describe('SubscriptionPage', () => {
       }
     })
 
-    it('sits between the three cards and the renewal card', async () => {
+    it('keeps the overview and history on the page and payment data inside the dialog', async () => {
       await loaded()
 
-      const titles = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
-      expect(titles).toEqual([
-        'Estado de la cuenta',
-        'Comprobante',
-        'Revisión',
-        'Datos para la transferencia',
-        'Renovación y recuperación',
-      ])
+      const dialog = screen.getByRole('dialog', { name: 'Realizar transferencia' })
+      expect(within(dialog).getByRole('region', { name: 'Datos para la transferencia' })).toBeInTheDocument()
+      expect(dialog).not.toContainElement(screen.getByRole('region', { name: 'Historial de comprobantes' }))
+      expect(dialog).not.toContainElement(screen.getByRole('region', { name: 'Estado de la cuenta' }))
     })
 
     it('says the data are not available and disables sending when they are not configured', async () => {
@@ -202,7 +244,7 @@ describe('SubscriptionPage', () => {
       await loaded()
 
       const data = card('Datos para la transferencia')
-      expect(data.getByText('Los datos de transferencia no están disponibles por el momento. Probá más tarde.')).toBeInTheDocument()
+      expect(data.getByText(/Los datos para pagar todavía no están configurados/)).toBeInTheDocument()
       expect(data.queryByText('Titular')).not.toBeInTheDocument()
       expect(sendButton()).toBeDisabled()
     })
@@ -330,6 +372,8 @@ describe('SubscriptionPage', () => {
       expect(alert).toHaveTextContent('Adjuntá el comprobante.')
       expect(alert).toHaveFocus()
       expect(sendReceipt).not.toHaveBeenCalled()
+      fireEvent.keyDown(alert, { key: 'Tab', code: 'Tab' })
+      expect(screen.getByRole('button', { name: 'CERRAR' })).toHaveFocus()
     })
 
     it('TC-48: an unsupported file is rejected with the invalid-format message and not sent', async () => {
