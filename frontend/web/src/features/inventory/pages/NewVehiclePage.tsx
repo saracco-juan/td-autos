@@ -14,6 +14,7 @@ export default function NewVehiclePage() {
       subtitle="La patente debe ser única en toda la plataforma. Subí al menos 7 fotos del vehículo."
       initialValues={emptyValues()}
       initialPhotos={[]}
+      createWizard
       submitLabel="GUARDAR VEHÍCULO"
       onSubmit={async (submission) => {
         await createVehicle(submission)

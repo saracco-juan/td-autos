@@ -9,12 +9,13 @@ type Props = {
   title: string
   subtitle: string
   children: ReactNode
+  beforeForm?: ReactNode
   // Buttons of the screen, pinned to the bottom of the content area.
   actions?: ReactNode
 }
 
 // Frame of the load and edit screens (Figma 38:923 / 2119:1841): back link, eyebrow, title and subtitle, then the form.
-export default function VehicleFormPage({ title, subtitle, children, actions = null }: Props) {
+export default function VehicleFormPage({ title, subtitle, children, actions = null, beforeForm = null }: Props) {
   return (
     <FlowLayout actions={actions}>
       <div className={styles.header}>
@@ -32,6 +33,7 @@ export default function VehicleFormPage({ title, subtitle, children, actions = n
           <p className={styles.subtitle}>{subtitle}</p>
         </div>
       </div>
+      {beforeForm}
       {children}
     </FlowLayout>
   )
