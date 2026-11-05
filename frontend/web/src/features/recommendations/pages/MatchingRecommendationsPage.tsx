@@ -7,7 +7,7 @@ import { emptyStateCopy, exchangeRateNotice, vehicleCount, recommendationTitle }
 import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
 import alertStyles from '../../../styles/alert.module.css'
 import ErrorState from '../../../components/ErrorState/ErrorState'
-import Pagination from '../../../components/Pagination/Pagination'
+import ResultsPagination from '../../../components/Pagination/ResultsPagination'
 import Tabs from '../../../components/Tabs/Tabs'
 import SessionLoading from '../../auth/session/components/SessionLoading'
 import ComparisonControls from '../../comparison/components/ComparisonControls'
@@ -98,10 +98,7 @@ export default function MatchingRecommendationsPage() {
             ))}
           </ul>
           {results.length > PER_PAGE ? (
-            <div className={styles.pager}>
-              <span>Página {page} de {Math.ceil(results.length / PER_PAGE)}</span>
-              <Pagination page={page} lastPage={Math.ceil(results.length / PER_PAGE)} onChange={setPage} />
-            </div>
+            <ResultsPagination page={page} lastPage={Math.ceil(results.length / PER_PAGE)} onChange={setPage} />
           ) : null}
         </>
       ) : null}
