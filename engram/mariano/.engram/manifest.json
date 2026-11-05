@@ -528,6 +528,14 @@
       "sessions": 3,
       "memories": 30,
       "prompts": 19
+    },
+    {
+      "id": "d581dddc",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T20:07:54.8341773Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 1
     }
   ]
 }
