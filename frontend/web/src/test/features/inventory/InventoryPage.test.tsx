@@ -1,13 +1,15 @@
-import { fireEvent, act, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../lib/http'
-import { deleteVehicle, fetchVehicles } from '../../../features/inventory/api/client'
+import { confirmImport, deleteVehicle, fetchVehicles, previewImport } from '../../../features/inventory/api/client'
 import { PAUSED_HINT, PAUSED_TEXT, VEHICULOS, inactiveBody, vehiculo } from '../../fixtures/inventory/fixtures'
 import InventoryPage from '../../../features/inventory/pages/InventoryPage'
 
-vi.mock('../../../features/inventory/api/client', () => ({ fetchVehicles: vi.fn(), deleteVehicle: vi.fn() }))
+vi.mock('../../../features/inventory/api/client', () => ({
+  fetchVehicles: vi.fn(), deleteVehicle: vi.fn(), previewImport: vi.fn(), confirmImport: vi.fn(), fetchInventoryTemplate: vi.fn(),
+}))
 
 const COROLLA = 'Toyota Corolla XEI 2021'
 const CRONOS = 'Fiat Cronos Drive 2022'
@@ -33,6 +35,12 @@ describe('InventoryPage', () => {
     vi.mocked(fetchVehicles).mockReset()
     vi.mocked(deleteVehicle).mockReset()
     vi.mocked(fetchVehicles).mockResolvedValue(VEHICULOS)
+    vi.mocked(previewImport).mockReset()
+    vi.mocked(confirmImport).mockReset()
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: { configurable: true, value: function (this: HTMLDialogElement) { this.setAttribute('open', '') } },
+      close: { configurable: true, value: function (this: HTMLDialogElement) { this.removeAttribute('open') } },
+    })
   })
 
   it('shows a section loader while the vehicles load', () => {
@@ -43,20 +51,16 @@ describe('InventoryPage', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
-  it('renders the header, the automatic inclusion card and the load action of Figma 38:884', async () => {
+  it('renders the header, template download and the load action of Figma 38:884', async () => {
     await loaded()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Inventario' })).toBeInTheDocument()
     expect(screen.getByText('INVENTARIO')).toBeInTheDocument()
     expect(screen.getByText('Activa · funciones habilitadas')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 2, name: 'Inclusión automática' })).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Las unidades guardadas participan directamente en búsquedas y recomendaciones. No hay publicación manual, pausa ni archivo de vigencia.',
-      ),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' })).toBeInTheDocument()
+    expect(screen.queryByText(/Las unidades guardadas participan directamente/)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveAttribute('href', '/concesionaria/inventario/nuevo')
-    expect(screen.getByRole('link', { name: 'IMPORTAR XLSX' })).toHaveAttribute('href', '/concesionaria/inventario/importar')
+    expect(screen.getByRole('button', { name: 'IMPORTAR XLSX' })).toBeInTheDocument()
   })
 
   it('S3: does not render SUSCRIPCIÓN, whose screen does not exist yet', async () => {
@@ -77,7 +81,7 @@ describe('InventoryPage', () => {
     expect(screen.getByText(PAUSED_HINT)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
     expect(screen.queryByRole('link', { name: 'CARGAR VEHÍCULO' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'IMPORTAR XLSX' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'IMPORTAR XLSX' })).not.toBeInTheDocument()
     expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
   })
@@ -133,6 +137,42 @@ describe('InventoryPage', () => {
     expect(screen.queryByText('Todavía no cargaste vehículos.')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Limpiar búsqueda' }))
     expect(screen.getByRole('row', { name: COROLLA })).toBeInTheDocument()
+  })
+
+  it('opens the import dialog, refreshes the list, and preserves the search after confirmation', async () => {
+    vi.mocked(previewImport).mockResolvedValue({ nuevos: 1, actualizaciones: 0 })
+    vi.mocked(confirmImport).mockResolvedValue({ nuevos: 1, actualizaciones: 0 })
+    const user = userEvent.setup()
+    await loaded()
+    const search = screen.getByRole('searchbox', { name: 'Buscar vehículos' })
+    await user.type(search, 'Toyota')
+
+    await user.click(screen.getByRole('button', { name: 'IMPORTAR XLSX' }))
+    const dialog = screen.getByRole('dialog', { name: 'Importar XLSX' })
+    await user.upload(within(dialog).getByLabelText('Archivo XLSX'), new File(['workbook'], 'stock.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }))
+    await within(dialog).findByText(/1 vehículo nuevo · 0 actualizaciones/)
+    await user.click(within(dialog).getByRole('button', { name: 'CONFIRMAR IMPORTACIÓN' }))
+
+    await waitFor(() => expect(fetchVehicles).toHaveBeenCalledTimes(2))
+    expect(screen.queryByRole('dialog', { name: 'Importar XLSX' })).not.toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Buscar vehículos' })).toHaveValue('Toyota')
+    expect(screen.getByRole('row', { name: COROLLA })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Importación aplicada: 1 vehículo nuevo.')
+  })
+
+  it('places the full-width vehicle search immediately before the inventory table area and offers the XLSX template above it', async () => {
+    await loaded()
+
+    const search = screen.getByRole('searchbox', { name: 'Buscar vehículos' })
+    const table = screen.getByRole('table', { name: 'Inventario' })
+    const download = screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' })
+
+    expect(search.parentElement?.nextElementSibling).toBe(table.closest('[data-scroll-frame]'))
+    expect(download.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByText('Inclusión automática')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Las unidades guardadas participan directamente/)).not.toBeInTheDocument()
   })
 
   it.each([
@@ -333,7 +373,7 @@ describe('InventoryPage save notice', () => {
       await screen.findByRole('table')
 
       const load = screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })
-      const importCsv = screen.getByRole('link', { name: 'IMPORTAR XLSX' })
+      const importCsv = screen.getByRole('button', { name: 'IMPORTAR XLSX' })
       const pager = screen.getByRole('navigation', { name: 'Paginación' })
       const resultsPager = pager.parentElement?.parentElement
       expect(load.parentElement).toBe(importCsv.parentElement)

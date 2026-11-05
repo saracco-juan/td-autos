@@ -1,6 +1,5 @@
 import Button from '../../../components/Buttons/Button'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
-import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import alertStyles from "../../../styles/alert.module.css";
@@ -23,8 +22,11 @@ import type { InventoryLocationState } from "../model/inventoryRoutes";
 import SubscriptionBlockedNotice from "../components/SubscriptionBlockedNotice";
 import type { Vehiculo } from "../model/types";
 import { searchInventory } from "../model/searchInventory";
+import DownloadInventoryTemplate from "../components/DownloadInventoryTemplate";
 import VehicleRow from "../components/VehicleRow";
 import rowStyles from "../components/VehicleRow.module.css";
+import { importFailureFrom, type ImportFailure } from "../model/importErrors";
+import InventoryImportDialog from "../components/InventoryImportDialog";
 
 type LoadState =
   | "loading"
@@ -32,7 +34,7 @@ type LoadState =
   | { error: ErrorKind }
   | { blocked: InactiveSubscription };
 
-function PageHeader({ subtitle, search }: { subtitle: string; search?: ReactNode }) {
+function PageHeader({ subtitle }: { subtitle: string }) {
   return (
     <div className={styles.header}>
       <div className={styles.headerContent}>
@@ -40,7 +42,6 @@ function PageHeader({ subtitle, search }: { subtitle: string; search?: ReactNode
         <h1 className={screenStyles.title}>Inventario</h1>
         <p className={styles.subtitle}>{subtitle}</p>
       </div>
-      {search}
     </div>
   );
 }
@@ -64,6 +65,8 @@ export default function InventoryPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const pendingDelete = useRef(false);
   const [failedId, setFailedId] = useState<number | null>(null);
+  const [downloadFailure, setDownloadFailure] = useState<ImportFailure | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   // Success message of the last action: a save that brought the dealer here, or a delete done on this page.
@@ -174,7 +177,33 @@ export default function InventoryPage() {
     >
       <PageHeader
         subtitle="Activa · funciones habilitadas"
-        search={vehicles.length > 0 ? (
+      />
+      <DownloadInventoryTemplate
+        className={styles.download}
+        onStart={() => setDownloadFailure(null)}
+        onFailure={(error) => {
+          const blocked = inactiveSubscription(error);
+          if (blocked) setLoadState({ blocked });
+          else setDownloadFailure(importFailureFrom(error));
+        }}
+      />
+      {notice ? (
+        <p
+          ref={noticeRef}
+          tabIndex={-1}
+          role="status"
+          className={`${alertStyles.notice} ${styles.message}`}
+        >
+          {notice}
+        </p>
+      ) : null}
+      <div className={tableStyles.block}>
+        {downloadFailure ? (
+          <p role="alert" className={`${alertStyles.alert} ${styles.message}`}>
+            {downloadFailure.message}
+          </p>
+        ) : null}
+        {vehicles.length > 0 ? (
           <label className={styles.search}>
             <span>Buscar vehículos</span>
             <input
@@ -188,32 +217,7 @@ export default function InventoryPage() {
               }}
             />
           </label>
-        ) : undefined}
-      />
-      <section
-        className={styles.card}
-        aria-labelledby="inventory-inclusion-title"
-      >
-        <h2 id="inventory-inclusion-title" className={styles.cardTitle}>
-          Inclusión automática
-        </h2>
-        <p className={styles.cardBody}>
-          Las unidades guardadas participan directamente en búsquedas y
-          recomendaciones. No hay publicación manual, pausa ni archivo de
-          vigencia.
-        </p>
-      </section>
-      {notice ? (
-        <p
-          ref={noticeRef}
-          tabIndex={-1}
-          role="status"
-          className={`${alertStyles.notice} ${styles.message}`}
-        >
-          {notice}
-        </p>
-      ) : null}
-      <div className={tableStyles.block}>
+        ) : null}
         {vehicles.length === 0 ? (
           <p className={styles.empty}>Todavía no cargaste vehículos.</p>
         ) : filteredVehicles.length === 0 ? (
@@ -282,12 +286,14 @@ export default function InventoryPage() {
               >
                 CARGAR VEHÍCULO
               </ButtonLink>
-              <ButtonLink
-                to="/concesionaria/inventario/importar"
-                variant="secondary" className={`${styles.load}`}
+              <Button
+                type="button"
+                variant="secondary"
+                className={`${styles.load}`}
+                onClick={() => setImportOpen(true)}
               >
                 IMPORTAR XLSX
-              </ButtonLink>
+              </Button>
             </>
           }
         >
@@ -303,6 +309,14 @@ export default function InventoryPage() {
           ) : null}
         </ListFooter>
       </div>
+      <InventoryImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={(message) => {
+          setNotice(message)
+          loadList()
+        }}
+      />
     </div>
   );
 }

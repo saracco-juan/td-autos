@@ -15,30 +15,6 @@
   font-size: 14px;
 }
 
-/* Figma "Card" 2114:1725: same surface as the dealer status card, full width. */
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
-}
-
-.cardTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.cardBody {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 12px;
-}
-
 .empty {
   margin: 0;
   color: var(--text-secondary);
@@ -47,9 +23,9 @@
 
 .search {
   display: flex;
-  flex: 0 1 360px;
+  width: 100%;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   color: var(--text-secondary);
   font-size: 12px;
 }
@@ -57,10 +33,10 @@
 .search input {
   box-sizing: border-box;
   width: 100%;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 44px;
+  padding: 10px 16px;
   border: 1px solid var(--border-default);
-  border-radius: 10px;
+  border-radius: 14px;
   background: var(--surface-default);
   color: var(--text-primary);
   font: inherit;
@@ -89,6 +65,10 @@
   outline: none;
 }
 
+.download {
+  width: min(100%, 220px);
+}
+
 /* Sized by the label (a % width inside the shrink-to-fit footer made the two buttons stack). */
 .load {
   width: auto;
@@ -103,12 +83,7 @@
     flex-direction: column;
   }
 
-  .search {
-    flex-basis: auto;
-  }
-
   .search input {
-    min-height: 44px;
     font-size: 16px;
   }
 
