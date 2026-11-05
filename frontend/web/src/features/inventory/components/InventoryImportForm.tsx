@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import Button from '../../../components/Buttons/Button'
 import alertStyles from '../../../styles/alert.module.css'
-import buttonStyles from '../../../components/Buttons/button.module.css'
 import barStyles from '../../../components/checklist/pinnedBar.module.css'
 import ScrollArea from '../../../components/ScrollArea/ScrollArea'
 import { HttpError } from '../../../lib/http'
@@ -59,6 +58,7 @@ export default function InventoryImportForm({
   const [failure, setFailure] = useState<ImportFailure | null>(null)
   const [blocked, setBlocked] = useState<InactiveSubscription | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [dragging, setDragging] = useState(false)
   const failureRef = useRef<HTMLDivElement>(null)
   const currentFile = useRef<File | null>(null)
 
@@ -149,32 +149,35 @@ export default function InventoryImportForm({
 
   const content = (
     <>
-      <div className={styles.fileRow}>
-        <div className={styles.fileField}>
-          <span className={styles.fileLabel}>Archivo XLSX</span>
-          <span className={styles.fileName}>
-            {file?.name ?? "Ningún archivo seleccionado"}
-          </span>
-        </div>
-        <label
-          className={`${buttonStyles.button} ${buttonStyles.secondary} ${styles.pick}`}
-        >
-          SELECCIONAR ARCHIVO
-          <input
-            type="file"
-            aria-label="Archivo XLSX"
-            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            className={styles.fileInput}
-            disabled={confirming}
-            onChange={(event) => {
-              const picked = event.target.files?.[0];
-              // The same file can be picked again after fixing it.
-              event.target.value = "";
-              if (picked) void pickFile(picked);
-            }}
-          />
-        </label>
-      </div>
+      <label
+        className={styles.dropZone}
+        data-dragging={dragging || undefined}
+        onDragOver={(event) => { event.preventDefault(); if (!confirming) setDragging(true) }}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false)
+        }}
+        onDrop={(event) => {
+          event.preventDefault()
+          setDragging(false)
+          const dropped = event.dataTransfer.files[0]
+          if (dropped) void pickFile(dropped)
+        }}
+      >
+        <span className={styles.dropTitle}>{file?.name ?? 'Arrastrá el archivo XLSX acá'}</span>
+        <span className={styles.dropHint}>o seleccioná un archivo de tu dispositivo</span>
+        <input
+          type="file"
+          aria-label="Archivo XLSX"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          className={styles.fileInput}
+          disabled={confirming}
+          onChange={(event) => {
+            const picked = event.target.files?.[0]
+            event.target.value = ''
+            if (picked) void pickFile(picked)
+          }}
+        />
+      </label>
       {preview === 'loading' ? (
         <section className={`${styles.card} ${styles.loadingCard}`}><SessionLoading /></section>
       ) : null}
