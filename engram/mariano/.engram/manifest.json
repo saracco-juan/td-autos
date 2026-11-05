@@ -544,6 +544,14 @@
       "sessions": 1,
       "memories": 2,
       "prompts": 3
+    },
+    {
+      "id": "19cfd570",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T20:33:25.917167Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
     }
   ]
 }
