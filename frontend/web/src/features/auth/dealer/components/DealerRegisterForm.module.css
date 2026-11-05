@@ -1,54 +1,6 @@
 .form {
   gap: 28px;
 }
-.progressRoot {
-  margin-bottom: 24px;
-}
-.progressRoot[data-instant] .fill {
-  transition: none;
-}
-
-.progress {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.segment {
-  min-width: 0;
-}
-.progressCaption {
-  display: none;
-}
-.stepLabel {
-  display: block;
-  margin-bottom: 10px;
-  color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.segment[data-current] .stepLabel {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-.track {
-  display: block;
-  height: 5px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: var(--border-default);
-}
-.fill {
-  display: block;
-  height: 100%;
-  background: var(--palette-charcoal);
-  transform-origin: left;
-  transition: transform 250ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
 .step {
   min-height: 180px;
 }
@@ -85,24 +37,6 @@
 @media (max-width: 600px) {
   .fields {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .progress {
-    gap: 8px;
-  }
-  .stepLabel {
-    display: none;
-  }
-  .progressCaption {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 0 0 12px;
-    color: var(--text-secondary);
-    font-size: 12px;
-  }
-  .progressCaption span {
-    color: var(--text-primary);
-    font-weight: 600;
   }
   .step {
     min-height: 0;
