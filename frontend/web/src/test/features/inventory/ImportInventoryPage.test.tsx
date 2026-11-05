@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../lib/http'
 import { confirmImport, fetchInventoryTemplate, previewImport } from '../../../features/inventory/api/client'
 import { inactiveBody } from '../../fixtures/inventory/fixtures'
-import ImportInventoryPage from '../../../features/inventory/pages/ImportInventoryPage'
+import ImportInventoryPage from '../../../features/inventory/components/InventoryImportForm'
 
 vi.mock('../../../features/inventory/api/client', () => ({ previewImport: vi.fn(), confirmImport: vi.fn(), fetchInventoryTemplate: vi.fn() }))
 

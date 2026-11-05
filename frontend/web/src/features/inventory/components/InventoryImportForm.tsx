@@ -15,11 +15,11 @@ import {
 } from "../model/inactiveSubscription";
 import { importFailureFrom, type ImportFailure } from "../model/importErrors";
 import { appliedNotice, previewSummary } from "../model/importMessages";
-import styles from "./ImportInventoryPage.module.css";
+import styles from "./InventoryImportForm.module.css";
 import { goToInventory, INVENTORY_PATH } from "../model/inventoryRoutes";
 import SubscriptionBlockedNotice from "../components/SubscriptionBlockedNotice";
 import type { ImportCounts } from "../model/types";
-import VehicleFormPage from "./VehicleFormPage";
+import VehicleFormPage from "../pages/VehicleFormPage";
 
 type Preview = "none" | "loading" | ImportCounts;
 
