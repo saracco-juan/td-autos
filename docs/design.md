@@ -540,3 +540,11 @@ Native mobile `Calculadora financiera`, High v3 `2373:10024` (06) and `2469:1615
 - States: electric fuel reads "Próximamente", no consumption "No podemos estimarlo" (the total says what it leaves out), budget message (success or warning) only when the profile has a budget, 404 "No encontramos ese vehículo.", network or server errors with REINTENTAR (loader and errors get no frames, see "Feedback").
 - "Volver a la ficha" opens `/vehiculos/{id}` with an explicit target, because the tabs navigator's back goes to its first tab.
 
+
+## Dealership inventory redesign (2026-11-05)
+
+Inventory uses the shared `ResultsPagination`, `Button` and `ButtonLink` controls. Search filters the already loaded owned vehicles by make, model, version, year or plate before pagination, ignoring case and accents; changing the query returns to page one. A no-results state can clear the query without hiding creation/import actions.
+
+New vehicle entry reuses the registration progress presentation through `FormProgress`: Identidad, Publicación, Ficha técnica, Equipamiento and Fotos. Only the active section is shown. Next validates that section, Back preserves values and photos, and Save validates the complete existing payload. Server field errors reveal and focus their section. Editing retains the full form. The seven-photo minimum and subscription restrictions remain unchanged.
+
+Figma synchronization is pending approval: High v3 inventory `2373:8733` still has legacy controls and no search; vehicle entry `2373:8756` still shows the flat form. Web should reflect these controls and steps; native mobile dealership frames are not part of this implementation. No Figma nodes were edited.

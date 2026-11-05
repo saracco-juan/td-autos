@@ -121,6 +121,20 @@ describe('InventoryPage', () => {
     expect(screen.getAllByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveLength(1)
   })
 
+  it('distinguishes a search with no matches and restores the list when cleared', async () => {
+    const user = userEvent.setup()
+    await loaded()
+    const search = screen.getByRole('searchbox', { name: 'Buscar vehículos' })
+
+    await user.type(search, 'no existe')
+
+    expect(screen.getByText('No encontramos vehículos con esa búsqueda.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Limpiar búsqueda' })).toBeInTheDocument()
+    expect(screen.queryByText('Todavía no cargaste vehículos.')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Limpiar búsqueda' }))
+    expect(screen.getByRole('row', { name: COROLLA })).toBeInTheDocument()
+  })
+
   it.each([
     ['a network failure', new NetworkError(new Error('down')), 'Sin conexión con el servidor'],
     ['a server failure', new HttpError(500, undefined), 'Algo salió mal'],
@@ -338,9 +352,10 @@ describe('InventoryPage save notice', () => {
       const load = screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })
       const importCsv = screen.getByRole('link', { name: 'IMPORTAR XLSX' })
       const pager = screen.getByRole('navigation', { name: 'Paginación' })
+      const resultsPager = pager.parentElement?.parentElement
       expect(load.parentElement).toBe(importCsv.parentElement)
-      expect(load.parentElement?.nextElementSibling).toBe(pager.parentElement)
-      expect(pager.parentElement?.parentElement).toBe(load.parentElement?.parentElement)
+      expect(load.parentElement?.nextElementSibling).toBe(resultsPager)
+      expect(resultsPager?.parentElement).toBe(load.parentElement?.parentElement)
     })
 
     it('shows one page of vehicles and page 2 shows the rest', async () => {
@@ -351,6 +366,20 @@ describe('InventoryPage save notice', () => {
       expect(screen.getAllByRole('rowheader')).toHaveLength(10)
       await userEvent.setup().click(screen.getByRole('button', { name: 'Página 2' }))
       expect(screen.getAllByRole('rowheader')).toHaveLength(5)
+    })
+
+    it('filters before pagination and returns to page 1 when the query changes', async () => {
+      vi.mocked(fetchVehicles).mockResolvedValue(many(15))
+      const user = userEvent.setup()
+      renderPage()
+      await screen.findByRole('table')
+      await user.click(screen.getByRole('button', { name: 'Página 2' }))
+
+      await user.type(screen.getByRole('searchbox', { name: 'Buscar vehículos' }), 'modelo 1')
+
+      expect(screen.getAllByRole('rowheader')).toHaveLength(7)
+      expect(screen.getAllByRole('rowheader')[0]).toHaveTextContent('Modelo 1')
+      expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
     })
 
     it('shows 10 per page by default and "Mostrar" changes it, back to page 1', async () => {

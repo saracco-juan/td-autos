@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
-import { Link } from 'react-router'
+import Button from '../../../components/Buttons/Button'
+import ButtonLink from '../../../components/Buttons/ButtonLink'
 import alertStyles from '../../../styles/alert.module.css'
-import groupStyles from '../../../styles/buttonGroup.module.css'
 import tableStyles from '../../../styles/dataTable.module.css'
 import { formatKilometers, formatPrice, vehicleTitle } from '../model/format'
 import styles from './VehicleRow.module.css'
@@ -62,24 +62,20 @@ export default function VehicleRow({ vehicle, confirming, deleting, failed, lock
                 {DELETE_ERROR}
               </p>
             ) : null}
-            <div className={tableStyles.actions}>
-              <span className={groupStyles.group}>
-                <button
-                  ref={confirmRef}
-                  type="button"
-                  disabled={deleting}
-                  aria-busy={deleting}
-                  className={`${groupStyles.item} ${groupStyles.danger}`}
-                  onClick={onConfirm}
-                >
-                  ELIMINAR
-                </button>
-              </span>
-              <span className={groupStyles.group}>
-                <button type="button" disabled={deleting} className={groupStyles.item} onClick={onCancel}>
-                  CANCELAR
-                </button>
-              </span>
+            <div className={`${tableStyles.actions} ${styles.rowActions}`}>
+              <Button
+                ref={confirmRef}
+                type="button"
+                disabled={deleting}
+                aria-busy={deleting}
+                variant="danger"
+                onClick={onConfirm}
+              >
+                ELIMINAR
+              </Button>
+              <Button type="button" disabled={deleting} variant="secondary" onClick={onCancel}>
+                CANCELAR
+              </Button>
             </div>
           </div>
         </td>
@@ -88,33 +84,29 @@ export default function VehicleRow({ vehicle, confirming, deleting, failed, lock
           <td className={`${tableStyles.muted} ${styles.colPlate}`}>{vehicle.patente}</td>
           <td className={`${tableStyles.muted} ${styles.colPhotos}`}>{photoCount(vehicle.fotos.length)}</td>
           <td className={tableStyles.muted}>{formatKilometers(vehicle.kilometraje)}</td>
-      <td>{formatPrice(vehicle.precio, vehicle.moneda)}</td>
+          <td>{formatPrice(vehicle.precio, vehicle.moneda)}</td>
           <td className={`${tableStyles.muted} ${tableStyles.truncate} ${styles.colPlace}`} title={vehicle.ubicacion}>
             {vehicle.ubicacion}
           </td>
           <td>
-            <div className={tableStyles.actions}>
-              <span className={groupStyles.group}>
-                <Link
-                  to={`/concesionaria/inventario/${vehicle.id}/editar`}
-                  aria-label={`Editar ${title}`}
-                  className={groupStyles.item}
-                >
-                  EDITAR
-                </Link>
-              </span>
-              <span className={groupStyles.group}>
-                <button
-                  ref={askRef}
-                  type="button"
-                  aria-label={`Eliminar ${title}`}
-                  disabled={locked}
-                  className={`${groupStyles.item} ${groupStyles.danger}`}
-                  onClick={onAskDelete}
-                >
-                  ELIMINAR
-                </button>
-              </span>
+            <div className={`${tableStyles.actions} ${styles.rowActions}`}>
+              <ButtonLink
+                to={`/concesionaria/inventario/${vehicle.id}/editar`}
+                aria-label={`Editar ${title}`}
+                variant="secondary"
+              >
+                EDITAR
+              </ButtonLink>
+              <Button
+                ref={askRef}
+                type="button"
+                aria-label={`Eliminar ${title}`}
+                disabled={locked}
+                variant="danger"
+                onClick={onAskDelete}
+              >
+                ELIMINAR
+              </Button>
             </div>
           </td>
         </>

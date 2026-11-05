@@ -1,11 +1,13 @@
+import Button from '../../../components/Buttons/Button'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import alertStyles from "../../../styles/alert.module.css";
 import tableStyles from "../../../styles/dataTable.module.css";
 import ErrorState, { type ErrorKind } from "../../../components/ErrorState/ErrorState";
 import ListFooter from "../../../components/ListFooter/ListFooter";
-import Pagination from "../../../components/Pagination/Pagination";
+import ResultsPagination from "../../../components/Pagination/ResultsPagination";
 import ScrollArea from "../../../components/ScrollArea/ScrollArea";
 import screenStyles from "../../../styles/screen.module.css";
 import usePagedItems from "../../../hooks/usePagedItems";
@@ -20,6 +22,7 @@ import styles from "./InventoryPage.module.css";
 import type { InventoryLocationState } from "../model/inventoryRoutes";
 import SubscriptionBlockedNotice from "../components/SubscriptionBlockedNotice";
 import type { Vehiculo } from "../model/types";
+import { searchInventory } from "../model/searchInventory";
 import VehicleRow from "../components/VehicleRow";
 import rowStyles from "../components/VehicleRow.module.css";
 
@@ -29,12 +32,15 @@ type LoadState =
   | { error: ErrorKind }
   | { blocked: InactiveSubscription };
 
-function PageHeader({ subtitle }: { subtitle: string }) {
+function PageHeader({ subtitle, search }: { subtitle: string; search?: ReactNode }) {
   return (
     <div className={styles.header}>
-      <p className={screenStyles.eyebrow}>INVENTARIO</p>
-      <h1 className={screenStyles.title}>Inventario</h1>
-      <p className={styles.subtitle}>{subtitle}</p>
+      <div className={styles.headerContent}>
+        <p className={screenStyles.eyebrow}>INVENTARIO</p>
+        <h1 className={screenStyles.title}>Inventario</h1>
+        <p className={styles.subtitle}>{subtitle}</p>
+      </div>
+      {search}
     </div>
   );
 }
@@ -66,8 +72,10 @@ export default function InventoryPage() {
   );
   const noticeRef = useRef<HTMLParagraphElement>(null);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+  const [query, setQuery] = useState('');
+  const filteredVehicles = searchInventory(vehicles, query);
   const { page, lastPage, setPage, pageItems } = usePagedItems(
-    vehicles,
+    filteredVehicles,
     pageSize,
   );
   const changePageSize = (size: number) => {
@@ -168,7 +176,24 @@ export default function InventoryPage() {
     <div
       className={`${screenStyles.page} ${screenStyles.fill} ${tableStyles.column} ${rowStyles.inventoryColumn}`}
     >
-      <PageHeader subtitle="Activa · funciones habilitadas" />
+      <PageHeader
+        subtitle="Activa · funciones habilitadas"
+        search={vehicles.length > 0 ? (
+          <label className={styles.search}>
+            <span>Buscar vehículos</span>
+            <input
+              type="search"
+              aria-label="Buscar vehículos"
+              placeholder="Marca, modelo, versión, año o patente"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setPage(1);
+              }}
+            />
+          </label>
+        ) : undefined}
+      />
       <section
         className={styles.card}
         aria-labelledby="inventory-inclusion-title"
@@ -195,6 +220,13 @@ export default function InventoryPage() {
       <div className={tableStyles.block}>
         {vehicles.length === 0 ? (
           <p className={styles.empty}>Todavía no cargaste vehículos.</p>
+        ) : filteredVehicles.length === 0 ? (
+          <div className={styles.noResults} role="status">
+            <p className={styles.empty}>No encontramos vehículos con esa búsqueda.</p>
+            <Button variant="secondary" onClick={() => setQuery('')}>
+              Limpiar búsqueda
+            </Button>
+          </div>
         ) : (
           <ScrollArea
             label="Vehículos del inventario"
@@ -266,8 +298,8 @@ export default function InventoryPage() {
             </>
           }
         >
-          {vehicles.length > PAGE_SIZES[0] ? (
-            <Pagination
+          {filteredVehicles.length > PAGE_SIZES[0] ? (
+            <ResultsPagination
               page={page}
               lastPage={lastPage}
               onChange={setPage}

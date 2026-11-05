@@ -34,6 +34,19 @@
   width: 190px;
 }
 
+.rowActions > * {
+  width: auto;
+  height: 32px;
+  padding-inline: 8px;
+  font-size: 11px;
+}
+
+@media (pointer: coarse) {
+  .rowActions > * {
+    min-height: 44px;
+  }
+}
+
 /* The confirmation wraps its text and stacks the question, the failure if any, and its two buttons. */
 .confirmCell {
   white-space: normal;

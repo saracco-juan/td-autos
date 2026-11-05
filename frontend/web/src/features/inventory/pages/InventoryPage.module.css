@@ -1,8 +1,13 @@
 /* Header like the checklist screens: eyebrow, title and subtitle 8 apart (Figma 2114:1720). */
 .header {
   display: flex;
-  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.headerContent {
+  min-width: 0;
 }
 
 .subtitle {
@@ -40,6 +45,45 @@
   font-size: 14px;
 }
 
+.search {
+  display: flex;
+  flex: 0 1 360px;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.search input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+}
+
+.search input::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+.search input:focus-visible {
+  outline: 2px solid var(--border-input);
+  outline-offset: 2px;
+}
+
+.noResults {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .message {
   margin: 0;
   outline: none;
@@ -54,6 +98,20 @@
 }
 
 @media (max-width: 600px) {
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search {
+    flex-basis: auto;
+  }
+
+  .search input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
   .load {
     flex: 1 1 0;
     min-width: 0;
