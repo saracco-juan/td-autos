@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -152,57 +152,51 @@ describe('InventoryPage', () => {
   })
 
   describe('delete', () => {
-    type User = ReturnType<typeof userEvent.setup>
-    const ask = (user: User, title = COROLLA) =>
-      user.click(within(rowOf(title)).getByRole('button', { name: `Eliminar ${title}` }))
-    const confirm = (user: User) => user.click(screen.getByRole('button', { name: 'ELIMINAR' }))
+    const confirm = async (title = COROLLA) => {
+      const button = within(rowOf(title)).getByRole('button', { name: `Eliminar ${title}` })
+      vi.useFakeTimers()
+      try {
+        fireEvent.keyDown(button, { key: 'Enter' })
+        await act(async () => { vi.advanceTimersByTime(2000) })
+        fireEvent.keyUp(button, { key: 'Enter' })
+      } finally {
+        vi.useRealTimers()
+      }
+    }
 
-    it('turns the row into a confirmation and focuses its ELIMINAR button, without deleting yet', async () => {
-      const user = userEvent.setup()
+    it('keeps a short click in the same compact row without opening a confirmation', async () => {
       await loaded()
-
-      await ask(user)
-
       const row = within(rowOf(COROLLA))
-      expect(row.getByText('¿Eliminar este vehículo? Se borran sus fotos y no se puede deshacer.')).toBeInTheDocument()
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toHaveFocus()
-      expect(row.getByRole('button', { name: 'CANCELAR' })).toBeInTheDocument()
-      expect(row.queryByRole('link', { name: /Editar/ })).not.toBeInTheDocument()
-      expect(deleteVehicle).not.toHaveBeenCalled()
-      expect(within(rowOf(CRONOS)).queryByText(/¿Eliminar/)).not.toBeInTheDocument()
-    })
-
-    it('CANCELAR closes the confirmation, keeps the vehicle and returns the focus to its ELIMINAR button', async () => {
-      const user = userEvent.setup()
-      await loaded()
-      await ask(user)
-
-      await user.click(screen.getByRole('button', { name: 'CANCELAR' }))
-
-      const row = within(rowOf(COROLLA))
-      expect(row.queryByText(/¿Eliminar/)).not.toBeInTheDocument()
-      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toHaveFocus()
+      await userEvent.setup().click(row.getByRole('button', { name: `Eliminar ${COROLLA}` }))
+      expect(row.getByRole('link', { name: /Editar/ })).toBeInTheDocument()
+      expect(row.queryByText(/¿Eliminar este vehículo/)).not.toBeInTheDocument()
+      expect(row.queryByRole('button', { name: 'CANCELAR' })).not.toBeInTheDocument()
       expect(deleteVehicle).not.toHaveBeenCalled()
     })
 
-    it('asking for another vehicle moves the confirmation to that row', async () => {
-      const user = userEvent.setup()
+    it('expands the same control during a hold and cancels when released early', async () => {
       await loaded()
-      await ask(user)
-
-      await ask(user, CRONOS)
-
-      expect(within(rowOf(COROLLA)).queryByText(/¿Eliminar/)).not.toBeInTheDocument()
-      expect(within(rowOf(CRONOS)).getByText(/¿Eliminar/)).toBeInTheDocument()
+      const button = within(rowOf(COROLLA)).getByRole('button', { name: `Eliminar ${COROLLA}` })
+      vi.useFakeTimers()
+      try {
+        fireEvent.keyDown(button, { key: 'Enter' })
+        expect(button).toHaveTextContent('MANTENER PARA ELIMINAR')
+        act(() => { vi.advanceTimersByTime(1000) })
+        fireEvent.keyUp(button, { key: 'Enter' })
+        act(() => { vi.advanceTimersByTime(2000) })
+        expect(button).toHaveTextContent('ELIMINAR')
+        expect(button).not.toHaveAttribute('data-holding')
+        expect(deleteVehicle).not.toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     it('deletes the vehicle, removes the row and shows a success message', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle).mockResolvedValue(undefined)
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       await rowGone(COROLLA)
       expect(deleteVehicle).toHaveBeenCalledWith(1)
@@ -211,18 +205,15 @@ describe('InventoryPage', () => {
     })
 
     it('shows the busy state on the ELIMINAR button of that row only, while deleting', async () => {
-      const user = userEvent.setup()
       let finish: () => void = () => {}
       vi.mocked(deleteVehicle).mockReturnValue(new Promise<void>((resolve) => (finish = resolve)))
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       const row = within(rowOf(COROLLA))
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toHaveAttribute('aria-busy', 'true')
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toBeDisabled()
-      expect(row.getByRole('button', { name: 'CANCELAR' })).toBeDisabled()
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toHaveAttribute('aria-busy', 'true')
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toBeDisabled()
       expect(within(rowOf(CRONOS)).getByRole('button', { name: `Eliminar ${CRONOS}` })).toBeDisabled()
       expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy')
 
@@ -231,56 +222,48 @@ describe('InventoryPage', () => {
     })
 
     it('keeps the row, shows a filled error on it and focuses ELIMINAR again when the delete fails', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle).mockRejectedValue(new HttpError(500, undefined))
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       const row = within(rowOf(COROLLA))
       expect(await row.findByRole('alert')).toHaveTextContent('No pudimos eliminar el vehículo. Probá de nuevo.')
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toBeEnabled()
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toHaveFocus()
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toBeEnabled()
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toHaveFocus()
       expect(screen.queryByText('Eliminaste el vehículo.')).not.toBeInTheDocument()
     })
 
     it('can retry after a failure, and the error goes away', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle)
         .mockRejectedValueOnce(new NetworkError(new Error('down')))
         .mockResolvedValueOnce(undefined)
       await loaded()
-      await ask(user)
-      await confirm(user)
+      await confirm()
       await screen.findByRole('alert')
 
-      await confirm(user)
+      await confirm()
 
       await rowGone(COROLLA)
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
 
     it('treats a 404 as already deleted: the row goes away without an error', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle).mockRejectedValue(new HttpError(404, { message: 'Not found' }))
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       await rowGone(COROLLA)
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
 
     it('shows the empty state after the last vehicle is deleted', async () => {
-      const user = userEvent.setup()
       vi.mocked(fetchVehicles).mockResolvedValue([vehiculo()])
       vi.mocked(deleteVehicle).mockResolvedValue(undefined)
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       expect(await screen.findByText('Todavía no cargaste vehículos.')).toBeInTheDocument()
       expect(screen.getByText('Eliminaste el vehículo.')).toBeInTheDocument()

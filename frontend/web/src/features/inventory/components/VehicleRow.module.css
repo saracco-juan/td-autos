@@ -1,6 +1,6 @@
 /*
  * Inventory table columns (components/dataTable.module.css): --table-width on .inventoryColumn is the sum of these widths.
- * The hideable columns are classes, not positions, so the confirmation cell that spans them is never hidden.
+ * Hideable columns are classes, not positions; row actions remain available at every viewport.
  */
 .inventoryColumn {
   --table-width: 1120px;
@@ -41,26 +41,23 @@
   font-size: 11px;
 }
 
+.deleteAction { --button-hover-fill: var(--action-danger); }
+
 @media (pointer: coarse) {
   .rowActions > * {
     min-height: 44px;
   }
 }
 
-/* The confirmation wraps its text and stacks the question, the failure if any, and its two buttons. */
-.confirmCell {
-  white-space: normal;
-}
+/* Keep the delete control anchored while it expands into the edit action's space. */
+.rowActions { position: relative; justify-content: flex-end; }
+.rowActions > a { transition: opacity 160ms ease; }
+.rowActions:has([data-holding]) > a,
+.rowActions:has([aria-busy='true']) > a { position: absolute; opacity: 0; pointer-events: none; }
+.deleteError { margin: 6px 0 0; white-space: normal; font-size: 11px; }
 
-.confirm {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-block: 6px;
-}
-
-.confirm p {
-  margin: 0;
+@media (prefers-reduced-motion: reduce) {
+  .rowActions > a { transition: none; }
 }
 
 /* Narrow screens drop the least needed columns instead of squeezing all of them: place first, then plate and photos. */

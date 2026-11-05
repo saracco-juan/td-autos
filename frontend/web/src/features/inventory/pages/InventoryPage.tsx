@@ -61,8 +61,8 @@ function noticeFrom(state: unknown): string | null {
 export default function InventoryPage() {
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [vehicles, setVehicles] = useState<Vehiculo[]>([]);
-  const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const pendingDelete = useRef(false);
   const [failedId, setFailedId] = useState<number | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -129,17 +129,12 @@ export default function InventoryPage() {
 
   const removeRow = (id: number) => {
     setVehicles((current) => current.filter((vehicle) => vehicle.id !== id));
-    setConfirmingId(null);
     setNotice(REMOVED_NOTICE);
   };
 
-  const askDelete = (id: number) => {
-    setNotice(null);
-    setFailedId(null);
-    setConfirmingId(id);
-  };
-
   const confirmDelete = async (id: number) => {
+    if (pendingDelete.current) return;
+    pendingDelete.current = true;
     setNotice(null);
     setFailedId(null);
     setDeletingId(id);
@@ -154,6 +149,7 @@ export default function InventoryPage() {
         removeRow(id);
       else setFailedId(id);
     } finally {
+      pendingDelete.current = false;
       setDeletingId(null);
     }
   };
@@ -267,13 +263,10 @@ export default function InventoryPage() {
                   <VehicleRow
                     key={vehicle.id}
                     vehicle={vehicle}
-                    confirming={confirmingId === vehicle.id}
                     deleting={deletingId === vehicle.id}
                     failed={failedId === vehicle.id}
                     locked={deletingId !== null}
-                    onAskDelete={() => askDelete(vehicle.id)}
-                    onCancel={() => setConfirmingId(null)}
-                    onConfirm={() => void confirmDelete(vehicle.id)}
+                    onDelete={() => confirmDelete(vehicle.id)}
                   />
                 ))}
               </tbody>
