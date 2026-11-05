@@ -1,5 +1,44 @@
 # TD Autos — design rules
 
+## Dealership workspace structure (2026-11-04)
+
+- Authenticated `/concesionaria` routes use a persistent 216px left sidebar,
+  with the TD Autos mark above navigation and dealership identity, email and
+  logout at the bottom. Public, buyer and administrator layouts stay unchanged.
+- Reuse the existing session actions, route links, active-dealer visibility,
+  Archivo, TD palette, 10px controls and shared 550ms hover. Keep a white work
+  surface and a quiet neutral sidebar; do not add speculative metrics or actions.
+- Reuse `BrandLink`, extracted from the login header, so TD and Autos have the
+  same typographic size. Desktop navigation uses compact 36px rows, 13px text
+  and a black selected state. Hover reuses the shared charcoal reveal and white
+  text over 550ms; compact navigation does not introduce a separate gray button
+  treatment. Mobile targets remain at least 44px high.
+- `components/DashboardShell` owns the shared sidebar, account area and centered
+  content frame. It accepts account content and role-specific navigation through
+  props, without knowing dealership models or access rules. `DealerShell` is the
+  feature adapter; `DealerNavigation` retains the links and active-inventory
+  visibility. The application shell retains session and navigation orchestration.
+  Administration can reuse this container in its own redesign without copying it.
+- Sidebar destinations use subtle 16px outline icons with a consistent 1.5px
+  stroke: payment card for subscription, shield/check for verification, car for
+  inventory and bars for metrics. Icons are decorative and inherit the link color;
+  text labels keep their accessible names. Do not add platform-dependent emoji.
+- At 800px and below, navigation becomes an inline expandable menu above the
+  content. Following a route or pressing Escape closes it. Short desktop windows
+  let the sidebar scroll so account actions remain reachable. Long identity text wraps.
+- This first iteration changes only the workspace frame. Subscription,
+  verification, inventory and metrics retain their current content and behavior.
+- Desktop workspace content is centered in a maximum 1360px frame, including
+  its 32px gutters, with 28px main headings. The 216px sidebar stays unchanged.
+  At 800px and below, keep full available content width, existing page heading
+  sizes and 20px horizontal gutters. Do not scale down mobile text or controls.
+- In the subscription account card, the visible Activa label uses the shared
+  success green. Pending and inactive labels retain their existing accent;
+  grace-period warnings and expiry notices remain unchanged.
+- User-approved divergence: High v3 dealer navigation `2373:6894` is horizontal
+  with a public footer. The reference supplied on 2026-11-04 replaces that
+  organization with a sidebar; Figma synchronization remains pending approval.
+
 Visual and interaction rules for every web screen (and the mobile app where the pattern exists). Read this file before building or changing a screen. Figma (`TD Autos · Wireframes High v3`, see `AGENTS.md`) is the visual source of truth; these rules cover what Figma does not say and win over it when they conflict, and every difference is logged for the Figma sync described in `AGENTS.md`.
 
 ## Buyer login and registration panel (2026-11-04)

@@ -51,6 +51,10 @@
   color: var(--accent-default);
 }
 
+.activeStatus {
+  color: var(--status-success);
+}
+
 /* Not in Figma: the data to make the transfer (HU18 scenario 1). */
 .data {
   display: grid;

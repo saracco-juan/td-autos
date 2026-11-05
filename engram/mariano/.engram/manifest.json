@@ -488,6 +488,30 @@
       "sessions": 1,
       "memories": 2,
       "prompts": 0
+    },
+    {
+      "id": "8f7f22b6",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T02:09:42.646192Z",
+      "sessions": 2,
+      "memories": 29,
+      "prompts": 18
+    },
+    {
+      "id": "1041d133",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T02:11:23.8057399Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "16c46fcb",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T02:16:37.984488Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
     }
   ]
 }

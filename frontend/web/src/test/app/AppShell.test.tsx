@@ -387,6 +387,35 @@ describe('AppShell', () => {
   })
 
   describe('dealer nav (UH17)', () => {
+    it('uses a dealership workspace without the public footer or top-level buyer navigation', () => {
+      mockAuth('authenticated', undefined, marta)
+      renderShell('/concesionaria/suscripcion')
+
+      expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'TD Autos' })).toHaveTextContent('TD Autos')
+      expect(screen.getByRole('navigation', { name: 'Concesionaria' })).toBeInTheDocument()
+      const account = screen.getByRole('group', { name: 'Cuenta de la concesionaria' })
+      expect(account).toHaveTextContent('Autos del Sur')
+      expect(account).toHaveTextContent(marta.email)
+      expect(within(account).getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
+      expect(screen.getByRole('main')).toHaveTextContent('Otra pantalla')
+    })
+
+    it('closes dealership navigation with Escape and after following a destination', async () => {
+      mockAuth('authenticated', undefined, marta)
+      renderShell('/concesionaria/suscripcion')
+      const user = userEvent.setup()
+      const menu = screen.getByRole('button', { name: 'Menú' })
+      await user.click(menu)
+      expect(menu).toHaveAttribute('aria-expanded', 'true')
+      await user.keyboard('{Escape}')
+      expect(menu).toHaveAttribute('aria-expanded', 'false')
+      await user.click(menu)
+      await user.click(screen.getByRole('link', { name: 'Verificación' }))
+      expect(menu).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.getByRole('link', { name: 'Verificación' })).toHaveAttribute('aria-current', 'page')
+    })
+
     it('shows Suscripción, Verificación, the dealer name as plain text and the logout button, and none of the buyer links', () => {
       mockAuth('authenticated', undefined, marta)
       renderShell()
