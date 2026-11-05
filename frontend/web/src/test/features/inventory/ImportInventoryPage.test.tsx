@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../lib/http'
 import { confirmImport, fetchInventoryTemplate, previewImport } from '../../../features/inventory/api/client'
 import { inactiveBody } from '../../fixtures/inventory/fixtures'
-import ImportInventoryPage from '../../../features/inventory/components/InventoryImportForm'
+import ImportInventoryPage from '../../../features/inventory/pages/ImportInventoryPage'
 
 vi.mock('../../../features/inventory/api/client', () => ({ previewImport: vi.fn(), confirmImport: vi.fn(), fetchInventoryTemplate: vi.fn() }))
 
@@ -80,8 +80,8 @@ describe('ImportInventoryPage', () => {
     expect(screen.getByText(/Vacío no significa no/)).toBeInTheDocument()
     expect(screen.getByText(/hoja Inventario/)).toBeInTheDocument()
     expect(screen.getByText(/valida todas las filas/)).toBeInTheDocument()
-    expect(screen.getByText('Ningún archivo seleccionado')).toBeInTheDocument()
-    expect(screen.getByText('SELECCIONAR ARCHIVO')).toBeInTheDocument()
+    expect(screen.getByText('Arrastrá el archivo XLSX acá')).toBeInTheDocument()
+    expect(screen.getByText('o seleccioná un archivo de tu dispositivo')).toBeInTheDocument()
     expect(screen.getByLabelText('Archivo XLSX')).toHaveAttribute('accept', '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     expect(screen.getByRole('link', { name: 'VOLVER AL INVENTARIO' })).toHaveAttribute('href', '/concesionaria/inventario')
     expect(confirmButton()).toBeDisabled()

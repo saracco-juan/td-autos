@@ -1,178 +1,154 @@
+import { useEffect, useRef, useState } from 'react'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import Button from '../../../components/Buttons/Button'
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
-import alertStyles from "../../../styles/alert.module.css";
-import buttonStyles from "../../../components/Buttons/button.module.css";
-import barStyles from "../../../components/checklist/pinnedBar.module.css";
-import ScrollArea from "../../../components/ScrollArea/ScrollArea";
-import { HttpError } from "../../../lib/http";
-import SessionLoading from "../../auth/session/components/SessionLoading";
-import { confirmImport, fetchInventoryTemplate, previewImport } from "../api/client";
+import alertStyles from '../../../styles/alert.module.css'
+import buttonStyles from '../../../components/Buttons/button.module.css'
+import barStyles from '../../../components/checklist/pinnedBar.module.css'
+import ScrollArea from '../../../components/ScrollArea/ScrollArea'
+import { HttpError } from '../../../lib/http'
+import SessionLoading from '../../auth/session/components/SessionLoading'
+import { confirmImport, previewImport } from '../api/client'
 import {
   inactiveSubscription,
   type InactiveSubscription,
-} from "../model/inactiveSubscription";
-import { importFailureFrom, type ImportFailure } from "../model/importErrors";
-import { appliedNotice, previewSummary } from "../model/importMessages";
-import styles from "./InventoryImportForm.module.css";
-import { goToInventory, INVENTORY_PATH } from "../model/inventoryRoutes";
-import SubscriptionBlockedNotice from "../components/SubscriptionBlockedNotice";
-import type { ImportCounts } from "../model/types";
-import VehicleFormPage from "../pages/VehicleFormPage";
+} from '../model/inactiveSubscription'
+import { importFailureFrom, type ImportFailure } from '../model/importErrors'
+import { appliedNotice, previewSummary } from '../model/importMessages'
+import { goToInventory, INVENTORY_PATH } from '../model/inventoryRoutes'
+import SubscriptionBlockedNotice from './SubscriptionBlockedNotice'
+import DownloadInventoryTemplate from './DownloadInventoryTemplate'
+import type { ImportCounts } from '../model/types'
+import { useNavigate } from 'react-router'
+import VehicleFormPage from '../pages/VehicleFormPage'
+import styles from './InventoryImportForm.module.css'
 
-type Preview = "none" | "loading" | ImportCounts;
+type Preview = 'none' | 'loading' | ImportCounts
+type Presentation = 'page' | 'dialog'
+
+type Props = {
+  presentation?: Presentation
+  onClose?: () => void
+  onComplete?: (notice: string) => void
+  onBusyChange?: (busy: boolean) => void
+}
 
 const FORMAT_HELP =
-  "Completá la hoja Inventario de la plantilla XLSX. Elegí marca, modelo y versión del catálogo. " +
-  "En fotos, poné de 7 a 20 URLs http o https separadas por |. Hasta 500 filas y 2 MB.";
+  'Completá la hoja Inventario de la plantilla XLSX. Elegí marca, modelo y versión del catálogo. ' +
+  'En fotos, poné de 7 a 20 URLs http o https separadas por |. Hasta 500 filas y 2 MB.'
 
 const MATCHING_HELP = [
-  "Conservá también todas las columnas nuevas de la plantilla: moneda (ARS o USD), plazas (entero positivo, incluye conductor), motor, turbo, potencia (entero positivo), potencia_unidad (CV, HP o kW), consumo_urbano, consumo_ruta y equipamiento.",
-  "Turbo y cada dato de seguridad y confort requieren sí o no. Vacío no significa no. Android Auto o Apple CarPlay es una sola respuesta: sí si tiene al menos uno.",
-  "Consumos en L/100 km, mayores que cero, con punto decimal y hasta dos decimales. Son obligatorios para nafta y diesel; opcionales para gnc, hibrido y electrico. Transmisión: manual o automatica. Carrocería: el nombre de la lista del alta manual.",
-  "El servidor valida todas las filas, aunque borres los desplegables. Una selección de catálogo inválida o incompleta rechaza todo el archivo sin aplicar cambios. Las versiones sin precios de referencia también se pueden cargar; no se inventa una estimación.",
-];
+  'Conservá también todas las columnas nuevas de la plantilla: moneda (ARS o USD), plazas (entero positivo, incluye conductor), motor, turbo, potencia (entero positivo), potencia_unidad (CV, HP o kW), consumo_urbano, consumo_ruta y equipamiento.',
+  'Turbo y cada dato de seguridad y confort requieren sí o no. Vacío no significa no. Android Auto o Apple CarPlay es una sola respuesta: sí si tiene al menos uno.',
+  'Consumos en L/100 km, mayores que cero, con punto decimal y hasta dos decimales. Son obligatorios para nafta y diesel; opcionales para gnc, hibrido y electrico. Transmisión: manual o automatica. Carrocería: el nombre de la lista del alta manual.',
+  'El servidor valida todas las filas, aunque borres los desplegables. Una selección de catálogo inválida o incompleta rechaza todo el archivo sin aplicar cambios. Las versiones sin precios de referencia también se pueden cargar; no se inventa una estimación.',
+]
 
-// Figma 2373:8817 (CU-20), with the authorized XLSX format change. Preview and confirm use the same file.
-export default function ImportInventoryPage() {
-  const navigate = useNavigate();
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<Preview>("none");
-  const [failure, setFailure] = useState<ImportFailure | null>(null);
-  const [blocked, setBlocked] = useState<InactiveSubscription | null>(null);
-  const [confirming, setConfirming] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const templateRequest = useRef<{ cancelled: boolean; url: string | null } | null>(null);
-  const failureRef = useRef<HTMLDivElement>(null);
-  // The latest picked file: the answer of an earlier one is dropped.
-  const currentFile = useRef<File | null>(null);
+const isXlsx = (file: File) =>
+  file.name.toLowerCase().endsWith('.xlsx') ||
+  file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
-  useEffect(() => () => {
-    const request = templateRequest.current;
-    if (request) {
-      request.cancelled = true;
-      if (request.url) URL.revokeObjectURL(request.url);
-    }
-  }, []);
+export default function InventoryImportForm({
+  presentation = 'page',
+  onClose,
+  onComplete,
+  onBusyChange,
+}: Props) {
+  const navigate = useNavigate()
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState<Preview>('none')
+  const [failure, setFailure] = useState<ImportFailure | null>(null)
+  const [blocked, setBlocked] = useState<InactiveSubscription | null>(null)
+  const [confirming, setConfirming] = useState(false)
+  const failureRef = useRef<HTMLDivElement>(null)
+  const currentFile = useRef<File | null>(null)
 
-  // The errors take the focus once shown, so the result is announced.
+  useEffect(() => () => { currentFile.current = null }, [])
+
   useEffect(() => {
-    if (failure) failureRef.current?.focus();
-  }, [failure]);
+    if (failure) failureRef.current?.focus()
+  }, [failure])
 
-  // An inactive subscription gets its own box with the way to renew; any other failure is the import's own.
   const showFailure = (error: unknown) => {
-    const inactive = inactiveSubscription(error);
-    if (inactive) setBlocked(inactive);
-    else setFailure(importFailureFrom(error));
-  };
-
-  const downloadTemplate = async () => {
-    if (downloading) return;
-    if (templateRequest.current?.url) URL.revokeObjectURL(templateRequest.current.url);
-    const request = { cancelled: false, url: null as string | null };
-    templateRequest.current = request;
-    setDownloading(true);
-    setFailure(null);
-    setBlocked(null);
-    try {
-      const blob = await fetchInventoryTemplate();
-      if (request.cancelled) return;
-      request.url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = request.url;
-      link.download = "plantilla-inventario.xlsx";
-      link.click();
-    } catch (error) {
-      if (!request.cancelled) showFailure(error);
-    } finally {
-      if (!request.cancelled) setDownloading(false);
-    }
-  };
+    const inactive = inactiveSubscription(error)
+    if (inactive) setBlocked(inactive)
+    else setFailure(importFailureFrom(error))
+  }
 
   const pickFile = async (picked: File) => {
-    currentFile.current = picked;
-    setFile(picked);
-    setFailure(null);
-    setBlocked(null);
-    setPreview("loading");
-    try {
-      const counts = await previewImport(picked);
-      if (currentFile.current === picked) setPreview(counts);
-    } catch (error) {
-      if (currentFile.current !== picked) return;
-      setPreview("none");
-      showFailure(error);
+    if (confirming) return
+    if (!isXlsx(picked)) {
+      currentFile.current = null
+      setFile(null)
+      setPreview('none')
+      setFailure({ message: 'Seleccioná un archivo XLSX.', rows: [] })
+      return
     }
-  };
+    currentFile.current = picked
+    setFile(picked)
+    setFailure(null)
+    setBlocked(null)
+    setPreview('loading')
+    try {
+      const counts = await previewImport(picked)
+      if (currentFile.current === picked) setPreview(counts)
+    } catch (error) {
+      if (currentFile.current !== picked) return
+      setPreview('none')
+      showFailure(error)
+    }
+  }
 
   const confirm = async () => {
-    if (!file) return;
-    setFailure(null);
-    setBlocked(null);
-    setConfirming(true);
+    if (!file || confirming) return
+    setFailure(null)
+    setBlocked(null)
+    setConfirming(true)
+    onBusyChange?.(true)
     try {
-      const counts = await confirmImport(file);
-      goToInventory(navigate, appliedNotice(counts));
+      const counts = await confirmImport(file)
+      if (currentFile.current !== file) return
+      const notice = appliedNotice(counts)
+      setConfirming(false)
+      onBusyChange?.(false)
+      if (onComplete) onComplete(notice)
+      else goToInventory(navigate, notice)
     } catch (error) {
-      // A 422 means the file no longer passes (e.g. a plate taken meanwhile): the preview is stale. Other failures can be retried.
+      if (currentFile.current !== file) return
       if (error instanceof HttpError && error.status === 422)
-        setPreview("none");
-      showFailure(error);
-      setConfirming(false);
+        setPreview('none')
+      showFailure(error)
+      setConfirming(false)
+      onBusyChange?.(false)
     }
-  };
+  }
 
-  const ready = typeof preview === "object";
-
-  return (
-    <VehicleFormPage
-      title="Importar XLSX"
-      subtitle="Subí un archivo para cargar o actualizar varios vehículos a la vez."
-      actions={
-        <div className={barStyles.actions}>
-          <ButtonLink
-            to={INVENTORY_PATH}
-            variant="secondary" className={`${barStyles.action}`}
-          >
-            VOLVER AL INVENTARIO
-          </ButtonLink>
-          <Button
-            type="button"
-            disabled={!ready || confirming}
-            aria-busy={confirming}
-            variant="success" className={`${barStyles.actionWide}`}
-            onClick={() => void confirm()}
-          >
-            {confirming ? "IMPORTANDO…" : "CONFIRMAR IMPORTACIÓN"}
-          </Button>
-        </div>
-      }
-    >
-      <section className={styles.card} aria-labelledby="import-format-title">
-        <h2 id="import-format-title" className={styles.cardTitle}>
-          Formato del archivo
-        </h2>
-        <p className={styles.cardBody}>
-          Cada fila necesita patente, marca, modelo, año y al menos 7 URLs de
-          imágenes públicas. La patente identifica al vehículo: si ya existe se
-          actualiza, si no existe se crea.
-        </p>
-        <p className={styles.cardBody}>{FORMAT_HELP}</p>
-        {MATCHING_HELP.map((help) => (
-          <p key={help} className={styles.cardBody}>{help}</p>
-        ))}
-        <Button
-          type="button"
-          disabled={downloading || confirming}
-          aria-busy={downloading}
-          onClick={() => void downloadTemplate()}
-          variant="secondary" className={`${styles.template}`}
-        >
-          {downloading ? "DESCARGANDO…" : "DESCARGAR PLANTILLA"}
+  const ready = typeof preview === 'object'
+  const actions = (
+    <div className={barStyles.actions}>
+      {presentation === 'page' ? (
+        <ButtonLink to={INVENTORY_PATH} variant="secondary" className={barStyles.action}>
+          VOLVER AL INVENTARIO
+        </ButtonLink>
+      ) : (
+        <Button type="button" disabled={confirming} variant="secondary" className={barStyles.action} onClick={onClose}>
+          CANCELAR
         </Button>
-      </section>
+      )}
+      <Button
+        type="button"
+        disabled={!ready || confirming}
+        aria-busy={confirming}
+        variant="primary"
+        className={barStyles.actionWide}
+        onClick={() => void confirm()}
+      >
+        {confirming ? 'IMPORTANDO…' : 'CONFIRMAR IMPORTACIÓN'}
+      </Button>
+    </div>
+  )
+
+  const content = (
+    <>
       <div className={styles.fileRow}>
         <div className={styles.fileField}>
           <span className={styles.fileLabel}>Archivo XLSX</span>
@@ -199,39 +175,50 @@ export default function ImportInventoryPage() {
           />
         </label>
       </div>
-      {preview === "loading" ? (
-        <section className={`${styles.card} ${styles.loadingCard}`}>
-          <SessionLoading />
-        </section>
+      {preview === 'loading' ? (
+        <section className={`${styles.card} ${styles.loadingCard}`}><SessionLoading /></section>
       ) : null}
       {ready ? (
         <section className={styles.card} aria-labelledby="import-preview-title">
-          <h2 id="import-preview-title" className={styles.cardTitle}>
-            Vista previa
-          </h2>
+          <h2 id="import-preview-title" className={styles.cardTitle}>Vista previa</h2>
           <p className={styles.cardBody}>{previewSummary(preview)}</p>
         </section>
       ) : null}
       {blocked ? <SubscriptionBlockedNotice info={blocked} compact /> : null}
       {failure ? (
-        <div
-          ref={failureRef}
-          tabIndex={-1}
-          role="alert"
-          className={`${alertStyles.alert} ${styles.failure}`}
-        >
+        <div ref={failureRef} tabIndex={-1} role="alert" className={`${alertStyles.alert} ${styles.failure}`}>
           <p className={styles.failureMessage}>{failure.message}</p>
           {failure.rows.length > 0 ? (
             <ScrollArea label="Filas con error" offset={640}>
-              <ul className={styles.failureRows}>
-                {failure.rows.map((row, index) => (
-                  <li key={index}>{row}</li>
-                ))}
-              </ul>
+              <ul className={styles.failureRows}>{failure.rows.map((row, index) => <li key={index}>{row}</li>)}</ul>
             </ScrollArea>
           ) : null}
         </div>
       ) : null}
-    </VehicleFormPage>
-  );
+      {presentation === 'dialog' ? actions : null}
+      <section className={styles.card} aria-labelledby="import-format-title">
+        <h2 id="import-format-title" className={styles.cardTitle}>Formato del archivo</h2>
+        <p className={styles.cardBody}>
+          Cada fila necesita patente, marca, modelo, año y al menos 7 URLs de imágenes públicas. La patente identifica al vehículo: si ya existe se actualiza, si no existe se crea.
+        </p>
+        <p className={styles.cardBody}>{FORMAT_HELP}</p>
+        {MATCHING_HELP.map((help) => <p key={help} className={styles.cardBody}>{help}</p>)}
+        <DownloadInventoryTemplate disabled={confirming} onStart={() => { setFailure(null); setBlocked(null) }} onFailure={showFailure} className={styles.template} />
+      </section>
+    </>
+  )
+
+  if (presentation === 'page') {
+    return (
+      <VehicleFormPage
+        title="Importar XLSX"
+        subtitle="Subí un archivo para cargar o actualizar varios vehículos a la vez."
+        actions={actions}
+      >
+        {content}
+      </VehicleFormPage>
+    )
+  }
+
+  return <div className={styles.dialogContent}>{content}</div>
 }
