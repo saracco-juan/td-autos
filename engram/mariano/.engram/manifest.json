@@ -560,6 +560,14 @@
       "sessions": 2,
       "memories": 14,
       "prompts": 1
+    },
+    {
+      "id": "cd793915",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T21:35:09.0205137Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 1
     }
   ]
 }
