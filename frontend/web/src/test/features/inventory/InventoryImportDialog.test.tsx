@@ -51,6 +51,21 @@ describe('InventoryImportDialog', () => {
     vi.restoreAllMocks()
   })
 
+  it('keeps the import open when the native file picker is cancelled', () => {
+    render(<Host />)
+    fireEvent(screen.getByLabelText('Archivo XLSX'), new Event('cancel', { bubbles: true }))
+    expect(screen.getByRole('dialog', { name: 'Importar XLSX' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'CONFIRMAR IMPORTACIÓN' })).toBeDisabled()
+    expect(previewImport).not.toHaveBeenCalled()
+    expect(confirmImport).not.toHaveBeenCalled()
+  })
+
+  it('still closes when the dialog itself is cancelled', () => {
+    render(<Host />)
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { bubbles: false, cancelable: true }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
   it('opens a dialog and previews a dropped XLSX inside it', async () => {
     vi.mocked(previewImport).mockResolvedValue({ nuevos: 2, actualizaciones: 1 })
     render(<Host />)
@@ -62,6 +77,7 @@ describe('InventoryImportDialog', () => {
 
     expect(previewImport).toHaveBeenCalledWith(XLSX)
     expect(await within(dialog).findByText(/2 vehículos nuevos · 1 actualización/)).toBeInTheDocument()
+    expect(within(dialog).getByText('Listo para importar')).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'CONFIRMAR IMPORTACIÓN' })).toBeEnabled()
     expect(screen.queryByRole('heading', { level: 1, name: 'Importar XLSX' })).not.toBeInTheDocument()
   })
@@ -78,6 +94,7 @@ describe('InventoryImportDialog', () => {
     await userEvent.setup().upload(input, XLSX)
 
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('El archivo tiene errores.')
+    expect(within(dialog).getByText('Revisá el archivo')).toBeInTheDocument()
     expect(within(dialog).getByText('Fila 2 · AB123CD: El año no es válido.')).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'CONFIRMAR IMPORTACIÓN' })).toBeDisabled()
   })
@@ -105,6 +122,9 @@ describe('InventoryImportDialog', () => {
     await user.dblClick(within(dialog).getByRole('button', { name: 'CONFIRMAR IMPORTACIÓN' }))
     expect(confirmImport).toHaveBeenCalledTimes(1)
     expect(within(dialog).getByRole('button', { name: 'CERRAR' })).toBeDisabled()
+    expect(within(dialog).getByText('Importando…')).toBeInTheDocument()
+    fireEvent(dialog, new Event('cancel', { cancelable: true }))
+    expect(dialog).toBeVisible()
     expect(within(dialog).getByRole('button', { name: 'CANCELAR' })).toBeDisabled()
     finish({ nuevos: 1, actualizaciones: 0 })
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())

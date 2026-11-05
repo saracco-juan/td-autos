@@ -206,16 +206,22 @@ export default function InventoryPage() {
         {vehicles.length > 0 ? (
           <label className={styles.search}>
             <span>Buscar vehículos</span>
-            <input
-              type="search"
-              aria-label="Buscar vehículos"
-              placeholder="Marca, modelo, versión, año o patente"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setPage(1);
-              }}
-            />
+            <span className={styles.searchControl}>
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={styles.searchIcon}>
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" strokeLinecap="round" />
+              </svg>
+              <input
+                type="search"
+                aria-label="Buscar vehículos"
+                placeholder="Marca, modelo, versión, año o patente"
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPage(1);
+                }}
+              />
+            </span>
           </label>
         ) : null}
         {vehicles.length === 0 ? (
@@ -231,8 +237,9 @@ export default function InventoryPage() {
           <ScrollArea
             label="Vehículos del inventario"
             fill
-            className={tableStyles.wrap}
-            viewportClassName={tableStyles.viewport}
+            stickyHeader
+            className={styles.tableFrame}
+            viewportClassName={`${tableStyles.viewport} ${styles.tableViewport}`}
           >
             <table className={tableStyles.table} aria-label="Inventario">
               {/* Fixed column widths: columns never depend on the rows of the current page. */}
@@ -298,14 +305,16 @@ export default function InventoryPage() {
           }
         >
           {filteredVehicles.length > PAGE_SIZES[0] ? (
-            <ResultsPagination
-              page={page}
-              lastPage={lastPage}
-              onChange={setPage}
-              pageSize={pageSize}
-              pageSizeOptions={PAGE_SIZES}
-              onPageSizeChange={changePageSize}
-            />
+            <div className={styles.pagination}>
+              <ResultsPagination
+                page={page}
+                lastPage={lastPage}
+                onChange={setPage}
+                pageSize={pageSize}
+                pageSizeOptions={PAGE_SIZES}
+                onPageSizeChange={changePageSize}
+              />
+            </div>
           ) : null}
         </ListFooter>
       </div>

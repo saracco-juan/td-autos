@@ -21,17 +21,12 @@
   font-size: 12px;
 }
 
-.loadingCard {
-  min-height: 96px;
-}
-
 .dropZone {
   position: relative;
   display: flex;
-  width: min(100%, 320px);
-  align-self: center;
+  width: 100%;
   flex-shrink: 0;
-  aspect-ratio: 1;
+  min-height: 160px;
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
@@ -49,6 +44,63 @@
 .dropZone[data-dragging] {
   border-color: var(--action-success);
   background: var(--status-success-bg);
+}
+
+.folder {
+  width: 48px;
+  height: 42px;
+  color: var(--text-primary);
+}
+
+.folderPaper, .folderFront {
+  transform-origin: center bottom;
+  transition: transform 180ms cubic-bezier(.23, 1, .32, 1);
+}
+
+.dropZone[data-dragging] .folderPaper {
+  transform: translateY(-4px);
+}
+
+.dropZone[data-dragging] .folderFront {
+  transform: scaleY(.85);
+}
+
+.selectedFile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.fileType {
+  padding: 10px 6px;
+  border-radius: 8px;
+  background: var(--surface-raised);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.fileDetails {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+
+.fileName {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.fileState {
+  max-width: 100px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.fileState[data-ready] {
+  color: var(--action-success);
 }
 
 .dropZone:focus-within {
@@ -98,13 +150,14 @@
   width: min(100%, 220px);
 }
 
+.dialog {
+  --dialog-width: 960px;
+}
+
 .dialogContent {
   display: flex;
-  max-height: calc(100dvh - 150px);
   flex-direction: column;
   gap: 16px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .dialogContent .card {
@@ -114,8 +167,26 @@
   box-shadow: none;
 }
 
+@media (max-width: 600px) {
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actions > button, .actions > a {
+    flex: none;
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dropZone {
     transition: none;
+  }
+  .folderPaper, .folderFront,
+  .dropZone[data-dragging] .folderPaper,
+  .dropZone[data-dragging] .folderFront {
+    transition: none;
+    transform: none;
   }
 }

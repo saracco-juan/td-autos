@@ -169,7 +169,7 @@ describe('InventoryPage', () => {
     const table = screen.getByRole('table', { name: 'Inventario' })
     const download = screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' })
 
-    expect(search.parentElement?.nextElementSibling).toBe(table.closest('[data-scroll-frame]'))
+    expect(search.closest('label')?.nextElementSibling).toBe(table.closest('[data-scroll-frame]'))
     expect(download.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(screen.queryByText('Inclusión automática')).not.toBeInTheDocument()
     expect(screen.queryByText(/Las unidades guardadas participan directamente/)).not.toBeInTheDocument()
@@ -375,9 +375,9 @@ describe('InventoryPage save notice', () => {
       const load = screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })
       const importCsv = screen.getByRole('button', { name: 'IMPORTAR XLSX' })
       const pager = screen.getByRole('navigation', { name: 'Paginación' })
-      const resultsPager = pager.parentElement?.parentElement
+      const resultsPager = load.parentElement?.nextElementSibling
       expect(load.parentElement).toBe(importCsv.parentElement)
-      expect(load.parentElement?.nextElementSibling).toBe(resultsPager)
+      expect(resultsPager).toContainElement(pager)
       expect(resultsPager?.parentElement).toBe(load.parentElement?.parentElement)
     })
 

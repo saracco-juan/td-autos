@@ -31,17 +31,6 @@ type Props = {
   onBusyChange?: (busy: boolean) => void
 }
 
-const FORMAT_HELP =
-  'Completá la hoja Inventario de la plantilla XLSX. Elegí marca, modelo y versión del catálogo. ' +
-  'En fotos, poné de 7 a 20 URLs http o https separadas por |. Hasta 500 filas y 2 MB.'
-
-const MATCHING_HELP = [
-  'Conservá también todas las columnas nuevas de la plantilla: moneda (ARS o USD), plazas (entero positivo, incluye conductor), motor, turbo, potencia (entero positivo), potencia_unidad (CV, HP o kW), consumo_urbano, consumo_ruta y equipamiento.',
-  'Turbo y cada dato de seguridad y confort requieren sí o no. Vacío no significa no. Android Auto o Apple CarPlay es una sola respuesta: sí si tiene al menos uno.',
-  'Consumos en L/100 km, mayores que cero, con punto decimal y hasta dos decimales. Son obligatorios para nafta y diesel; opcionales para gnc, hibrido y electrico. Transmisión: manual o automatica. Carrocería: el nombre de la lista del alta manual.',
-  'El servidor valida todas las filas, aunque borres los desplegables. Una selección de catálogo inválida o incompleta rechaza todo el archivo sin aplicar cambios. Las versiones sin precios de referencia también se pueden cargar; no se inventa una estimación.',
-]
-
 const isXlsx = (file: File) =>
   file.name.toLowerCase().endsWith('.xlsx') ||
   file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -124,7 +113,7 @@ export default function InventoryImportForm({
 
   const ready = typeof preview === 'object'
   const actions = (
-    <div className={barStyles.actions}>
+    <div className={`${barStyles.actions} ${styles.actions}`}>
       {presentation === 'page' ? (
         <ButtonLink to={INVENTORY_PATH} variant="secondary" className={barStyles.action}>
           VOLVER AL INVENTARIO
@@ -149,6 +138,18 @@ export default function InventoryImportForm({
 
   const content = (
     <>
+      <section className={styles.card} aria-labelledby="import-format-title">
+        <h2 id="import-format-title" className={styles.cardTitle}>Prepará tu archivo</h2>
+        <p className={styles.cardBody}>
+          Completá la plantilla XLSX sin cambiar sus columnas. Hasta 500 vehículos y 2 MB.
+          Cada vehículo necesita entre 7 y 20 URLs públicas de fotos, separadas por |.
+        </p>
+        <p className={styles.cardBody}>
+          Las patentes existentes se actualizan; las nuevas se agregan. Revisá la vista previa antes de confirmar.
+          Si hay errores, corregí el archivo: no se aplicará ningún cambio.
+        </p>
+        <DownloadInventoryTemplate disabled={confirming} onStart={() => { setFailure(null); setBlocked(null) }} onFailure={showFailure} className={styles.template} />
+      </section>
       <label
         className={styles.dropZone}
         data-dragging={dragging || undefined}
@@ -163,7 +164,12 @@ export default function InventoryImportForm({
           if (dropped) void pickFile(dropped)
         }}
       >
-        <span className={styles.dropTitle}>{file?.name ?? 'Arrastrá el archivo XLSX acá'}</span>
+        <svg className={styles.folder} viewBox="0 0 56 48" aria-hidden="true">
+          <path d="M5 12a4 4 0 0 1 4-4h13l5 5h20a4 4 0 0 1 4 4v23H5Z" fill="currentColor" opacity=".3" />
+          <rect className={styles.folderPaper} x="14" y="6" width="28" height="30" rx="3" fill="var(--surface-default)" stroke="currentColor" strokeWidth="1.5" />
+          <path className={styles.folderFront} d="M5 21h46l-4 19H9Z" fill="currentColor" />
+        </svg>
+        <span className={styles.dropTitle}>{dragging ? 'Soltá el archivo para validarlo' : 'Arrastrá el archivo XLSX acá'}</span>
         <span className={styles.dropHint}>o seleccioná un archivo de tu dispositivo</span>
         <input
           type="file"
@@ -178,8 +184,19 @@ export default function InventoryImportForm({
           }}
         />
       </label>
-      {preview === 'loading' ? (
-        <section className={`${styles.card} ${styles.loadingCard}`}><SessionLoading /></section>
+      {file ? (
+        <div className={styles.selectedFile}>
+          <span className={styles.fileType} aria-hidden="true">XLSX</span>
+          <div className={styles.fileDetails}>
+            <span className={styles.fileName}>{file.name}</span>
+            <span className={styles.dropHint}>{Math.max(1, Math.ceil(file.size / 1024))} KB</span>
+          </div>
+          {preview === 'loading' ? <SessionLoading /> : (
+            <span className={styles.fileState} data-ready={(ready && !failure && !blocked && !confirming) || undefined}>
+              {confirming ? 'Importando…' : ready && !failure && !blocked ? 'Listo para importar' : 'Revisá el archivo'}
+            </span>
+          )}
+        </div>
       ) : null}
       {ready ? (
         <section className={styles.card} aria-labelledby="import-preview-title">
@@ -199,15 +216,7 @@ export default function InventoryImportForm({
         </div>
       ) : null}
       {presentation === 'dialog' ? actions : null}
-      <section className={styles.card} aria-labelledby="import-format-title">
-        <h2 id="import-format-title" className={styles.cardTitle}>Formato del archivo</h2>
-        <p className={styles.cardBody}>
-          Cada fila necesita patente, marca, modelo, año y al menos 7 URLs de imágenes públicas. La patente identifica al vehículo: si ya existe se actualiza, si no existe se crea.
-        </p>
-        <p className={styles.cardBody}>{FORMAT_HELP}</p>
-        {MATCHING_HELP.map((help) => <p key={help} className={styles.cardBody}>{help}</p>)}
-        <DownloadInventoryTemplate disabled={confirming} onStart={() => { setFailure(null); setBlocked(null) }} onFailure={showFailure} className={styles.template} />
-      </section>
+
     </>
   )
 
