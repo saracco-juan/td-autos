@@ -42,8 +42,8 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-const Body = ({ children, accent }: { children: ReactNode; accent?: boolean }) => (
-  <p className={accent ? `${styles.cardBody} ${styles.status}` : styles.cardBody}>{children}</p>
+const Body = ({ children, accent, success }: { children: ReactNode; accent?: boolean; success?: boolean }) => (
+  <p className={[styles.cardBody, success ? styles.activeStatus : accent && styles.status].filter(Boolean).join(' ')}>{children}</p>
 )
 
 function TransferData({ data, kind }: { data: DatosTransferencia | null; kind: string }) {
@@ -238,7 +238,9 @@ export default function SubscriptionPage() {
       {rejected ? <RejectedNotice receipt={rejected} /> : null}
       <div className={styles.cards}>
         <Card title="Estado de la cuenta">
-          <Body accent>{validity.estado === 'inactiva' ? 'Inactiva · suscripción vencida' : accountStatusText(summary.estado_alta)}</Body>
+          <Body accent success={summary.estado_alta === DEALER_STATE_ACTIVE && validity.estado !== 'inactiva'}>
+            {validity.estado === 'inactiva' ? 'Inactiva · suscripción vencida' : accountStatusText(summary.estado_alta)}
+          </Body>
           {validity.estado === 'activa' && validity.vigente_hasta ? (
             <Body>{`Suscripción vigente hasta el ${formatDay(validity.vigente_hasta)}`}</Body>
           ) : null}

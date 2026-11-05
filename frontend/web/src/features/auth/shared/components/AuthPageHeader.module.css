@@ -4,22 +4,3 @@
   justify-content: space-between;
   gap: 16px;
 }
-
-.brand {
-  color: var(--text-primary);
-  font-size: 20px;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.brand span {
-  color: var(--palette-red);
-  margin-right: 6px;
-}
-
-@media (max-width: 800px) {
-  .brand {
-    font-size: 18px;
-  }
-}

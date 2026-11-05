@@ -1,10 +1,13 @@
 import { useEffect, useId, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import alertStyles from '../styles/alert.module.css'
-import { isActiveDealer, isAdmin, isBuyer, isDealer } from '../features/auth/model/roles'
+import { isAdmin, isBuyer, isDealer } from '../features/auth/model/roles'
 import { useAuth } from '../features/auth/session/hooks/useAuth'
 import styles from './AppShell.module.css'
 import AppFooter from './AppFooter'
+import DealerShell from '../features/dealer/components/DealerShell'
+import DealerNavigation from '../features/dealer/components/DealerNavigation'
+import { LogoutIcon, MenuIcon } from '../components/NavigationIcons/NavigationIcons'
 
 // Brand mark before the wordmark: the TD monogram of the favicon, in red on a white tile. Decorative; the link carries the name.
 function LogoMark() {
@@ -17,35 +20,6 @@ function LogoMark() {
         </g>
       </svg>
     </span>
-  )
-}
-
-function MenuIcon({ open }: { open: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-      <path
-        d={open ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16"}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  )
-}
-
-function LogoutIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
-      <path
-        d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   )
 }
 
@@ -66,6 +40,8 @@ export default function AppShell() {
   const navigate = useNavigate()
   const { pathname, hash, key: locationKey } = useLocation()
   const { user, status, logout } = useAuth()
+  const dealerWorkspace = status === 'authenticated' && isDealer(user) &&
+    (pathname === '/concesionaria' || pathname.startsWith('/concesionaria/'))
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutFailed, setLogoutFailed] = useState(false)
   // The phone menu belongs to the navigation it was opened on: following any link (a new location key) closes it.
@@ -160,6 +136,14 @@ export default function AppShell() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [menuOpen])
 
+  if (dealerWorkspace && user) {
+    return <DealerShell user={user} menuOpen={menuOpen} menuId={menuId}
+      onMenuToggle={() => setMenuOpen(!menuOpen)} loggingOut={loggingOut} onLogout={handleLogout}>
+      {logoutFailed ? <p role="alert" className={`${alertStyles.alert} ${styles.alert}`}>{LOGOUT_ERROR}</p> : null}
+      <Outlet />
+    </DealerShell>
+  }
+
   return (
     <div className={`${styles.shell} ${pathname === '/' ? styles.homeShell : ''}`}>
       <header className={styles.nav}>
@@ -186,22 +170,7 @@ export default function AppShell() {
             >
               <nav aria-label="Principal" className={styles.navLinks}>
                 {isDealer(user) ? (
-                  <>
-                    <NavLink to="/concesionaria/suscripcion" className={styles.navAction}>
-                      Suscripción
-                    </NavLink>
-                    <NavLink to="/concesionaria" end className={styles.navAction}>
-                      Verificación
-                    </NavLink>
-                    {isActiveDealer(user) ? (
-                      <NavLink to="/concesionaria/inventario" className={styles.navAction}>
-                        Inventario
-                      </NavLink>
-                    ) : null}
-                    <NavLink to="/concesionaria/leads" className={styles.navAction}>
-                      Métricas
-                    </NavLink>
-                  </>
+                  <DealerNavigation user={user} className={styles.navAction} />
                 ) : null}
                 {isAdmin(user) ? (
                   <Link
