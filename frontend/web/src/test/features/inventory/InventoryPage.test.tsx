@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../lib/http'
-import { confirmImport, deleteVehicle, fetchVehicles, previewImport } from '../../../features/inventory/api/client'
+import { confirmImport, deleteVehicle, fetchInventoryTemplate, fetchVehicles, previewImport } from '../../../features/inventory/api/client'
 import { PAUSED_HINT, PAUSED_TEXT, VEHICULOS, inactiveBody, vehiculo } from '../../fixtures/inventory/fixtures'
 import InventoryPage from '../../../features/inventory/pages/InventoryPage'
 
@@ -37,6 +37,7 @@ describe('InventoryPage', () => {
     vi.mocked(fetchVehicles).mockResolvedValue(VEHICULOS)
     vi.mocked(previewImport).mockReset()
     vi.mocked(confirmImport).mockReset()
+    vi.mocked(fetchInventoryTemplate).mockReset()
     Object.defineProperties(HTMLDialogElement.prototype, {
       showModal: { configurable: true, value: function (this: HTMLDialogElement) { this.setAttribute('open', '') } },
       close: { configurable: true, value: function (this: HTMLDialogElement) { this.removeAttribute('open') } },
@@ -61,6 +62,33 @@ describe('InventoryPage', () => {
     expect(screen.queryByText(/Las unidades guardadas participan directamente/)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveAttribute('href', '/concesionaria/inventario/nuevo')
     expect(screen.getByRole('button', { name: 'IMPORTAR XLSX' })).toBeInTheDocument()
+  })
+
+  it('keeps the inventory available after a template download fails and clears the alert on retry', async () => {
+    vi.mocked(fetchInventoryTemplate).mockRejectedValueOnce(new NetworkError(new Error('offline')))
+    const user = userEvent.setup()
+    await loaded()
+
+    await user.click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/conexión/i)
+    expect(screen.getByRole('table')).toBeInTheDocument()
+    vi.mocked(fetchInventoryTemplate).mockReturnValueOnce(new Promise(() => {}))
+    await user.click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'DESCARGANDO…' })).toBeDisabled()
+  })
+
+  it('pauses the inventory when the template download reports an inactive subscription', async () => {
+    vi.mocked(fetchInventoryTemplate).mockRejectedValueOnce(new HttpError(403, inactiveBody()))
+    await loaded()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+
+    expect(await screen.findByRole('heading', { name: 'Tu inventario está pausado' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('S3: does not render SUSCRIPCIÓN, whose screen does not exist yet', async () => {
