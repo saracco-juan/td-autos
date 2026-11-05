@@ -1,5 +1,38 @@
 # TD Autos — design rules
 
+## Dealership subscription workspace (2026-11-05)
+
+- Keep the existing dealership sidebar and centered content frame. Subscription
+  uses three compact overview cards followed by the receipt history. History rows
+  show the actual file, paid period, submission/review dates and review outcome;
+  rejected rows include their reason. Empty, loading and recoverable error states
+  stay inside this section.
+- Recommendations and receipt history share `ResultsPagination`, extracted from
+  the approved recommendations footer, on top of the existing `Pagination`.
+  Preserve its page counter, individual controls, dark selected page and focus
+  treatment. History also uses the existing page-size selector and `ScrollArea`.
+- REALIZAR TRANSFERENCIA opens a native modal containing bank details, payment
+  instructions, receipt selection and submission. This user-requested modal
+  replaces the inline payment area and pinned bottom actions. Closing preserves
+  the selected file; submission errors preserve it for retry. A pending review
+  prevents another submission, with the reason visible in the overview.
+- Reuse the native top-layer `Dialog` component for focus containment, Escape,
+  inert background and focus restoration. Its deliberate pointer-triggered
+  entrance/exit uses opacity and a subtle 12px/0.97 transform over 500ms with
+  `cubic-bezier(0.32, 0.72, 0, 1)`, explicitly requested instead of the usual fast
+  product motion. Keyboard activation is immediate; reduced motion removes
+  travel and shortens the fade to 100ms. Keep the approved shared 550ms hover.
+- Reflow cards and receipt rows at 800px; modal contents become one column at
+  600px. Preserve 44px touch controls, scrollable modal content and wrapped long
+  filenames/account details. The primary payment action remains black.
+- Missing transfer data explains that payment configuration must be completed
+  by administration, rather than suggesting that waiting will fix it. Approved
+  receipts remain visible in history and receive explicit overview feedback.
+- User-approved divergence from High v3 subscription `2373:8708`: compact
+  overview, real history, shared list controls and animated payment modal.
+  Figma synchronization for web and mobile remains pending approval. Native
+  mobile implementation is outside this web iteration.
+
 ## Dealership workspace structure (2026-11-04)
 
 - Authenticated `/concesionaria` routes use a persistent 216px left sidebar,

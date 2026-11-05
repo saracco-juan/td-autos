@@ -42,7 +42,7 @@ describe('ActiveDealerRoute', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Tu cuenta está pendiente de aprobación. Todavía no podés gestionar el inventario.',
     )
-    expect(screen.getByRole('link', { name: 'Volver a verificación' })).toHaveAttribute('href', '/concesionaria')
+    expect(screen.getByRole('link', { name: 'Volver a suscripción' })).toHaveAttribute('href', '/concesionaria/suscripcion')
     expect(screen.queryByText('Inventario')).not.toBeInTheDocument()
   })
 
@@ -55,7 +55,7 @@ describe('ActiveDealerRoute', () => {
     renderGuarded(user)
 
     expect(screen.getByRole('alert')).toHaveTextContent('No tenés permiso para realizar esta acción.')
-    expect(screen.getByRole('link', { name: 'Volver a verificación' })).toHaveAttribute('href', '/concesionaria')
+    expect(screen.getByRole('link', { name: 'Volver a suscripción' })).toHaveAttribute('href', '/concesionaria/suscripcion')
     expect(screen.queryByText('Inventario')).not.toBeInTheDocument()
   })
 })

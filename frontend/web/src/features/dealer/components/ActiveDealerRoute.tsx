@@ -22,8 +22,8 @@ export default function ActiveDealerRoute() {
       <p role="alert" className={pending ? alertStyles.warning : alertStyles.alert}>
         {pending ? MESSAGE_PENDING : MESSAGE_FORBIDDEN}
       </p>
-      <Link to="/concesionaria" className={styles.back}>
-        Volver a verificación
+      <Link to="/concesionaria/suscripcion" className={styles.back}>
+        Volver a suscripción
       </Link>
     </div>
   )

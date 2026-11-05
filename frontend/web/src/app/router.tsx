@@ -12,7 +12,6 @@ import RegisterPage from '../features/auth/register/pages/RegisterPage'
 import RecoveryPage from '../features/auth/recovery/pages/RecoveryPage'
 import ResetPasswordPage from '../features/auth/recovery/pages/ResetPasswordPage'
 import ActiveDealerRoute from '../features/dealer/components/ActiveDealerRoute'
-import DealerStatusPage from '../features/dealer/pages/DealerStatusPage'
 import DiagnosisPage from '../features/diagnosis/pages/DiagnosisPage'
 import HomeRoute from '../features/home/components/HomeRoute'
 import PublicHomeRoute from '../features/home/components/PublicHomeRoute'
@@ -73,7 +72,7 @@ export const routes: RouteObject[] = [
                 // Dealer screens: a buyer is sent to / and an administrator to /admin.
                 element: <RoleRoute allow="dealer" />,
                 children: [
-                  { path: '/concesionaria', element: <DealerStatusPage /> },
+                  { path: '/concesionaria', element: <Navigate to="/concesionaria/suscripcion" replace /> },
                   { path: '/concesionaria/leads', element: <LeadsPage /> },
                   // Outside ActiveDealerRoute: a pending dealer has to reach it to send the first payment.
                   { path: '/concesionaria/suscripcion', element: <SubscriptionPage /> },
