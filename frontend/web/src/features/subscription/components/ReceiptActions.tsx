@@ -72,4 +72,3 @@ export default function ReceiptActions({ receipt }: { receipt: ReceiptHistoryEnt
     </Dialog> : null}
   </div>
 }
-
