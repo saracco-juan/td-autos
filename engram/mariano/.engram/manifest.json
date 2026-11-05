@@ -600,6 +600,14 @@
       "sessions": 1,
       "memories": 2,
       "prompts": 1
+    },
+    {
+      "id": "0a5bd3c7",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T23:54:46.4610467Z",
+      "sessions": 1,
+      "memories": 4,
+      "prompts": 3
     }
   ]
 }
