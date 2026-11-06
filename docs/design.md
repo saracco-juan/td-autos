@@ -575,3 +575,8 @@ Figma synchronization is pending approval: High v3 inventory `2373:8733` still h
 - This unit changes only the container. Administrator page contents, route guards,
   session actions and API contracts stay unchanged. High v3 frame `2373:9278`
   still shows the old header/footer; Figma synchronization awaits user acceptance.
+
+Inventory and the administrator dealership directory share `components/Table/Table`.
+Each screen supplies column headings/widths, rows, stable row keys and its row renderer.
+The shared component owns semantic table structure; feature rows retain their actions,
+and the existing scroll regions and result pagination remain separate components.

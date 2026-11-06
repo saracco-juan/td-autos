@@ -8,6 +8,7 @@ import ErrorState, { type ErrorKind } from "../../../components/ErrorState/Error
 import ListFooter from "../../../components/ListFooter/ListFooter";
 import ResultsPagination from "../../../components/Pagination/ResultsPagination";
 import ScrollArea from "../../../components/ScrollArea/ScrollArea";
+import Table from "../../../components/Table/Table";
 import screenStyles from "../../../styles/screen.module.css";
 import usePagedItems from "../../../hooks/usePagedItems";
 import { HttpError, NetworkError } from "../../../lib/http";
@@ -27,6 +28,16 @@ import VehicleRow from "../components/VehicleRow";
 import rowStyles from "../components/VehicleRow.module.css";
 import { importFailureFrom, type ImportFailure } from "../model/importErrors";
 import InventoryImportDialog from "../components/InventoryImportDialog";
+
+const VEHICLE_COLUMNS = [
+  { key: 'name', header: 'Vehículo', colClassName: rowStyles.colName },
+  { key: 'plate', header: 'Patente', colClassName: rowStyles.colPlate, headerClassName: rowStyles.colPlate },
+  { key: 'photos', header: 'Imágenes', colClassName: rowStyles.colPhotos, headerClassName: rowStyles.colPhotos },
+  { key: 'kilometers', header: 'Kilómetros', colClassName: rowStyles.colKm },
+  { key: 'price', header: 'Precio', colClassName: rowStyles.colPrice },
+  { key: 'place', header: 'Ubicación', colClassName: rowStyles.colPlace, headerClassName: rowStyles.colPlace },
+  { key: 'actions', header: 'Acciones', colClassName: rowStyles.colActions },
+];
 
 type LoadState =
   | "loading"
@@ -241,47 +252,21 @@ export default function InventoryPage() {
             className={styles.tableFrame}
             viewportClassName={`${tableStyles.viewport} ${styles.tableViewport}`}
           >
-            <table className={tableStyles.table} aria-label="Inventario">
-              {/* Fixed column widths: columns never depend on the rows of the current page. */}
-              <colgroup>
-                <col className={rowStyles.colName} />
-                <col className={rowStyles.colPlate} />
-                <col className={rowStyles.colPhotos} />
-                <col className={rowStyles.colKm} />
-                <col className={rowStyles.colPrice} />
-                <col className={rowStyles.colPlace} />
-                <col className={rowStyles.colActions} />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th scope="col">Vehículo</th>
-                  <th scope="col" className={rowStyles.colPlate}>
-                    Patente
-                  </th>
-                  <th scope="col" className={rowStyles.colPhotos}>
-                    Imágenes
-                  </th>
-                  <th scope="col">Kilómetros</th>
-                  <th scope="col">Precio</th>
-                  <th scope="col" className={rowStyles.colPlace}>
-                    Ubicación
-                  </th>
-                  <th scope="col">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pageItems.map((vehicle) => (
-                  <VehicleRow
-                    key={vehicle.id}
-                    vehicle={vehicle}
-                    deleting={deletingId === vehicle.id}
-                    failed={failedId === vehicle.id}
-                    locked={deletingId !== null}
-                    onDelete={() => confirmDelete(vehicle.id)}
-                  />
-                ))}
-              </tbody>
-            </table>
+            <Table
+              aria-label="Inventario"
+              columns={VEHICLE_COLUMNS}
+              rows={pageItems}
+              rowKey={(vehicle) => vehicle.id}
+              renderRow={(vehicle) => (
+                <VehicleRow
+                  vehicle={vehicle}
+                  deleting={deletingId === vehicle.id}
+                  failed={failedId === vehicle.id}
+                  locked={deletingId !== null}
+                  onDelete={() => confirmDelete(vehicle.id)}
+                />
+              )}
+            />
           </ScrollArea>
         )}
         <ListFooter

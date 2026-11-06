@@ -235,8 +235,10 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
 
       expect(within(table).getAllByRole('rowheader')).toHaveLength(10)
       expect(screen.getByText('12 concesionarias registradas')).toBeInTheDocument()
+      expect(screen.getByText('Página 1 de 2')).toBeInTheDocument()
 
       await userEvent.setup().click(screen.getByRole('button', { name: 'Página 2' }))
+      expect(screen.getByText('Página 2 de 2')).toBeInTheDocument()
 
       expect(within(table).getAllByRole('rowheader').map((cell) => cell.textContent)).toEqual([
         'Concesionaria 11',
@@ -270,6 +272,7 @@ describe('DealersPage (UH19, Figma 38:1037)', () => {
       await user.selectOptions(screen.getByRole('combobox', { name: 'Mostrar' }), '25')
 
       expect(screen.getByRole('combobox', { name: 'Mostrar' })).toHaveValue('25')
+      expect(screen.getByText('Página 1 de 1')).toBeInTheDocument()
     })
   })
   describe('notice', () => {
