@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { MemoryRouter } from 'react-router'
@@ -58,12 +58,33 @@ describe('InventoryImportDialog', () => {
     const dropZone = within(dialog).getByText(/Arrastrá el archivo XLSX acá/)
 
     fireEvent.dragOver(dropZone, { dataTransfer: { files: [XLSX] } })
+    const dropArea = within(dialog).getByLabelText('Archivo XLSX').closest('label')!
+    expect(dropArea).toHaveAttribute('data-dragging', 'true')
+    const leaveChild = createEvent.dragLeave(dropZone)
+    Object.defineProperty(leaveChild, 'relatedTarget', { value: dropZone })
+    fireEvent(dropZone, leaveChild)
+    expect(dropArea).toHaveAttribute('data-dragging', 'true')
+    const leaveArea = createEvent.dragLeave(dropZone)
+    Object.defineProperty(leaveArea, 'relatedTarget', { value: document.body })
+    fireEvent(dropZone, leaveArea)
+    expect(dropArea).not.toHaveAttribute('data-dragging')
     fireEvent.drop(dropZone, { dataTransfer: { files: [XLSX] } })
 
     expect(previewImport).toHaveBeenCalledWith(XLSX)
     expect(await within(dialog).findByText(/2 vehículos nuevos · 1 actualización/)).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'CONFIRMAR IMPORTACIÓN' })).toBeEnabled()
     expect(screen.queryByRole('heading', { level: 1, name: 'Importar XLSX' })).not.toBeInTheDocument()
+  })
+
+  it('ignores an empty drop without starting a preview', () => {
+    render(<Host />)
+    const dialog = screen.getByRole('dialog', { name: 'Importar XLSX' })
+    const dropZone = within(dialog).getByText(/Arrastrá el archivo XLSX acá/)
+    fireEvent.dragOver(dropZone)
+    fireEvent.drop(dropZone, { dataTransfer: { files: [] } })
+    expect(within(dialog).getByLabelText('Archivo XLSX').closest('label')).not.toHaveAttribute('data-dragging')
+    expect(previewImport).not.toHaveBeenCalled()
+    expect(within(dialog).queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('keeps preview errors in the dialog and leaves confirmation disabled', async () => {
@@ -106,6 +127,11 @@ describe('InventoryImportDialog', () => {
     expect(confirmImport).toHaveBeenCalledTimes(1)
     expect(within(dialog).getByRole('button', { name: 'CERRAR' })).toBeDisabled()
     expect(within(dialog).getByRole('button', { name: 'CANCELAR' })).toBeDisabled()
+    const input = within(dialog).getByLabelText('Archivo XLSX')
+    fireEvent.dragOver(input)
+    expect(input.closest('label')).not.toHaveAttribute('data-dragging')
+    fireEvent.drop(input, { dataTransfer: { files: [XLSX] } })
+    expect(previewImport).toHaveBeenCalledTimes(1)
     finish({ nuevos: 1, actualizaciones: 0 })
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
