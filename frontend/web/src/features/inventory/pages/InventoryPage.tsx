@@ -1,3 +1,4 @@
+import Button from '../../../components/Buttons/Button'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -5,7 +6,7 @@ import alertStyles from "../../../styles/alert.module.css";
 import tableStyles from "../../../styles/dataTable.module.css";
 import ErrorState, { type ErrorKind } from "../../../components/ErrorState/ErrorState";
 import ListFooter from "../../../components/ListFooter/ListFooter";
-import Pagination from "../../../components/Pagination/Pagination";
+import ResultsPagination from "../../../components/Pagination/ResultsPagination";
 import ScrollArea from "../../../components/ScrollArea/ScrollArea";
 import screenStyles from "../../../styles/screen.module.css";
 import usePagedItems from "../../../hooks/usePagedItems";
@@ -20,8 +21,12 @@ import styles from "./InventoryPage.module.css";
 import type { InventoryLocationState } from "../model/inventoryRoutes";
 import SubscriptionBlockedNotice from "../components/SubscriptionBlockedNotice";
 import type { Vehiculo } from "../model/types";
+import { searchInventory } from "../model/searchInventory";
+import DownloadInventoryTemplate from "../components/DownloadInventoryTemplate";
 import VehicleRow from "../components/VehicleRow";
 import rowStyles from "../components/VehicleRow.module.css";
+import { importFailureFrom, type ImportFailure } from "../model/importErrors";
+import InventoryImportDialog from "../components/InventoryImportDialog";
 
 type LoadState =
   | "loading"
@@ -32,9 +37,11 @@ type LoadState =
 function PageHeader({ subtitle }: { subtitle: string }) {
   return (
     <div className={styles.header}>
-      <p className={screenStyles.eyebrow}>INVENTARIO</p>
-      <h1 className={screenStyles.title}>Inventario</h1>
-      <p className={styles.subtitle}>{subtitle}</p>
+      <div className={styles.headerContent}>
+        <p className={screenStyles.eyebrow}>INVENTARIO</p>
+        <h1 className={screenStyles.title}>Inventario</h1>
+        <p className={styles.subtitle}>{subtitle}</p>
+      </div>
     </div>
   );
 }
@@ -55,9 +62,11 @@ function noticeFrom(state: unknown): string | null {
 export default function InventoryPage() {
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [vehicles, setVehicles] = useState<Vehiculo[]>([]);
-  const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const pendingDelete = useRef(false);
   const [failedId, setFailedId] = useState<number | null>(null);
+  const [downloadFailure, setDownloadFailure] = useState<ImportFailure | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   // Success message of the last action: a save that brought the dealer here, or a delete done on this page.
@@ -66,8 +75,10 @@ export default function InventoryPage() {
   );
   const noticeRef = useRef<HTMLParagraphElement>(null);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+  const [query, setQuery] = useState('');
+  const filteredVehicles = searchInventory(vehicles, query);
   const { page, lastPage, setPage, pageItems } = usePagedItems(
-    vehicles,
+    filteredVehicles,
     pageSize,
   );
   const changePageSize = (size: number) => {
@@ -121,17 +132,12 @@ export default function InventoryPage() {
 
   const removeRow = (id: number) => {
     setVehicles((current) => current.filter((vehicle) => vehicle.id !== id));
-    setConfirmingId(null);
     setNotice(REMOVED_NOTICE);
   };
 
-  const askDelete = (id: number) => {
-    setNotice(null);
-    setFailedId(null);
-    setConfirmingId(id);
-  };
-
   const confirmDelete = async (id: number) => {
+    if (pendingDelete.current) return;
+    pendingDelete.current = true;
     setNotice(null);
     setFailedId(null);
     setDeletingId(id);
@@ -146,6 +152,7 @@ export default function InventoryPage() {
         removeRow(id);
       else setFailedId(id);
     } finally {
+      pendingDelete.current = false;
       setDeletingId(null);
     }
   };
@@ -168,20 +175,18 @@ export default function InventoryPage() {
     <div
       className={`${screenStyles.page} ${screenStyles.fill} ${tableStyles.column} ${rowStyles.inventoryColumn}`}
     >
-      <PageHeader subtitle="Activa · funciones habilitadas" />
-      <section
-        className={styles.card}
-        aria-labelledby="inventory-inclusion-title"
-      >
-        <h2 id="inventory-inclusion-title" className={styles.cardTitle}>
-          Inclusión automática
-        </h2>
-        <p className={styles.cardBody}>
-          Las unidades guardadas participan directamente en búsquedas y
-          recomendaciones. No hay publicación manual, pausa ni archivo de
-          vigencia.
-        </p>
-      </section>
+      <PageHeader
+        subtitle="Activa · funciones habilitadas"
+      />
+      <DownloadInventoryTemplate
+        className={styles.download}
+        onStart={() => setDownloadFailure(null)}
+        onFailure={(error) => {
+          const blocked = inactiveSubscription(error);
+          if (blocked) setLoadState({ blocked });
+          else setDownloadFailure(importFailureFrom(error));
+        }}
+      />
       {notice ? (
         <p
           ref={noticeRef}
@@ -193,14 +198,48 @@ export default function InventoryPage() {
         </p>
       ) : null}
       <div className={tableStyles.block}>
+        {downloadFailure ? (
+          <p role="alert" className={`${alertStyles.alert} ${styles.message}`}>
+            {downloadFailure.message}
+          </p>
+        ) : null}
+        {vehicles.length > 0 ? (
+          <label className={styles.search}>
+            <span>Buscar vehículos</span>
+            <span className={styles.searchControl}>
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className={styles.searchIcon}>
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 4 4" strokeLinecap="round" />
+              </svg>
+              <input
+                type="search"
+                aria-label="Buscar vehículos"
+                placeholder="Marca, modelo, versión, año o patente"
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPage(1);
+                }}
+              />
+            </span>
+          </label>
+        ) : null}
         {vehicles.length === 0 ? (
           <p className={styles.empty}>Todavía no cargaste vehículos.</p>
+        ) : filteredVehicles.length === 0 ? (
+          <div className={styles.noResults} role="status">
+            <p className={styles.empty}>No encontramos vehículos con esa búsqueda.</p>
+            <Button variant="secondary" onClick={() => setQuery('')}>
+              Limpiar búsqueda
+            </Button>
+          </div>
         ) : (
           <ScrollArea
             label="Vehículos del inventario"
             fill
-            className={tableStyles.wrap}
-            viewportClassName={tableStyles.viewport}
+            stickyHeader
+            className={styles.tableFrame}
+            viewportClassName={`${tableStyles.viewport} ${styles.tableViewport}`}
           >
             <table className={tableStyles.table} aria-label="Inventario">
               {/* Fixed column widths: columns never depend on the rows of the current page. */}
@@ -235,13 +274,10 @@ export default function InventoryPage() {
                   <VehicleRow
                     key={vehicle.id}
                     vehicle={vehicle}
-                    confirming={confirmingId === vehicle.id}
                     deleting={deletingId === vehicle.id}
                     failed={failedId === vehicle.id}
                     locked={deletingId !== null}
-                    onAskDelete={() => askDelete(vehicle.id)}
-                    onCancel={() => setConfirmingId(null)}
-                    onConfirm={() => void confirmDelete(vehicle.id)}
+                    onDelete={() => confirmDelete(vehicle.id)}
                   />
                 ))}
               </tbody>
@@ -257,27 +293,39 @@ export default function InventoryPage() {
               >
                 CARGAR VEHÍCULO
               </ButtonLink>
-              <ButtonLink
-                to="/concesionaria/inventario/importar"
-                variant="secondary" className={`${styles.load}`}
+              <Button
+                type="button"
+                variant="secondary"
+                className={`${styles.load}`}
+                onClick={() => setImportOpen(true)}
               >
                 IMPORTAR XLSX
-              </ButtonLink>
+              </Button>
             </>
           }
         >
-          {vehicles.length > PAGE_SIZES[0] ? (
-            <Pagination
-              page={page}
-              lastPage={lastPage}
-              onChange={setPage}
-              pageSize={pageSize}
-              pageSizeOptions={PAGE_SIZES}
-              onPageSizeChange={changePageSize}
-            />
+          {filteredVehicles.length > PAGE_SIZES[0] ? (
+            <div className={styles.pagination}>
+              <ResultsPagination
+                page={page}
+                lastPage={lastPage}
+                onChange={setPage}
+                pageSize={pageSize}
+                pageSizeOptions={PAGE_SIZES}
+                onPageSizeChange={changePageSize}
+              />
+            </div>
           ) : null}
         </ListFooter>
       </div>
+      <InventoryImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={(message) => {
+          setNotice(message)
+          loadList()
+        }}
+      />
     </div>
   );
 }

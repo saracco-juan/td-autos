@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../lib/http'
 import { fetchBodyTypes, fetchVehicle, fetchVehicleCatalog, updateVehicle } from '../../../features/inventory/api/client'
 import EditVehiclePage from '../../../features/inventory/pages/EditVehiclePage'
-import { PAUSED_HINT, PAUSED_TEXT, inactiveBody, vehiculo } from '../../fixtures/inventory/fixtures'
+import { PAUSED_HINT, PAUSED_TEXT, VEHICLE_CATALOG, inactiveBody, vehiculo } from '../../fixtures/inventory/fixtures'
 
 vi.mock('../../../features/inventory/api/client', () => ({ fetchVehicle: vi.fn(), updateVehicle: vi.fn(), fetchBodyTypes: vi.fn(), fetchVehicleCatalog: vi.fn() }))
 
@@ -30,7 +30,7 @@ describe('EditVehiclePage', () => {
     vi.mocked(fetchVehicle).mockReset()
     vi.mocked(updateVehicle).mockReset()
     vi.mocked(fetchBodyTypes).mockReset()
-    vi.mocked(fetchVehicleCatalog).mockResolvedValue({ snapshot_id: 'test', source_date: null, stale: false, warning: null, entries: [] })
+    vi.mocked(fetchVehicleCatalog).mockResolvedValue(VEHICLE_CATALOG)
     vi.mocked(fetchBodyTypes).mockResolvedValue([
       { id: 1, nombre: 'Hatchback' },
       { id: 2, nombre: 'Sedán' },
@@ -47,7 +47,7 @@ describe('EditVehiclePage', () => {
     expect(fetchVehicle).toHaveBeenCalledWith(1)
   })
 
-  it('renders the header of Figma 2119:1841 and the form prefilled with the saved photos', async () => {
+  it('renders the shared stepped form with the saved identity and photo state', async () => {
     renderPage()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Editar vehículo' })).toBeInTheDocument()
@@ -55,11 +55,12 @@ describe('EditVehiclePage', () => {
     expect(screen.getByText('La patente debe ser única en toda la plataforma.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Volver al inventario' })).toHaveAttribute('href', '/concesionaria/inventario')
     expect(await screen.findByLabelText('Patente')).toHaveValue('AB123CD')
+    expect(screen.getByRole('progressbar', { name: 'Carga de vehículo' })).toHaveAttribute('aria-valuenow', '1')
+    expect(screen.getByRole('heading', { level: 2, name: 'Identidad' })).toBeInTheDocument()
     expect(screen.getByLabelText('Marca')).toHaveValue('Toyota')
-    expect(screen.getByLabelText('Versión')).toHaveValue('XEI')
-    expect(screen.getByLabelText('Carrocería')).toHaveValue('2')
-    expect(screen.getAllByRole('img')).toHaveLength(7)
-    expect(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Marca').tagName).toBe('SELECT')
+    expect(screen.queryByLabelText('Carrocería')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'SIGUIENTE' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'CANCELAR' })).toHaveAttribute('href', '/concesionaria/inventario')
   })
 
@@ -68,7 +69,10 @@ describe('EditVehiclePage', () => {
     renderPage()
     const user = userEvent.setup()
     await screen.findByLabelText('Patente')
+    await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
     fireEvent.change(screen.getByLabelText('Precio'), { target: { value: '17000000' } })
+    for (let step = 0; step < 3; step++) await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+    expect(screen.getByRole('heading', { level: 2, name: 'Fotos' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Quitar foto 7' }))
     await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), [new File(['x'], 'nueva.jpg', { type: 'image/jpeg' })])
 
@@ -88,12 +92,15 @@ describe('EditVehiclePage', () => {
     vi.mocked(updateVehicle).mockResolvedValue(vehiculo())
     renderPage()
     const user = userEvent.setup()
-    expect(await screen.findByLabelText('Carrocería')).toHaveValue('')
-    expect(screen.getAllByRole('img')).toHaveLength(7)
-    await user.click(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
+    await screen.findByLabelText('Patente')
+    await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+    await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+    await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
     expect(screen.getByText('Elegí la carrocería.')).toBeInTheDocument()
     expect(updateVehicle).not.toHaveBeenCalled()
     await user.selectOptions(screen.getByLabelText('Carrocería'), '2')
+    await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
+    await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
     await user.click(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
     expect(await screen.findByText(/^Inventario:/)).toHaveTextContent('Guardaste los cambios.')
     expect(vi.mocked(updateVehicle).mock.calls[0][1]).toMatchObject({

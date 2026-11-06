@@ -1,13 +1,15 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError, NetworkError } from '../../../lib/http'
-import { deleteVehicle, fetchVehicles } from '../../../features/inventory/api/client'
+import { confirmImport, deleteVehicle, fetchInventoryTemplate, fetchVehicles, previewImport } from '../../../features/inventory/api/client'
 import { PAUSED_HINT, PAUSED_TEXT, VEHICULOS, inactiveBody, vehiculo } from '../../fixtures/inventory/fixtures'
 import InventoryPage from '../../../features/inventory/pages/InventoryPage'
 
-vi.mock('../../../features/inventory/api/client', () => ({ fetchVehicles: vi.fn(), deleteVehicle: vi.fn() }))
+vi.mock('../../../features/inventory/api/client', () => ({
+  fetchVehicles: vi.fn(), deleteVehicle: vi.fn(), previewImport: vi.fn(), confirmImport: vi.fn(), fetchInventoryTemplate: vi.fn(),
+}))
 
 const COROLLA = 'Toyota Corolla XEI 2021'
 const CRONOS = 'Fiat Cronos Drive 2022'
@@ -33,6 +35,13 @@ describe('InventoryPage', () => {
     vi.mocked(fetchVehicles).mockReset()
     vi.mocked(deleteVehicle).mockReset()
     vi.mocked(fetchVehicles).mockResolvedValue(VEHICULOS)
+    vi.mocked(previewImport).mockReset()
+    vi.mocked(confirmImport).mockReset()
+    vi.mocked(fetchInventoryTemplate).mockReset()
+    Object.defineProperties(HTMLDialogElement.prototype, {
+      showModal: { configurable: true, value: function (this: HTMLDialogElement) { this.setAttribute('open', '') } },
+      close: { configurable: true, value: function (this: HTMLDialogElement) { this.removeAttribute('open') } },
+    })
   })
 
   it('shows a section loader while the vehicles load', () => {
@@ -43,20 +52,43 @@ describe('InventoryPage', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
-  it('renders the header, the automatic inclusion card and the load action of Figma 38:884', async () => {
+  it('renders the header, template download and the load action of Figma 38:884', async () => {
     await loaded()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Inventario' })).toBeInTheDocument()
     expect(screen.getByText('INVENTARIO')).toBeInTheDocument()
     expect(screen.getByText('Activa · funciones habilitadas')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 2, name: 'Inclusión automática' })).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Las unidades guardadas participan directamente en búsquedas y recomendaciones. No hay publicación manual, pausa ni archivo de vigencia.',
-      ),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' })).toBeInTheDocument()
+    expect(screen.queryByText(/Las unidades guardadas participan directamente/)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveAttribute('href', '/concesionaria/inventario/nuevo')
-    expect(screen.getByRole('link', { name: 'IMPORTAR XLSX' })).toHaveAttribute('href', '/concesionaria/inventario/importar')
+    expect(screen.getByRole('button', { name: 'IMPORTAR XLSX' })).toBeInTheDocument()
+  })
+
+  it('keeps the inventory available after a template download fails and clears the alert on retry', async () => {
+    vi.mocked(fetchInventoryTemplate).mockRejectedValueOnce(new NetworkError(new Error('offline')))
+    const user = userEvent.setup()
+    await loaded()
+
+    await user.click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/conexión/i)
+    expect(screen.getByRole('table')).toBeInTheDocument()
+    vi.mocked(fetchInventoryTemplate).mockReturnValueOnce(new Promise(() => {}))
+    await user.click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'DESCARGANDO…' })).toBeDisabled()
+  })
+
+  it('pauses the inventory when the template download reports an inactive subscription', async () => {
+    vi.mocked(fetchInventoryTemplate).mockRejectedValueOnce(new HttpError(403, inactiveBody()))
+    await loaded()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+
+    expect(await screen.findByRole('heading', { name: 'Tu inventario está pausado' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('S3: does not render SUSCRIPCIÓN, whose screen does not exist yet', async () => {
@@ -77,7 +109,7 @@ describe('InventoryPage', () => {
     expect(screen.getByText(PAUSED_HINT)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'RENOVAR SUSCRIPCIÓN' })).toHaveAttribute('href', '/concesionaria/suscripcion')
     expect(screen.queryByRole('link', { name: 'CARGAR VEHÍCULO' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'IMPORTAR XLSX' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'IMPORTAR XLSX' })).not.toBeInTheDocument()
     expect(screen.queryByText('Algo salió mal')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeInTheDocument()
   })
@@ -121,6 +153,56 @@ describe('InventoryPage', () => {
     expect(screen.getAllByRole('link', { name: 'CARGAR VEHÍCULO' })).toHaveLength(1)
   })
 
+  it('distinguishes a search with no matches and restores the list when cleared', async () => {
+    const user = userEvent.setup()
+    await loaded()
+    const search = screen.getByRole('searchbox', { name: 'Buscar vehículos' })
+
+    await user.type(search, 'no existe')
+
+    expect(screen.getByText('No encontramos vehículos con esa búsqueda.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Limpiar búsqueda' })).toBeInTheDocument()
+    expect(screen.queryByText('Todavía no cargaste vehículos.')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Limpiar búsqueda' }))
+    expect(screen.getByRole('row', { name: COROLLA })).toBeInTheDocument()
+  })
+
+  it('opens the import dialog, refreshes the list, and preserves the search after confirmation', async () => {
+    vi.mocked(previewImport).mockResolvedValue({ nuevos: 1, actualizaciones: 0 })
+    vi.mocked(confirmImport).mockResolvedValue({ nuevos: 1, actualizaciones: 0 })
+    const user = userEvent.setup()
+    await loaded()
+    const search = screen.getByRole('searchbox', { name: 'Buscar vehículos' })
+    await user.type(search, 'Toyota')
+
+    await user.click(screen.getByRole('button', { name: 'IMPORTAR XLSX' }))
+    const dialog = screen.getByRole('dialog', { name: 'Importar XLSX' })
+    await user.upload(within(dialog).getByLabelText('Archivo XLSX'), new File(['workbook'], 'stock.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }))
+    await within(dialog).findByText(/1 vehículo nuevo · 0 actualizaciones/)
+    await user.click(within(dialog).getByRole('button', { name: 'CONFIRMAR IMPORTACIÓN' }))
+
+    await waitFor(() => expect(fetchVehicles).toHaveBeenCalledTimes(2))
+    expect(screen.queryByRole('dialog', { name: 'Importar XLSX' })).not.toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Buscar vehículos' })).toHaveValue('Toyota')
+    expect(screen.getByRole('row', { name: COROLLA })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Importación aplicada: 1 vehículo nuevo.')
+  })
+
+  it('places the full-width vehicle search immediately before the inventory table area and offers the XLSX template above it', async () => {
+    await loaded()
+
+    const search = screen.getByRole('searchbox', { name: 'Buscar vehículos' })
+    const table = screen.getByRole('table', { name: 'Inventario' })
+    const download = screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' })
+
+    expect(search.closest('label')?.nextElementSibling).toBe(table.closest('[data-scroll-frame]'))
+    expect(download.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByText('Inclusión automática')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Las unidades guardadas participan directamente/)).not.toBeInTheDocument()
+  })
+
   it.each([
     ['a network failure', new NetworkError(new Error('down')), 'Sin conexión con el servidor'],
     ['a server failure', new HttpError(500, undefined), 'Algo salió mal'],
@@ -138,57 +220,51 @@ describe('InventoryPage', () => {
   })
 
   describe('delete', () => {
-    type User = ReturnType<typeof userEvent.setup>
-    const ask = (user: User, title = COROLLA) =>
-      user.click(within(rowOf(title)).getByRole('button', { name: `Eliminar ${title}` }))
-    const confirm = (user: User) => user.click(screen.getByRole('button', { name: 'ELIMINAR' }))
+    const confirm = async (title = COROLLA) => {
+      const button = within(rowOf(title)).getByRole('button', { name: `Eliminar ${title}` })
+      vi.useFakeTimers()
+      try {
+        fireEvent.keyDown(button, { key: 'Enter' })
+        await act(async () => { vi.advanceTimersByTime(2000) })
+        fireEvent.keyUp(button, { key: 'Enter' })
+      } finally {
+        vi.useRealTimers()
+      }
+    }
 
-    it('turns the row into a confirmation and focuses its ELIMINAR button, without deleting yet', async () => {
-      const user = userEvent.setup()
+    it('keeps a short click in the same compact row without opening a confirmation', async () => {
       await loaded()
-
-      await ask(user)
-
       const row = within(rowOf(COROLLA))
-      expect(row.getByText('¿Eliminar este vehículo? Se borran sus fotos y no se puede deshacer.')).toBeInTheDocument()
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toHaveFocus()
-      expect(row.getByRole('button', { name: 'CANCELAR' })).toBeInTheDocument()
-      expect(row.queryByRole('link', { name: /Editar/ })).not.toBeInTheDocument()
-      expect(deleteVehicle).not.toHaveBeenCalled()
-      expect(within(rowOf(CRONOS)).queryByText(/¿Eliminar/)).not.toBeInTheDocument()
-    })
-
-    it('CANCELAR closes the confirmation, keeps the vehicle and returns the focus to its ELIMINAR button', async () => {
-      const user = userEvent.setup()
-      await loaded()
-      await ask(user)
-
-      await user.click(screen.getByRole('button', { name: 'CANCELAR' }))
-
-      const row = within(rowOf(COROLLA))
-      expect(row.queryByText(/¿Eliminar/)).not.toBeInTheDocument()
-      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toHaveFocus()
+      await userEvent.setup().click(row.getByRole('button', { name: `Eliminar ${COROLLA}` }))
+      expect(row.getByRole('link', { name: /Editar/ })).toBeInTheDocument()
+      expect(row.queryByText(/¿Eliminar este vehículo/)).not.toBeInTheDocument()
+      expect(row.queryByRole('button', { name: 'CANCELAR' })).not.toBeInTheDocument()
       expect(deleteVehicle).not.toHaveBeenCalled()
     })
 
-    it('asking for another vehicle moves the confirmation to that row', async () => {
-      const user = userEvent.setup()
+    it('expands the same control during a hold and cancels when released early', async () => {
       await loaded()
-      await ask(user)
-
-      await ask(user, CRONOS)
-
-      expect(within(rowOf(COROLLA)).queryByText(/¿Eliminar/)).not.toBeInTheDocument()
-      expect(within(rowOf(CRONOS)).getByText(/¿Eliminar/)).toBeInTheDocument()
+      const button = within(rowOf(COROLLA)).getByRole('button', { name: `Eliminar ${COROLLA}` })
+      vi.useFakeTimers()
+      try {
+        fireEvent.keyDown(button, { key: 'Enter' })
+        expect(button).toHaveTextContent('MANTENER PARA ELIMINAR')
+        act(() => { vi.advanceTimersByTime(1000) })
+        fireEvent.keyUp(button, { key: 'Enter' })
+        act(() => { vi.advanceTimersByTime(2000) })
+        expect(button).toHaveTextContent('ELIMINAR')
+        expect(button).not.toHaveAttribute('data-holding')
+        expect(deleteVehicle).not.toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     it('deletes the vehicle, removes the row and shows a success message', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle).mockResolvedValue(undefined)
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       await rowGone(COROLLA)
       expect(deleteVehicle).toHaveBeenCalledWith(1)
@@ -197,18 +273,15 @@ describe('InventoryPage', () => {
     })
 
     it('shows the busy state on the ELIMINAR button of that row only, while deleting', async () => {
-      const user = userEvent.setup()
       let finish: () => void = () => {}
       vi.mocked(deleteVehicle).mockReturnValue(new Promise<void>((resolve) => (finish = resolve)))
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       const row = within(rowOf(COROLLA))
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toHaveAttribute('aria-busy', 'true')
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toBeDisabled()
-      expect(row.getByRole('button', { name: 'CANCELAR' })).toBeDisabled()
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toHaveAttribute('aria-busy', 'true')
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toBeDisabled()
       expect(within(rowOf(CRONOS)).getByRole('button', { name: `Eliminar ${CRONOS}` })).toBeDisabled()
       expect(screen.getByRole('table')).not.toHaveAttribute('aria-busy')
 
@@ -217,56 +290,48 @@ describe('InventoryPage', () => {
     })
 
     it('keeps the row, shows a filled error on it and focuses ELIMINAR again when the delete fails', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle).mockRejectedValue(new HttpError(500, undefined))
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       const row = within(rowOf(COROLLA))
       expect(await row.findByRole('alert')).toHaveTextContent('No pudimos eliminar el vehículo. Probá de nuevo.')
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toBeEnabled()
-      expect(row.getByRole('button', { name: 'ELIMINAR' })).toHaveFocus()
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toBeEnabled()
+      expect(row.getByRole('button', { name: `Eliminar ${COROLLA}` })).toHaveFocus()
       expect(screen.queryByText('Eliminaste el vehículo.')).not.toBeInTheDocument()
     })
 
     it('can retry after a failure, and the error goes away', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle)
         .mockRejectedValueOnce(new NetworkError(new Error('down')))
         .mockResolvedValueOnce(undefined)
       await loaded()
-      await ask(user)
-      await confirm(user)
+      await confirm()
       await screen.findByRole('alert')
 
-      await confirm(user)
+      await confirm()
 
       await rowGone(COROLLA)
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
 
     it('treats a 404 as already deleted: the row goes away without an error', async () => {
-      const user = userEvent.setup()
       vi.mocked(deleteVehicle).mockRejectedValue(new HttpError(404, { message: 'Not found' }))
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       await rowGone(COROLLA)
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
 
     it('shows the empty state after the last vehicle is deleted', async () => {
-      const user = userEvent.setup()
       vi.mocked(fetchVehicles).mockResolvedValue([vehiculo()])
       vi.mocked(deleteVehicle).mockResolvedValue(undefined)
       await loaded()
-      await ask(user)
 
-      await confirm(user)
+      await confirm()
 
       expect(await screen.findByText('Todavía no cargaste vehículos.')).toBeInTheDocument()
       expect(screen.getByText('Eliminaste el vehículo.')).toBeInTheDocument()
@@ -336,11 +401,12 @@ describe('InventoryPage save notice', () => {
       await screen.findByRole('table')
 
       const load = screen.getByRole('link', { name: 'CARGAR VEHÍCULO' })
-      const importCsv = screen.getByRole('link', { name: 'IMPORTAR XLSX' })
+      const importCsv = screen.getByRole('button', { name: 'IMPORTAR XLSX' })
       const pager = screen.getByRole('navigation', { name: 'Paginación' })
+      const resultsPager = load.parentElement?.nextElementSibling
       expect(load.parentElement).toBe(importCsv.parentElement)
-      expect(load.parentElement?.nextElementSibling).toBe(pager.parentElement)
-      expect(pager.parentElement?.parentElement).toBe(load.parentElement?.parentElement)
+      expect(resultsPager).toContainElement(pager)
+      expect(resultsPager?.parentElement).toBe(load.parentElement?.parentElement)
     })
 
     it('shows one page of vehicles and page 2 shows the rest', async () => {
@@ -351,6 +417,20 @@ describe('InventoryPage save notice', () => {
       expect(screen.getAllByRole('rowheader')).toHaveLength(10)
       await userEvent.setup().click(screen.getByRole('button', { name: 'Página 2' }))
       expect(screen.getAllByRole('rowheader')).toHaveLength(5)
+    })
+
+    it('filters before pagination and returns to page 1 when the query changes', async () => {
+      vi.mocked(fetchVehicles).mockResolvedValue(many(15))
+      const user = userEvent.setup()
+      renderPage()
+      await screen.findByRole('table')
+      await user.click(screen.getByRole('button', { name: 'Página 2' }))
+
+      await user.type(screen.getByRole('searchbox', { name: 'Buscar vehículos' }), 'modelo 1')
+
+      expect(screen.getAllByRole('rowheader')).toHaveLength(7)
+      expect(screen.getAllByRole('rowheader')[0]).toHaveTextContent('Modelo 1')
+      expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
     })
 
     it('shows 10 per page by default and "Mostrar" changes it, back to page 1', async () => {

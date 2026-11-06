@@ -1,4 +1,4 @@
-import Field from '../../auth/shared/components/Field'
+import SelectField from '../../auth/shared/components/SelectField'
 
 type Props = {
   id: string
@@ -10,17 +10,8 @@ type Props = {
   onChange: (value: string) => void
 }
 
-// Native searchable suggestions; selecting an identity is still enforced by client and server.
+// A catalog identity can only be chosen from the currently filtered native options.
 export default function CatalogField({ id, name, label, value, options, errors, onChange }: Props) {
-  return (
-    <Field id={id} label={label} errors={errors}>
-      {(control) => <>
-        <input {...control} name={name} autoComplete="off" list={`${id}-options`} value={value}
-          onChange={(event) => onChange(event.target.value)} />
-        <datalist id={`${id}-options`}>
-          {options.map((option) => <option key={option} value={option} />)}
-        </datalist>
-      </>}
-    </Field>
-  )
+  return <SelectField id={id} name={name} label={label} value={value}
+    options={options.map((option) => ({ value: option, label: option }))} errors={errors} onChange={onChange} />
 }

@@ -560,6 +560,54 @@
       "sessions": 2,
       "memories": 14,
       "prompts": 1
+    },
+    {
+      "id": "cd793915",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T21:35:09.0205137Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 1
+    },
+    {
+      "id": "07c94788",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T22:29:03.1030138Z",
+      "sessions": 2,
+      "memories": 14,
+      "prompts": 3
+    },
+    {
+      "id": "e6480f8f",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T22:33:31.9225943Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 1
+    },
+    {
+      "id": "d33c3b7f",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T23:14:52.6421086Z",
+      "sessions": 2,
+      "memories": 17,
+      "prompts": 3
+    },
+    {
+      "id": "cc5a0056",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T23:18:42.7204138Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 1
+    },
+    {
+      "id": "0a5bd3c7",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T23:54:46.4610467Z",
+      "sessions": 1,
+      "memories": 4,
+      "prompts": 3
     }
   ]
 }

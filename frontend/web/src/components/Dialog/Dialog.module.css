@@ -1,7 +1,7 @@
 /* Deliberate payment-modal motion requested by the user;
 keyboard entry remains immediate. */
 .dialog {
-  width: min(760px, calc(100% - 32px));
+  width: min(var(--dialog-width, 760px), calc(100% - 32px));
   max-height: calc(100dvh - 32px);
   box-sizing: border-box;
   padding: 0;

@@ -1,37 +1,18 @@
 /* Header like the checklist screens: eyebrow, title and subtitle 8 apart (Figma 2114:1720). */
 .header {
   display: flex;
-  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.headerContent {
+  min-width: 0;
 }
 
 .subtitle {
   color: var(--text-secondary);
   font-size: 14px;
-}
-
-/* Figma "Card" 2114:1725: same surface as the dealer status card, full width. */
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
-}
-
-.cardTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.cardBody {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 12px;
 }
 
 .empty {
@@ -40,9 +21,109 @@
   font-size: 14px;
 }
 
+.search {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.search input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px 10px 44px;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-default);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+}
+
+.search input::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+.search input:focus {
+  border-color: var(--text-primary);
+  outline: none;
+  box-shadow: none;
+}
+
+.searchControl {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.tableFrame {
+  background: transparent;
+  isolation: isolate;
+}
+
+/* The visible box fits short tables and shrinks inside the shared filling frame. */
+.tableFrame[data-fill] > [data-scroll-region].tableViewport {
+  flex: 0 1 auto;
+}
+
+.tableViewport {
+  box-sizing: border-box;
+  border: 1px solid var(--border-default);
+  scrollbar-gutter: auto;
+  background: var(--surface-default);
+  scrollbar-color: var(--border-input) var(--surface-default);
+}
+
+.tableViewport::-webkit-scrollbar-track,
+.tableViewport::-webkit-scrollbar-corner {
+  background: var(--surface-default);
+}
+
+.tableFrame table {
+  width: 100%;
+  min-width: var(--table-width);
+  border: 0;
+  border-radius: 0;
+}
+
+.tableFrame table thead th:first-child,
+.tableFrame table thead th:last-child,
+.tableFrame table tbody tr:last-child > :first-child,
+.tableFrame table tbody tr:last-child > :last-child {
+  border-radius: 0;
+}
+
+.noResults {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .message {
   margin: 0;
   outline: none;
+}
+
+.download {
+  width: min(100%, 220px);
+}
+
+.pagination {
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Sized by the label (a % width inside the shrink-to-fit footer made the two buttons stack). */
@@ -54,6 +135,23 @@
 }
 
 @media (max-width: 600px) {
+  .pagination nav {
+    flex-wrap: wrap;
+  }
+  .pagination nav > div {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search input {
+    font-size: 16px;
+  }
+
   .load {
     flex: 1 1 0;
     min-width: 0;

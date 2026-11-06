@@ -37,22 +37,43 @@ function fill(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } })
 }
 
-function fillValid() {
+const nextButton = () => screen.getByRole('button', { name: 'SIGUIENTE' })
+
+async function advanceToPhotos(user = userEvent.setup(), startingStep = 0) {
+  for (let step = startingStep; step < 4; step++) await user.click(nextButton())
+}
+
+async function advanceToStep(target: number, user = userEvent.setup()) {
+  for (let step = 0; step < target; step++) await user.click(nextButton())
+}
+
+async function fillValid() {
   fill('Patente', 'ab-123 cd')
   fill('Marca', 'Toyota')
   fill('Modelo', 'Corolla')
   fill('Versión', 'XEI')
   fill('Año', '2021')
+  const user = userEvent.setup({ applyAccept: false })
+  await user.click(nextButton())
   fill('Kilometraje', '60000')
   fill('Precio', '18500000')
+  fill('Moneda del precio', 'ARS')
+  fill('Ubicación', 'Córdoba')
+  fill('Descripción (opcional)', 'Buen estado')
+  await user.click(nextButton())
   fill('Transmisión', 'automatica')
   fill('Combustible', 'nafta')
   fill('Carrocería', '1')
-  fill('Ubicación', 'Córdoba')
   for (const [key, value] of Object.entries(matchingValues(MATCHING_FACTS))) {
-    if (key === 'potencia_unidad') continue
-    fireEvent.change(document.getElementById(`vehicle-${key}`)!, { target: { value } })
+    const field = document.getElementById(`vehicle-${key}`)
+    if (field) fireEvent.change(field, { target: { value } })
   }
+  await user.click(nextButton())
+  for (const [key, value] of Object.entries(matchingValues(MATCHING_FACTS))) {
+    const field = document.getElementById(`vehicle-${key}`)
+    if (field) fireEvent.change(field, { target: { value } })
+  }
+  await user.click(nextButton())
 }
 
 const submitButton = () => screen.getByRole('button', { name: /GUARD/ })
@@ -70,29 +91,32 @@ describe('VehicleForm', () => {
 
     const bar = screen.getByRole('group', { name: 'Acciones' })
     expect(within(bar).getByRole('link', { name: 'CANCELAR' })).toBeInTheDocument()
-    expect(within(bar).getByRole('button', { name: 'GUARDAR VEHÍCULO' })).toHaveAttribute('type', 'submit')
+    expect(within(bar).getByRole('button', { name: 'SIGUIENTE' })).toHaveAttribute('type', 'submit')
   })
 
-  it('HU21: exposes searchable catalog options and clears dependent identity when the make changes', async () => {
+  it('HU21: exposes native catalog selectors and clears dependent identity when the make changes', async () => {
     await renderForm()
-    expect(screen.getByLabelText('Marca')).toHaveAttribute('list', 'vehicle-marca-options')
-    fill('Marca', 'Toyota')
-    expect(document.querySelector('#vehicle-modelo-options option')).toHaveAttribute('value', 'Corolla')
-    expect(document.querySelector('#vehicle-modelo-options option[value="Civic"]')).toBeNull()
-    fill('Modelo', 'Corolla')
-    fill('Versión', 'XEI')
-    fill('Marca', 'Other')
+    const make = screen.getByLabelText('Marca')
+    expect(make.tagName).toBe('SELECT')
+    expect(within(make).getAllByRole('option').map((option) => option.textContent)).toContain('Toyota')
+    await userEvent.setup().selectOptions(make, 'Toyota')
+    expect(within(screen.getByLabelText('Modelo')).getAllByRole('option').map((option) => option.textContent)).toEqual(['Elegí una opción', 'Corolla'])
+    await userEvent.setup().selectOptions(screen.getByLabelText('Modelo'), 'Corolla')
+    await userEvent.setup().selectOptions(screen.getByLabelText('Versión'), 'XEI')
+    await userEvent.setup().selectOptions(make, 'Honda')
     expect(screen.getByLabelText('Modelo')).toHaveValue('')
     expect(screen.getByLabelText('Versión')).toHaveValue('')
   })
 
-  it('HU21: prevents free-text versions outside the catalog from being submitted', async () => {
+  it('HU21: keeps catalog identity values limited to native select options', async () => {
     const saved = vehiculo()
     const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
-    fill('Versión', 'Invented version')
-    await userEvent.setup().click(submitButton())
+    expect(screen.getByLabelText('Marca').tagName).toBe('SELECT')
+    expect(screen.getByLabelText('Modelo').tagName).toBe('SELECT')
+    expect(screen.getByLabelText('Versión').tagName).toBe('SELECT')
+    expect(within(screen.getByLabelText('Versión')).getByRole('option', { name: 'XEI' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Patente')).toHaveAttribute('placeholder', 'Ej.: AB123CD o ABC123')
     expect(submit).not.toHaveBeenCalled()
-    expect(screen.getByLabelText('Versión')).toHaveAccessibleDescription('Elegí la marca, el modelo y la versión del catálogo.')
   })
 
   it('HU21: preserves an existing linked identity during a catalog outage', async () => {
@@ -100,8 +124,14 @@ describe('VehicleForm', () => {
     const saved = vehiculo({ acara_version_id: 'selected-corolla' })
     const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
     expect(screen.getByText(/El catálogo no está disponible/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Marca')).toHaveValue('Toyota')
+    expect(screen.getByLabelText('Modelo')).toHaveValue('Corolla')
+    expect(screen.getByLabelText('Versión')).toHaveValue('XEI')
+    const user = userEvent.setup()
+    await user.click(nextButton())
     fill('Precio', '20000000')
-    await userEvent.setup().click(submitButton())
+    await advanceToPhotos(user, 1)
+    await user.click(submitButton())
     expect(submit).toHaveBeenCalledTimes(1)
     expect(submit.mock.calls[0][0].values.acara_version_id).toBe('selected-corolla')
   })
@@ -110,7 +140,7 @@ describe('VehicleForm', () => {
     const saved = vehiculo({ acara_version_id: '' })
     const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
 
-    await userEvent.setup().click(submitButton())
+    await userEvent.setup().click(nextButton())
 
     expect(submit).not.toHaveBeenCalled()
     expect(screen.getByLabelText('Versión')).toHaveAccessibleDescription('Elegí la marca, el modelo y la versión del catálogo.')
@@ -147,11 +177,13 @@ describe('VehicleForm', () => {
 
   describe('layout and fields', () => {
     it('HU05: offers a single Potencia (CV) input and submits CV without a selector', async () => {
-      const submit = await renderForm()
-      expect(screen.getByLabelText('Potencia (CV)')).toHaveValue('')
+      const saved = vehiculo({ acara_version_id: 'selected-corolla', potencia: 150, potencia_unidad: 'HP' })
+      const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
+      await advanceToStep(2)
+      expect(screen.getByLabelText('Potencia (CV)')).toHaveValue('152')
       expect(screen.queryByLabelText('Unidad de potencia')).not.toBeInTheDocument()
-      fillValid()
-      await userEvent.setup({ applyAccept: false }).upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
+      fill('Potencia (CV)', '140')
+      await advanceToPhotos(userEvent.setup(), 2)
       await userEvent.setup().click(submitButton())
       expect(submit).toHaveBeenCalledTimes(1)
       expect(submit.mock.calls[0][0].values).toMatchObject({ potencia: '140', potencia_unidad: 'CV' })
@@ -164,38 +196,52 @@ describe('VehicleForm', () => {
         photos: saved.fotos,
         onSubmit: () => Promise.reject(new HttpError(422, { errors: { plazas: ['Revisá las plazas informadas.'] } })),
       })
+      const user = userEvent.setup()
+      await advanceToStep(2, user)
       fill('Plazas (incluye conductor)', '')
-      await userEvent.setup().click(submitButton())
+      await user.click(nextButton())
       expect(submit).not.toHaveBeenCalled()
       expect(screen.getByRole('alert')).toHaveTextContent(/plazas/i)
       expect(within(screen.getByRole('group', { name: 'Acciones' })).getByRole('alert')).toBeVisible()
       expect(screen.getByLabelText('Plazas (incluye conductor)')).toHaveFocus()
       fill('Plazas (incluye conductor)', '6')
+      await user.click(nextButton())
       fill('Android Auto o Apple CarPlay', '0')
-      await userEvent.setup().click(submitButton())
+      await user.click(nextButton())
+      await user.click(submitButton())
       expect(submit).toHaveBeenCalledTimes(1)
       expect(await screen.findByRole('alert')).toHaveTextContent('Revisá las plazas informadas.')
       expect(screen.getByLabelText('Plazas (incluye conductor)')).toHaveAccessibleDescription('Revisá las plazas informadas.')
+      await user.click(nextButton())
       expect(screen.getByLabelText('Android Auto o Apple CarPlay')).toHaveValue('0')
+      await user.click(nextButton())
       expect(screen.getAllByRole('img')).toHaveLength(7)
     })
 
-    it('renders the fields in order with their labels, and the actions of Figma 38:923', async () => {
-      await renderForm()
-
-      const labels = ['Patente', 'Marca', 'Modelo', 'Versión', 'Año', 'Kilometraje', 'Precio', 'Transmisión', 'Combustible', 'Carrocería', 'Ubicación', 'Descripción (opcional)']
-      const controls = labels.map((label) => screen.getByLabelText(label))
+    it('renders ordered fields inside the shared steps', async () => {
+      const saved = vehiculo({ acara_version_id: 'selected-corolla', descripcion: 'Único dueño' })
+      await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
+      const controls = ['Patente', 'Marca', 'Modelo', 'Versión', 'Año'].map((label) => screen.getByLabelText(label))
       for (let index = 1; index < controls.length; index++) {
         expect(controls[index - 1].compareDocumentPosition(controls[index]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
       }
-      expect(screen.getByLabelText('Descripción (opcional)').tagName).toBe('TEXTAREA')
-      expect(screen.getByRole('heading', { name: 'Imágenes' })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: 'CANCELAR' })).toHaveAttribute('href', '/concesionaria/inventario')
+      const user = userEvent.setup()
+      await advanceToStep(1, user)
+      expect(screen.getByLabelText('Descripción (opcional)').tagName).toBe('TEXTAREA')
+      expect(screen.getByLabelText('Kilometraje').compareDocumentPosition(screen.getByLabelText('Descripción (opcional)')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      await user.click(nextButton())
+      expect(screen.getByLabelText('Transmisión')).toBeInTheDocument()
+      expect(screen.getByLabelText('Carrocería')).toBeInTheDocument()
+      await advanceToPhotos(user, 2)
+      expect(screen.getByRole('heading', { name: 'Imágenes' })).toBeInTheDocument()
       expect(submitButton()).toHaveTextContent('GUARDAR VEHÍCULO')
     })
 
     it('offers the options of the catalog and the fixed lists', async () => {
-      await renderForm()
+      const saved = vehiculo({ acara_version_id: 'selected-corolla' })
+      await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
+      await advanceToStep(2)
 
       const optionsOf = (label: string) => within(screen.getByLabelText(label)).getAllByRole('option').map((option) => option.textContent)
       expect(optionsOf('Carrocería')).toEqual(['Elegí una opción', 'Sedán', 'Hatchback', 'SUV'])
@@ -204,39 +250,43 @@ describe('VehicleForm', () => {
     })
 
     it('prefills the values and the saved photos', async () => {
-      const saved = vehiculo({ version: 'XEI', descripcion: 'Único dueño', potencia: 150, potencia_unidad: 'HP' })
+      const saved = vehiculo({ acara_version_id: 'selected-corolla', version: 'XEI', descripcion: 'Único dueño', potencia: 150, potencia_unidad: 'HP' })
       await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
 
       expect(screen.getByLabelText('Patente')).toHaveValue('AB123CD')
       expect(screen.getByLabelText('Versión')).toHaveValue('XEI')
+      const user = userEvent.setup()
+      await user.click(nextButton())
+      expect(screen.getByLabelText('Descripción (opcional)')).toHaveValue('Único dueño')
+      await user.click(nextButton())
       expect(screen.getByLabelText('Transmisión')).toHaveValue('automatica')
       expect(screen.getByLabelText('Carrocería')).toHaveValue('2')
-      expect(screen.getByLabelText('Descripción (opcional)')).toHaveValue('Único dueño')
       expect(screen.getByLabelText('Potencia (CV)')).toHaveValue('152')
       expect(screen.queryByLabelText('Unidad de potencia')).not.toBeInTheDocument()
+      await advanceToPhotos(user, 2)
       expect(screen.getAllByRole('img')).toHaveLength(7)
       expect(screen.getByText('7 imágenes cargadas.')).toBeInTheDocument()
     })
   })
 
   describe('client validation', () => {
-    it('shows every error, does not submit and moves the focus to the first invalid field', async () => {
+    it('validates the identity step and focuses its first invalid field', async () => {
       const submit = await renderForm()
 
-      await userEvent.setup().click(submitButton())
+      await userEvent.setup().click(nextButton())
 
       expect(submit).not.toHaveBeenCalled()
       expect(screen.getByLabelText('Patente')).toHaveFocus()
       expect(screen.getByLabelText('Patente')).toHaveAttribute('aria-invalid', 'true')
       expect(screen.getByLabelText('Patente')).toHaveAccessibleDescription('Indicá la patente.')
       expect(screen.getByLabelText('Marca')).toHaveAccessibleDescription('Indicá la marca.')
-      expect(screen.getByLabelText('Carrocería')).toHaveAccessibleDescription('Elegí la carrocería.')
-      expect(screen.getByText('Cargá al menos siete fotos.')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Carrocería')).not.toBeInTheDocument()
     })
 
     it('focuses the photo control when the photos are the only problem', async () => {
-      const submit = await renderForm()
-      fillValid()
+      const saved = vehiculo({ acara_version_id: 'selected-corolla', fotos: [] })
+      const submit = await renderForm({ values: valuesFromVehicle(saved) })
+      await advanceToPhotos()
 
       await userEvent.setup().click(submitButton())
 
@@ -247,10 +297,13 @@ describe('VehicleForm', () => {
 
     it('rejects a plate with a wrong format', async () => {
       await renderForm()
-      fillValid()
       fill('Patente', 'ABCD12')
+      fill('Marca', 'Toyota')
+      fill('Modelo', 'Corolla')
+      fill('Versión', 'XEI')
+      fill('Año', '2021')
 
-      await userEvent.setup().click(submitButton())
+      await userEvent.setup().click(nextButton())
 
       expect(screen.getByLabelText('Patente')).toHaveAccessibleDescription('Ingresá una patente válida, por ejemplo AB123CD o ABC123.')
     })
@@ -258,10 +311,10 @@ describe('VehicleForm', () => {
     it('clears the error of a field as soon as it is edited', async () => {
       await renderForm()
       const user = userEvent.setup()
-      await user.click(submitButton())
+      await user.click(nextButton())
       expect(screen.getByLabelText('Marca')).toHaveAttribute('aria-invalid', 'true')
 
-      await user.type(screen.getByLabelText('Marca'), 'T')
+      await user.selectOptions(screen.getByLabelText('Marca'), 'Toyota')
 
       expect(screen.getByLabelText('Marca')).not.toHaveAttribute('aria-invalid')
     })
@@ -269,6 +322,7 @@ describe('VehicleForm', () => {
     it('counts the new photos together with the saved ones', async () => {
       const saved = vehiculo({ acara_version_id: 'selected-corolla', fotos: vehiculo().fotos.slice(0, 4) })
       const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
+      await advanceToPhotos()
 
       await userEvent.setup({ applyAccept: false }).click(submitButton())
       expect(submit).not.toHaveBeenCalled()
@@ -286,12 +340,13 @@ describe('VehicleForm', () => {
       const saved = vehiculo({ version: 'XEI' })
       const submit = await renderForm({ values: valuesFromVehicle(saved), photos: saved.fotos })
       const user = userEvent.setup({ applyAccept: false })
+      await user.selectOptions(screen.getByLabelText('Marca'), 'Honda')
+      await user.selectOptions(screen.getByLabelText('Modelo'), 'Civic')
+      await user.selectOptions(screen.getByLabelText('Versión'), 'EX')
+      await advanceToPhotos(user)
       const files = [jpg('nueva.jpg')]
       await user.click(screen.getByRole('button', { name: 'Quitar foto 2' }))
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), files)
-      fill('Marca', 'Honda')
-      fill('Modelo', 'Civic')
-      fill('Versión', 'EX')
 
       await user.click(submitButton())
 
@@ -305,7 +360,7 @@ describe('VehicleForm', () => {
     it('shows a busy state on the button while the request runs and keeps the form', async () => {
       let finish: () => void = () => {}
       const submit = await renderForm({ onSubmit: () => new Promise<void>((resolve) => (finish = resolve)) })
-      fillValid()
+      await fillValid()
       const user = userEvent.setup({ applyAccept: false })
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
 
@@ -315,21 +370,21 @@ describe('VehicleForm', () => {
       expect(submitButton()).toBeDisabled()
       expect(submitButton()).toHaveAttribute('aria-busy', 'true')
       expect(submitButton()).toHaveTextContent('GUARDANDO…')
-      expect(screen.getByLabelText('Marca')).toHaveValue('Toyota')
+      expect(screen.getByRole('heading', { name: 'Fotos' })).toBeInTheDocument()
+      expect(screen.getByText('7 imágenes cargadas.')).toBeInTheDocument()
       finish()
     })
 
-    it('maps a 422 to the fields and the photo panel and focuses the first invalid one', async () => {
+    it('maps a 422 to the identity step and focuses the first invalid field', async () => {
       const body = {
         message: 'The given data was invalid.',
         errors: {
           modelo: ['Indicá el modelo.'],
           patente: ['Esa patente ya está cargada en la plataforma.'],
-          'fotos.0': ['Cada foto tiene que ser una imagen JPG, PNG o WebP.'],
         },
       }
       await renderForm({ onSubmit: () => Promise.reject(new HttpError(422, body)) })
-      fillValid()
+      await fillValid()
       const user = userEvent.setup({ applyAccept: false })
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
 
@@ -338,29 +393,29 @@ describe('VehicleForm', () => {
       expect(await screen.findByText('Esa patente ya está cargada en la plataforma.')).toBeInTheDocument()
       expect(screen.getByLabelText('Patente')).toHaveFocus()
       expect(screen.getByLabelText('Modelo')).toHaveAccessibleDescription('Indicá el modelo.')
-      expect(screen.getByText('Cada foto tiene que ser una imagen JPG, PNG o WebP.')).toBeInTheDocument()
-      expect(submitButton()).toBeEnabled()
+      expect(nextButton()).toBeEnabled()
       expect(screen.getByRole('alert')).toHaveTextContent('Esa patente ya está cargada en la plataforma.')
     })
 
     it('shows a filled error near the actions on a network failure and keeps everything', async () => {
       await renderForm({ onSubmit: () => Promise.reject(new NetworkError(new Error('down'))) })
-      fillValid()
+      await fillValid()
       const user = userEvent.setup({ applyAccept: false })
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
 
       await user.click(submitButton())
 
       expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos conectarnos. Revisá tu conexión e intentá de nuevo.')
+      expect(screen.getByText('7 imágenes cargadas.')).toBeInTheDocument()
+      for (let step = 0; step < 4; step++) await user.click(screen.getByRole('button', { name: 'ANTERIOR' }))
       expect(screen.getByLabelText('Marca')).toHaveValue('Toyota')
-      expect(screen.getAllByRole('img')).toHaveLength(7)
-      expect(submitButton()).toBeEnabled()
+      expect(nextButton()).toBeEnabled()
     })
 
     it('explains an inactive subscription in a compact box with a way to renew instead of the generic error', async () => {
       const body = inactiveBody()
       await renderForm({ onSubmit: () => Promise.reject(new HttpError(403, body)) })
-      fillValid()
+      await fillValid()
       const user = userEvent.setup({ applyAccept: false })
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
 
@@ -374,7 +429,7 @@ describe('VehicleForm', () => {
 
     it('shows the generic error on a server failure or a 422 it cannot map', async () => {
       const submit = await renderForm({ onSubmit: () => Promise.reject(new HttpError(500, 'Server Error')) })
-      fillValid()
+      await fillValid()
       const user = userEvent.setup({ applyAccept: false })
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
 
@@ -389,7 +444,7 @@ describe('VehicleForm', () => {
 
     it('clears the previous error message when submitting again', async () => {
       const submit = await renderForm({ onSubmit: () => Promise.reject(new HttpError(500, undefined)) })
-      fillValid()
+      await fillValid()
       const user = userEvent.setup({ applyAccept: false })
       await user.upload(screen.getByLabelText('AGREGAR IMAGEN'), sevenFiles())
       await user.click(submitButton())

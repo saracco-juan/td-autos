@@ -9,10 +9,11 @@ type Props = {
   children: ReactNode
   busy?: boolean
   animate?: boolean
+  className?: string
 }
 
 // Native top-layer modality supplies focus containment, inert background and focus restoration.
-export default function Dialog({ open, title, onClose, children, busy = false, animate = true }: Props) {
+export default function Dialog({ open, title, onClose, children, busy = false, animate = true, className }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const titleId = useId()
@@ -65,8 +66,13 @@ export default function Dialog({ open, title, onClose, children, busy = false, a
   }, [open])
 
   return (
-    <dialog ref={ref} aria-labelledby={titleId} className={styles.dialog} data-motion={animate ? 'full' : 'none'} onKeyDown={keepFocusInside}
-      onClose={onClose} onCancel={(event) => { event.preventDefault(); if (!busy) onClose() }}
+    <dialog ref={ref} aria-labelledby={titleId} className={[styles.dialog, className].filter(Boolean).join(' ')} data-motion={animate ? 'full' : 'none'} onKeyDown={keepFocusInside}
+      onClose={onClose} onCancel={(event) => {
+        // A native file picker also emits a bubbling cancel event.
+        if (event.target !== event.currentTarget) return
+        event.preventDefault()
+        if (!busy) onClose()
+      }}
       onClick={(event) => { if (event.target === event.currentTarget && !busy) onClose() }}>
       <div className={styles.panel}>
         <div className={styles.header}>
