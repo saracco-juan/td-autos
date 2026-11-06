@@ -28,6 +28,7 @@ export function LogoutIcon() {
 }
 
 const dashboardPaths = {
+  dealers: 'M3 21V5h10v16M13 11h8v10M1 21h22M6 9h4M6 13h4M6 17h4M16 15h2M16 18h2',
   subscription: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1ZM3 9h18M6 15h4',
   verification: 'M12 3 4 6v5c0 5 8 10 8 10s8-5 8-10V6l-8-3ZM8 12l3 3 5-6',
   inventory: 'm5 9 2-5h10l2 5M5 9h14l2 3v6H3v-6l2-3ZM6 18v3M18 18v3M6 13h2M16 13h2',

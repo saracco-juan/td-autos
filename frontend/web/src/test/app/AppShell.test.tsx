@@ -341,6 +341,55 @@ describe('AppShell', () => {
   describe('admin nav (UH19)', () => {
     const admin: User = { ...ana, rol: 'administrador' }
 
+    it('uses the shared workspace with administrator identity and no public footer', () => {
+      mockAuth('authenticated', undefined, admin)
+      renderShell('/admin')
+
+      expect(screen.getByRole('navigation', { name: 'Administración' })).toBeInTheDocument()
+      const account = screen.getByRole('group', { name: 'Cuenta administrativa' })
+      expect(account).toHaveTextContent(admin.name)
+      expect(account).toHaveTextContent(admin.email)
+      expect(within(account).getByRole('button', { name: 'Cerrar sesión' })).toBeInTheDocument()
+      expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+      expect(screen.getByRole('main')).toHaveTextContent('Otra pantalla')
+    })
+
+    it('closes administrator navigation with Escape and after following a destination', async () => {
+      mockAuth('authenticated', undefined, admin)
+      renderShell('/admin')
+      const user = userEvent.setup()
+      const menu = screen.getByRole('button', { name: 'Menú' })
+      await user.click(menu)
+      expect(menu).toHaveAttribute('aria-expanded', 'true')
+      await user.keyboard('{Escape}')
+      expect(menu).toHaveAttribute('aria-expanded', 'false')
+      await user.click(menu)
+      await user.click(screen.getByRole('link', { name: 'Concesionarias' }))
+      expect(menu).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.getByRole('link', { name: 'Concesionarias' })).toHaveAttribute('aria-current', 'page')
+    })
+
+    it('keeps logout failure in the workspace and permits retry', async () => {
+      const logout = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(undefined)
+      mockAuth('authenticated', logout, admin)
+      renderShell('/admin')
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
+      expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cerrar la sesión.')
+      expect(screen.getByRole('group', { name: 'Cuenta administrativa' })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
+      expect(await screen.findByText('Pantalla de ingreso')).toBeInTheDocument()
+      expect(logout).toHaveBeenCalledTimes(2)
+    })
+
+    it('preserves the public frame when an administrator visits the home page', () => {
+      mockAuth('authenticated', undefined, admin)
+      renderShell('/')
+      expect(screen.getByRole('navigation', { name: 'Principal' })).toBeInTheDocument()
+      expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+      expect(screen.queryByRole('group', { name: 'Cuenta administrativa' })).not.toBeInTheDocument()
+    })
+
     it('shows Concesionarias, Administración and the logout button, and none of the buyer or dealer links', () => {
       mockAuth('authenticated', undefined, admin)
       renderShell('/admin')
