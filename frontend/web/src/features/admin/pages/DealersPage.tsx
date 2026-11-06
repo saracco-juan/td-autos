@@ -5,8 +5,9 @@ import groupStyles from "../../../styles/buttonGroup.module.css";
 import tableStyles from "../../../styles/dataTable.module.css";
 import ErrorState from "../../../components/ErrorState/ErrorState";
 import ListFooter from "../../../components/ListFooter/ListFooter";
-import Pagination from "../../../components/Pagination/Pagination";
+import ResultsPagination from "../../../components/Pagination/ResultsPagination";
 import ScrollArea from "../../../components/ScrollArea/ScrollArea";
+import Table from "../../../components/Table/Table";
 import screenStyles from "../../../styles/screen.module.css";
 import usePagedItems from "../../../hooks/usePagedItems";
 import SessionLoading from "../../auth/session/components/SessionLoading";
@@ -23,6 +24,14 @@ import { useDealerDirectory } from "../hooks/useDealerDirectory";
 
 // "Mostrar" options; the page size is the user's choice, never the screen's, so zooming does not change it (docs/design.md).
 const PAGE_SIZES = [10, 25, 50];
+
+const DEALER_COLUMNS = [
+  { key: 'name', header: 'Concesionaria', colClassName: styles.colName },
+  { key: 'place', header: 'Localidad', colClassName: styles.colPlace },
+  { key: 'contact', header: 'Contacto', colClassName: styles.colContact },
+  { key: 'state', header: 'Estado', colClassName: styles.colState },
+  { key: 'actions', header: 'Acciones', colClassName: styles.colActions },
+];
 
 // The message a previous screen leaves in the navigation state (a deleted dealer); anything else is ignored.
 function noticeFrom(state: unknown): string | null {
@@ -179,37 +188,18 @@ export default function DealersPage() {
           className={tableStyles.wrap}
           viewportClassName={tableStyles.viewport}
         >
-          <table
-            className={tableStyles.table}
+          <Table
             aria-labelledby="admin-dealers-title"
-          >
-            {/* Fixed column widths: columns never depend on the rows of the current page. */}
-            <colgroup>
-              <col className={styles.colName} />
-              <col className={styles.colPlace} />
-              <col className={styles.colContact} />
-              <col className={styles.colState} />
-              <col className={styles.colActions} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th scope="col">Concesionaria</th>
-                <th scope="col">Localidad</th>
-                <th scope="col">Contacto</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageItems.map((dealer) => (
-                <DealerRow key={dealer.id} dealer={dealer} />
-              ))}
-            </tbody>
-          </table>
+            columns={DEALER_COLUMNS}
+            rows={pageItems}
+            rowKey={(dealer) => dealer.id}
+            renderRow={(dealer) => <DealerRow dealer={dealer} />}
+          />
         </ScrollArea>
         {dealers.length > PAGE_SIZES[0] ? (
           <ListFooter>
-            <Pagination
+            <ResultsPagination
+              wrap
               page={page}
               lastPage={lastPage}
               onChange={setPage}

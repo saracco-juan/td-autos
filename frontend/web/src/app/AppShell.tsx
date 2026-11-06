@@ -6,6 +6,8 @@ import { useAuth } from '../features/auth/session/hooks/useAuth'
 import styles from './AppShell.module.css'
 import AppFooter from './AppFooter'
 import DealerShell from '../features/dealer/components/DealerShell'
+import AdminShell from '../features/admin/components/AdminShell'
+import { isAdminDealerSection } from '../features/admin/model/navigation'
 import DealerNavigation from '../features/dealer/components/DealerNavigation'
 import { LogoutIcon, MenuIcon } from '../components/NavigationIcons/NavigationIcons'
 
@@ -25,14 +27,12 @@ function LogoMark() {
 
 const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
 
-// The receipt review lives inside the dealer list (Figma 38:1129 highlights Concesionarias).
-const ADMIN_DEALER_PATHS = ['/admin/concesionarias', '/admin/comprobantes/']
 const HOME_SECTIONS = [
   ['diagnostico', 'Diagnóstico'], ['busqueda', 'Búsqueda'], ['comparacion', 'Comparación'],
   ['costos', 'Costos'], ['checklists', 'Checklists'], ['concesionarias', 'Concesionarias'],
 ]
 
-// Shared page frame: nav on top (role links beside the logo; Perfil or Administración, the dealer name and the logout on the right) (guest, or the Buyer, Dealer or Admin nav with logout once signed in), routed content, footer.
+// Role workspaces reuse DashboardShell; public and buyer routes keep the top navigation and footer.
 // Each nav shows only the links whose screens exist: diagnosis, recommendations, transfer and profile for buyers,
 // the subscription and the adhesion status for dealers, plus the inventory once the dealer is active, and the dealer
 // list and the dashboard for administrators. A signed-in user with any other role gets only the logout.
@@ -42,6 +42,8 @@ export default function AppShell() {
   const { user, status, logout } = useAuth()
   const dealerWorkspace = status === 'authenticated' && isDealer(user) &&
     (pathname === '/concesionaria' || pathname.startsWith('/concesionaria/'))
+  const adminWorkspace = status === 'authenticated' && isAdmin(user) &&
+    (pathname === '/admin' || pathname.startsWith('/admin/'))
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutFailed, setLogoutFailed] = useState(false)
   // The phone menu belongs to the navigation it was opened on: following any link (a new location key) closes it.
@@ -136,12 +138,13 @@ export default function AppShell() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [menuOpen])
 
-  if (dealerWorkspace && user) {
-    return <DealerShell user={user} menuOpen={menuOpen} menuId={menuId}
+  if ((dealerWorkspace || adminWorkspace) && user) {
+    const WorkspaceShell = adminWorkspace ? AdminShell : DealerShell
+    return <WorkspaceShell user={user} menuOpen={menuOpen} menuId={menuId}
       onMenuToggle={() => setMenuOpen(!menuOpen)} loggingOut={loggingOut} onLogout={handleLogout}>
       {logoutFailed ? <p role="alert" className={`${alertStyles.alert} ${styles.alert}`}>{LOGOUT_ERROR}</p> : null}
       <Outlet />
-    </DealerShell>
+    </WorkspaceShell>
   }
 
   return (
@@ -176,7 +179,7 @@ export default function AppShell() {
                   <Link
                     to="/admin/concesionarias"
                     className={styles.navAction}
-                    aria-current={ADMIN_DEALER_PATHS.some((path) => pathname.startsWith(path)) ? 'page' : undefined}
+                    aria-current={isAdminDealerSection(pathname) ? 'page' : undefined}
                   >
                     Concesionarias
                   </Link>

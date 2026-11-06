@@ -562,3 +562,21 @@ Deletion stays in its table row. The compact button has the same 32px desktop he
 Import opens the shared `Dialog` with a square drop area and a keyboard-accessible file picker. The original direct URL and the modal reuse one import form, including preview, atomic confirmation and row errors. Successful import refreshes the current list without navigating. Template downloads share one authenticated Blob lifecycle: green indeterminate activity while the total size is unknown, completion feedback when the file is handed to the browser download, and no success message on failure.
 
 Figma synchronization is pending approval: High v3 inventory `2373:8733` still has legacy controls and no search; vehicle entry `2373:8756` still shows the flat form, and import `2373:8817` remains a standalone page. Web should reflect these controls, steps and import modal; native mobile dealership frames are not part of this implementation. No Figma nodes were edited.
+
+## Administrator workspace structure (2026-11-06)
+
+- Authenticated `/admin` routes now reuse the same `DashboardShell` as dealership
+  routes through the feature-local `AdminShell` and `AdminNavigation` adapters.
+  Keep the existing Concesionarias and Administración destinations and their order;
+  receipt review and dealer editing belong to the Concesionarias selected section.
+- The shared sidebar displays the logo, decorative outline icons and administrator
+  name/email/logout. It retains the same responsive menu, dimensions, hover and
+  centered content frame. Public and buyer routes keep their existing layout.
+- This unit changes only the container. Administrator page contents, route guards,
+  session actions and API contracts stay unchanged. High v3 frame `2373:9278`
+  still shows the old header/footer; Figma synchronization awaits user acceptance.
+
+Inventory and the administrator dealership directory share `components/Table/Table`.
+Each screen supplies column headings/widths, rows, stable row keys and its row renderer.
+The shared component owns semantic table structure; feature rows retain their actions,
+and the existing scroll regions and result pagination remain separate components.

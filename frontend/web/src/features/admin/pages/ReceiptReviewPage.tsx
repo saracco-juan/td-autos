@@ -14,7 +14,7 @@ import fieldStyles from '../../auth/shared/styles/authForm.module.css'
 import { formatSentDate } from '../../subscription/model/format'
 import { approveReceipt, fetchReceipt, rejectReceipt } from '../api/client'
 import { accountState, dealerLocation, formatDay, receiptState, receiptTone, validateRejectReason } from '../model/format'
-import BackLink from '../components/BackLink'
+import BackLink from '../../../components/Buttons/BackLink'
 import MissingState from '../components/MissingState'
 import ReceiptPreview from '../components/ReceiptPreview'
 import styles from './ReceiptReviewPage.module.css'
@@ -225,7 +225,7 @@ export default function ReceiptReviewPage() {
   return (
     <FlowLayout actions={actions}>
       <div className={styles.header}>
-        <BackLink />
+        <BackLink to="/admin/concesionarias">Volver a concesionarias</BackLink>
         <p className={screenStyles.eyebrow}>CONCESIONARIAS</p>
         <h1 className={screenStyles.title}>Revisar comprobante</h1>
         <p className={styles.subtitle}>Revisión del registro seleccionado.</p>
