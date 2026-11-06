@@ -216,6 +216,16 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Tablet and phone layouts stack inside the dashboard scroll region; vehicle
   pagination and its internal list scroll remain independent. No new dependency.
 
+- Metrics refinement (2026-11-05): retain the four metric sections and contact
+  semantics, with compact summary indicators above brand distribution and ranking.
+  Use native horizontal meters for brands and concentration instead of rotated
+  columns or a canvas gauge. Ranking rows use separators, and `ResultsPagination`
+  supplies the same controls as inventory and subscription. Figma sync awaits
+  user acceptance; this refinement changes no backend API, calculation or stored data.
+- Narrow panels opt into `ResultsPagination`'s `wrap` option; local spacing is
+  passed through `className`. Pages do not style the component's internal markup,
+  and other lists retain the default layout.
+
 ## HU15-MOBILE depreciation (2026-10-30)
 
 - High v3 mobile `2373:10051` (full content `2537:11653`) and insufficient-data

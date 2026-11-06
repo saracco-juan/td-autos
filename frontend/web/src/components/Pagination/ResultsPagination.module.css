@@ -21,6 +21,13 @@
 
 .pager nav ul { gap: 6px; }
 
+.wrap nav { flex-wrap: wrap; }
+
+.wrap nav > div {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
 .pager nav button {
   --button-hover-fill: var(--palette-charcoal);
   min-width: 44px;

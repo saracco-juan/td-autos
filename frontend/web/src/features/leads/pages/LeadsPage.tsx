@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { LeadPeriod, LeadSummary } from '@shared/leads/types'
 import ErrorState, { type ErrorKind } from '../../../components/ErrorState/ErrorState'
-import ListFooter from '../../../components/ListFooter/ListFooter'
-import Pagination from '../../../components/Pagination/Pagination'
+import ResultsPagination from '../../../components/Pagination/ResultsPagination'
 import ScrollArea from '../../../components/ScrollArea/ScrollArea'
 import Button from '../../../components/Buttons/Button'
 import screenStyles from '../../../styles/screen.module.css'
@@ -49,7 +48,6 @@ export default function LeadsPage() {
   return (
     <section className={`${screenStyles.page} ${screenStyles.fill} ${styles.page}`}>
       <header className={styles.header}>
-        <p className={screenStyles.eyebrow}>MÉTRICAS</p>
         <h1 className={screenStyles.title}>Métricas</h1>
         <p>Cada contacto es una solicitud para abrir el WhatsApp de uno de tus autos.</p>
         <p className={styles.hint}>No confirma mensajes enviados, compradores únicos ni ventas.</p>
@@ -88,10 +86,9 @@ export default function LeadsPage() {
                 ))}
               </ol>
             </ScrollArea>
-            {vehicles.length > 10 ? <ListFooter>
-              <Pagination page={page} lastPage={Math.ceil(vehicles.length / pageSize)} onChange={setPage}
-                pageSize={pageSize} onPageSizeChange={(size) => { setPageSize(size); setPage(1) }} />
-            </ListFooter> : null}
+            {vehicles.length > 10 ? <ResultsPagination wrap className={styles.pagination}
+              page={page} lastPage={Math.ceil(vehicles.length / pageSize)} onChange={setPage}
+              pageSize={pageSize} onPageSizeChange={(size) => { setPageSize(size); setPage(1) }} /> : null}
           </section>}
         </div> : null}
       </div>

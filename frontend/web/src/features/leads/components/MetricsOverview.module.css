@@ -6,7 +6,7 @@
 }
 
 .total {
-  font-size: clamp(32px, 4vw, 44px);
+  font-size: 32px;
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
@@ -21,7 +21,7 @@
 
 .summary meter {
   flex-shrink: 0;
-  height: 14px;
+  height: 6px;
   margin-top: 0;
 }
 
@@ -34,31 +34,26 @@
   grid-area: brands;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  min-height: min-content;
+}
+
+.brandList {
+  display: grid;
+  align-content: start;
+  gap: 20px;
   min-height: 0;
 }
 
-.brandChart {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-around;
-  gap: 10px;
-  flex: 1;
-  min-height: 0;
-}
-
-.column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
+.brandRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-width: 0;
-  gap: 8px;
+  gap: 6px 12px;
   font-size: 12px;
-  text-align: center;
 }
 
-.column span {
+.brandRow span {
   max-width: 100%;
   min-height: 1.5em;
   overflow: hidden;
@@ -66,59 +61,20 @@
   white-space: nowrap;
 }
 
-.track {
-  container-type: size;
-  position: relative;
-  flex: 1;
-  width: 100%;
-  min-height: 90px;
-}
-
-.verticalBar {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: calc(100cqh - 8px);
-  height: 26px;
+.brandRow meter {
+  grid-column: 1 / -1;
   margin: 0;
-  transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 .concentration {
   grid-area: concentration;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
-.concentration h2 {
-  font-size: 16px;
-}
-
 .concentration p {
-  font-size: 13px;
-  text-align: center;
-}
-
-.gauge {
-  position: relative;
-  width: min(100%, 200px);
-  align-self: center;
-}
-
-.gauge canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.gauge strong {
-  position: absolute;
-  bottom: 12%;
-  left: 0;
-  width: 100%;
-  font-size: clamp(26px, 3vw, 38px);
-  text-align: center;
+  max-width: 48ch;
+  font-size: 12px;
 }

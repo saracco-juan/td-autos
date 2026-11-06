@@ -16,7 +16,7 @@ it('shows total contacts and inventory coverage with separate, correctly scaled 
   const brands = within(screen.getByRole('region', { name: 'Contactos por marca' }))
   expect(brands.getByRole('meter', { name: 'Contactos de la marca Toyota' })).toHaveAttribute('value', '6')
   expect(brands.queryByText('Volkswagen')).not.toBeInTheDocument()
-  expect(screen.getByRole('meter', { name: 'Concentración de contactos' })).toHaveAttribute('aria-valuenow', '90')
+  expect(screen.getByRole('meter', { name: 'Concentración de contactos' })).toHaveAttribute('value', '90')
   expect(screen.getByText(/tus 3 vehículos más consultados/)).toBeInTheDocument()
 })
 
@@ -30,6 +30,6 @@ it('keeps the zero-contact state free of misleading brand or concentration chart
 
 it('uses singular concentration copy when only one vehicle has contacts', () => {
   render(<MetricsOverview data={{ period: 'all', total: 2, vehicles: [{ id: 1, label: 'Auto', brand: 'Fiat', leads: 2 }] }} />)
-  expect(screen.getByRole('meter', { name: 'Concentración de contactos' })).toHaveAttribute('aria-valuenow', '100')
+  expect(screen.getByRole('meter', { name: 'Concentración de contactos' })).toHaveAttribute('value', '100')
   expect(screen.getByText(/tu vehículo más consultado/)).toBeInTheDocument()
 })
