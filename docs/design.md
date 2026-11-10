@@ -395,6 +395,7 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - Message boxes (error, success, warning) have a tinted background and dark text: reuse `frontend/web/src/components/alert.module.css`. Its `info` variant is the neutral one (table-header tone `--surface-raised`, default border, dark text, never a dark fill) for plain explanations that are neither success nor problem; it may start with the `InfoIcon` (circled "i", `aria-hidden`, secondary tone) at the left of the text. Do not use `notice` (green, reads as success) for those.
 - Loading is shown on the component that waits, never full screen: a submit button shows its busy state; a section that loads data shows a loader centered horizontally and vertically inside that section.
+- The page never jumps while it loads: the shell content is at least one screen tall below the navigation, so the footer stays below the fold while a section waits and does not move when the content arrives, and the page reserves the scrollbar lane (`scrollbar-gutter: stable`) so starting or stopping to scroll never shifts the layout sideways. (Decided 2026-11-10 after the demo recordings showed the footer flashing during every load.)
 - Selections (checkbox, toggle, chip) change at once and save in the background: no loader, no blocking.
 - Figma covers layout and business states only; loaders and service errors live in code and get no Figma frames.
 

@@ -61,6 +61,11 @@ input[type='number']::-webkit-outer-spin-button {
   box-sizing: border-box;
 }
 
+/* Reserve the scrollbar lane: the layout does not shift sideways when a page starts or stops scrolling. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   background: var(--bg-base);
