@@ -1,0 +1,16 @@
+[
+  {
+    "marca": "TOYOTA",
+    "modelo": "Etios",
+    "carroceria": "Hovercraft",
+    "plazas": 5,
+    "tiene_manual": true,
+    "tiene_automatica": false,
+    "combustibles": ["nafta"],
+    "consumo": "bajo",
+    "seguridad_estrellas": null,
+    "usos": ["ciudad"],
+    "ruta_mercadolibre": "toyota/etios",
+    "ruta_kavak": null
+  }
+]

@@ -3,7 +3,7 @@
 namespace App\Services\Inventario;
 
 /**
- * Outcome of validating a whole CSV: the rows to create, the rows that overwrite one of the
+ * Outcome of validating a whole XLSX: the rows to create, the rows that overwrite one of the
  * dealer's own vehicles, and every error found. Nothing is written until a plan has no errors.
  */
 final class ImportPlan

@@ -1,0 +1,252 @@
+.page {
+  composes: container from '../../../styles/screen.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-bottom: auto;
+  padding: 16px 0 64px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 2.5vw, 40px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+.inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  min-width: 0;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+
+.formHeading {
+  grid-column: 1 / -1;
+}
+
+.formHeading h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.formHeading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.form input, .form select {
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background-color: var(--surface-default);
+  color: var(--palette-charcoal);
+  box-shadow: none;
+  font-size: 16px;
+  transition: border-color 200ms ease;
+}
+
+.form select {
+  align-items: center;
+}
+
+.form input:focus, .form select:focus {
+  outline: none;
+  border-color: var(--palette-charcoal);
+  box-shadow: none;
+}
+
+.form input[aria-invalid='true'], .form select[aria-invalid='true'] {
+  border-color: var(--palette-red);
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.action {
+  grid-column: 1 / -1;
+}
+
+.submit {
+  --button-hover-fill: var(--palette-charcoal);
+  width: auto;
+  min-width: 180px;
+  height: 44px;
+  border-radius: 10px;
+  box-shadow: none;
+  transition: color 550ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .submit:hover:not(:disabled) {
+    color: white;
+  }
+  .form input:hover, .form select:hover {
+    border-color: var(--palette-charcoal);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submit {
+    transition-duration: 120ms;
+  }
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  min-height: 240px;
+}
+
+.card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputs > .card {
+  padding-top: 32px;
+  border-top: 1px solid var(--border-default);
+}
+
+.results .card {
+  padding: clamp(24px, 3vw, 40px);
+  background: #f6f5f4;
+  border-radius: 24px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.rows {
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 14px;
+}
+
+.row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.row dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.total {
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.total dt {
+  color: var(--palette-charcoal);
+  font-weight: 500;
+}
+
+.total dd {
+  font-size: clamp(24px, 2.5vw, 36px);
+  letter-spacing: -0.025em;
+}
+
+.total:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.note, .disclaimer {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 899px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page, .header {
+    gap: 32px;
+  }
+  .form {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .submit {
+    width: 100%;
+  }
+  .row {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  .row dd {
+    margin-left: auto;
+  }
+}

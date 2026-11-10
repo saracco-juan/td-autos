@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
   title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },
   subtitle: { color: colors.textSecondary, fontSize: 14 },
-  // Pinned under the scrolling question (DESIGN.md "Page layout"): the actions stay visible.
+  // Pinned under the scrolling question (docs/design.md "Page layout"): the actions stay visible.
   actions: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 12 },
   action: { flex: 1 },
 })

@@ -1,0 +1,80 @@
+.summary {
+  grid-area: total;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.total {
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.coverageLabel {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  font-size: 13px;
+}
+
+.summary meter {
+  flex-shrink: 0;
+  height: 6px;
+  margin-top: 0;
+}
+
+.summary p {
+  margin-top: 0;
+  font-size: 12px;
+}
+
+.brands {
+  grid-area: brands;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: min-content;
+}
+
+.brandList {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  min-height: 0;
+}
+
+.brandRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  gap: 6px 12px;
+  font-size: 12px;
+}
+
+.brandRow span {
+  max-width: 100%;
+  min-height: 1.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brandRow meter {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.concentration {
+  grid-area: concentration;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.concentration p {
+  max-width: 48ch;
+  font-size: 12px;
+}

@@ -4,42 +4,47 @@
   min-height: 100svh;
 }
 
-/* Nav/Top (Guest, Buyer, Dealer, Admin): red bar pinned to the top with a soft shadow; logo mark and wordmark on the
-   left, role links as pills beside it, the account group on the right. */
+/* Equal outer tracks keep navigation centered independently of account actions. */
 .nav {
   position: sticky;
   top: 0;
   z-index: 20;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  min-height: 60px;
-  padding: 0 clamp(16px, 3vw, 40px);
-  background: var(--palette-red);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 6px 16px rgba(120, 16, 0, 0.22);
+  gap: 24px;
+  min-height: 88px;
+  padding: 16px clamp(16px, 3vw, 40px);
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Empty header space lets the underlying page remain visible and interactive. */
+.logo, .navLinks, .navActions, .menuToggle, .menuPanelOpen {
+  pointer-events: auto;
 }
 
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: var(--text-on-color);
+  justify-self: start;
+  gap: 8px;
+  padding: 3px 8px 3px 0;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 94%);
+  color: var(--text-primary);
   font-size: 19px;
   font-weight: 800;
   letter-spacing: -0.01em;
   text-decoration: none;
 }
 
-/* White rounded tile with the TD monogram in the brand red (the favicon, inverted). */
 .logoMark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: 9px;
-  background: var(--surface-default);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
   color: var(--palette-red);
 }
 
@@ -47,108 +52,114 @@
 .navAction:focus-visible,
 .logout:focus-visible,
 .menuToggle:focus-visible {
-  outline: 2px solid var(--text-on-color);
-  outline-offset: 2px;
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
 }
 
-/* Wide screens: the panel only groups the links and the logout; its children lay out in the bar. */
-.menuPanel {
-  display: contents;
-}
+.menuPanel { display: contents; }
 
-.menuToggle {
-  display: none;
-}
-
-/* Role links, beside the logo. */
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-left: 28px;
+  justify-content: center;
 }
 
-/* Right group: "Perfil" (buyer) or "Administración" (admin), the dealer's name, and "Cerrar sesión". */
 .navActions {
   display: flex;
   align-items: center;
+  justify-self: end;
   gap: 8px;
-  margin-left: auto;
+  min-width: 0;
 }
 
-/* A link is a pill: soft white text, a translucent white fill on hover. */
-.navAction {
+.navAction { composes: fill from '../components/Buttons/buttonHover.module.css'; }
+
+.navAction,
+.logout,
+.menuToggle {
+  --button-hover-fill: var(--palette-charcoal);
   display: inline-flex;
   align-items: center;
-  padding: 7px 12px;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  color: rgba(255, 255, 255, 0.86);
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #f5f5f5;
+  color: var(--text-primary);
   font: 500 13px/1 var(--font-sans);
   text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+  transition: color 550ms ease, background-color 550ms ease,
+    border-color 550ms ease, border-radius 550ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-inline 550ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.navAction:hover {
-  background: rgba(255, 255, 255, 0.14);
+.menuToggle {
+  composes: fill from '../components/Buttons/buttonHover.module.css';
+  display: none;
+}
+
+/* Only the selected item detaches; its inactive neighbors form continuous groups.
+   The small margin transition is intentionally scoped to this single navigation row. */
+.navLinks > .navAction {
+  border-radius: 0;
+  margin-inline: 0;
+}
+
+.navLinks > .navAction:first-child,
+.navLinks > .navAction:is([aria-current='page'], [aria-current='location']) + .navAction {
+  border-start-start-radius: 10px;
+  border-end-start-radius: 10px;
+}
+
+.navLinks > .navAction:last-child,
+.navLinks > .navAction:has(+ :is([aria-current='page'], [aria-current='location'])) {
+  border-start-end-radius: 10px;
+  border-end-end-radius: 10px;
+}
+
+.navLinks > .navAction:is([aria-current='page'], [aria-current='location']) {
+  margin-inline: 8px;
+  border-radius: 10px;
+  background: var(--palette-red);
   color: var(--text-on-color);
 }
 
-/* The link of the page the user is on (NavLink sets aria-current): a brighter pill. */
-.navAction[aria-current='page'] {
-  background: rgba(255, 255, 255, 0.22);
+.navActions .navAction:is([aria-current='page'], [aria-current='location']) {
+  background: var(--palette-charcoal);
   color: var(--text-on-color);
-  font-weight: 700;
 }
 
-/* Dealer nav: the dealer's name as a chip, not interactive. */
+.logout {
+  composes: fill from '../components/Buttons/buttonHover.module.css';
+  border-color: #dedddb;
+  background: var(--surface-default);
+}
+
 .navChip {
-  display: inline-flex;
-  align-items: center;
-  max-width: 220px;
+  max-width: 140px;
   overflow: hidden;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.16);
-  color: var(--text-on-color);
-  font: 600 12px/1 var(--font-sans);
+  color: var(--text-primary);
+  font: 500 12px/1.4 var(--font-sans);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* "Cerrar sesión": an outlined pill with an icon, set apart from the links. */
-.logout {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 999px;
-  background: none;
-  color: var(--text-on-color);
-  font: 600 12px/1 var(--font-sans);
-  cursor: pointer;
-  transition: background-color 0.15s ease;
+.logout:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@media (hover: hover) and (pointer: fine) {
+  .navAction:hover:not(:is([aria-current='page'], [aria-current='location'])),
+  .logout:hover:not(:disabled),
+  .menuToggle:hover { color: var(--text-on-color); }
 }
 
-.logout:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.logout:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.navLinks:has(:focus-visible) > .navAction { transition: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .navAction,
-  .logout {
-    transition: none;
-  }
+  .navAction, .logout, .menuToggle { transition: none; }
 }
 
 .alert {
@@ -166,33 +177,24 @@
   padding: 20px clamp(16px, 3vw, 40px);
 }
 
-/* Figma "Footer" */
-.footer {
-  display: flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 clamp(16px, 3vw, 40px);
-  background: var(--palette-red);
-  color: var(--text-on-color);
-  font-size: 11px;
-}
+/* Collapse before centered navigation can collide with either outer track. */
+@media (max-width: 1100px) {
+  .nav > .navActions {
+    flex-direction: row;
+    padding-top: 0;
+    border-top: 0;
+  }
 
-/* Phones and small tablets: the bar keeps logo + MENÚ in one row; links and logout drop down from it as full-width pills. */
-@media (max-width: 800px) {
+  .nav {
+    grid-template-columns: 1fr auto;
+    min-height: 76px;
+  }
+
   .menuToggle {
     display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: auto;
-    padding: 7px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    border-radius: 999px;
-    background: none;
-    color: var(--text-on-color);
-    font: 700 12px/1 var(--font-sans);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    cursor: pointer;
+    min-height: 44px;
+    border-color: #dedddb;
+    background: var(--surface-default);
   }
 
   .menuPanel {
@@ -204,36 +206,65 @@
     display: none;
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
-    padding: 8px clamp(16px, 3vw, 40px) 16px;
-    background: var(--palette-red);
-    box-shadow: 0 10px 16px rgba(120, 16, 0, 0.25);
+    gap: 16px;
+    padding: 8px clamp(16px, 3vw, 40px) 20px;
+    background: var(--surface-default);
+    box-shadow: 0 12px 18px rgb(36 31 28 / 8%);
   }
 
-  .menuPanelOpen {
-    display: flex;
-  }
+  .menuPanelOpen { display: flex; }
 
-  .navLinks,
-  .navActions {
+  .navLinks, .navActions {
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
-    margin-left: 0;
+    gap: 6px;
   }
 
   .navActions {
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    padding-top: 16px;
+    border-top: 1px solid #eeedeb;
   }
 
-  .navAction,
-  .navChip,
-  .logout {
-    justify-content: flex-start;
-    max-width: none;
-    padding: 12px 14px;
-    font-size: 14px;
-    text-align: left;
+  .navLinks > .navAction,
+  .navLinks > .navAction:is([aria-current='page'], [aria-current='location']) {
+    margin-inline: 0;
+    border-radius: 10px;
   }
+
+  .navAction, .logout {
+    justify-content: flex-start;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .navChip { max-width: none; padding: 8px 14px; }
+}
+
+/* The public landing starts behind the floating header; other screens keep their frame. */
+.homeShell .content { padding: 0; }
+.homeShell .nav { margin-bottom: -88px; }
+.homeShell .logo { background: rgb(17 11 10 / 94%); color: #fff; padding-left: 8px; }
+.homeShell .navAction,
+.homeShell .logout,
+.homeShell .menuToggle {
+  --button-hover-fill: #fff;
+  background: rgb(28 21 19 / 94%);
+  color: #f8f4f2;
+  border-color: #3e3330;
+}
+.homeShell .navLinks > .navAction { border-color: transparent; }
+.homeShell .navLinks > .navAction:is([aria-current='page'], [aria-current='location']) { background: var(--palette-red); }
+.homeShell .navChip { color: #fff; }
+.homeShell .logo:focus-visible,
+.homeShell .navAction:focus-visible,
+.homeShell .logout:focus-visible,
+.homeShell .menuToggle:focus-visible { outline-color: #e02404; }
+@media (hover: hover) and (pointer: fine) {
+  .homeShell .navAction:hover:not(:is([aria-current='page'], [aria-current='location'])),
+  .homeShell .logout:hover:not(:disabled),
+  .homeShell .menuToggle:hover { color: #171211; }
+}
+@media (max-width: 1100px) {
+  .homeShell .nav { margin-bottom: -76px; }
+  .homeShell .menuPanel { background: #110b0a; }
 }

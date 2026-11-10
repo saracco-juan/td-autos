@@ -63,7 +63,7 @@ class DerSchemaMigrationTest extends TestCase
         $this->artisan('migrate', ['--database' => 'der_test', '--force' => true])->assertSuccessful();
         $this->artisan('migrate:rollback', [
             '--database' => 'der_test',
-            '--step' => 21,
+            '--step' => DB::table('migrations')->where('migration', '>=', '2026_09_29_000002_create_tipo_carroceria_table')->count(),
             '--force' => true,
         ])->assertSuccessful();
 
@@ -259,6 +259,35 @@ class DerSchemaMigrationTest extends TestCase
 
     private function expectedSchema(): array
     {
+        // UH-5 extends the DER with nullable, explicitly declared matching facts.
+        $matchingFacts = [
+            'plazas',
+            'turbo',
+            'potencia_unidad',
+            'consumo_urbano',
+            'consumo_ruta',
+            'control_estabilidad',
+            'frenos_abs',
+            'airbags_frontales',
+            'airbags_laterales',
+            'airbags_cortina',
+            'isofix',
+            'frenado_autonomo',
+            'asistencia_carril',
+            'punto_ciego',
+            'recordatorio_cinturon',
+            'asistencia_velocidad',
+            'monitoreo_conductor',
+            'volante_regulable',
+            'climatizador_bizona',
+            'butacas_calefaccionadas',
+            'android_auto_apple_carplay',
+            'sensores_estacionamiento',
+            'velocidad_crucero',
+            'camara_retroceso',
+            'aire_acondicionado',
+        ];
+
         return [
             'users' => [
                 'columns' => ['id', 'name', 'email', 'email_verified_at', 'password', 'remember_token', 'created_at', 'updated_at', 'auth_subject', 'apellido', 'telefono', 'rol', 'activo'],
@@ -282,8 +311,15 @@ class DerSchemaMigrationTest extends TestCase
                 'foreign' => ['usuario_id' => 'users.id'],
             ],
             'vehiculo' => [
-                'columns' => ['id', 'origen', 'tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion'],
-                'nullable' => ['tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion'],
+                'columns' => [
+                    'id', 'origen', 'tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje',
+                    'precio', 'moneda', 'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion',
+                    ...$matchingFacts, 'acara_version_id',
+                ],
+                'nullable' => [
+                    'tipo_carroceria_id', 'marca', 'modelo', 'version', 'anio', 'kilometraje', 'precio', 'moneda',
+                    'combustible', 'transmision', 'motor', 'potencia', 'ubicacion', 'descripcion', ...$matchingFacts, 'acara_version_id',
+                ],
                 'primary' => ['id'],
                 'unique' => [],
                 'foreign' => ['tipo_carroceria_id' => 'tipo_carroceria.id'],

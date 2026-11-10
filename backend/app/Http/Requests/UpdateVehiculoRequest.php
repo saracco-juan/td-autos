@@ -71,7 +71,7 @@ class UpdateVehiculoRequest extends VehiculoRequest
      */
     public function after(): array
     {
-        return [function (Validator $validator) {
+        return [...parent::after(), function (Validator $validator) {
             $photoErrors = array_filter(
                 array_keys($validator->errors()->messages()),
                 fn (string $key) => str_starts_with($key, 'fotos'),
@@ -112,5 +112,10 @@ class UpdateVehiculoRequest extends VehiculoRequest
     protected function plateUniqueRule(): Unique
     {
         return Rule::unique('vehiculo_concesionaria', 'patente_normalizada')->ignore($this->vehiculo()->id, 'vehiculo_id');
+    }
+
+    protected function catalogVehicle(): ?Vehiculo
+    {
+        return $this->vehiculo();
     }
 }

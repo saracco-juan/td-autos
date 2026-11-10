@@ -1,0 +1,70 @@
+.layout {
+  composes: container from '../../styles/screen.module.css';
+  padding-top: 16px;
+}
+
+.layout > :first-child { gap: 40px; padding-bottom: 40px; }
+
+/* Reveal the summary content while the action bar stays in place. */
+.summary > :first-child {
+  opacity: 1;
+  transform: none;
+  transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@starting-style {
+  .summary > :first-child {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.header { display: flex; flex-direction: column; gap: 40px; }
+.titles { display: grid; gap: 16px; }
+.title {
+  margin: 0;
+  font-size: clamp(28px, 2.5vw, 40px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  outline: none;
+}
+.counter { margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.6; }
+
+/* Scope the shared flow's action styling to the two checklist screens and their summaries. */
+.layout > [role='group'] :is(button, a) {
+  --button-hover-fill: var(--palette-charcoal);
+  min-height: 44px;
+  height: auto;
+  padding: 12px 24px;
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 13px;
+  color: var(--palette-charcoal);
+  transition: color 550ms ease, border-color 550ms ease;
+}
+.layout > [role='group'] :is(button, a):focus-visible {
+  outline: 2px solid var(--palette-red);
+  outline-offset: 3px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .layout > [role='group'] :is(button, a):hover:not(:disabled):not([aria-busy='true']) {
+    color: white;
+    border-color: var(--palette-charcoal);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .layout > [role='group'] :is(button, a) { transition: none; }
+  .summary > :first-child { transition: opacity 120ms ease; }
+  @starting-style {
+    .summary > :first-child { transform: none; }
+  }
+}
+@media (max-width: 767px) {
+  .layout { padding-top: 8px; }
+  .header, .layout > :first-child { gap: 32px; }
+  .layout > [role='group'] > div { flex-wrap: wrap; }
+  .layout > [role='group'] :is(button, a) { padding: 12px 16px; white-space: normal; }
+}

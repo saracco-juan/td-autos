@@ -11,3 +11,18 @@ if (!URL.createObjectURL) {
   URL.createObjectURL = () => 'blob:preview'
   URL.revokeObjectURL = () => {}
 }
+
+// jsdom does not implement viewport media queries or element scrolling.
+// Individual responsive tests can override these defaults with their own mocks.
+if (!window.matchMedia) {
+  window.matchMedia = (media: string) => Object.assign(new EventTarget(), {
+    media,
+    matches: false,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+  }) as MediaQueryList
+}
+if (!HTMLElement.prototype.scrollIntoView) {
+  HTMLElement.prototype.scrollIntoView = () => {}
+}

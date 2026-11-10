@@ -1,14 +1,15 @@
-/* Item row shared by the step panel (with a checkbox) and the read-only summary lists: bordered, rounded, text that wraps. */
+/* Shared checkbox and summary row: a quiet separator and enough room for wrapped text. */
 .row {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: var(--row-h, 44px);
-  padding: 8px 12px;
-  border: 1px solid var(--border-default);
-  border-radius: 10px;
-  background: var(--surface-default);
-  font-size: 14px;
+  min-height: var(--row-h, 56px);
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--border-default);
+  border-radius: 0;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
 .text {
@@ -22,8 +23,8 @@
   flex-shrink: 0;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--accent-default);
-  color: var(--text-on-color);
+  background: #fff0ed;
+  color: #a3210d;
   font-size: 10px;
   font-weight: 700;
 }

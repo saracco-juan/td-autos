@@ -1,11 +1,15 @@
-import { useRef, type KeyboardEvent } from 'react'
+import { useCallback, useImperativeHandle, useLayoutEffect, useRef, type KeyboardEvent, type Ref } from 'react'
+import { flushSync } from 'react-dom'
 import { stepPanelId, stepTabId } from './ids'
+import { checklistSurface } from './checklistSurface'
 import styles from './ChecklistStepList.module.css'
 import type { ChecklistStep } from '@shared/checklist/types'
 
 export type ListOrientation = 'vertical' | 'horizontal'
+export type ChecklistNavigation = { select: (numero: number, animate?: boolean) => void }
 
 type Props = {
+  ref?: Ref<ChecklistNavigation>
   // Prefix of the tab and panel ids; one per checklist on the page.
   idPrefix: string
   steps: ChecklistStep[]
@@ -26,6 +30,7 @@ const KEYS: Record<ListOrientation, { previous: string; next: string }> = {
 
 // The steps as tabs: arrows move and select, Home and End jump to the ends, only the selected tab is in the tab order.
 export default function ChecklistStepList({
+  ref,
   idPrefix,
   steps,
   completedCodes,
@@ -36,14 +41,79 @@ export default function ChecklistStepList({
   onSelect,
 }: Props) {
   const tabs = useRef(new Map<number, HTMLButtonElement>())
+  const motion = useRef<Animation | null>(null)
+  const surfaceMotion = useRef<ReturnType<typeof checklistSurface>>(null)
+
+  const cancelMotion = useCallback(() => {
+    motion.current?.cancel()
+    motion.current = null
+    surfaceMotion.current?.animation.cancel()
+    surfaceMotion.current?.surface.remove()
+    surfaceMotion.current = null
+  }, [])
+  useLayoutEffect(() => cancelMotion, [selected, cancelMotion])
+
+  const select = (numero: number, animate = false) => {
+    const panel = document.getElementById(stepPanelId(idPrefix, selected))
+    const current = panel ? getComputedStyle(panel) : null
+    const from = { opacity: current?.opacity ?? '1' }
+    const interruptedBounds = surfaceMotion.current?.surface.getBoundingClientRect()
+    cancelMotion()
+
+    if (numero === selected) return
+    if (!animate || !panel?.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onSelect(numero)
+      return
+    }
+
+    const previousTab = tabs.current.get(selected)
+    if (previousTab) surfaceMotion.current = checklistSurface(panel, previousTab, false, interruptedBounds)
+    const exit = panel.animate([from, { opacity: 0 }], { duration: 260, easing: 'ease', fill: 'forwards' })
+    motion.current = exit
+    exit.onfinish = () => {
+      // Commit only the latest requested tab, then reveal its real content without scaling text.
+      if (motion.current !== exit) return
+      flushSync(() => onSelect(numero))
+      exit.cancel()
+      const next = document.getElementById(stepPanelId(idPrefix, numero))
+      const nextTab = tabs.current.get(numero)
+      if (next && nextTab) surfaceMotion.current = checklistSurface(next, nextTab, true)
+      const surface = surfaceMotion.current
+      motion.current = next?.animate([
+        { opacity: 0, transform: 'translateX(-8px)', clipPath: 'inset(0 100% 0 0)' },
+        { opacity: 1, transform: 'none', clipPath: 'inset(0 0% 0 0)' },
+      ], { duration: 550, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'backwards' }) ?? null
+      if (surface) {
+        surface.animation.onfinish = () => {
+          if (surfaceMotion.current !== surface) return
+          const transform = getComputedStyle(surface.surface).transform
+          surface.animation.cancel()
+          surface.animation = surface.surface.animate([
+            { transform, opacity: 1 },
+            { transform: 'translate(0px, 0px) scale(1, 1)', opacity: 0 },
+          ], {
+            duration: 350, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'forwards',
+          })
+          surface.animation.onfinish = () => {
+            surface.surface.remove()
+            if (surfaceMotion.current === surface) surfaceMotion.current = null
+          }
+        }
+      }
+    }
+  }
+
+  useImperativeHandle(ref, () => ({ select }))
 
   const move = (numero: number) => {
-    onSelect(numero)
+    select(numero)
     // The page must not jump when the focus moves.
     tabs.current.get(numero)?.focus({ preventScroll: true })
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Tab can move focus into the panel before its pointer animation has finished.
+    cancelMotion()
     const index = steps.findIndex((step) => step.numero === selected)
     const keys = KEYS[orientation]
     let target: number | undefined
@@ -76,7 +146,7 @@ export default function ChecklistStepList({
             aria-controls={stepPanelId(idPrefix, step.numero)}
             tabIndex={isSelected ? 0 : -1}
             className={`${styles.tab} ${isSelected ? styles.selected : ''}`}
-            onClick={() => onSelect(step.numero)}
+            onClick={(event) => select(step.numero, event.detail > 0)}
           >
             <span className={styles.title}>
               {step.numero}. {step.titulo}

@@ -7,15 +7,16 @@ use App\Models\TipoCarroceria;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Support\Patente;
+use App\Support\VehiculoFields;
 use App\Support\VehiculoFotos;
 use App\Support\VehiculoOptions;
-use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\VolumeInventorySeeder;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
 /**
@@ -32,6 +33,7 @@ class VolumeInventorySeedTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['demo.password' => bin2hex(random_bytes(24))]);
 
         Storage::fake(config('filesystems.receipts_disk'));
         Storage::fake(config('filesystems.vehicle_photos_disk'));
@@ -108,7 +110,7 @@ class VolumeInventorySeedTest extends TestCase
         $this->assertContains('concesionaria01@volumen.tdautos.test', $emails->all());
 
         $user = User::where('email', 'concesionaria01@volumen.tdautos.test')->first();
-        $this->assertTrue(Hash::check(DemoDealersSeeder::DEMO_PASSWORD, $user->password));
+        $this->assertTrue(Hash::check(config('demo.password'), $user->password));
 
         $perDealer = DB::table('vehiculo_concesionaria')
             ->selectRaw('concesionaria_id, count(*) as total')
@@ -151,6 +153,29 @@ class VolumeInventorySeedTest extends TestCase
             ->count();
 
         $this->assertSame(0, $mismatches);
+    }
+
+    public function test_hu05_volume_facts_are_complete_explicit_and_valid_for_publication(): void
+    {
+        $this->seedVolume();
+
+        foreach (Vehiculo::with('propiedad')->get() as $vehicle) {
+            $fields = $vehicle->attributesToArray() + [
+                'patente' => $vehicle->propiedad->patente_normalizada,
+                'carroceria_id' => $vehicle->tipo_carroceria_id,
+            ];
+            $validator = Validator::make($fields, VehiculoFields::rules(includeMatchingFacts: true));
+            $this->assertFalse($validator->fails(), $validator->errors()->toJson());
+            $this->assertSame('CV', $vehicle->potencia_unidad);
+            foreach (array_keys(VehiculoFields::EQUIPMENT_FIELDS) as $field) {
+                $this->assertIsBool($vehicle->$field, $field);
+            }
+            if ($vehicle->combustible === 'gnc') {
+                $this->assertNull($vehicle->consumo_urbano);
+                $this->assertNull($vehicle->consumo_ruta);
+            }
+            $this->assertStringContainsString('Datos sintéticos', $vehicle->descripcion);
+        }
     }
 
     public function test_plates_are_unique_normalized_and_mix_both_formats(): void
@@ -262,7 +287,10 @@ class VolumeInventorySeedTest extends TestCase
         $vehicles = DB::table('vehiculo as v')
             ->join('vehiculo_concesionaria as vc', 'vc.vehiculo_id', '=', 'v.id')
             ->orderBy('vc.patente_normalizada')
-            ->get(['vc.patente_normalizada', 'v.marca', 'v.modelo', 'v.version', 'v.anio', 'v.kilometraje', 'v.precio', 'v.combustible', 'v.transmision', 'v.ubicacion', 'v.descripcion', 'v.tipo_carroceria_id'])
+            ->get(['vc.patente_normalizada', 'v.marca', 'v.modelo', 'v.version', 'v.anio', 'v.kilometraje', 'v.precio', 'v.combustible', 'v.transmision', 'v.ubicacion', 'v.descripcion', 'v.tipo_carroceria_id',
+                'v.plazas', 'v.motor', 'v.turbo', 'v.potencia', 'v.potencia_unidad', 'v.consumo_urbano', 'v.consumo_ruta',
+                ...array_map(fn (string $field) => 'v.'.$field, array_keys(VehiculoFields::EQUIPMENT_FIELDS)),
+            ])
             ->toJson();
         $dealers = DB::table('concesionaria')->orderBy('nombre')->get(['nombre', 'localidad', 'provincia'])->toJson();
 

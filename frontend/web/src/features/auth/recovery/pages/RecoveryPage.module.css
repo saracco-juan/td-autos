@@ -1,0 +1,27 @@
+.page {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page > section {
+  padding: clamp(24px, 5vw, 36px);
+  gap: 24px;
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  background: var(--surface-default);
+}
+
+.helper {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+  .page {
+    --auth-input-font-size: 16px;
+  }
+}

@@ -1,5 +1,5 @@
 import type { ReactNode, Ref } from 'react'
-import alertStyles from '../alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import { stepPanelId, stepTabId } from './ids'
 import styles from './ChecklistStepPanel.module.css'
 import type { ChecklistStep } from '@shared/checklist/types'
@@ -60,7 +60,7 @@ export default function ChecklistStepPanel({
                   checked={checked}
                   onChange={() => onToggle(item.codigo, !checked)}
                 />
-                <span className={styles.text}>{item.texto}</span>
+                <span className={styles.text}><span className={styles.itemLabel}>{item.texto}</span></span>
                 {/* The space keeps the badge a separate word in the accessible name. */}
                 {item.flagged ? <> <span className={styles.badge}>{flagLabel}</span></> : null}
               </label>

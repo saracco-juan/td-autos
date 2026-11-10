@@ -7,6 +7,8 @@ use App\Models\Suscripcion;
 use App\Models\User;
 use App\Support\Patente;
 use App\Support\VehiculoOptions;
+use Database\Seeders\Support\DemoCredentials;
+use Database\Seeders\Support\DemoVehicleFacts;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -94,7 +96,7 @@ class VolumeInventorySeeder extends Seeder
     private function createDealers(): array
     {
         // One hash for every account: hashing 50 times would only slow the seed down.
-        $password = Hash::make(DemoDealersSeeder::DEMO_PASSWORD);
+        $password = Hash::make(DemoCredentials::password());
         $now = now();
         $dealers = [];
 
@@ -272,7 +274,9 @@ class VolumeInventorySeeder extends Seeder
             'combustible' => $fuel,
             'transmision' => $transmission,
             'ubicacion' => $town,
-            'descripcion' => "{$brand} {$model} {$version} {$year}. ".VolumeCatalog::DESCRIPTIONS[mt_rand(0, count(VolumeCatalog::DESCRIPTIONS) - 1)],
+            'descripcion' => "{$brand} {$model} {$version} {$year}. ".VolumeCatalog::DESCRIPTIONS[mt_rand(0, count(VolumeCatalog::DESCRIPTIONS) - 1)].' '.DemoVehicleFacts::NOTICE,
+            // No extra random draws: preserve the existing identity, price and plate sequence.
+            ...DemoVehicleFacts::profile($km, $fuel),
         ], $this->plate($year)];
     }
 

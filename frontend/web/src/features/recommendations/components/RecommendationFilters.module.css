@@ -1,0 +1,234 @@
+/* One row under the tabs: the filters and their chips on the left, the comparison group on the right. */
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(108px, 1fr) minmax(108px, 3fr);
+  align-items: flex-start;
+  gap: 16px 24px;
+}
+
+/* Toolbar left side: the FILTROS button and the applied chips on one wrapping row. */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 36px;
+  max-width: 100%;
+}
+
+.toggle {
+  flex: none;
+  width: auto;
+  height: 36px;
+  min-height: 36px;
+  padding-inline: 14px;
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 12px;
+}
+
+.toggle[aria-expanded='true'] {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+  color: var(--text-on-color);
+}
+
+.count {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--palette-red);
+  color: var(--text-on-color);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Filters expand above the grid without changing card widths. */
+.body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* An accordion needs layout interpolation so the results move with the panel. */
+.disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 420ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 360ms ease;
+}
+
+.disclosure[data-open='true'] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.panelClip {
+  min-height: 0;
+  overflow: hidden;
+  margin-inline: -24px;
+  padding-inline: 24px;
+}
+
+.disclosure[data-animate='false'] {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure {
+    transition: opacity 120ms ease;
+  }
+}
+
+.panel {
+  flex: none;
+  box-sizing: border-box;
+  width: min(100%, 960px);
+  min-height: 0;
+  padding: 16px;
+  margin-top: 8px;
+  margin-bottom: 32px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface-default);
+  box-shadow: 0 8px 24px rgb(36 31 28 / 10%), 0 2px 6px rgb(36 31 28 / 4%);
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.field input {
+  transition: border-color 160ms ease;
+}
+
+.field input:focus {
+  border-color: var(--palette-charcoal);
+  outline: none;
+  box-shadow: none;
+}
+
+.field select:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 2px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chip {
+  width: auto;
+  height: auto;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  box-shadow: none;
+  text-align: left;
+}
+
+.clear {
+  width: auto;
+  min-height: 36px;
+  padding-inline: 8px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.form button[type='submit'] {
+  height: 36px;
+  border-radius: 10px;
+  border-color: var(--palette-red);
+  background: var(--palette-red);
+  color: var(--text-on-action);
+  box-shadow: none;
+  font-size: 12px;
+}
+
+/* Filter actions share the global reveal and retain their dark hover palette. */
+.toggle,
+.chip,
+.form button[type='submit'] {
+  --button-hover-fill: var(--palette-charcoal);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .field input:hover:not(:focus) { border-color: var(--border-input); }
+
+  .toggle:hover:not(:disabled):not([aria-busy='true']),
+  .chip:hover:not(:disabled):not([aria-busy='true']),
+  .form button[type='submit']:hover:not(:disabled):not([aria-busy='true']) {
+    color: var(--text-on-color);
+    border-color: var(--palette-charcoal);
+    box-shadow: 0 4px 12px rgb(36 31 28 / 14%);
+  }
+}
+
+.toggle:focus-visible,
+.chip:focus-visible,
+.clear:focus-visible,
+.form button:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+@media (pointer: coarse) {
+  .controls { min-height: 44px; }
+  .toggle, .chip, .clear, .field input, .field select,
+  .field option, .form button[type='submit'] { min-height: 44px; }
+}
+
+@media (max-width: 1100px) {
+  .form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form button[type='submit'] { justify-self: end; width: auto; grid-column: 1 / -1; }
+}
+
+@media (max-width: 800px) {
+  /* Controls wrap while the filter form stays in the document flow. */
+  .toolbar {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .panelClip { margin-inline: -16px; padding-inline: 16px; }
+  .form { grid-template-columns: minmax(0, 1fr); }
+  .form button[type='submit'] { width: 100%; }
+}

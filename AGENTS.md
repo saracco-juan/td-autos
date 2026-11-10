@@ -2,7 +2,7 @@
 
 Shared instructions for any AI coding agent working in this repository (Claude Code, Codex, others). Keep this file tool-neutral: personal or tool-specific preferences belong in each developer's local, untracked files.
 
-`README.md` is the single source for the repository layout, setup, test/lint/build commands, and branch and commit conventions. Read it instead of assuming; do not restate its rules here.
+`README.md` is the single source for the repository layout, `docs/getting-started.md` for setup and test/lint/build commands, and `docs/contributing.md` for branch and commit conventions and CI. Read it instead of assuming; do not restate its rules here.
 
 ## Sources of truth
 
@@ -24,7 +24,7 @@ The project documentation lives OUTSIDE this repo. Before specifying, designing,
 
 Rules:
 
-- Any task tied to a story (UH), requirement (RF), use case (CU) or test case (TC) starts by reading that item in its source. Quote its id in specs and tests, and reference the story in the commit footer as `README.md` describes.
+- Any task tied to a story (UH), requirement (RF), use case (CU) or test case (TC) starts by reading that item in its source. Quote its id in specs and tests, and reference the story in the commit footer as `docs/contributing.md` describes.
 - Any web screen starts by reading its Figma node. Ignore the legacy Figma pages `TD Autos · Wireframes High v2` and `TD Autos . Wireframes Medium Web` (nodes `2141:*`).
 - Only files inside the Drive folder above are valid. Files elsewhere in Drive with similar names are stale copies.
 - If two sources disagree, stop and report the conflict instead of picking one. Known inconsistencies are tracked in Trello card #78.
@@ -34,11 +34,20 @@ Rules:
 ## Working rules
 
 - Code, identifiers, comments and tests are written in English. User-facing copy is Spanish (Argentine voseo, sentence case, buttons in uppercase).
-- Before building or changing any screen, read `DESIGN.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
-- Technical setup that is not in `README.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `DEVELOPMENT.md`. Add new technical notes there.
+- Project documentation lives in `docs/`; only `README.md`, `AGENTS.md` and `CLAUDE.md` stay at the root. `README.md` is the plain-language landing page; technical content goes to `docs/`.
+- Before building or changing any screen, read `docs/design.md`: it holds every visual and interaction rule (layout, responsive, lists and pagination, feedback). Add new design directives there, not here.
+- Technical setup that is not in `docs/getting-started.md` (tunnels, local environment tricks, scripts and maintenance commands) lives in `docs/development/`, one file per topic, indexed by `docs/development.md`. Read only the topic file you need; add new notes to the matching topic file (or a new one listed in the index).
+- Deployed environments (hosting, per-environment variables, one-time service setup, deploy troubleshooting) live in `docs/infrastructure.md`. The repository is public: write placeholders there, never real secrets, hosts' credentials or personal data.
 - Logic that web and mobile both need (rules, models, pure helpers) goes to `frontend/shared` from the first commit; never copy it between the apps. Before handing over a branch, run `node scripts/check-duplication.mjs` from the repo root and fix what it reports: SonarQube Cloud fails the PR above 3% duplicated new code.
 - Never read or print `backend/.env`. Use `backend/.env.example` as the reference for variables.
 - Do not discard uncommitted work (`git reset --hard`, `git clean`, `git checkout -- <path>`, `git stash drop`) without explicit confirmation from the developer.
+
+## RDD review preference
+
+- When RDD applies, prefer "Review this change" (option 1).
+- A very small, low-risk change may skip review when the applicable assessment says it is unnecessary; still run proportional checks. Small size alone does not waive security or data risks.
+- Use this preference wherever the runtime supports standing consent. If the native review contract requires explicit consent for each candidate, obtain it rather than treating this preference as a grant or bypassing the contract.
+- Keep RDD mode user-owned; this preference does not authorize publishing, merging, or changing that mode.
 
 ## Shared agent memory (Engram)
 
@@ -55,8 +64,15 @@ Agent memory travels between machines through the repo, one folder per developer
 
 ## Closing a task
 
-- Every time a task is finished, the closing message includes how to test it manually: what to start (see `README.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
+- Every time a task is finished, the closing message includes how to test it manually: what to start (see `docs/getting-started.md`), the steps to follow, and the expected result of each step. For a task with no visible behavior (refactor, tests only), say what to smoke-test or that there is nothing new to see.
 - When the task is backend-only and has no screen yet, the manual test comes with ready-to-paste code: a self-contained snippet (browser console or terminal) that authenticates the same way the real client does, one call per case, and the expected status and body of each call. The developer should not have to write or adapt code beyond the host and port.
+
+## Improvements backlog
+
+- The Trello list `Mejoras/Arreglos` holds non-blocking improvements and fixes. A card is short and human, written in Spanish: a title in sentence case, without a period, that says what is wanted; a description of one to three sentences ("Hoy pasa X. Tendría que pasar Y."), plus an optional "Puede requerir…"; and its labels: one type (`Mejora` or `Arreglo`), one or two areas (`UX/UI`, `Frontend`/`Backend`, `WEB`/`MOBILE`) and one priority (`Prioridad-Alta`, `Prioridad-Media` or `Prioridad-Baja`, low by default). One card per topic; long detail goes in a comment.
+- When something non-blocking is noticed while working, offer a card written to that standard instead of fixing it in place; never widen the story.
+- Before starting a story, scan that list and propose the cards that belong to the code the story already touches. Apply only the ones the developer confirms, each in its own commit with the card in the footer (`Refs: Trello #127`). Skip cards that belong to another developer's story or need new requirements.
+- The closing message says which cards were applied, so the developer can move them to Done after the merge.
 
 ## Screen decisions go back to Figma
 

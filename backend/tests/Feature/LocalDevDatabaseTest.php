@@ -4,12 +4,16 @@ namespace Tests\Feature;
 
 use App\Models\Concesionaria;
 use App\Models\Vehiculo;
+use App\Services\Catalog\FixedAcaraCatalog;
+use App\Support\VehiculoFields;
 use App\Support\VehiculoOptions;
-use Database\Seeders\DemoDealersSeeder;
+use Database\Seeders\Support\LocalAcaraCatalogData;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class LocalDevDatabaseTest extends TestCase
@@ -21,6 +25,7 @@ class LocalDevDatabaseTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['demo.password' => bin2hex(random_bytes(24))]);
 
         Storage::fake('local');
         Storage::fake('public');
@@ -51,13 +56,79 @@ class LocalDevDatabaseTest extends TestCase
         return DB::connection('local_dev_check');
     }
 
+    public function test_existing_local_command_loads_the_full_fixed_catalog_offline(): void
+    {
+        Http::preventStrayRequests();
+        $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
+        $db = $this->inspect();
+        $this->assertSame(1, $db->table('catalog_import')->count());
+        $this->assertSame('2026-10-19', $db->table('catalog_import')->value('source_date'));
+        $this->assertSame(115, $db->table('catalog_brands')->count());
+        $this->assertSame(812, $db->table('catalog_models')->count());
+        $this->assertSame(7383, $db->table('catalog_versions')->count());
+        $this->assertSame(118240, $db->table('catalog_prices')->count());
+        $this->assertGreaterThan(0, $db->table('catalog_prices')->whereNull('amount')->count());
+        $this->assertSame(40, $db->table('modelo_referencia')->count());
+        $corolla = 'acara:fe61f57616f218ce4b450c3562e6cf8fee5ac754b2e00d379aecf66212d156de';
+        $this->assertSame('XEI 1.8 MT (140cv) (L14)', $db->table('catalog_versions')->where('id', $corolla)->value('name'));
+        $this->assertEquals(17793100, $db->table('catalog_prices')->where('version_id', $corolla)->where('year', '2017')->value('amount'));
+        $this->assertSame(4, $db->table('vehiculo_concesionaria')->count());
+        $this->assertSame(28, $db->table('foto_vehiculo')->where('ubicacion_archivo', 'like', 'vehiculos/%')->count());
+        $this->assertSame('sqlite', config('database.default'));
+        $this->assertDatabaseCount('catalog_import', 0);
+        $previous = config('database.default');
+        config(['database.default' => 'local_dev_check']);
+        try {
+            $stored = app(FixedAcaraCatalog::class)->current();
+            $expected = (new LocalAcaraCatalogData)->load();
+            $this->assertSame(hash('sha256', json_encode($expected['rows'])), hash('sha256', json_encode($stored['rows'])));
+        } finally {
+            config(['database.default' => $previous]);
+        }
+    }
+
+    #[DataProvider('unavailableCatalogs')]
+    public function test_unavailable_bundled_catalog_preserves_an_existing_target(bool $corrupt): void
+    {
+        $original = database_path();
+        $root = sys_get_temp_dir().DIRECTORY_SEPARATOR.'td-catalog-source-'.uniqid();
+        $asset = $root.DIRECTORY_SEPARATOR.LocalAcaraCatalogData::ASSET;
+        mkdir(dirname($asset), 0777, true);
+        if ($corrupt) {
+            file_put_contents($asset, 'not the trusted catalog');
+        }
+        file_put_contents($this->path, 'existing local database must survive');
+        $this->app->useDatabasePath($root);
+        try {
+            $this->artisan('db:local', ['--path' => $this->path])
+                ->expectsOutputToContain('Local ACARA catalog unavailable:')->assertExitCode(1);
+            $this->assertSame('existing local database must survive', file_get_contents($this->path));
+            $this->assertSame('sqlite', config('database.default'));
+            $this->assertDatabaseCount('users', 0);
+        } finally {
+            $this->app->useDatabasePath($original);
+            if (is_file($asset)) {
+                unlink($asset);
+            }
+            rmdir(dirname($asset));
+            rmdir($root.DIRECTORY_SEPARATOR.'seeders');
+            rmdir($root);
+        }
+    }
+
+    public static function unavailableCatalogs(): array
+    {
+        return ['missing' => [false], 'corrupt' => [true]];
+    }
+
     public function test_it_builds_the_file_with_accounts_dealers_and_receipts(): void
     {
         $this->artisan('db:local', ['--path' => $this->path])
             ->expectsOutputToContain($this->path)
             ->expectsOutputToContain('DB_CONNECTION=sqlite')
+            ->expectsOutputToContain('DB_URL=')
             ->expectsOutputToContain('admin@demo.tdautos.test')
-            ->expectsOutputToContain(DemoDealersSeeder::DEMO_PASSWORD)
+            ->doesntExpectOutputToContain(config('demo.password'))
             ->assertExitCode(0);
 
         $this->assertFileExists($this->path);
@@ -119,7 +190,7 @@ class LocalDevDatabaseTest extends TestCase
         $this->assertSame('remote_receipts', config('filesystems.receipts_disk'));
     }
 
-    public function test_rf22_seeded_dealer_vehicles_can_be_read_and_updated_through_the_api(): void
+    public function test_rf22_seeded_dealer_vehicles_require_catalog_linkage_for_api_updates(): void
     {
         $this->artisan('db:local', ['--path' => $this->path])->assertExitCode(0);
         $this->inspect();
@@ -136,7 +207,26 @@ class LocalDevDatabaseTest extends TestCase
                     $fields['patente'] = $vehicle->propiedad->patente_normalizada;
                     $fields['carroceria_id'] = $vehicle->tipo_carroceria_id;
                     $fields['precio'] += 1000;
-                    $this->postJson($url, $fields)->assertOk()->assertJsonCount(7, 'vehiculo.fotos');
+                    // HU05: editing a seeded vehicle must not require inventing missing facts.
+                    $fields += $vehicle->only([
+                        'moneda', 'plazas', 'motor', 'turbo', 'potencia', 'potencia_unidad',
+                        'consumo_urbano', 'consumo_ruta', ...array_keys(VehiculoFields::EQUIPMENT_FIELDS),
+                    ]);
+                    if ($vehicle->acara_version_id === null) {
+                        $before = $vehicle->getAttributes();
+                        $this->postJson($url, $fields)->assertUnprocessable()->assertJsonValidationErrors('acara_version_id');
+                        $this->assertSame($before, $vehicle->fresh()->getAttributes());
+
+                        continue;
+                    }
+                    $this->postJson($url, $fields)->assertOk()->assertJsonCount(7, 'vehiculo.fotos')
+                        ->assertJsonPath('vehiculo.plazas', 5)->assertJsonPath('vehiculo.turbo', $vehicle->turbo);
+                    foreach ($fields as $field => $value) {
+                        if (in_array($field, ['patente', 'carroceria_id'], true)) {
+                            continue;
+                        }
+                        $this->assertEquals($value, $vehicle->fresh()->getAttribute($field), $field);
+                    }
                     $this->assertSame($fields['precio'], Vehiculo::findOrFail($vehicle->id)->precio + 0);
                 }
             }
@@ -184,7 +274,8 @@ class LocalDevDatabaseTest extends TestCase
     {
         $db = $this->inspect();
 
-        $counts = collect(['users', 'concesionaria', 'comprobante_pago', 'vehiculo', 'vehiculo_concesionaria', 'foto_vehiculo'])
+        $counts = collect(['users', 'concesionaria', 'comprobante_pago', 'vehiculo', 'vehiculo_concesionaria', 'foto_vehiculo',
+            'catalog_import', 'catalog_brands', 'catalog_models', 'catalog_versions', 'catalog_prices'])
             ->mapWithKeys(fn (string $table) => [$table => $db->table($table)->count()])
             ->all();
 
