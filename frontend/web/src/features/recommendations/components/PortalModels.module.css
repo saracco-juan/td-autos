@@ -3,6 +3,7 @@
    screens (PortalModelsPanel) and in an info button on the tabs row otherwise (PortalModelsInfoTip). The card itself is the dealers card (VehicleCard.module.css). */
 .panel {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: 16px;
   min-width: 0;

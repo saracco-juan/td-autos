@@ -128,7 +128,8 @@ export default function MatchingRecommendationsPage() {
       <div className={styles.headerRow}>
         <div className={styles.header}>
           <h1 ref={title} className={styles.title}>Mejores opciones para vos</h1>
-          {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
+          {/* The line stays while loading (empty and hidden), so the header does not move when the count arrives. */}
+          <p className={styles.subtitle} aria-hidden={subtitle ? undefined : true}>{subtitle ?? ' '}</p>
         </div>
         <ButtonLink to="/diagnostico" variant="secondary" className={`${styles.adjust}`}>
           AJUSTAR DIAGNÓSTICO

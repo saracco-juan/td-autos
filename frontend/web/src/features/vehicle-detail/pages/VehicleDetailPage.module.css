@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: 40px;
-  margin-bottom: auto;
+  /* Fills the shell, so the section loader has room to center. */
+  flex: 1;
   padding: 16px 0 64px;
   overflow-wrap: anywhere;
 }

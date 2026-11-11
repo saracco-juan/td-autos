@@ -227,3 +227,11 @@ it('changes inventory photos without navigating and keeps body warnings in an in
   await userEvent.keyboard('{Escape}')
   expect(within(card).queryByRole('tooltip')).not.toBeInTheDocument()
 })
+
+it('reserves the count line while loading, so the header does not move when the list arrives', () => {
+  vi.mocked(apiFetch).mockReturnValue(new Promise(() => {}))
+  renderPage()
+  const countLine = screen.getByRole('heading', { level: 1 }).nextElementSibling
+  expect(countLine?.tagName).toBe('P')
+  expect(countLine).toHaveAttribute('aria-hidden', 'true')
+})
