@@ -33,7 +33,7 @@ one optional official sell-rate value. The endpoint/query is stage 11; rate retr
 - Hidden, external, inactive-dealer, incomplete and unsupported vehicles are excluded. Seats and transmission are hard gates.
 - Base score: usage 35%, body 30%, priority 25%, comfort 10%. Either selected body earns 100; mismatch earns 50 and a warning.
 - Above budget, up to 5% inclusive requires matching body, adjusted usage 100 and priority 100; each 1% excess subtracts two points.
-- Filter on unrounded score >=70, order by score descending, ARS price ascending, then listing ID; return at most ten concrete listings.
+- Filter on unrounded score >=70, order by score descending, ARS price ascending, then listing ID; return at most nine concrete listings.
 - No quote excludes USD listings but allows ARS, with unknown USD equivalent. `resale_pending` explicitly defers the resale priority.
 - Results retain component scores, published/equivalent prices, proportional penalty and warning codes for later presentation.
 
@@ -84,7 +84,7 @@ The thin controller delegates to `App\Services\Matching\DiagnosisRecommendations
 - `401`: unauthenticated; no provider request.
 - `200`, `status: diagnosis_incomplete`: missing/incomplete diagnosis; empty `results`, null `exchange_rate`.
 - `200`, `status: resale_pending`: deferred priority; empty `results`, null `exchange_rate`.
-- `200`, `status: ready`: zero to ten concrete results; no filler when none qualifies.
+- `200`, `status: ready`: zero to nine concrete results; no filler when none qualifies.
 
 Each ready result retains the ranker's unrounded `score`, `components`, published/converted
 prices, budget penalty and warning codes, plus whitelisted `vehicle` facts and public `dealer`
@@ -125,8 +125,10 @@ With the README backend/Vite servers running, sign in as a **buyer**, open
 **VER RECOMENDACIONES**. Use consumption, safety or maintenance; resale is deferred.
 The screen now calls `GET /api/recomendaciones`, not catalog search.
 
-- Expect up to ten real dealership listings, ordered by backend compatibility.
-  Nine fit on page one; the tenth is on page two, without another API request.
+- Expect up to nine real dealership listings, ordered by backend compatibility,
+  all on one page with no pager.
+- **TU DIAGNÓSTICO** (next to AJUSTAR DIAGNÓSTICO) shows the saved answers: a popover on web
+  (click again, Escape or click outside to close), a bottom sheet on mobile.
 - Check published and equivalent ARS/USD prices and the quote source/date.
   Open **Ver atributos y motivos** for grouped facts and component scores.
 - Above-budget/body mismatches show warnings. If no car qualifies, adjust the
@@ -144,7 +146,7 @@ from `frontend/web`. These tests fake API data and never change the local invent
 
 The `Recomendados` tab calls the same `GET /api/recomendaciones` with the session bearer token
 (`features/recommendations/api.ts`) and asks again every time the tab gains focus, so finishing the
-diagnosis again shows the recalculated ranking. Filters (HU07) and pagination run on the device over
+diagnosis again shows the recalculated ranking. Filters (HU07) run on the device over
 the returned results, with the same shared helpers as web (`@shared/recommendations/*`).
 
 Isolated checks, from `frontend/mobile`:

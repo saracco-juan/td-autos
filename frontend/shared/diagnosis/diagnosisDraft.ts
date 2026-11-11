@@ -88,3 +88,14 @@ export function summaryValue(
   const code = draft[step.field]
   return step.options.find((option) => option.code === code)?.label ?? SUMMARY_UNANSWERED
 }
+
+export type DiagnosisSummaryRow = { label: string; value: string }
+
+// One row per question for a diagnosis already saved. Nothing is "current" here, so an unanswered
+// step (a legacy diagnosis without passengers) shows the dash, never `En curso`.
+export function diagnosisSummaryRows(saved: SavedDiagnosis, bodyTypes: BodyType[]): DiagnosisSummaryRow[] {
+  return DIAGNOSIS_STEPS.map((step, index) => ({
+    label: step.summaryLabel,
+    value: summaryValue(saved, index, -1, bodyTypes),
+  }))
+}
