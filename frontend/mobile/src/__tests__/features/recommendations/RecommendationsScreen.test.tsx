@@ -11,6 +11,7 @@ import { HttpError, NetworkError } from '../../../lib/http'
 import * as tokenStorage from '../../../lib/tokenStorage'
 import { renderApp } from '../../../test-utils/renderApp'
 import type { RecommendationsResponse } from '@shared/recommendations/matching'
+import type { SavedDiagnosis } from '@shared/diagnosis/types'
 import { ready, recommendation } from '../../../test-utils/recommendations'
 
 jest.mock('../../../features/auth/api')
@@ -243,6 +244,42 @@ describe('RecommendationsScreen', () => {
     expect(await screen.findByText('Mostrando 10 vehículos')).toBeOnTheScreen()
     expect(cards()).toHaveLength(10)
     expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeOnTheScreen()
+  })
+
+  describe('TU DIAGNÓSTICO', () => {
+    const SAVED: SavedDiagnosis = { presupuesto: '15m_25m', uso_principal: 'mixto', pasajeros: '5', kilometros_mensuales: '500_1500',
+      transmision: 'automatica', prioridad: 'consumo', carrocerias: [3, 4] }
+    const BODY_TYPES = [{ id: 1, nombre: 'Sedán' }, { id: 3, nombre: 'SUV' }, { id: 4, nombre: 'Pickup' }]
+
+    it('is not offered while the diagnosis loads', async () => {
+      await open(ready(THREE))
+      await screen.findByText('Mostrando 3 vehículos')
+      expect(screen.queryByRole('button', { name: 'TU DIAGNÓSTICO' })).not.toBeOnTheScreen()
+    })
+
+    it('is not offered when there is no saved diagnosis', async () => {
+      diagnosis.fetchDiagnosis.mockResolvedValue({ diagnostico: null, carrocerias: BODY_TYPES })
+      await open(ready(THREE))
+      await screen.findByText('Mostrando 3 vehículos')
+      await waitFor(() => expect(diagnosis.fetchDiagnosis).toHaveBeenCalled())
+      expect(screen.queryByRole('button', { name: 'TU DIAGNÓSTICO' })).not.toBeOnTheScreen()
+    })
+
+    it('opens a sheet with the saved answers and closes it', async () => {
+      diagnosis.fetchDiagnosis.mockResolvedValue({ diagnostico: SAVED, carrocerias: BODY_TYPES })
+      await open(ready(THREE))
+
+      await fireEvent.press(await screen.findByRole('button', { name: 'TU DIAGNÓSTICO' }))
+
+      expect(screen.getByRole('header', { name: 'TU DIAGNÓSTICO' })).toBeOnTheScreen()
+      expect(screen.getByText('Presupuesto')).toBeOnTheScreen()
+      expect(screen.getByText('$15.000.000 a $25.000.000')).toBeOnTheScreen()
+      expect(screen.getByText('SUV, Pickup')).toBeOnTheScreen()
+      expect(screen.getByText('Automática')).toBeOnTheScreen()
+
+      await fireEvent.press(button('Cerrar'))
+      expect(screen.queryByText('Presupuesto')).not.toBeOnTheScreen()
+    })
   })
 
   it('TC-21: applies the combined filters client-side, keeping the order, and removes them by chip', async () => {

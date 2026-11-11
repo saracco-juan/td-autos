@@ -227,3 +227,71 @@ it('reserves the count line while loading, so the header does not move when the 
   expect(countLine?.tagName).toBe('P')
   expect(countLine).toHaveAttribute('aria-hidden', 'true')
 })
+
+// TU DIAGNÓSTICO (Trello #127): the saved answers, one click away from the list.
+const SAVED = { presupuesto: '15m_25m', uso_principal: 'mixto', pasajeros: '5', kilometros_mensuales: '500_1500',
+  transmision: 'automatica', prioridad: 'consumo', carrocerias: [3, 4] }
+const BODY_TYPES = [{ id: 1, nombre: 'Sedán' }, { id: 3, nombre: 'SUV' }, { id: 4, nombre: 'Pickup' }]
+const mockDiagnosis = (diagnosis: unknown) => vi.mocked(apiFetch).mockImplementation(async (path) =>
+  (path === '/api/recomendaciones' ? ready() : path === '/api/diagnostico' ? diagnosis : NO_PORTALS) as never)
+
+it('offers TU DIAGNÓSTICO next to AJUSTAR DIAGNÓSTICO only once a saved diagnosis has loaded', async () => {
+  vi.mocked(apiFetch).mockImplementation(async (path) => (path === '/api/diagnostico'
+    ? new Promise(() => {}) : path === '/api/recomendaciones' ? ready() : NO_PORTALS) as never)
+  renderPage()
+  await screen.findByText('90,3% de compatibilidad')
+  expect(screen.queryByRole('button', { name: /TU DIAGNÓSTICO/ })).not.toBeInTheDocument()
+})
+
+it('does not offer TU DIAGNÓSTICO when there is no saved diagnosis', async () => {
+  mockDiagnosis({ diagnostico: null, carrocerias: BODY_TYPES })
+  renderPage()
+  await screen.findByText('90,3% de compatibilidad')
+  expect(screen.queryByRole('button', { name: /TU DIAGNÓSTICO/ })).not.toBeInTheDocument()
+})
+
+it('opens a popover with the saved answers and closes it with a second click', async () => {
+  mockDiagnosis({ diagnostico: SAVED, carrocerias: BODY_TYPES })
+  renderPage()
+  const trigger = await screen.findByRole('button', { name: /TU DIAGNÓSTICO/ })
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.queryByRole('dialog', { name: 'Tu diagnóstico' })).not.toBeInTheDocument()
+  await userEvent.click(trigger)
+  const panel = screen.getByRole('dialog', { name: 'Tu diagnóstico' })
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+  expect(trigger).toHaveAttribute('aria-controls', panel.id)
+  expect(within(panel).getByText('Presupuesto').nextElementSibling).toHaveTextContent('$15.000.000 a $25.000.000')
+  expect(within(panel).getByText('Carrocería').nextElementSibling).toHaveTextContent('SUV, Pickup')
+  expect(within(panel).getByText('Transmisión').nextElementSibling).toHaveTextContent('Automática')
+  expect(within(panel).getAllByRole('term')).toHaveLength(7)
+  await userEvent.click(trigger)
+  expect(screen.queryByRole('dialog', { name: 'Tu diagnóstico' })).not.toBeInTheDocument()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+})
+
+it('closes the diagnosis popover with Escape and returns focus to its button', async () => {
+  mockDiagnosis({ diagnostico: SAVED, carrocerias: BODY_TYPES })
+  renderPage()
+  const trigger = await screen.findByRole('button', { name: /TU DIAGNÓSTICO/ })
+  await userEvent.click(trigger)
+  await userEvent.keyboard('{Escape}')
+  expect(screen.queryByRole('dialog', { name: 'Tu diagnóstico' })).not.toBeInTheDocument()
+  expect(trigger).toHaveFocus()
+})
+
+it('closes the diagnosis popover on a pointer down outside, but not inside it', async () => {
+  mockDiagnosis({ diagnostico: SAVED, carrocerias: BODY_TYPES })
+  renderPage()
+  await userEvent.click(await screen.findByRole('button', { name: /TU DIAGNÓSTICO/ }))
+  await userEvent.click(within(screen.getByRole('dialog', { name: 'Tu diagnóstico' })).getByText('Presupuesto'))
+  expect(screen.getByRole('dialog', { name: 'Tu diagnóstico' })).toBeInTheDocument()
+  await userEvent.click(screen.getByRole('heading', { level: 1 }))
+  expect(screen.queryByRole('dialog', { name: 'Tu diagnóstico' })).not.toBeInTheDocument()
+})
+
+it('shows the unanswered dash for a legacy diagnosis without passengers', async () => {
+  mockDiagnosis({ diagnostico: { ...SAVED, pasajeros: null }, carrocerias: BODY_TYPES })
+  renderPage()
+  await userEvent.click(await screen.findByRole('button', { name: /TU DIAGNÓSTICO/ }))
+  expect(screen.getByText('Pasajeros').nextElementSibling).toHaveTextContent('—')
+})

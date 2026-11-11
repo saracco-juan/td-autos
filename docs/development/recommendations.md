@@ -127,6 +127,8 @@ The screen now calls `GET /api/recomendaciones`, not catalog search.
 
 - Expect up to nine real dealership listings, ordered by backend compatibility,
   all on one page with no pager.
+- **TU DIAGNÓSTICO** (next to AJUSTAR DIAGNÓSTICO) shows the saved answers: a popover on web
+  (click again, Escape or click outside to close), a bottom sheet on mobile.
 - Check published and equivalent ARS/USD prices and the quote source/date.
   Open **Ver atributos y motivos** for grouped facts and component scores.
 - Above-budget/body mismatches show warnings. If no car qualifies, adjust the

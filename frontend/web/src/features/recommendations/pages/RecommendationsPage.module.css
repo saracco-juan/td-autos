@@ -79,9 +79,19 @@
   .comparison > div { transition: none; }
 }
 
+/* The diagnosis buttons sit together; the popover opens under TU DIAGNÓSTICO. */
+.actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 .adjust {
   flex: none;
-  width: clamp(180px, 20%, 236px);
+  width: 220px;
   height: 36px;
   min-height: 36px;
   border-radius: 10px;
@@ -212,6 +222,15 @@
   .headerRow {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions > div {
+    width: 100%;
   }
 
   .adjust {

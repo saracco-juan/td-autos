@@ -14,7 +14,10 @@ import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { appliedFilterChips, filterRecommendations, type RecommendationFilters } from '@shared/recommendations/filters'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
 import { type RecommendationsResponse } from '@shared/recommendations/matching'
+import { fetchDiagnosis } from '../diagnosis/api'
+import type { DiagnosisResponse } from '@shared/diagnosis/types'
 import { fetchRecommendations } from './api'
+import DiagnosisSheet from './DiagnosisSheet'
 import FiltersSheet from './FiltersSheet'
 import RecommendationCard from './RecommendationCard'
 import PortalModelsPanel from './PortalModelsPanel'
@@ -32,6 +35,9 @@ export default function RecommendationsScreen() {
   const [view, setView] = useState<ScreenState>({ status: 'loading' })
   const [filters, setFilters] = useState<RecommendationFilters>({})
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [diagnosisOpen, setDiagnosisOpen] = useState(false)
+  // The saved diagnosis only feeds the TU DIAGNÓSTICO sheet: a failed load just leaves the button out.
+  const [saved, setSaved] = useState<DiagnosisResponse | null>(null)
   const [portals, setPortals] = useState(false)
   const [modelCount, setModelCount] = useState<number | null>(null)
   // Only the latest request may update the screen.
@@ -46,6 +52,13 @@ export default function RecommendationsScreen() {
       })
       .catch((error: unknown) => {
         if (id === request.current) setView({ status: 'error', kind: error instanceof NetworkError ? 'network' : 'server' })
+      })
+    fetchDiagnosis(authFetch)
+      .then((diagnosis) => {
+        if (id === request.current) setSaved(diagnosis)
+      })
+      .catch(() => {
+        if (id === request.current) setSaved(null)
       })
   }, [authFetch])
 
@@ -86,6 +99,7 @@ export default function RecommendationsScreen() {
             : isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
         </View>
         <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
+        {saved?.diagnostico ? <Button label="TU DIAGNÓSTICO" onPress={() => setDiagnosisOpen(true)} /> : null}
         <PortalTabs portals={portals} count={modelCount} onChange={setPortals} />
         {portals ? <PortalModelsPanel onCount={setModelCount} onDiagnosis={goToDiagnosis} /> : <>
         {isReady ? <Button label={`COMPARAR (${ids.length}/2)`} onPress={() => router.push('/comparar')} /> : null}
@@ -163,6 +177,10 @@ export default function RecommendationsScreen() {
         ))}
         </>}
       </ScrollView>
+
+      {diagnosisOpen && saved?.diagnostico ? (
+        <DiagnosisSheet diagnosis={saved.diagnostico} bodyTypes={saved.carrocerias} onClose={() => setDiagnosisOpen(false)} />
+      ) : null}
 
       {!portals && filtersOpen ? (
         <FiltersSheet

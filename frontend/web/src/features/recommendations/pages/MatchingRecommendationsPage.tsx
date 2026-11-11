@@ -15,6 +15,7 @@ import { fetchRecommendations } from '../api/matching'
 import MatchingVehicleCard from '../components/MatchingVehicleCard'
 import ExchangeRateCaption from '../components/ExchangeRateCaption'
 import { fetchPortalModels } from '../api/portalModels'
+import DiagnosisPopover from '../components/DiagnosisPopover'
 import PortalModelsInfoTip from '../components/PortalModelsInfoTip'
 import PortalModelsPanel from '../components/PortalModelsPanel'
 import RecommendationFilters from '../components/RecommendationFilters'
@@ -31,8 +32,10 @@ export default function MatchingRecommendationsPage() {
   const { view, retry } = useApiView(fetchRecommendations)
   const portals = useApiView(fetchPortalModels)
   const diagnosis = useApiView(fetchDiagnosis)
-  const priority = diagnosis.view.status === 'ready' ? diagnosis.view.response.diagnostico?.prioridad : undefined
-  const usage = diagnosis.view.status === 'ready' ? diagnosis.view.response.diagnostico?.uso_principal : undefined
+  const savedResponse = diagnosis.view.status === 'ready' ? diagnosis.view.response : null
+  const saved = savedResponse?.diagnostico ?? null
+  const priority = saved?.prioridad
+  const usage = saved?.uso_principal
   const usageStep = DIAGNOSIS_STEPS.find((step) => step.field === 'uso_principal')
   const usageLabel = usageStep?.kind === 'single'
     ? usageStep.options.find((option) => option.code === usage)?.label : undefined
@@ -114,9 +117,12 @@ export default function MatchingRecommendationsPage() {
           {/* The line stays while loading (empty and hidden), so the header does not move when the count arrives. */}
           <p className={styles.subtitle} aria-hidden={subtitle ? undefined : true}>{subtitle ?? ' '}</p>
         </div>
-        <ButtonLink to="/diagnostico" variant="secondary" className={`${styles.adjust}`}>
-          AJUSTAR DIAGNÓSTICO
-        </ButtonLink>
+        <div className={styles.actions}>
+          {saved ? <DiagnosisPopover diagnosis={saved} bodyTypes={savedResponse?.carrocerias ?? []} className={styles.adjust} /> : null}
+          <ButtonLink to="/diagnostico" variant="secondary" className={styles.adjust}>
+            AJUSTAR DIAGNÓSTICO
+          </ButtonLink>
+        </div>
       </div>
       <Tabs label="Fuentes de recomendaciones" items={tabs} value={activeTab} variant="underline"
         onValueChange={setChosenTab} panelClassName={styles.tabPanel}
