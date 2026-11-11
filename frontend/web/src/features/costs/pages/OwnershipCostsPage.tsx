@@ -186,13 +186,11 @@ function CostInputs({ data, km, coverage, loading, fieldErrors, onKmChange, onCo
   )
 }
 
-function CostResults({ loading, data }: Readonly<{ loading: boolean; data: OwnershipCosts | null }>) {
-  if (!loading && !data) return null
-  const province = data?.vehicle.province
+function CostResults({ loading, data }: Readonly<{ loading: boolean; data: OwnershipCosts }>) {
+  const province = data.vehicle.province
   return (
     <div className={styles.results}>
-      {loading ? <SessionLoading /> : null}
-      {!loading && data ? (
+      {loading ? <SessionLoading /> : (
         <>
           <MonthlyCard data={data} />
           <p className={styles.disclaimer}>
@@ -200,7 +198,7 @@ function CostResults({ loading, data }: Readonly<{ loading: boolean; data: Owner
             {province ? `, en la provincia de ${province}` : ''}. Es un estimativo aproximado.
           </p>
         </>
-      ) : null}
+      )}
     </div>
   )
 }
@@ -229,15 +227,19 @@ export default function OwnershipCostsPage() {
         ) : null}
       </div>
       {costs.pageError ? <p role="alert" className={alertStyles.alert}>{costs.pageError}</p> : null}
-      <div className={styles.workspace}>
-        <div className={styles.inputs}>
-          {costs.data ? <CostInputs data={costs.data} km={costs.km} coverage={costs.coverage}
-            loading={costs.loading} fieldErrors={costs.fieldErrors}
-            onKmChange={costs.setKm} onCoverageChange={costs.setCoverage} onSubmit={costs.recalculate} /> : null}
-          {!costs.loading && costs.data ? <PurchaseCard data={costs.data} /> : null}
+      {/* The first load is centered on the page; a recalculation shows its loader in the results column only. */}
+      {costs.data ? (
+        <div className={styles.workspace}>
+          <div className={styles.inputs}>
+            <CostInputs data={costs.data} km={costs.km} coverage={costs.coverage}
+              loading={costs.loading} fieldErrors={costs.fieldErrors}
+              onKmChange={costs.setKm} onCoverageChange={costs.setCoverage} onSubmit={costs.recalculate} />
+            {costs.loading ? null : <PurchaseCard data={costs.data} />}
+          </div>
+          <CostResults loading={costs.loading} data={costs.data} />
         </div>
-        <CostResults loading={costs.loading} data={costs.data} />
-      </div>
+      ) : null}
+      {!costs.data && costs.loading ? <SessionLoading /> : null}
     </div>
   )
 }

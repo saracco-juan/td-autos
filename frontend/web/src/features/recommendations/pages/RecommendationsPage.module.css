@@ -4,17 +4,21 @@
   display: flex;
   flex-direction: column;
   gap: 32px;
+  /* Fills the shell, which centers short content: the header stays at the top while the list loads. */
+  flex: 1;
   padding-top: 40px;
 }
 
 .tabPanel {
-  flex: none;
+  /* Grows into the free height (the loader centers there) but never shrinks below its content. */
+  flex: 1 0 auto;
   min-width: 0;
   min-height: auto;
 }
 
 .dealersLayout {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: 32px;
 }

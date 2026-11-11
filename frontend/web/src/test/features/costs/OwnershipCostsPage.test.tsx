@@ -289,3 +289,10 @@ it.each([new NetworkError(new Error()), new HttpError(500, null)])('shows a gene
   renderPage()
   expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos calcular los costos. Intentá de nuevo en unos minutos.')
 })
+
+it('centers the first load on the whole page instead of the results column', () => {
+  vi.mocked(apiFetch).mockReturnValue(new Promise(() => {}))
+  const { container } = renderPage()
+  expect(screen.getByRole('status')).toHaveTextContent('Cargando…')
+  expect(screen.getByRole('status').parentElement).toBe(container.firstElementChild)
+})
