@@ -228,27 +228,21 @@ describe('RecommendationsScreen', () => {
     expect(api.fetchRecommendations).toHaveBeenCalledTimes(2)
   })
 
-  it('pages nine cards at a time and keeps the count', async () => {
+  it('shows the backend top nine in one list, in order and without a pager', async () => {
+    await open(ready(Array.from({ length: 9 }, (_, index) => recommendation(index + 1))))
+
+    expect(await screen.findByText('Mostrando 9 vehículos')).toBeOnTheScreen()
+    expect(cards()).toHaveLength(9)
+    expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeOnTheScreen()
+    expect(screen.queryByRole('button', { name: 'Página 1' })).not.toBeOnTheScreen()
+  })
+
+  it('never hides results behind a pager, even if the API returned more than nine', async () => {
     await open(ready(Array.from({ length: 10 }, (_, index) => recommendation(index + 1))))
 
     expect(await screen.findByText('Mostrando 10 vehículos')).toBeOnTheScreen()
-    expect(cards()).toHaveLength(9)
-    expect(button('Página anterior')).toBeDisabled()
-
-    await fireEvent.press(button('Página 2'))
-
-    expect(cards().map((card) => card.props.accessibilityLabel)).toEqual(['Recomendación: Toyota Modelo 10 XEI 2025'])
-    expect(screen.getByText('Mostrando 10 vehículos')).toBeOnTheScreen()
-    expect(button('Página siguiente')).toBeDisabled()
-    await fireEvent.press(button('Página anterior'))
-    expect(cards()).toHaveLength(9)
-  })
-
-  it('hides the pager when everything fits in one page', async () => {
-    await open(ready(THREE))
-
-    await screen.findByText('Mostrando 3 vehículos')
-    expect(screen.queryByRole('button', { name: 'Página 1' })).not.toBeOnTheScreen()
+    expect(cards()).toHaveLength(10)
+    expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeOnTheScreen()
   })
 
   it('TC-21: applies the combined filters client-side, keeping the order, and removes them by chip', async () => {

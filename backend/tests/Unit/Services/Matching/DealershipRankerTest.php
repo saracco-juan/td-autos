@@ -125,10 +125,10 @@ class DealershipRankerTest extends TestCase
             ['prioridad_comprador' => 'seguridad'])['results']);
     }
 
-    public function test_body_preference_threshold_and_top_ten_use_unrounded_scores(): void
+    public function test_body_preference_threshold_and_top_nine_use_unrounded_scores(): void
     {
         $cars = array_map(fn ($id) => $this->vehicle($id), range(1, 12));
-        $this->assertCount(10, $this->rank($cars)['results']);
+        $this->assertCount(9, $this->rank($cars)['results']);
         $mismatch = $this->rank([$this->vehicle(1, ['tipo_carroceria_id' => 2])])['results'][0];
         $this->assertSame(85.0, $mismatch['score']);
         $this->assertSame(['body_mismatch'], $mismatch['warnings']);

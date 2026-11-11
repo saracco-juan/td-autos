@@ -56,33 +56,25 @@ it('HU05 replaces search with saved-diagnosis matching and preserves API order',
   expect(quote).toHaveTextContent('Actualizada: 20/10/2026')
 })
 
-it('paginates the backend top ten as nine plus one without sorting or requesting more', async () => {
-  const originalScrollIntoView = HTMLElement.prototype.scrollIntoView
-  const scrollIntoView = vi.fn()
-  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: scrollIntoView })
+it('shows the backend top nine in one page, in API order and without a pager', async () => {
+  mockDealers({ ...ready(), results: Array.from({ length: 9 }, (_, i) => result(9 - i)) })
+  renderPage()
+  expect(await screen.findByText('Mostrando 9 vehículos')).toBeInTheDocument()
+  const cards = within(screen.getByRole('list', { name: 'Recomendaciones' })).getAllByRole('listitem')
+  expect(cards).toHaveLength(9)
+  expect(cards[0]).toHaveAccessibleName('Toyota Corolla XEI 9 2021')
+  expect(cards[8]).toHaveAccessibleName('Toyota Corolla XEI 1 2021')
+  expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('navigation', { name: /paginación/i })).not.toBeInTheDocument()
+  expect(dealerCalls()).toBe(1)
+})
+
+it('never hides results behind a pager, even if the API returned more than nine', async () => {
   mockDealers({ ...ready(), results: Array.from({ length: 10 }, (_, i) => result(10 - i)) })
-  try {
-    renderPage()
-    expect(await screen.findByText('Mostrando 10 vehículos')).toBeInTheDocument()
-    const cards = () => within(screen.getByRole('list', { name: 'Recomendaciones' })).getAllByRole('listitem')
-    expect(cards()).toHaveLength(9)
-    expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 10 2021')
-    const nextPage = screen.getByRole('button', { name: 'Página siguiente' })
-    await userEvent.click(nextPage)
-    expect(cards()).toHaveLength(1)
-    expect(cards()[0]).toHaveAccessibleName('Toyota Corolla XEI 1 2021')
-    expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
-    expect(screen.queryByText('Mostrar')).not.toBeInTheDocument()
-    expect(dealerCalls()).toBe(1)
-    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
-    expect(nextPage).toHaveFocus()
-  } finally {
-    if (originalScrollIntoView) {
-      Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: originalScrollIntoView })
-    } else {
-      delete (HTMLElement.prototype as Partial<HTMLElement>).scrollIntoView
-    }
-  }
+  renderPage()
+  expect(await screen.findByText('Mostrando 10 vehículos')).toBeInTheDocument()
+  expect(within(screen.getByRole('list', { name: 'Recomendaciones' })).getAllByRole('listitem')).toHaveLength(10)
+  expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
 })
 
 it.each([

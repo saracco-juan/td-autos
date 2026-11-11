@@ -1,13 +1,11 @@
 import ButtonLink from '../../../components/Buttons/ButtonLink'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { OTHER_PORTALS_TAB, portalCountLabel, portalTabLabel } from '@shared/portals/format'
 import { filterRecommendations } from '@shared/recommendations/filters'
 import { DIAGNOSIS_STEPS } from '@shared/diagnosis/steps'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount, recommendationTitle } from '@shared/recommendations/format'
-import { RECOMMENDATIONS_PER_PAGE as PER_PAGE } from '@shared/recommendations/matching'
 import alertStyles from '../../../styles/alert.module.css'
 import ErrorState from '../../../components/ErrorState/ErrorState'
-import ResultsPagination from '../../../components/Pagination/ResultsPagination'
 import Tabs from '../../../components/Tabs/Tabs'
 import SessionLoading from '../../auth/session/components/SessionLoading'
 import ComparisonControls from '../../comparison/components/ComparisonControls'
@@ -41,18 +39,11 @@ export default function MatchingRecommendationsPage() {
   const priorityStep = DIAGNOSIS_STEPS.find((step) => step.field === 'prioridad')
   const priorityLabel = priorityStep?.kind === 'single'
     ? priorityStep.options.find((option) => option.code === priority)?.label : undefined
-  const [page, setPage] = useState(1)
-  const title = useRef<HTMLHeadingElement>(null)
-  const previousPage = useRef(page)
   const [chosenTab, setChosenTab] = useState<string | null>(null)
   // Whether the first dealers load came back empty; decided once, so the page never switches tabs on its own later.
   const [firstLoadEmpty, setFirstLoadEmpty] = useState<boolean | null>(null)
   const { filters, applyFilters } = useRecommendationFilters()
   const comparison = useComparisonSelection()
-  useEffect(() => {
-    if (previousPage.current !== page) title.current?.scrollIntoView?.({ block: 'start' })
-    previousPage.current = page
-  }, [page])
   if (firstLoadEmpty === null && view.status === 'ready') setFirstLoadEmpty(view.response.results.length === 0)
 
   const response = view.status === 'ready' ? view.response : null
@@ -89,18 +80,13 @@ export default function MatchingRecommendationsPage() {
         </div>
       ) : null}
       {results.length > 0 ? (
-        <>
-          <ul className={styles.grid} aria-label="Recomendaciones">
-            {results.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((result) => (
-              <MatchingVehicleCard key={result.listing_id} result={result} priorityLabel={priorityLabel} usageLabel={usageLabel} comparison={{
-                selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
-              }} />
-            ))}
-          </ul>
-          {results.length > PER_PAGE ? (
-            <ResultsPagination page={page} lastPage={Math.ceil(results.length / PER_PAGE)} onChange={setPage} />
-          ) : null}
-        </>
+        <ul className={styles.grid} aria-label="Recomendaciones">
+          {results.map((result) => (
+            <MatchingVehicleCard key={result.listing_id} result={result} priorityLabel={priorityLabel} usageLabel={usageLabel} comparison={{
+              selected: comparison.ids.includes(result.listing_id), toggle: () => comparison.toggle(result.listing_id),
+            }} />
+          ))}
+        </ul>
       ) : null}
       {response?.status === 'ready' ? <ExchangeRateCaption quote={response.exchange_rate?.quote} /> : null}
     </section>
@@ -113,10 +99,7 @@ export default function MatchingRecommendationsPage() {
           vehicles={(response.results ?? []).map((result) => ({ id: result.listing_id, title: recommendationTitle(result),
             label: `${result.vehicle.marca} ${result.vehicle.modelo} ${result.vehicle.anio}`,
             image: result.vehicle.image_urls?.[0] ?? result.vehicle.image_url }))} />}
-          onChange={(next) => {
-            applyFilters(next)
-            setPage(1)
-          }}>
+          onChange={applyFilters}>
           {resultsSection}
         </RecommendationFilters>
       ) : resultsSection}
@@ -127,7 +110,7 @@ export default function MatchingRecommendationsPage() {
     <div className={styles.page}>
       <div className={styles.headerRow}>
         <div className={styles.header}>
-          <h1 ref={title} className={styles.title}>Mejores opciones para vos</h1>
+          <h1 className={styles.title}>Mejores opciones para vos</h1>
           {/* The line stays while loading (empty and hidden), so the header does not move when the count arrives. */}
           <p className={styles.subtitle} aria-hidden={subtitle ? undefined : true}>{subtitle ?? ' '}</p>
         </div>
