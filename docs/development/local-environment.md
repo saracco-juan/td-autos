@@ -60,6 +60,12 @@ VEHICLE_PHOTOS_DISK=public
 RECEIPTS_DISK=local
 ```
 
+To switch to it for one run without editing `.env`, pass the same variables to the process: values already in the environment win over `.env`. From `backend/` (Git Bash):
+
+```bash
+DB_CONNECTION=sqlite DB_DATABASE="$(pwd -W)/database/manual.sqlite" DB_URL= APP_URL=http://localhost:8000 VEHICLE_PHOTOS_DISK=public RECEIPTS_DISK=local php artisan serve
+```
+
 Run `php artisan storage:link` to serve the local photos, and use `FRONTEND_URL=http://localhost:5173` for the Vite frontend. The active demo dealers are `pampa` and `litoral`: sign in as one of them, open Inventario, edit a vehicle, check its seven photos and save a different price. Reopening it must keep the price and the photos. A historical vehicle without a body type opens with an empty selection and requires one before saving.
 
 Demo accounts (use your configured `DEMO_PASSWORD`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` and the dealers `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` and `litoral` with the `@demo.tdautos.test` suffix.
