@@ -1,40 +1,15 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useEffect, useState } from 'react'
-import { AccessibilityInfo, Animated, StyleSheet, useAnimatedValue, View } from 'react-native'
+import { Animated, StyleSheet, useAnimatedValue, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path } from 'react-native-svg'
 
+import useReduceMotion from '../lib/useReduceMotion'
 import { colors } from '../theme/tokens'
 
 export const TAB_BAR_HEIGHT = 64
 const NOTCH_WIDTH = 80
 type Icon = keyof typeof Ionicons.glyphMap
-
-function useReduceMotion() {
-  const [reduceMotion, setReduceMotion] = useState(true)
-
-  useEffect(() => {
-    let current = true
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
-      current = false
-      setReduceMotion(enabled)
-    })
-    async function readPreference() {
-      try {
-        const enabled = await AccessibilityInfo.isReduceMotionEnabled()
-        if (current && typeof enabled === 'boolean') setReduceMotion(enabled)
-      } catch {
-        // Keep motion reduced until the system preference is available.
-      }
-    }
-    void readPreference()
-    return () => {
-      current = false
-      subscription?.remove()
-    }
-  }, [])
-  return reduceMotion
-}
 
 function useTabMotion(target: number, reduceMotion: boolean) {
   const value = useAnimatedValue(target)

@@ -179,9 +179,11 @@ describe('DiagnosisScreen', () => {
     expect(chip('Sedán')).toBeChecked()
     expect(chip('Hatchback')).toBeChecked()
     expect(chip('SUV')).not.toBeChecked()
-    expect(chip('SUV')).toBeDisabled()
+    const limitHint = 'Podés elegir hasta dos. Desmarcá una para cambiarla.'
+    expect(screen.getByText(limitHint)).toBeOnTheScreen()
 
     await fireEvent.press(chip('Sedán'))
+    expect(screen.queryByText(limitHint)).not.toBeOnTheScreen()
     await fireEvent.press(chip('SUV'))
     expect(chip('SUV')).toBeChecked()
   })

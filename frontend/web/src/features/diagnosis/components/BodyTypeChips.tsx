@@ -1,17 +1,7 @@
 import type { BodyType } from '@shared/diagnosis/types'
 import styles from './BodyTypeChips.module.css'
 import VehicleSilhouette from './VehicleSilhouette'
-import type { VehicleShape } from './VehicleSilhouette'
-
-// Match catalogue names rather than database IDs, which differ across environments.
-const shapes: Record<string, VehicleShape | undefined> = {
-  'Sedán': 'sedan',
-  Hatchback: 'hatchback',
-  SUV: 'suv',
-  Pickup: 'pickup',
-  'Furgón': 'van',
-  'Rural / familiar': 'wagon',
-}
+import { bodyTypeShapes } from '@shared/diagnosis/vehicleSilhouettes'
 
 type Props = {
   labelledBy: string
@@ -28,7 +18,7 @@ export default function BodyTypeChips({ labelledBy, bodyTypes, selected, describ
     <div role="group" aria-labelledby={labelledBy} aria-describedby={describedBy} className={styles.group}>
       {bodyTypes.map((bodyType) => {
         const isSelected = selected.includes(bodyType.id)
-        const shape = shapes[bodyType.nombre]
+        const shape = bodyTypeShapes[bodyType.nombre]
         return (
           <button
             key={bodyType.id}
