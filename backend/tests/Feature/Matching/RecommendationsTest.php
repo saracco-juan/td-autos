@@ -260,7 +260,7 @@ class RecommendationsTest extends TestCase
         Http::assertSentCount(1); // Recompute ranking, reuse the global quote window.
     }
 
-    public function test_budget_exception_explanations_and_concrete_top_ten_do_not_fill_with_ineligible_cars(): void
+    public function test_budget_exception_explanations_and_concrete_top_nine_do_not_fill_with_ineligible_cars(): void
     {
         $this->buyer();
         $extra = $this->car(['precio' => 26250000]);
@@ -272,7 +272,7 @@ class RecommendationsTest extends TestCase
         for ($i = 0; $i < 12; $i++) {
             $this->car([], $dealer);
         }
-        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonCount(10, 'results')
+        $this->getJson('/api/recomendaciones')->assertOk()->assertJsonCount(9, 'results')
             ->assertJsonPath('results.0.score', 100);
     }
 

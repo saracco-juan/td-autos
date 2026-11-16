@@ -11,6 +11,9 @@ use App\Support\VehiculoOptions;
 /** Deterministic ranking only: the caller supplies current inventory, operative dealers and one quote. */
 final class DealershipRanker
 {
+    /** One 3 x 3 page of cards: the ranking never returns more. */
+    public const MAX_RESULTS = 9;
+
     public function __construct(
         private readonly RunningRequirementsScorer $running,
         private readonly VehicleSuitabilityScorer $suitability,
@@ -52,7 +55,7 @@ final class DealershipRanker
         usort($results, fn ($a, $b) => ($b['score'] <=> $a['score'])
             ?: ($a['price_ars'] <=> $b['price_ars']) ?: ($a['listing_id'] <=> $b['listing_id']));
 
-        return ['status' => 'ready', 'results' => array_slice($results, 0, 10)];
+        return ['status' => 'ready', 'results' => array_slice($results, 0, self::MAX_RESULTS)];
     }
 
     private function hasValidFacts(Vehiculo $vehicle, int $year): bool

@@ -15,7 +15,7 @@ const result = (id: number): Recommendation => ({
     transmision: 'automatica', combustible: 'nafta', ubicacion: 'CABA', carroceria: 'Sedán', image_url: null },
   dealer: { id: 1, nombre: 'Concesionaria', provincia: 'CABA' },
 })
-const results = Array.from({ length: 10 }, (_, i) => result(10 - i))
+const results = Array.from({ length: 9 }, (_, i) => result(9 - i))
 const renderPage = (entry = '/recomendados') => render(
   <MemoryRouter initialEntries={[entry]}><MatchingRecommendationsPage /></MemoryRouter>,
 )
@@ -29,25 +29,24 @@ beforeEach(() => {
     ? { status: 'ready', modelos: [], fuente_precios: null } : dealers) as never)
 })
 
-it('HU07 TC-21 applies all criteria to the complete set before paging, retaining matching and ARS prices', async () => {
+it('HU07 TC-21 applies all criteria to the complete set, retaining matching and ARS prices', async () => {
   const user = userEvent.setup()
   renderPage()
-  await screen.findByText('Mostrando 10 vehículos')
-  await user.click(screen.getByRole('button', { name: 'Página siguiente' }))
+  await screen.findByText('Mostrando 9 vehículos')
   await user.click(screen.getByText('FILTROS'))
   await user.type(screen.getByLabelText('Precio máximo (ARS)'), '5000000')
   await user.type(screen.getByLabelText('Año desde'), '2020')
   await user.type(screen.getByLabelText('Kilometraje máximo'), '60000')
   await user.selectOptions(screen.getByLabelText('Transmisión'), 'automatica')
-  expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
+  expect(screen.getByText('Mostrando 9 vehículos')).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'APLICAR' }))
   expect(screen.getByText('Mostrando 1 vehículo')).toBeInTheDocument()
   const card = screen.getByRole('listitem', { name: 'Toyota Auto 1 2020' })
   expect(within(card).getByText('71% de compatibilidad')).toBeVisible()
   expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'Quitar Hasta $ 5.000.000' }))
-  expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
-  expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('Toyota Auto 10 2020')
+  expect(screen.getByText('Mostrando 9 vehículos')).toBeInTheDocument()
+  expect(screen.getAllByRole('listitem')[0]).toHaveAccessibleName('Toyota Auto 9 2020')
   expect(dealerCalls()).toBe(1)
   expect(apiFetch).toHaveBeenCalledWith('/api/recomendaciones')
 })
@@ -55,7 +54,7 @@ it('HU07 TC-21 applies all criteria to the complete set before paging, retaining
 it('HU07 TC-22 keeps filters and diagnosis intact on empty matches and clears immediately', async () => {
   const user = userEvent.setup()
   renderPage()
-  await screen.findByText('Mostrando 10 vehículos')
+  await screen.findByText('Mostrando 9 vehículos')
   await user.click(screen.getByText('FILTROS'))
   await user.selectOptions(screen.getByLabelText('Transmisión'), 'manual')
   await user.click(screen.getByRole('button', { name: 'APLICAR' }))
@@ -63,7 +62,7 @@ it('HU07 TC-22 keeps filters and diagnosis intact on empty matches and clears im
   expect(screen.getByRole('button', { name: 'Quitar Manual' })).toBeVisible()
   expect(screen.queryByRole('list', { name: 'Recomendaciones' })).not.toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'LIMPIAR FILTROS' }))
-  expect(screen.getByText('Mostrando 10 vehículos')).toBeInTheDocument()
+  expect(screen.getByText('Mostrando 9 vehículos')).toBeInTheDocument()
   expect(dealerCalls()).toBe(1)
 })
 
@@ -76,7 +75,7 @@ it('HU07 restores applied filters after real router navigation and Back, without
     <Route path="/recomendados" element={<><MatchingRecommendationsPage /><Link to="/ficha-prueba">Abrir ficha de prueba</Link></>} />
     <Route path="/ficha-prueba" element={<Return />} />
   </Routes></MemoryRouter>)
-  await screen.findByText('Mostrando 10 vehículos')
+  await screen.findByText('Mostrando 9 vehículos')
   await userEvent.click(screen.getByText('FILTROS'))
   await userEvent.type(screen.getByLabelText('Precio máximo (ARS)'), '5000000')
   await userEvent.click(screen.getByRole('button', { name: 'APLICAR' }))
@@ -90,14 +89,14 @@ it('HU07 restores applied filters after real router navigation and Back, without
 
 it('HU07 ignores invalid filter URL values rather than hiding recommendations', async () => {
   renderPage('/recomendados?maxPrice=oops&minYear=-1&maxKilometers=1.5&transmission=invalid')
-  expect(await screen.findByText('Mostrando 10 vehículos')).toBeInTheDocument()
+  expect(await screen.findByText('Mostrando 9 vehículos')).toBeInTheDocument()
   expect(screen.queryByRole('group', { name: 'Filtros aplicados' })).not.toBeInTheDocument()
 })
 
 it('opens filters outside the toolbar while keeping the results accessible', async () => {
   const user = userEvent.setup()
   renderPage()
-  await screen.findByText('Mostrando 10 vehículos')
+  await screen.findByText('Mostrando 9 vehículos')
   const toolbar = screen.getByRole('toolbar', { name: 'Filtros y comparación' })
   const toggle = within(toolbar).getByRole('button', { name: 'FILTROS' })
   expect(toggle).toHaveAttribute('aria-expanded', 'false')
@@ -115,7 +114,7 @@ it('opens filters outside the toolbar while keeping the results accessible', asy
 it('HU07 keeps the applied chips in the toolbar and closes the side panel on APLICAR', async () => {
   const user = userEvent.setup()
   renderPage()
-  await screen.findByText('Mostrando 10 vehículos')
+  await screen.findByText('Mostrando 9 vehículos')
   const toolbar = screen.getByRole('toolbar', { name: 'Filtros y comparación' })
   await user.click(within(toolbar).getByRole('button', { name: 'FILTROS' }))
   await user.selectOptions(screen.getByLabelText('Transmisión'), 'automatica')

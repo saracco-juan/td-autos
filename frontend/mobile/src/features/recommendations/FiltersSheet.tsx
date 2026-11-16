@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import BottomSheet from '../../components/BottomSheet'
 import Button from '../../components/Button'
 import TextField from '../../components/TextField'
-import { colors, radii, shadows } from '../../theme/tokens'
+import { colors, radii } from '../../theme/tokens'
 import type { RecommendationFilters } from '@shared/recommendations/filters'
 import { draftFromFilters, parseDraft, type FilterDraft, type NumericFilter, type Transmission } from './filterDraft'
 
@@ -42,91 +42,49 @@ export default function FiltersSheet({ applied, onApply, onClose }: Readonly<Pro
   }
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable accessibilityLabel="Cerrar filtros" style={styles.backdrop} onPress={onClose} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.sheet}>
-        <View style={styles.handle} />
-        <View style={styles.header}>
-          <Text accessibilityRole="header" style={styles.title}>
-            FILTROS
-          </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={onClose} style={styles.back}>
-            <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
-          </Pressable>
+    <BottomSheet title="FILTROS" backdropLabel="Cerrar filtros" closeLabel="Volver" closeIcon="chevron-back" onClose={onClose}>
+    <ScrollView contentContainerStyle={styles.fields} keyboardShouldPersistTaps="handled">
+      {NUMERIC_FIELDS.map(({ key, label, placeholder }) => (
+        <TextField
+          key={key}
+          label={label}
+          placeholder={placeholder}
+          keyboardType="number-pad"
+          value={draft[key]}
+          errors={errors[key] ? [errors[key]] : undefined}
+          onChangeText={(value) => {
+            setDraft({ ...draft, [key]: value })
+            setErrors({ ...errors, [key]: undefined })
+          }}
+        />
+      ))}
+      <View style={styles.field}>
+        <Text style={styles.label}>Transmisión</Text>
+        <View accessibilityRole="radiogroup" style={styles.options}>
+          {TRANSMISSIONS.map(({ value, label }) => {
+            const checked = draft.transmission === value
+            return (
+              <Pressable
+                key={label}
+                accessibilityRole="radio"
+                accessibilityLabel={label}
+                accessibilityState={{ checked }}
+                onPress={() => setDraft({ ...draft, transmission: value })}
+                style={[styles.option, checked && styles.checked]}
+              >
+                <Text style={[styles.optionText, checked && styles.checkedText]}>{label}</Text>
+              </Pressable>
+            )
+          })}
         </View>
-        <ScrollView contentContainerStyle={styles.fields} keyboardShouldPersistTaps="handled">
-          {NUMERIC_FIELDS.map(({ key, label, placeholder }) => (
-            <TextField
-              key={key}
-              label={label}
-              placeholder={placeholder}
-              keyboardType="number-pad"
-              value={draft[key]}
-              errors={errors[key] ? [errors[key]] : undefined}
-              onChangeText={(value) => {
-                setDraft({ ...draft, [key]: value })
-                setErrors({ ...errors, [key]: undefined })
-              }}
-            />
-          ))}
-          <View style={styles.field}>
-            <Text style={styles.label}>Transmisión</Text>
-            <View accessibilityRole="radiogroup" style={styles.options}>
-              {TRANSMISSIONS.map(({ value, label }) => {
-                const checked = draft.transmission === value
-                return (
-                  <Pressable
-                    key={label}
-                    accessibilityRole="radio"
-                    accessibilityLabel={label}
-                    accessibilityState={{ checked }}
-                    onPress={() => setDraft({ ...draft, transmission: value })}
-                    style={[styles.option, checked && styles.checked]}
-                  >
-                    <Text style={[styles.optionText, checked && styles.checkedText]}>{label}</Text>
-                  </Pressable>
-                )
-              })}
-            </View>
-          </View>
-          <Button label="APLICAR" variant="primary" onPress={apply} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Modal>
+      </View>
+      <Button label="APLICAR" variant="primary" onPress={apply} />
+    </ScrollView>
+    </BottomSheet>
   )
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(17, 17, 17, 0.35)' },
-  sheet: {
-    maxHeight: '85%',
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    backgroundColor: colors.surface,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    marginVertical: 8,
-    borderRadius: 2,
-    backgroundColor: colors.borderDefault,
-  },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  title: { color: colors.textPrimary, fontSize: 16, fontWeight: '700' },
-  back: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.button,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
-  },
   fields: { gap: 16, paddingTop: 8 },
   field: { gap: 4 },
   label: { color: colors.textPrimary, fontSize: 12, fontWeight: '500' },

@@ -6,7 +6,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Alert from '../../components/Alert'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
-import Pagination from '../../components/Pagination'
 import { NetworkError } from '../../lib/http'
 import { colors, radii, shadows } from '../../theme/tokens'
 import { useAuth } from '../auth/useAuth'
@@ -14,8 +13,11 @@ import { useComparisonSelection } from '../comparison/ComparisonSelection'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { appliedFilterChips, filterRecommendations, type RecommendationFilters } from '@shared/recommendations/filters'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
-import { RECOMMENDATIONS_PER_PAGE, type RecommendationsResponse } from '@shared/recommendations/matching'
+import { type RecommendationsResponse } from '@shared/recommendations/matching'
+import { fetchDiagnosis } from '../diagnosis/api'
+import type { DiagnosisResponse } from '@shared/diagnosis/types'
 import { fetchRecommendations } from './api'
+import DiagnosisSheet from './DiagnosisSheet'
 import FiltersSheet from './FiltersSheet'
 import RecommendationCard from './RecommendationCard'
 import PortalModelsPanel from './PortalModelsPanel'
@@ -25,7 +27,7 @@ import { portalCountLabel } from '@shared/portals/format'
 type ScreenState = { status: 'loading' } | { status: 'error'; kind: LoadErrorKind } | { status: 'ready'; response: RecommendationsResponse }
 
 // Vehicle recommendations (HU05-MOBILE, RF04, CU of the web MatchingRecommendationsPage): the backend ranking for the
-// saved diagnosis, refined client-side by the HU07 filters and paged nine at a time.
+// saved diagnosis (at most nine, so one page), refined client-side by the HU07 filters.
 export default function RecommendationsScreen() {
   const router = useRouter()
   const { authFetch } = useAuth()
@@ -33,7 +35,9 @@ export default function RecommendationsScreen() {
   const [view, setView] = useState<ScreenState>({ status: 'loading' })
   const [filters, setFilters] = useState<RecommendationFilters>({})
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [page, setPage] = useState(1)
+  const [diagnosisOpen, setDiagnosisOpen] = useState(false)
+  // The saved diagnosis only feeds the TU DIAGNÓSTICO sheet: a failed load just leaves the button out.
+  const [saved, setSaved] = useState<DiagnosisResponse | null>(null)
   const [portals, setPortals] = useState(false)
   const [modelCount, setModelCount] = useState<number | null>(null)
   // Only the latest request may update the screen.
@@ -45,10 +49,16 @@ export default function RecommendationsScreen() {
       .then((response) => {
         if (id !== request.current) return
         setView({ status: 'ready', response })
-        setPage(1)
       })
       .catch((error: unknown) => {
         if (id === request.current) setView({ status: 'error', kind: error instanceof NetworkError ? 'network' : 'server' })
+      })
+    fetchDiagnosis(authFetch)
+      .then((diagnosis) => {
+        if (id === request.current) setSaved(diagnosis)
+      })
+      .catch(() => {
+        if (id === request.current) setSaved(null)
       })
   }, [authFetch])
 
@@ -66,7 +76,6 @@ export default function RecommendationsScreen() {
   const goToDiagnosis = () => router.navigate('/')
   const changeFilters = (next: RecommendationFilters) => {
     setFilters(next)
-    setPage(1)
   }
 
   const response = view.status === 'ready' ? view.response : null
@@ -74,15 +83,13 @@ export default function RecommendationsScreen() {
   const all = response?.results ?? []
   const results = filterRecommendations(all, filters)
   const chips = appliedFilterChips(filters)
-  const lastPage = Math.ceil(results.length / RECOMMENDATIONS_PER_PAGE)
   const notice = exchangeRateNotice(response?.exchange_rate)
   const empty = response && results.length === 0 ? emptyStateCopy(response.status, chips.length > 0) : null
   const filteredEmpty = isReady && chips.length > 0
 
   return (
     <View style={styles.screen}>
-      {/* Keyed by page so every page starts scrolled to the top. */}
-      <ScrollView key={page} style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <Text style={styles.eyebrow}>AUTOS RECOMENDADOS</Text>
           <Text accessibilityRole="header" style={styles.title}>
@@ -92,6 +99,7 @@ export default function RecommendationsScreen() {
             : isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
         </View>
         <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
+        {saved?.diagnostico ? <Button label="TU DIAGNÓSTICO" onPress={() => setDiagnosisOpen(true)} /> : null}
         <PortalTabs portals={portals} count={modelCount} onChange={setPortals} />
         {portals ? <PortalModelsPanel onCount={setModelCount} onDiagnosis={goToDiagnosis} /> : <>
         {isReady ? <Button label={`COMPARAR (${ids.length}/2)`} onPress={() => router.push('/comparar')} /> : null}
@@ -164,16 +172,14 @@ export default function RecommendationsScreen() {
           </View>
         ) : null}
 
-        {results.slice((page - 1) * RECOMMENDATIONS_PER_PAGE, page * RECOMMENDATIONS_PER_PAGE).map((result) => (
+        {results.map((result) => (
           <RecommendationCard key={result.listing_id} result={result} best={result.listing_id === all[0]?.listing_id} />
         ))}
         </>}
       </ScrollView>
 
-      {!portals && lastPage > 1 ? (
-        <View style={styles.pager}>
-          <Pagination page={page} lastPage={lastPage} onChange={setPage} />
-        </View>
+      {diagnosisOpen && saved?.diagnostico ? (
+        <DiagnosisSheet diagnosis={saved.diagnostico} bodyTypes={saved.carrocerias} onClose={() => setDiagnosisOpen(false)} />
       ) : null}
 
       {!portals && filtersOpen ? (
@@ -238,5 +244,4 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600' },
-  pager: { paddingHorizontal: 16, paddingVertical: 12 },
 })

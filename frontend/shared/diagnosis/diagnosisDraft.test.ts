@@ -3,6 +3,7 @@ import {
   UNANSWERED_STEP_MESSAGE,
   buildAnswers,
   createEmptyDraft,
+  diagnosisSummaryRows,
   draftFromAnswers,
   isStepAnswered,
   summaryValue,
@@ -170,5 +171,28 @@ describe('summaryValue', () => {
 
   it('shows "En curso" on the body-type step with none chosen', () => {
     expect(summaryValue(createEmptyDraft(), BODY_STEP, BODY_STEP, bodyTypes)).toBe('En curso')
+  })
+})
+
+describe('diagnosisSummaryRows', () => {
+  it('lists one labelled row per question, in step order, from a saved diagnosis', () => {
+    expect(diagnosisSummaryRows(answers, bodyTypes)).toEqual([
+      { label: 'Presupuesto', value: '$15.000.000 a $25.000.000' },
+      { label: 'Uso principal', value: expect.any(String) },
+      { label: 'Pasajeros', value: expect.any(String) },
+      { label: 'Kilómetros mensuales', value: expect.any(String) },
+      { label: 'Transmisión', value: 'Automática' },
+      { label: 'Prioridad', value: expect.any(String) },
+      { label: 'Carrocería', value: 'SUV, Pickup' },
+    ])
+    expect(diagnosisSummaryRows(answers, bodyTypes).map((row) => row.label)).toEqual(
+      DIAGNOSIS_STEPS.map((step) => step.summaryLabel),
+    )
+  })
+
+  it('shows the unanswered dash for a legacy diagnosis without passengers, never "En curso"', () => {
+    const rows = diagnosisSummaryRows({ ...answers, pasajeros: null }, bodyTypes)
+    expect(rows.find((row) => row.label === 'Pasajeros')?.value).toBe('—')
+    expect(rows.some((row) => row.value === 'En curso')).toBe(false)
   })
 })

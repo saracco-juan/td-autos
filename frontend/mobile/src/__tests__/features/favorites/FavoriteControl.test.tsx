@@ -1,6 +1,7 @@
 import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
+import * as diagnosisApi from '../../../features/diagnosis/api'
 import * as detailApi from '../../../features/vehicle-detail/api'
 import * as recommendationsApi from '../../../features/recommendations/api'
 import * as tokenStorage from '../../../lib/tokenStorage'
@@ -10,6 +11,7 @@ import { ready, recommendation } from '../../../test-utils/recommendations'
 import { renderApp } from '../../../test-utils/renderApp'
 
 jest.mock('../../../features/auth/api')
+jest.mock('../../../features/diagnosis/api')
 jest.mock('../../../features/vehicle-detail/api')
 jest.mock('../../../features/recommendations/api')
 jest.mock('../../../lib/tokenStorage')
@@ -27,6 +29,8 @@ beforeEach(() => {
     email: 'ana@example.com', rol: 'comprador', tiene_diagnostico: true })
   jest.mocked(detailApi).fetchVehicleDetail.mockResolvedValue({ vehicle,
     dealer: { id: 3, nombre: 'Autos Sur', provincia: null } })
+  // The recommendations screen also loads the saved diagnosis; these tests only count favorite requests.
+  jest.mocked(diagnosisApi).fetchDiagnosis.mockReturnValue(new Promise(() => {}))
   request.mockResolvedValue(undefined)
 })
 
