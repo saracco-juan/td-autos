@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { colors, radii } from '../../theme/tokens'
 import type { StepOption } from '@shared/diagnosis/steps'
+import { diagnosisType } from './typography'
 
 type Props = {
   options: readonly StepOption[]
@@ -9,7 +10,6 @@ type Props = {
   onSelect: (code: StepOption['code']) => void
 }
 
-// Single-choice question: one 50 px row per option (Figma "Option"); the chosen row gets a 2 px charcoal border.
 export default function ChoiceList({ options, value, onSelect }: Readonly<Props>) {
   return (
     <View accessibilityRole="radiogroup" style={styles.group}>
@@ -19,11 +19,15 @@ export default function ChoiceList({ options, value, onSelect }: Readonly<Props>
           <Pressable
             key={option.code}
             accessibilityRole="radio"
+            accessibilityLabel={option.label}
             accessibilityState={{ checked }}
             onPress={() => onSelect(option.code)}
-            style={[styles.row, checked && styles.checked]}
+            style={({ pressed }) => [styles.row, checked && styles.checked, pressed && styles.pressed]}
           >
-            <Text style={styles.label}>{option.label}</Text>
+            <View style={[styles.radio, checked && styles.radioChecked]}>
+              {checked && <View style={styles.dot} />}
+            </View>
+            <Text style={[styles.label, diagnosisType(checked), checked && styles.checkedLabel]}>{option.label}</Text>
           </Pressable>
         )
       })}
@@ -34,15 +38,22 @@ export default function ChoiceList({ options, value, onSelect }: Readonly<Props>
 const styles = StyleSheet.create({
   group: { gap: 12 },
   row: {
-    height: 50,
-    justifyContent: 'center',
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: colors.textPrimary,
+    borderColor: colors.borderDefault,
     borderRadius: radii.button,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
   },
-  // The padding absorbs the thicker border so the label does not move.
-  checked: { paddingHorizontal: 15, borderWidth: 2, borderColor: colors.charcoal, backgroundColor: colors.surface },
-  label: { color: colors.textPrimary, fontSize: 15, fontWeight: '600' },
+  checked: { borderColor: colors.charcoal, backgroundColor: colors.charcoal },
+  pressed: { opacity: 0.8 },
+  radio: { width: 18, height: 18, borderRadius: 9, borderWidth: 1, borderColor: colors.textSecondary, alignItems: 'center', justifyContent: 'center' },
+  radioChecked: { borderColor: colors.onColor },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.onColor },
+  label: { flex: 1, color: colors.textPrimary, fontSize: 16, lineHeight: 22 },
+  checkedLabel: { color: colors.onColor },
 })
