@@ -19,17 +19,17 @@ import {
 } from '@shared/recommendations/format'
 import type { Recommendation } from '@shared/recommendations/matching'
 
-type Props = { result: Recommendation; best: boolean }
+type Props = { result: Recommendation; best: boolean; motionEnabled: boolean }
 
 // Figma "02 - Recomendaciones" (2373:9914), with the same vehicle actions as web.
-export default function RecommendationCard({ result, best }: Readonly<Props>) {
+export default function RecommendationCard({ result, best, motionEnabled }: Readonly<Props>) {
   const router = useRouter()
   const { ids, toggle } = useComparisonSelection()
   const { vehicle, dealer } = result
   const title = recommendationTitle(result)
   const warnings = warningMessages(result)
   const selected = ids.includes(result.listing_id)
-  const favorite = <FavoriteButton vehicleId={result.listing_id} vehicleName={title} isFavorite={result.is_favorite} />
+  const favorite = <FavoriteButton animate={motionEnabled} vehicleId={result.listing_id} vehicleName={title} isFavorite={result.is_favorite} />
   return (
     <CatalogCard label={`Recomendación: ${title}`} title={title} photo={vehicle.image_urls?.[0] || vehicle.image_url} overlay={favorite}>
       {best && <Text style={[catalog.meta, archivo(true)]}>MEJOR COINCIDENCIA</Text>}
@@ -45,7 +45,7 @@ export default function RecommendationCard({ result, best }: Readonly<Props>) {
       </PortalInfo>
       <View style={[catalog.actions, catalog.dealerActions]}>
         <CatalogAction label="VER FICHA" onPress={() => router.push(`/vehiculos/${result.listing_id}`)} />
-        <CatalogAction selected={selected} label={selected ? 'QUITAR' : 'COMPARAR'} onPress={() => toggle(result.listing_id)} />
+        <CatalogAction motionEnabled={motionEnabled} selected={selected} label={selected ? 'QUITAR' : 'COMPARAR'} onPress={() => toggle(result.listing_id)} />
       </View>
     </CatalogCard>
   )

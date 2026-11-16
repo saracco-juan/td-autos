@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Children, useState, type ReactNode } from 'react'
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
+import { Animated, Easing, Image, Pressable, StyleSheet, Text, useAnimatedValue, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg'
 
 import { archivo } from '../../theme/archivo'
@@ -9,7 +9,7 @@ import { colors, radii } from '../../theme/tokens'
 export function CatalogGrid({ children }: { children: ReactNode }) {
   return (
     <View style={styles.grid}>
-      {Children.map(children, child => <View style={styles.cell}>{child}</View>)}
+      {Children.map(children, child => <View style={catalog.cell}>{child}</View>)}
     </View>
   )
 }
@@ -47,19 +47,44 @@ export function CatalogCard({ label, title, photo, overlay, children }: Props) {
   )
 }
 
-export function CatalogAction({ label, onPress, selected }: {
-  label: string; onPress: () => void; selected?: boolean
+function CompareIcon({ selected, motionEnabled }: { selected: boolean; motionEnabled: boolean }) {
+  const scale = useAnimatedValue(1)
+  const previous = useRef(selected)
+  useEffect(() => {
+    const changed = selected !== previous.current
+    previous.current = selected
+    if (!motionEnabled || !changed) {
+      scale.setValue(1)
+      return
+    }
+    scale.setValue(0.85)
+    const animation = Animated.timing(scale, {
+      toValue: 1, duration: 160, easing: Easing.bezier(0.23, 1, 0.32, 1), useNativeDriver: true,
+    })
+    animation.start()
+    return () => animation.stop()
+  }, [selected, motionEnabled, scale])
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Ionicons name={selected ? 'checkmark-circle' : 'git-compare-outline'} size={20} color={selected ? colors.charcoal : colors.onColor} />
+    </Animated.View>
+  )
+}
+
+export function CatalogAction({ label, onPress, selected, motionEnabled = false }: {
+  label: string; onPress: () => void; selected?: boolean; motionEnabled?: boolean
 }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected }} onPress={onPress}
-      style={({ pressed }) => [styles.action, selected !== undefined && styles.compare, pressed && styles.pressed]}>
+      style={({ pressed }) => [styles.action, selected !== undefined && styles.compare, selected && styles.selected, pressed && styles.pressed]}>
       {selected === undefined ? <Text style={[styles.actionLabel, archivo(true)]}>{label}</Text>
-        : <Ionicons name={selected ? 'checkmark-circle' : 'git-compare-outline'} size={20} color={colors.onColor} />}
+        : <CompareIcon selected={selected} motionEnabled={motionEnabled} />}
     </Pressable>
   )
 }
 
 export const catalog = StyleSheet.create({
+  cell: { width: '50%', paddingHorizontal: 4 },
   title: { color: colors.onColor, fontSize: 17, lineHeight: 21, letterSpacing: -0.3 },
   meta: { color: colors.surfaceRaised, fontSize: 12, lineHeight: 17 },
   price: { color: colors.onColor, fontSize: 16, lineHeight: 20, fontVariant: ['tabular-nums'] },
@@ -69,7 +94,6 @@ export const catalog = StyleSheet.create({
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 12, marginHorizontal: -4 },
-  cell: { width: '50%', paddingHorizontal: 4 },
   card: { flexGrow: 1, borderRadius: 18, overflow: 'hidden', backgroundColor: colors.charcoal },
   media: { aspectRatio: 4 / 3, backgroundColor: colors.surfaceRaised, alignItems: 'center', justifyContent: 'center' },
   fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '42%' },
@@ -79,6 +103,7 @@ const styles = StyleSheet.create({
   action: { flexGrow: 1, minHeight: 44, paddingHorizontal: 6, paddingVertical: 7, alignItems: 'center', justifyContent: 'center',
     borderRadius: radii.button, backgroundColor: colors.red },
   compare: { width: 44, flexGrow: 0, backgroundColor: 'transparent', borderColor: colors.borderDefault, borderWidth: 1 },
+  selected: { backgroundColor: colors.surface },
   pressed: { opacity: 0.78 },
   actionLabel: { color: colors.onColor, fontSize: 12, textAlign: 'center' },
 })

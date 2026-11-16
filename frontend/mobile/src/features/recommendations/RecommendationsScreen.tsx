@@ -2,22 +2,23 @@ import { Ionicons } from '@expo/vector-icons'
 import { useFonts } from 'expo-font'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Alert from '../../components/Alert'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
-import Pagination from '../../components/Pagination'
 import { NetworkError } from '../../lib/http'
 import { archivo, archivoFonts } from '../../theme/archivo'
-import { CatalogGrid } from './CatalogCard'
+import { catalog } from './CatalogCard'
+import ComparisonControls from './ComparisonControls'
+import useReduceMotion from '../../lib/useReduceMotion'
 import { colors, radii, shadows } from '../../theme/tokens'
 import { useAuth } from '../auth/useAuth'
 import { useComparisonSelection } from '../comparison/ComparisonSelection'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
 import { appliedFilterChips, filterRecommendations, type RecommendationFilters } from '@shared/recommendations/filters'
 import { emptyStateCopy, exchangeRateNotice, vehicleCount } from '@shared/recommendations/format'
-import { RECOMMENDATIONS_PER_PAGE, type RecommendationsResponse } from '@shared/recommendations/matching'
+import type { RecommendationsResponse } from '@shared/recommendations/matching'
 import { fetchRecommendations } from './api'
 import FiltersSheet from './FiltersSheet'
 import RecommendationCard from './RecommendationCard'
@@ -28,16 +29,16 @@ import { portalCountLabel } from '@shared/portals/format'
 type ScreenState = { status: 'loading' } | { status: 'error'; kind: LoadErrorKind } | { status: 'ready'; response: RecommendationsResponse }
 
 // Vehicle recommendations (HU05-MOBILE, RF04, CU of the web MatchingRecommendationsPage): the backend ranking for the
-// saved diagnosis, refined client-side by the HU07 filters and paged nine at a time.
+// saved diagnosis, refined client-side by the HU07 filters.
 export default function RecommendationsScreen() {
   useFonts(archivoFonts)
   const router = useRouter()
   const { authFetch } = useAuth()
-  const { ids, notice: selectionNotice } = useComparisonSelection()
+  const reduceMotion = useReduceMotion()
+  const { notice: selectionNotice } = useComparisonSelection()
   const [view, setView] = useState<ScreenState>({ status: 'loading' })
   const [filters, setFilters] = useState<RecommendationFilters>({})
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [page, setPage] = useState(1)
   const [portals, setPortals] = useState(false)
   const [modelCount, setModelCount] = useState<number | null>(null)
   // Only the latest request may update the screen.
@@ -49,7 +50,6 @@ export default function RecommendationsScreen() {
       .then((response) => {
         if (id !== request.current) return
         setView({ status: 'ready', response })
-        setPage(1)
       })
       .catch((error: unknown) => {
         if (id === request.current) setView({ status: 'error', kind: error instanceof NetworkError ? 'network' : 'server' })
@@ -68,25 +68,30 @@ export default function RecommendationsScreen() {
   )
 
   const goToDiagnosis = () => router.navigate('/')
-  const changeFilters = (next: RecommendationFilters) => {
-    setFilters(next)
-    setPage(1)
-  }
-
   const response = view.status === 'ready' ? view.response : null
   const isReady = response?.status === 'ready'
   const all = response?.results ?? []
   const results = filterRecommendations(all, filters)
   const chips = appliedFilterChips(filters)
-  const lastPage = Math.ceil(results.length / RECOMMENDATIONS_PER_PAGE)
   const notice = exchangeRateNotice(response?.exchange_rate)
   const empty = response && results.length === 0 ? emptyStateCopy(response.status, chips.length > 0) : null
   const filteredEmpty = isReady && chips.length > 0
 
   return (
     <View style={styles.screen}>
-      {/* Keyed by page so every page starts scrolled to the top. */}
-      <ScrollView key={page} style={styles.scroll} contentContainerStyle={styles.content}>
+      <FlatList
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        data={portals ? [] : results}
+        numColumns={2}
+        columnWrapperStyle={styles.catalogRow}
+        keyExtractor={result => String(result.listing_id)}
+        renderItem={({ item }) => (
+          <View style={catalog.cell}>
+            <RecommendationCard result={item} best={item.listing_id === all[0]?.listing_id} motionEnabled={!reduceMotion} />
+          </View>
+        )}
+        ListHeaderComponent={<View style={styles.listHeader}>
         <View style={styles.header}>
           <Text style={[styles.eyebrow, archivo(true)]}>AUTOS RECOMENDADOS</Text>
           <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>
@@ -97,7 +102,7 @@ export default function RecommendationsScreen() {
         </View>
         <View style={styles.toolbar}>
           <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
-          {!portals && isReady ? <Button label={`COMPARAR (${ids.length}/2)`} onPress={() => router.push('/comparar')} /> : null}
+          {!portals && isReady ? <ComparisonControls results={all} reduceMotion={reduceMotion} /> : null}
         </View>
         <View style={styles.filters}>
           <View style={styles.filterRow}>
@@ -115,14 +120,14 @@ export default function RecommendationsScreen() {
                   key={key}
                   accessibilityRole="button"
                   accessibilityLabel={`Quitar ${label}`}
-                  onPress={() => changeFilters({ ...filters, [key]: undefined })}
+                  onPress={() => setFilters({ ...filters, [key]: undefined })}
                   style={styles.chip}
                 >
                   <Text style={styles.chipText}>{label}</Text>
                   <Ionicons name="close" size={14} color={colors.textSecondary} />
                 </Pressable>
               ))}
-              <Pressable accessibilityRole="button" accessibilityLabel="LIMPIAR FILTROS" onPress={() => changeFilters({})} style={styles.chip}>
+              <Pressable accessibilityRole="button" accessibilityLabel="LIMPIAR FILTROS" onPress={() => setFilters({})} style={styles.chip}>
                 <Text style={styles.chipText}>LIMPIAR FILTROS</Text>
               </Pressable>
             </View>
@@ -158,32 +163,24 @@ export default function RecommendationsScreen() {
               {empty.title}
             </Text>
             <Text style={styles.subtitle}>{empty.hint}</Text>
-            {filteredEmpty ? <Button label="LIMPIAR FILTROS" onPress={() => changeFilters({})} /> : null}
+            {filteredEmpty ? <Button label="LIMPIAR FILTROS" onPress={() => setFilters({})} /> : null}
             {response?.status === 'diagnosis_incomplete' ? (
               <Button label="IR AL DIAGNÓSTICO" variant="primary" onPress={goToDiagnosis} />
             ) : null}
           </View>
         ) : null}
 
-        <CatalogGrid>{results.slice((page - 1) * RECOMMENDATIONS_PER_PAGE, page * RECOMMENDATIONS_PER_PAGE).map((result) => (
-          <RecommendationCard key={result.listing_id} result={result} best={result.listing_id === all[0]?.listing_id} />
-        ))}</CatalogGrid>
-        {isReady && notice.summary ? <Text style={styles.subtitle}>{notice.summary}</Text> : null}
         </>}
-      </ScrollView>
-
-      {!portals && lastPage > 1 ? (
-        <View style={styles.pager}>
-          <Pagination page={page} lastPage={lastPage} onChange={setPage} />
-        </View>
-      ) : null}
+        </View>}
+        ListFooterComponent={!portals && isReady && notice.summary ? <Text style={styles.subtitle}>{notice.summary}</Text> : undefined}
+      />
 
       {!portals && filtersOpen ? (
         <FiltersSheet
           applied={filters}
           onClose={() => setFiltersOpen(false)}
           onApply={(next) => {
-            changeFilters(next)
+            setFilters(next)
             setFiltersOpen(false)
           }}
         />
@@ -228,7 +225,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...shadows.soft,
   },
-  toolbar: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  toolbar: { gap: 8 },
+  listHeader: { gap: 12 },
+  catalogRow: { marginHorizontal: -4 },
   // Loading and errors stay inside the list area (docs/design.md "Feedback").
   section: { minHeight: 240, gap: 16 },
   empty: {
@@ -241,5 +240,4 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   emptyTitle: { color: colors.textPrimary, fontSize: 17, fontWeight: '600' },
-  pager: { paddingHorizontal: 16, paddingVertical: 12 },
 })
