@@ -39,14 +39,14 @@ describe('HU06 mobile portal tab', () => {
     expect(await screen.findByText('1 modelo recomendado')).toBeOnTheScreen()
     expect(screen.getByLabelText('Modelo recomendado: Chevrolet Onix')).toBeOnTheScreen()
     expect(screen.getByText('Precios de referencia: Guía de precios ACARA, 19/10/2026')).toBeOnTheScreen()
-    expect(screen.queryByText('COMPARAR (0/2)')).not.toBeOnTheScreen()
+    expect(screen.queryByRole('button', { name: 'COMPARAR (0/2)' })).not.toBeOnTheScreen()
     expect(screen.queryByText('Sin filtros aplicados')).not.toBeOnTheScreen()
     await fireEvent.press(button('Sobre estos modelos'))
     expect(screen.getByText(/Estos son modelos, no unidades en venta/)).toBeOnTheScreen()
     await fireEvent.press(button('CERRAR'))
     await fireEvent.press(screen.getByRole('tab', { name: 'Concesionarias' }))
     expect(screen.getByText('Mostrando 1 vehículo')).toBeOnTheScreen()
-    expect(screen.getByText('COMPARAR (0/2)')).toBeOnTheScreen()
+    expect(button('COMPARAR (0/2)')).toBeOnTheScreen()
     expect(dealerApi.fetchRecommendations).toHaveBeenCalledTimes(1)
   })
 
@@ -69,7 +69,7 @@ describe('HU06 mobile portal tab', () => {
     await openPortals()
     expect(await screen.findByText('No encontramos modelos para tu diagnóstico.')).toBeOnTheScreen()
     expect(screen.getByText('Probá ajustando el presupuesto o la carrocería.')).toBeOnTheScreen()
-    await fireEvent.press(button('AJUSTAR DIAGNÓSTICO'))
+    await fireEvent.press(button('Ajustar diagnóstico'))
     expect(view.getPathname()).toBe('/')
   })
 
@@ -83,7 +83,7 @@ describe('HU06 mobile portal tab', () => {
     expect(await screen.findByText('9 modelos recomendados')).toBeOnTheScreen()
     expect(screen.getAllByLabelText(/^Modelo recomendado:/).map((card) => card.props.accessibilityLabel))
       .toEqual(Array.from({ length: 9 }, (_, index) => `Modelo recomendado: Chevrolet Modelo ${index + 1}`))
-    expect(screen.queryByText('COMPARAR (0/2)')).not.toBeOnTheScreen()
+    expect(screen.queryByRole('button', { name: 'COMPARAR (0/2)' })).not.toBeOnTheScreen()
   })
 
   it('asks for an incomplete diagnosis without displaying a model count', async () => {

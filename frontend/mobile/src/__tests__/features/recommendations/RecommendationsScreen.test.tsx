@@ -1,4 +1,4 @@
-import { Alert } from 'react-native'
+import { AccessibilityInfo, Alert, StyleSheet } from 'react-native'
 import { fireEvent, screen, waitFor, within } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
@@ -82,6 +82,9 @@ describe('RecommendationsScreen', () => {
     await open(ready(THREE))
 
     expect(await screen.findByText('Mostrando 3 vehículos')).toBeOnTheScreen()
+    const edit = button('Ajustar diagnóstico')
+    expect(edit.parent).toBe(screen.getByText('Mostrando 3 vehículos').parent)
+    expect(edit).toHaveStyle({ minHeight: 44 })
     expect(screen.getByText('AUTOS RECOMENDADOS')).toBeOnTheScreen()
     expect(cards().map((card) => card.props.accessibilityLabel)).toEqual([
       'Recomendación: Toyota Modelo 1 XEI 2016',
@@ -164,6 +167,37 @@ describe('RecommendationsScreen', () => {
     expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
   })
 
+  it('reveals each vehicle from its own side of the central compare action', async () => {
+    const preference = jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true)
+    try {
+      await open(ready(THREE))
+      await screen.findByText('Mostrando 3 vehículos')
+      const row = screen.getByTestId('comparison-control')
+      expect(row).toHaveStyle({ flexDirection: 'row' })
+      const [left, center, right] = row.children.filter(child => typeof child !== 'string')
+      await fireEvent(left, 'layout', { nativeEvent: { layout: { width: 126 } } })
+      expect(left).toHaveStyle({ flex: 1 })
+      expect(right).toHaveStyle({ flex: 1 })
+      expect(StyleSheet.flatten(row.props.style).transform).toBeUndefined()
+      expect(within(center).getByRole('button', { name: 'COMPARAR (0/2)' })).toBeOnTheScreen()
+      await fireEvent.press(within(cards()[0]).getByRole('button', { name: 'COMPARAR' }))
+      await waitFor(() => expect(center).toHaveStyle({ borderTopLeftRadius: 0, borderTopRightRadius: 10 }))
+      const first = within(left).getByRole('button', { name: /Quitar Toyota Modelo 1 .* de la comparación/ })
+      await fireEvent.press(within(cards()[1]).getByRole('button', { name: 'COMPARAR' }))
+      expect(StyleSheet.flatten(row.props.style).transform).toBeUndefined()
+      expect(center).toHaveStyle({ borderTopLeftRadius: 0, borderTopRightRadius: 0 })
+      const second = /Quitar Toyota Modelo 2 .* de la comparación/
+      expect(within(right).getByRole('button', { name: second })).toBeOnTheScreen()
+      expect(within(center).getByRole('button', { name: 'COMPARAR (2/2)' })).toBeOnTheScreen()
+      await fireEvent.press(first)
+      expect(within(right).getByRole('button', { name: second })).toBeOnTheScreen()
+      await fireEvent.press(within(cards()[2]).getByRole('button', { name: 'COMPARAR' }))
+      expect(within(left).getByRole('button', { name: /Quitar Toyota Modelo 3 .* de la comparación/ })).toBeOnTheScreen()
+    } finally {
+      preference.mockRestore()
+    }
+  })
+
   it('HU08 TC-76 keeps incomplete comparisons in the catalog and shows a dismissible warning', async () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {})
     try {
@@ -209,7 +243,7 @@ describe('RecommendationsScreen', () => {
     expect(screen.getByText('Mostrando 0 vehículos')).toBeOnTheScreen()
     expect(screen.queryByRole('button', { name: 'Filtros' })).not.toBeOnTheScreen()
 
-    await fireEvent.press(button('AJUSTAR DIAGNÓSTICO'))
+    await fireEvent.press(button('Ajustar diagnóstico'))
     await waitFor(() => expect(view.getPathname()).toBe('/'))
   })
 
@@ -263,6 +297,28 @@ describe('RecommendationsScreen', () => {
     expect(cards()).toHaveLength(11)
     expect(cards()[10].props.accessibilityLabel).toContain('Modelo 11')
     expect(screen.queryByRole('button', { name: /Página/ })).not.toBeOnTheScreen()
+  })
+
+  it('adjusts the budget by dragging the car, preserves exact input, and only applies on confirmation', async () => {
+    await open(ready(THREE))
+    await fireEvent.press(await screen.findByRole('button', { name: 'Filtros' }))
+    const slider = screen.getByRole('adjustable', { name: 'Presupuesto máximo' })
+    const input = screen.getByLabelText('Precio máximo')
+    await fireEvent(slider, 'layout', { nativeEvent: { layout: { width: 252 } } })
+    await fireEvent(slider, 'responderGrant', { nativeEvent: { locationX: 126 } })
+    expect(input).toHaveDisplayValue('11.500.000')
+    await fireEvent(slider, 'responderMove', { nativeEvent: { locationX: 226 } })
+    await fireEvent(slider, 'responderRelease')
+    expect(input).toHaveDisplayValue('')
+    await fireEvent.changeText(input, '21.500.000')
+    expect(slider.props.accessibilityValue.now).toBe(21500000)
+    await fireEvent.press(button('Volver'))
+    expect(cards()).toHaveLength(3)
+    await fireEvent.press(button('Filtros'))
+    const reopened = screen.getByRole('adjustable', { name: 'Presupuesto máximo' })
+    await fireEvent(reopened, 'accessibilityAction', { nativeEvent: { actionName: 'decrement' } })
+    await fireEvent.press(button('APLICAR'))
+    expect(cards()).toHaveLength(2)
   })
 
   it('TC-21: applies the combined filters client-side, keeping the order, and removes them by chip', async () => {

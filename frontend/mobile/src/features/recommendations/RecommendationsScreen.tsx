@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
+import Svg, { Circle, Path } from 'react-native-svg'
 import { useFonts } from 'expo-font'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
@@ -97,19 +98,27 @@ export default function RecommendationsScreen() {
           <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>
             Mejores opciones para vos
           </Text>
-          {portals ? (modelCount !== null ? <Text style={styles.subtitle}>{portalCountLabel(modelCount)}</Text> : null)
-            : isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
+          <View style={styles.headerActions}>
+            {portals ? (modelCount !== null ? <Text style={styles.subtitle}>{portalCountLabel(modelCount)}</Text> : null)
+              : isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
+            <Pressable accessibilityRole="button" accessibilityLabel="Ajustar diagnóstico" onPress={goToDiagnosis}
+              style={({ pressed }) => [styles.edit, pressed && styles.editPressed]}>
+              <Ionicons name="pencil-outline" size={15} color={colors.textPrimary} />
+              <Text style={[styles.editLabel, archivo(true)]}>Ajustar diagnóstico</Text>
+            </Pressable>
+          </View>
         </View>
-        <View style={styles.toolbar}>
-          <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
-          {!portals && isReady ? <ComparisonControls results={all} reduceMotion={reduceMotion} /> : null}
-        </View>
+        {!portals && isReady ? <ComparisonControls results={all} reduceMotion={reduceMotion} /> : null}
         <View style={styles.filters}>
           <View style={styles.filterRow}>
             <View style={styles.scroll}><PortalTabs portals={portals} count={modelCount} onChange={setPortals} /></View>
             {!portals && isReady && all.length > 0 && (
               <Pressable accessibilityRole="button" accessibilityLabel="Filtros" onPress={() => setFiltersOpen(true)} style={styles.filterButton}>
-                <Ionicons name="options-outline" size={22} color={colors.textPrimary} />
+                <Svg aria-hidden width={19} height={19} viewBox="0 0 24 24" fill="none" stroke={colors.textPrimary} strokeWidth={1.5}>
+                  <Path d="M4 7h6m4 0h6M4 17h10m4 0h2" />
+                  <Circle cx={12} cy={7} r={2} /><Circle cx={16} cy={17} r={2} />
+                </Svg>
+                <Text style={[styles.filterLabel, archivo(true)]}>Filtros</Text>
               </Pressable>
             )}
           </View>
@@ -177,6 +186,7 @@ export default function RecommendationsScreen() {
 
       {!portals && filtersOpen ? (
         <FiltersSheet
+          maximumPrice={all.reduce((max, item) => Number.isFinite(item.price_ars) ? Math.max(max, Math.ceil(item.price_ars)) : max, filters.maxPrice ?? 0)}
           applied={filters}
           onClose={() => setFiltersOpen(false)}
           onApply={(next) => {
@@ -213,19 +223,12 @@ const styles = StyleSheet.create({
     ...shadows.soft,
   },
   chipText: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
-  // Figma square icon button beside the (removed) search field.
-  filterButton: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.button,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
-  },
-  toolbar: { gap: 8 },
+  filterButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 4 },
+  filterLabel: { fontSize: 14, color: colors.textPrimary },
+  headerActions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 8 },
+  edit: { marginLeft: 'auto', maxWidth: '100%', minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  editLabel: { flexShrink: 1, fontSize: 13, color: colors.textPrimary },
+  editPressed: { opacity: 0.65 },
   listHeader: { gap: 12 },
   catalogRow: { marginHorizontal: -4 },
   // Loading and errors stay inside the list area (docs/design.md "Feedback").
