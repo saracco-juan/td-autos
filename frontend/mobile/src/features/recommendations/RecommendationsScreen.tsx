@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
+import { useFonts } from 'expo-font'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -8,6 +9,8 @@ import Button from '../../components/Button'
 import Loader from '../../components/Loader'
 import Pagination from '../../components/Pagination'
 import { NetworkError } from '../../lib/http'
+import { archivo, archivoFonts } from '../../theme/archivo'
+import { CatalogGrid } from './CatalogCard'
 import { colors, radii, shadows } from '../../theme/tokens'
 import { useAuth } from '../auth/useAuth'
 import { useComparisonSelection } from '../comparison/ComparisonSelection'
@@ -27,6 +30,7 @@ type ScreenState = { status: 'loading' } | { status: 'error'; kind: LoadErrorKin
 // Vehicle recommendations (HU05-MOBILE, RF04, CU of the web MatchingRecommendationsPage): the backend ranking for the
 // saved diagnosis, refined client-side by the HU07 filters and paged nine at a time.
 export default function RecommendationsScreen() {
+  useFonts(archivoFonts)
   const router = useRouter()
   const { authFetch } = useAuth()
   const { ids, notice: selectionNotice } = useComparisonSelection()
@@ -84,23 +88,28 @@ export default function RecommendationsScreen() {
       {/* Keyed by page so every page starts scrolled to the top. */}
       <ScrollView key={page} style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>AUTOS RECOMENDADOS</Text>
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text style={[styles.eyebrow, archivo(true)]}>AUTOS RECOMENDADOS</Text>
+          <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>
             Mejores opciones para vos
           </Text>
           {portals ? (modelCount !== null ? <Text style={styles.subtitle}>{portalCountLabel(modelCount)}</Text> : null)
             : isReady ? <Text style={styles.subtitle}>{vehicleCount(results.length)}</Text> : null}
         </View>
-        <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
-        <PortalTabs portals={portals} count={modelCount} onChange={setPortals} />
-        {portals ? <PortalModelsPanel onCount={setModelCount} onDiagnosis={goToDiagnosis} /> : <>
-        {isReady ? <Button label={`COMPARAR (${ids.length}/2)`} onPress={() => router.push('/comparar')} /> : null}
-        {selectionNotice ? <Alert variant="warning">{selectionNotice}</Alert> : null}
-
-        {isReady && all.length > 0 ? (
+        <View style={styles.toolbar}>
+          <Button label="AJUSTAR DIAGNÓSTICO" onPress={goToDiagnosis} />
+          {!portals && isReady ? <Button label={`COMPARAR (${ids.length}/2)`} onPress={() => router.push('/comparar')} /> : null}
+        </View>
+        <View style={styles.filters}>
           <View style={styles.filterRow}>
+            <View style={styles.scroll}><PortalTabs portals={portals} count={modelCount} onChange={setPortals} /></View>
+            {!portals && isReady && all.length > 0 && (
+              <Pressable accessibilityRole="button" accessibilityLabel="Filtros" onPress={() => setFiltersOpen(true)} style={styles.filterButton}>
+                <Ionicons name="options-outline" size={22} color={colors.textPrimary} />
+              </Pressable>
+            )}
+          </View>
+          {!portals && isReady && chips.length > 0 ? (
             <View style={styles.chips}>
-              {chips.length === 0 ? <Text style={styles.subtitle}>Sin filtros aplicados</Text> : null}
               {chips.map(({ key, label }) => (
                 <Pressable
                   key={key}
@@ -113,24 +122,16 @@ export default function RecommendationsScreen() {
                   <Ionicons name="close" size={14} color={colors.textSecondary} />
                 </Pressable>
               ))}
-              {chips.length > 0 ? (
-                <Pressable accessibilityRole="button" accessibilityLabel="LIMPIAR FILTROS" onPress={() => changeFilters({})} style={styles.chip}>
-                  <Text style={styles.chipText}>LIMPIAR FILTROS</Text>
-                </Pressable>
-              ) : null}
+              <Pressable accessibilityRole="button" accessibilityLabel="LIMPIAR FILTROS" onPress={() => changeFilters({})} style={styles.chip}>
+                <Text style={styles.chipText}>LIMPIAR FILTROS</Text>
+              </Pressable>
             </View>
-            <Pressable accessibilityRole="button" accessibilityLabel="Filtros" onPress={() => setFiltersOpen(true)} style={styles.filterButton}>
-              <Ionicons name="options-outline" size={22} color={colors.textPrimary} />
-            </Pressable>
-          </View>
-        ) : null}
+          ) : null}
+        </View>
+        {portals ? <PortalModelsPanel onCount={setModelCount} onDiagnosis={goToDiagnosis} /> : <>
+        {selectionNotice ? <Alert variant="warning">{selectionNotice}</Alert> : null}
 
-        {isReady && (notice.summary || notice.warning) ? (
-          <View style={styles.notice}>
-            {notice.summary ? <Text style={styles.subtitle}>{notice.summary}</Text> : null}
-            {notice.warning ? <Alert variant="warning">{notice.warning}</Alert> : null}
-          </View>
-        ) : null}
+        {isReady && notice.warning ? <Alert variant="warning">{notice.warning}</Alert> : null}
 
         {view.status === 'loading' ? (
           <View style={styles.section}>
@@ -164,9 +165,10 @@ export default function RecommendationsScreen() {
           </View>
         ) : null}
 
-        {results.slice((page - 1) * RECOMMENDATIONS_PER_PAGE, page * RECOMMENDATIONS_PER_PAGE).map((result) => (
+        <CatalogGrid>{results.slice((page - 1) * RECOMMENDATIONS_PER_PAGE, page * RECOMMENDATIONS_PER_PAGE).map((result) => (
           <RecommendationCard key={result.listing_id} result={result} best={result.listing_id === all[0]?.listing_id} />
-        ))}
+        ))}</CatalogGrid>
+        {isReady && notice.summary ? <Text style={styles.subtitle}>{notice.summary}</Text> : null}
         </>}
       </ScrollView>
 
@@ -193,13 +195,14 @@ export default function RecommendationsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   scroll: { flex: 1 },
-  content: { padding: 16, gap: 16 },
+  content: { padding: 12, gap: 12 },
   header: { gap: 8 },
   eyebrow: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
   title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },
   subtitle: { color: colors.textSecondary, fontSize: 14 },
+  filters: { gap: 8 },
   filterRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  chips: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...shadows.soft,
   },
-  notice: { gap: 8 },
+  toolbar: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   // Loading and errors stay inside the list area (docs/design.md "Feedback").
   section: { minHeight: 240, gap: 16 },
   empty: {

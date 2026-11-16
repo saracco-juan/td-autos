@@ -71,9 +71,9 @@ describe('RecommendationsScreen', () => {
           retained_percent: 81.5, years_used: [2020, 2021] } },
     })]))
     expect(await screen.findByText('62,5% de compatibilidad')).toBeOnTheScreen()
+    await fireEvent.press(button('Ver atributos y motivos'))
     expect(screen.getByText(/Hay proyección de valor.*faltan datos de actividad.*10 puntos/)).toBeOnTheScreen()
     expect(screen.queryByText(/^Sin estimación de reventa/)).not.toBeOnTheScreen()
-    await fireEvent.press(screen.getByRole('button', { name: 'Ver atributos y motivos' }))
     expect(screen.getByText(/Prioridad: no disponible/)).toBeOnTheScreen()
   })
 
@@ -87,17 +87,37 @@ describe('RecommendationsScreen', () => {
       'Recomendación: Toyota Modelo 2 XEI 2017',
       'Recomendación: Toyota Modelo 3 XEI 2018',
     ])
+    const cells = cards().map(card => card.parent)
+    expect(cells[0]?.parent).toHaveStyle({ flexDirection: 'row', flexWrap: 'wrap' })
+    for (const cell of cells) {
+      expect(cell?.parent).toBe(cells[0]?.parent)
+      expect(cell).toHaveStyle({ width: '50%' })
+    }
     const first = within(cards()[0])
     expect(first.getByText('MEJOR COINCIDENCIA')).toBeOnTheScreen()
-    expect(first.getByText('$ 21.000.000 · 10.000 km · CABA')).toBeOnTheScreen()
+    expect(first.getByText('$ 21.000.000')).toBeOnTheScreen()
+    expect(first.getByText('10.000 km · CABA')).toBeOnTheScreen()
     expect(first.getByText('94% de compatibilidad')).toBeOnTheScreen()
-    expect(first.getByText('Equivalente: US$ 21.000')).toBeOnTheScreen()
-    expect(first.getByText('Autos Sur · Buenos Aires')).toBeOnTheScreen()
+    await fireEvent.press(first.getByRole('button', { name: 'Ver atributos y motivos' }))
+    expect(screen.getByText('Equivalente: US$ 21.000')).toBeOnTheScreen()
+    expect(screen.getByText('Autos Sur · Buenos Aires')).toBeOnTheScreen()
+    await fireEvent.press(button('CERRAR'))
     expect(within(cards()[1]).queryByText('MEJOR COINCIDENCIA')).not.toBeOnTheScreen()
     expect(screen.getByText(/^Dólar oficial venta · DolarAPI · \$ 1\.000/)).toBeOnTheScreen()
     expect(first.getByRole('button', { name: 'COMPARAR' })).toBeOnTheScreen()
     expect(first.getByRole('button', { name: 'VER FICHA' })).toBeOnTheScreen()
     expect(api.fetchRecommendations).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows the first catalog photo and keeps the listing usable if the photo fails', async () => {
+    const item = recommendation(1)
+    item.vehicle.image_urls = ['https://example.test/cover.jpg']
+    await open(ready([item]))
+    const photo = await screen.findByLabelText('Foto de Toyota Modelo 1 XEI 2016')
+    expect(photo.props.source.uri).toBe(item.vehicle.image_urls[0])
+    await fireEvent(photo, 'error')
+    expect(screen.getByText('Sin fotos')).toBeOnTheScreen()
+    expect(button('VER FICHA')).toBeOnTheScreen()
   })
 
   it('HU08 TC-23/24/25: compares two, rejects a third, preserves filters and replaces only the removed vehicle', async () => {
@@ -159,9 +179,10 @@ describe('RecommendationsScreen', () => {
   it('shows the warnings and, on demand, the score breakdown of a card', async () => {
     await open(ready([recommendation(1, { warnings: ['budget_exceeded'], budget_excess_percent: 3, budget_penalty: 6 })]))
 
-    expect(await screen.findByText('Supera tu presupuesto en 3%.')).toBeOnTheScreen()
+    expect(await screen.findByText('Ver advertencias')).toBeOnTheScreen()
     expect(screen.queryByText(/^Uso: 100/)).not.toBeOnTheScreen()
     await fireEvent.press(button('Ver atributos y motivos'))
+    expect(screen.getByText('Supera tu presupuesto en 3%.')).toBeOnTheScreen()
     expect(screen.getByText('Uso: 100 · Carrocería: 100 · Prioridad: 80 · Confort: 70 (sobre 100).')).toBeOnTheScreen()
     expect(screen.getByText(/^Descuento por presupuesto: 6 puntos/)).toBeOnTheScreen()
   })
