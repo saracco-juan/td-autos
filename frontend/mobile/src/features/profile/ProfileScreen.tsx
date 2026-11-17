@@ -1,3 +1,4 @@
+import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 
@@ -33,6 +34,7 @@ function valuesFrom(user: User | null): ProfileValues {
 }
 
 export default function ProfileScreen() {
+  const barSpace = useBuyerTabBarSpace()
   const { user, updateProfile, logout } = useAuth()
   const [values, setValues] = useState(() => valuesFrom(user))
   const [loadedUser, setLoadedUser] = useState(user)
@@ -91,7 +93,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingBottom: barSpace + 24 }]} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
         <Text accessibilityRole="header" style={styles.title}>
           Perfil

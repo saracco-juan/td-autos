@@ -1,3 +1,4 @@
+import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -21,10 +22,11 @@ type ViewState = { status: 'loading' } | { status: 'unavailable' } | { status: '
   | { status: 'ready'; entries: [ComparisonEntry, ComparisonEntry] }
 
 export default function ComparisonScreen() {
+  const barSpace = useBuyerTabBarSpace()
   const { ids, toggle } = useComparisonSelection()
   const [attempt, setAttempt] = useState(0)
   const router = useRouter()
-  return <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+  return <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingBottom: barSpace + 16 }]}>
     <BackChip label="Volver a recomendados" onPress={() => router.navigate('/recomendados')} />
     <Text style={styles.eyebrow}>COMPARAR UNIDADES</Text>
     <Text accessibilityRole="header" style={styles.title}>Comparar vehículos</Text>

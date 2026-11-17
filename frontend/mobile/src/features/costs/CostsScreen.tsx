@@ -1,3 +1,4 @@
+import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -40,6 +41,7 @@ export default function CostsScreen({ rawId }: Readonly<{ rawId: string | undefi
 }
 
 function Costs({ id }: Readonly<{ id: number | null }>) {
+  const barSpace = useBuyerTabBarSpace()
   const { authFetch } = useAuth()
   const router = useRouter()
   const [view, setView] = useState<ScreenState>({ status: id === null ? 'notFound' : 'loading' })
@@ -114,7 +116,7 @@ function Costs({ id }: Readonly<{ id: number | null }>) {
   const title = vehicle ? [vehicle.make, vehicle.model, vehicle.version, vehicle.year].filter(Boolean).join(' ') : ''
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barSpace + 16 }]} keyboardShouldPersistTaps="handled">
       <BackChip label={BACK_LABEL} onPress={goBack} />
       {view.status === 'loading' ? (
         <View style={styles.section}>

@@ -29,7 +29,7 @@ async function open(available = true) {
     vehicle, dealer: { id: 3, nombre: 'Autos Sur', provincia: null }, whatsapp_available: available,
   } as Awaited<ReturnType<typeof detailApi.fetchVehicleDetail>>)
   const view = await renderApp('/vehiculos/7')
-  await screen.findByText('FICHA TÉCNICA')
+  await screen.findByRole('button', { name: 'Expandir ficha técnica' })
   return view
 }
 
@@ -50,8 +50,8 @@ it('TC-65 / TC-66: records contact before opening only WhatsApp with the server 
   jest.mocked(fetch).mockReturnValue(new Promise((done) => { resolve = done }))
   const view = await open()
   const button = screen.getByRole('button', { name: ACTION })
-  expect(button).toHaveStyle({ height: 40, borderRadius: 10, borderColor: '#a9d8bc', backgroundColor: '#ffffff' })
-  expect(screen.getByText(ACTION)).toHaveStyle({ color: '#17803a', fontSize: 11, fontWeight: '700' })
+  expect(button).toHaveStyle({ minHeight: 44, borderRadius: 10, backgroundColor: '#17803a' })
+  expect(screen.getByText(ACTION)).toHaveStyle({ color: '#ffffff', fontSize: 11, fontWeight: '700' })
   await fireEvent.press(button)
   await fireEvent.press(button)
   expect(button).toBeDisabled()

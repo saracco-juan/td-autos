@@ -139,7 +139,7 @@ describe('RecommendationsScreen', () => {
     expect(screen.getByText('La comparación admite exactamente dos vehículos.')).toBeOnTheScreen()
     expect(screen.getAllByRole('button', { name: 'QUITAR' })).toHaveLength(2)
     await fireEvent.press(within(cards()[2]).getByRole('button', { name: 'VER FICHA' }))
-    await screen.findByText('FICHA TÉCNICA')
+    await screen.findByRole('button', { name: 'Expandir ficha técnica' })
     await fireEvent.press(button('COMPARAR'))
     expect(view.getPathname()).toBe('/vehiculos/3')
     expect(screen.getByText('La comparación admite exactamente dos vehículos.')).toBeOnTheScreen()

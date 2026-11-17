@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { colors, radii, shadows } from '../theme/tokens'
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'success'
+type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'solidSuccess'
 
 type Props = {
   label: string
@@ -21,9 +21,9 @@ const BORDER: Record<Variant, string> = {
   secondary: colors.borderDefault,
   danger: colors.errorBorder,
   success: colors.successBorder,
+  solidSuccess: colors.actionSuccess,
 }
 
-// Soft look for every variant (docs/design.md "Buttons"): white surface, thin border, soft shadow, dark label.
 export default function Button({
   label,
   busyLabel,
@@ -34,6 +34,7 @@ export default function Button({
   onPress,
 }: Readonly<Props>) {
   const inactive = busy || disabled
+  const solid = variant === 'solidSuccess'
   return (
     <Pressable
       accessibilityRole="button"
@@ -41,16 +42,18 @@ export default function Button({
       accessibilityState={{ busy, disabled: inactive }}
       disabled={inactive}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, { borderColor: BORDER[variant] }, pressed && styles.pressed, inactive && styles.busy]}
+      style={({ pressed }) => [styles.button, { borderColor: BORDER[variant] }, solid && styles.solidSuccess,
+        pressed && (solid ? styles.busy : styles.pressed), inactive && styles.busy]}
     >
       <View style={styles.content}>
-        {busy ? <ActivityIndicator size="small" color={colors.textPrimary} /> : icon}
+        {busy ? <ActivityIndicator size="small" color={solid ? colors.onColor : colors.textPrimary} /> : icon}
         <Text
           style={[
             styles.label,
             variant !== 'secondary' && styles.strong,
             variant === 'danger' && { color: colors.actionDanger },
             variant === 'success' && { color: colors.actionSuccess },
+            solid && { color: colors.onColor },
           ]}
         >
           {busy ? (busyLabel ?? label) : label}
@@ -71,6 +74,7 @@ const styles = StyleSheet.create({
     ...shadows.soft,
   },
   pressed: { backgroundColor: colors.surfaceRaised },
+  solidSuccess: { minHeight: 44, height: 'auto', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.actionSuccess },
   busy: { opacity: 0.6 },
   content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   label: { color: colors.textPrimary, fontSize: 11, fontWeight: '600' },
