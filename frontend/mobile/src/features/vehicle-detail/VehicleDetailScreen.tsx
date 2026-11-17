@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 
-import BackChip from '../../components/BackChip'
+import BackLink from '../../components/BackLink'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
 import { HttpError, NetworkError } from '../../lib/http'
@@ -78,7 +78,7 @@ function Detail({ id, fromFavorites }: Readonly<{ id: number | null; fromFavorit
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <BackChip label={fromFavorites ? 'Volver a favoritos' : BACK_LABEL} onPress={goBack} />
+      <BackLink label={fromFavorites ? 'Volver a favoritos' : BACK_LABEL} onPress={goBack} />
 
       {view.status === 'loading' ? (
         <View style={styles.section}>

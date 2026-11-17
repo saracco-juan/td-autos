@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
+import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import Svg, { Circle, Path } from 'react-native-svg'
 import { useFonts } from 'expo-font'
 import { useFocusEffect, useRouter } from 'expo-router'
@@ -32,6 +33,7 @@ type ScreenState = { status: 'loading' } | { status: 'error'; kind: LoadErrorKin
 // Vehicle recommendations (HU05-MOBILE, RF04, CU of the web MatchingRecommendationsPage): the backend ranking for the
 // saved diagnosis, refined client-side by the HU07 filters.
 export default function RecommendationsScreen() {
+  const barSpace = useBuyerTabBarSpace()
   useFonts(archivoFonts)
   const router = useRouter()
   const { authFetch } = useAuth()
@@ -82,7 +84,7 @@ export default function RecommendationsScreen() {
     <View style={styles.screen}>
       <FlatList
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: barSpace + 12 }]}
         data={portals ? [] : results}
         numColumns={2}
         columnWrapperStyle={styles.catalogRow}
