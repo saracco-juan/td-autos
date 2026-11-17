@@ -8,8 +8,14 @@ import useReduceMotion from '../lib/useReduceMotion'
 import { colors } from '../theme/tokens'
 
 export const TAB_BAR_HEIGHT = 64
-const NOTCH_WIDTH = 80
+const DISC_LIFT = 16
+const NOTCH_DEPTH = 28
 type Icon = keyof typeof Ionicons.glyphMap
+
+export function useBuyerTabBarSpace() {
+  const { bottom } = useSafeAreaInsets()
+  return TAB_BAR_HEIGHT + Math.max(bottom, 8)
+}
 
 function useTabMotion(target: number, reduceMotion: boolean) {
   const value = useAnimatedValue(target)
@@ -24,18 +30,6 @@ function useTabMotion(target: number, reduceMotion: boolean) {
     }).start()
   }, [target, value, reduceMotion])
   return value
-}
-
-function Marker({ center, reduceMotion }: { center: number; reduceMotion: boolean }) {
-  const position = useTabMotion(center, reduceMotion)
-  return (
-    <Animated.View style={[styles.marker, { transform: [{ translateX: position }] }]}>
-      <Svg width={NOTCH_WIDTH} height={46} viewBox="0 0 80 46">
-        <Path fill={colors.background} d="M0 0H80V16C63 16 66 43 40 43S17 16 0 16Z" />
-      </Svg>
-      <View style={styles.disc} />
-    </Animated.View>
-  )
 }
 
 function TabGlyph({ icon, selected, reduceMotion }: { icon: Icon; selected: boolean; reduceMotion: boolean }) {
@@ -55,16 +49,16 @@ function TabGlyph({ icon, selected, reduceMotion }: { icon: Icon; selected: bool
 export default function BuyerTabIndicator({ index, tabs }: { index: number; tabs: readonly { icon: Icon }[] }) {
   const [width, setWidth] = useState(0)
   const reduceMotion = useReduceMotion()
-  const { left, right } = useSafeAreaInsets()
-  const inset = Math.max(left, right)
-  const center = inset + ((width - 2 * inset) / tabs.length) * (index + 0.5)
+  const center = (width / tabs.length) * (index + 0.5)
+  // Initialize at the measured slot so the first paint doesn't slide in from the edge.
+  const hasSelection = width > 0 && index >= 0
 
   return (
     <View aria-hidden importantForAccessibility="no-hide-descendants" pointerEvents="none"
       onLayout={({ nativeEvent }) => setWidth(nativeEvent.layout.width)} style={styles.background}>
-      <View style={styles.surface} />
-      {width > 0 && index >= 0 && <Marker center={center} reduceMotion={reduceMotion} />}
-      <View style={[styles.icons, { left: inset, right: inset }]}>
+      {hasSelection ? <PillSurface width={width} center={center} reduceMotion={reduceMotion} />
+        : <View style={[styles.pill, styles.surface]} />}
+      <View style={styles.icons}>
         {tabs.map(({ icon }, slot) => (
           <TabGlyph key={icon} icon={icon} selected={slot === index} reduceMotion={reduceMotion} />
         ))}
@@ -73,16 +67,34 @@ export default function BuyerTabIndicator({ index, tabs }: { index: number; tabs
   )
 }
 
+function PillSurface({ width, center, reduceMotion }: { width: number; center: number; reduceMotion: boolean }) {
+  const position = useTabMotion(center, reduceMotion)
+  const transform = [{ translateX: position }]
+  const height = TAB_BAR_HEIGHT - DISC_LIFT
+  const outline = `M0 0 H${width - 40} c17 0 16 ${NOTCH_DEPTH} 40 ${NOTCH_DEPTH}
+    s23 -${NOTCH_DEPTH} 40 -${NOTCH_DEPTH} H${2 * width} V${height} H0 Z`
+  return (
+    <>
+      <View style={styles.pill}>
+        <Animated.View style={{ left: -width, width: 2 * width, transform }}>
+          <Svg width={2 * width} height={height}><Path d={outline} fill={colors.surface} /></Svg>
+        </Animated.View>
+      </View>
+      <Animated.View style={[styles.disc, { transform }]} />
+    </>
+  )
+}
+
 const styles = StyleSheet.create({
-  background: { flex: 1, overflow: 'hidden', backgroundColor: colors.background },
-  surface: { flex: 1, marginTop: 16, backgroundColor: colors.surface },
-  icons: { position: 'absolute', top: 20, height: 38, flexDirection: 'row' },
+  background: { flex: 1 },
+  pill: { ...StyleSheet.absoluteFill, top: DISC_LIFT, borderRadius: (TAB_BAR_HEIGHT - DISC_LIFT) / 2, overflow: 'hidden' },
+  surface: { backgroundColor: colors.surface },
+  icons: { position: 'absolute', left: 0, right: 0, top: 20, height: 38, flexDirection: 'row' },
   glyph: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   tint: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  marker: { position: 'absolute', top: 0, left: -NOTCH_WIDTH / 2, alignItems: 'center' },
   disc: {
-    position: 'absolute', top: 1, width: 38, height: 38, borderRadius: 19,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surface,
+    position: 'absolute', top: 1, left: -19, width: 38, height: 38, borderRadius: 19,
+    backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderDefault,
   },
 })

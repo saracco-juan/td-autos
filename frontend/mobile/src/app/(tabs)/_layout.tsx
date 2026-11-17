@@ -1,9 +1,10 @@
 import type { Ionicons } from '@expo/vector-icons'
 import { Tabs } from 'expo-router'
+import { useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import AppBar from '../../components/AppBar'
-import BuyerTabIndicator, { TAB_BAR_HEIGHT } from '../../components/BuyerTabIndicator'
+import BuyerTabIndicator, { TAB_BAR_HEIGHT, useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { ComparisonSelectionProvider } from '../../features/comparison/ComparisonSelection'
 import { FavoriteProvider } from '../../features/favorites/FavoriteButton'
 import { colors } from '../../theme/tokens'
@@ -29,16 +30,23 @@ function renderHeader() {
 const HIDDEN = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' as const } }
 
 export default function TabsLayout() {
-  const { bottom } = useSafeAreaInsets()
+  const { width } = useWindowDimensions()
+  const { left, right } = useSafeAreaInsets()
+  const barSpace = useBuyerTabBarSpace()
+  const sideMargin = Math.max(16 + Math.max(left, right), (width - 400) / 2)
   return (
     <FavoriteProvider><ComparisonSelectionProvider><Tabs
       screenOptions={({ route }) => ({
         header: renderHeader,
-        sceneStyle: { backgroundColor: colors.background },
+        sceneStyle: { backgroundColor: colors.background,
+          paddingBottom: ['favoritos', 'recomendados'].includes(route.name) ? 0 : barSpace },
         tabBarShowLabel: false,
         tabBarIcon: () => null,
         tabBarBackground: () => <BuyerTabIndicator tabs={TABS} index={TABS.findIndex(tab => tab.name === route.name)} />,
-        tabBarStyle: { height: TAB_BAR_HEIGHT + bottom, borderTopWidth: 0, elevation: 0 },
+        tabBarActiveBackgroundColor: 'transparent',
+        tabBarStyle: { position: 'absolute', height: TAB_BAR_HEIGHT, bottom: barSpace - TAB_BAR_HEIGHT,
+          marginHorizontal: sideMargin, paddingHorizontal: 0, paddingBottom: 0,
+          backgroundColor: 'transparent', borderTopWidth: 0, elevation: 0 },
       })}
     >
       {TABS.map(({ name, title }, index) => (
