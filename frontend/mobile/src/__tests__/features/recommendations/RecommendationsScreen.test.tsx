@@ -1,3 +1,4 @@
+import { AccessibilityInfo, Alert, StyleSheet } from 'react-native'
 import { fireEvent, screen, waitFor, within } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
@@ -71,9 +72,9 @@ describe('RecommendationsScreen', () => {
           retained_percent: 81.5, years_used: [2020, 2021] } },
     })]))
     expect(await screen.findByText('62,5% de compatibilidad')).toBeOnTheScreen()
+    await fireEvent.press(button('Ver atributos y motivos'))
     expect(screen.getByText(/Hay proyección de valor.*faltan datos de actividad.*10 puntos/)).toBeOnTheScreen()
     expect(screen.queryByText(/^Sin estimación de reventa/)).not.toBeOnTheScreen()
-    await fireEvent.press(screen.getByRole('button', { name: 'Ver atributos y motivos' }))
     expect(screen.getByText(/Prioridad: no disponible/)).toBeOnTheScreen()
   })
 
@@ -81,23 +82,47 @@ describe('RecommendationsScreen', () => {
     await open(ready(THREE))
 
     expect(await screen.findByText('Mostrando 3 vehículos')).toBeOnTheScreen()
+    const edit = button('Ajustar diagnóstico')
+    expect(edit.parent).toBe(screen.getByText('Mostrando 3 vehículos').parent)
+    expect(edit).toHaveStyle({ minHeight: 44 })
     expect(screen.getByText('AUTOS RECOMENDADOS')).toBeOnTheScreen()
     expect(cards().map((card) => card.props.accessibilityLabel)).toEqual([
       'Recomendación: Toyota Modelo 1 XEI 2016',
       'Recomendación: Toyota Modelo 2 XEI 2017',
       'Recomendación: Toyota Modelo 3 XEI 2018',
     ])
+    const cells = cards().map(card => card.parent)
+    expect(cells[0]?.parent).toHaveStyle({ flexDirection: 'row' })
+    expect(cells[1]?.parent).toBe(cells[0]?.parent)
+    expect(cells[2]?.parent).not.toBe(cells[0]?.parent)
+    for (const cell of cells) {
+      expect(cell).toHaveStyle({ width: '50%' })
+    }
     const first = within(cards()[0])
     expect(first.getByText('MEJOR COINCIDENCIA')).toBeOnTheScreen()
-    expect(first.getByText('$ 21.000.000 · 10.000 km · CABA')).toBeOnTheScreen()
+    expect(first.getByText('$ 21.000.000')).toBeOnTheScreen()
+    expect(first.getByText('10.000 km · CABA')).toBeOnTheScreen()
     expect(first.getByText('94% de compatibilidad')).toBeOnTheScreen()
-    expect(first.getByText('Equivalente: US$ 21.000')).toBeOnTheScreen()
-    expect(first.getByText('Autos Sur · Buenos Aires')).toBeOnTheScreen()
+    await fireEvent.press(first.getByRole('button', { name: 'Ver atributos y motivos' }))
+    expect(screen.getByText('Equivalente: US$ 21.000')).toBeOnTheScreen()
+    expect(screen.getByText('Autos Sur · Buenos Aires')).toBeOnTheScreen()
+    await fireEvent.press(button('CERRAR'))
     expect(within(cards()[1]).queryByText('MEJOR COINCIDENCIA')).not.toBeOnTheScreen()
     expect(screen.getByText(/^Dólar oficial venta · DolarAPI · \$ 1\.000/)).toBeOnTheScreen()
     expect(first.getByRole('button', { name: 'COMPARAR' })).toBeOnTheScreen()
     expect(first.getByRole('button', { name: 'VER FICHA' })).toBeOnTheScreen()
     expect(api.fetchRecommendations).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows the first catalog photo and keeps the listing usable if the photo fails', async () => {
+    const item = recommendation(1)
+    item.vehicle.image_urls = ['https://example.test/cover.jpg']
+    await open(ready([item]))
+    const photo = await screen.findByLabelText('Foto de Toyota Modelo 1 XEI 2016')
+    expect(photo.props.source.uri).toBe(item.vehicle.image_urls[0])
+    await fireEvent(photo, 'error')
+    expect(screen.getByText('Sin fotos')).toBeOnTheScreen()
+    expect(button('VER FICHA')).toBeOnTheScreen()
   })
 
   it('HU08 TC-23/24/25: compares two, rejects a third, preserves filters and replaces only the removed vehicle', async () => {
@@ -142,26 +167,64 @@ describe('RecommendationsScreen', () => {
     expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
   })
 
-  it('HU08 TC-76 allows requesting comparison with zero or one selection and asks to complete it', async () => {
-    await open(ready(THREE))
-    await screen.findByText('Mostrando 3 vehículos')
-    await fireEvent.press(button('COMPARAR (0/2)'))
-    expect(await screen.findByText(/Seleccioná exactamente dos/)).toBeOnTheScreen()
-    await fireEvent.press(screen.getByRole('link', { name: 'Volver a recomendados' }))
-    await screen.findByText('Mostrando 3 vehículos')
-    await fireEvent.press(within(cards()[0]).getByRole('button', { name: 'COMPARAR' }))
-    await fireEvent.press(button('COMPARAR (1/2)'))
-    expect(await screen.findByText(/Seleccioná exactamente dos/)).toBeOnTheScreen()
-    expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
-    expect(costsApi.fetchCosts).not.toHaveBeenCalled()
+  it('reveals each vehicle from its own side of the central compare action', async () => {
+    const preference = jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true)
+    try {
+      await open(ready(THREE))
+      await screen.findByText('Mostrando 3 vehículos')
+      const row = screen.getByTestId('comparison-control')
+      expect(row).toHaveStyle({ flexDirection: 'row' })
+      const [left, center, right] = row.children.filter(child => typeof child !== 'string')
+      await fireEvent(left, 'layout', { nativeEvent: { layout: { width: 126 } } })
+      expect(left).toHaveStyle({ flex: 1 })
+      expect(right).toHaveStyle({ flex: 1 })
+      expect(StyleSheet.flatten(row.props.style).transform).toBeUndefined()
+      expect(within(center).getByRole('button', { name: 'COMPARAR (0/2)' })).toBeOnTheScreen()
+      await fireEvent.press(within(cards()[0]).getByRole('button', { name: 'COMPARAR' }))
+      await waitFor(() => expect(center).toHaveStyle({ borderTopLeftRadius: 0, borderTopRightRadius: 10 }))
+      const first = within(left).getByRole('button', { name: /Quitar Toyota Modelo 1 .* de la comparación/ })
+      await fireEvent.press(within(cards()[1]).getByRole('button', { name: 'COMPARAR' }))
+      expect(StyleSheet.flatten(row.props.style).transform).toBeUndefined()
+      expect(center).toHaveStyle({ borderTopLeftRadius: 0, borderTopRightRadius: 0 })
+      const second = /Quitar Toyota Modelo 2 .* de la comparación/
+      expect(within(right).getByRole('button', { name: second })).toBeOnTheScreen()
+      expect(within(center).getByRole('button', { name: 'COMPARAR (2/2)' })).toBeOnTheScreen()
+      await fireEvent.press(first)
+      expect(within(right).getByRole('button', { name: second })).toBeOnTheScreen()
+      await fireEvent.press(within(cards()[2]).getByRole('button', { name: 'COMPARAR' }))
+      expect(within(left).getByRole('button', { name: /Quitar Toyota Modelo 3 .* de la comparación/ })).toBeOnTheScreen()
+    } finally {
+      preference.mockRestore()
+    }
+  })
+
+  it('HU08 TC-76 keeps incomplete comparisons in the catalog and shows a dismissible warning', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {})
+    try {
+      const view = await open(ready(THREE))
+      await screen.findByText('Mostrando 3 vehículos')
+      for (const count of [0, 1]) {
+        await fireEvent.press(button(`COMPARAR (${count}/2)`))
+        expect(view.getPathname()).toBe('/recomendados')
+        expect(alert).toHaveBeenLastCalledWith('Comparar vehículos', 'Seleccioná exactamente dos vehículos para comparar.', [{ text: 'Entendido' }])
+        expect(alert).toHaveBeenCalledTimes(count + 1)
+        if (count === 0) await fireEvent.press(within(cards()[0]).getByRole('button', { name: 'COMPARAR' }))
+      }
+      await fireEvent.press(button('Quitar Toyota Modelo 1 XEI 2016 de la comparación'))
+      expect(button('COMPARAR (0/2)')).toBeOnTheScreen()
+      expect(costsApi.fetchCosts).not.toHaveBeenCalled()
+    } finally {
+      alert.mockRestore()
+    }
   })
 
   it('shows the warnings and, on demand, the score breakdown of a card', async () => {
     await open(ready([recommendation(1, { warnings: ['budget_exceeded'], budget_excess_percent: 3, budget_penalty: 6 })]))
 
-    expect(await screen.findByText('Supera tu presupuesto en 3%.')).toBeOnTheScreen()
+    expect(await screen.findByText('Ver advertencias')).toBeOnTheScreen()
     expect(screen.queryByText(/^Uso: 100/)).not.toBeOnTheScreen()
     await fireEvent.press(button('Ver atributos y motivos'))
+    expect(screen.getByText('Supera tu presupuesto en 3%.')).toBeOnTheScreen()
     expect(screen.getByText('Uso: 100 · Carrocería: 100 · Prioridad: 80 · Confort: 70 (sobre 100).')).toBeOnTheScreen()
     expect(screen.getByText(/^Descuento por presupuesto: 6 puntos/)).toBeOnTheScreen()
   })
@@ -180,7 +243,7 @@ describe('RecommendationsScreen', () => {
     expect(screen.getByText('Mostrando 0 vehículos')).toBeOnTheScreen()
     expect(screen.queryByRole('button', { name: 'Filtros' })).not.toBeOnTheScreen()
 
-    await fireEvent.press(button('AJUSTAR DIAGNÓSTICO'))
+    await fireEvent.press(button('Ajustar diagnóstico'))
     await waitFor(() => expect(view.getPathname()).toBe('/'))
   })
 
@@ -228,27 +291,34 @@ describe('RecommendationsScreen', () => {
     expect(api.fetchRecommendations).toHaveBeenCalledTimes(2)
   })
 
-  it('pages nine cards at a time and keeps the count', async () => {
-    await open(ready(Array.from({ length: 10 }, (_, index) => recommendation(index + 1))))
-
-    expect(await screen.findByText('Mostrando 10 vehículos')).toBeOnTheScreen()
-    expect(cards()).toHaveLength(9)
-    expect(button('Página anterior')).toBeDisabled()
-
-    await fireEvent.press(button('Página 2'))
-
-    expect(cards().map((card) => card.props.accessibilityLabel)).toEqual(['Recomendación: Toyota Modelo 10 XEI 2025'])
-    expect(screen.getByText('Mostrando 10 vehículos')).toBeOnTheScreen()
-    expect(button('Página siguiente')).toBeDisabled()
-    await fireEvent.press(button('Página anterior'))
-    expect(cards()).toHaveLength(9)
+  it('keeps every result in the same two-column catalog beyond the previous limit of nine', async () => {
+    await open(ready(Array.from({ length: 11 }, (_, index) => recommendation(index + 1))))
+    expect(await screen.findByText('Mostrando 11 vehículos')).toBeOnTheScreen()
+    expect(cards()).toHaveLength(11)
+    expect(cards()[10].props.accessibilityLabel).toContain('Modelo 11')
+    expect(screen.queryByRole('button', { name: /Página/ })).not.toBeOnTheScreen()
   })
 
-  it('hides the pager when everything fits in one page', async () => {
+  it('adjusts the budget by dragging the car, preserves exact input, and only applies on confirmation', async () => {
     await open(ready(THREE))
-
-    await screen.findByText('Mostrando 3 vehículos')
-    expect(screen.queryByRole('button', { name: 'Página 1' })).not.toBeOnTheScreen()
+    await fireEvent.press(await screen.findByRole('button', { name: 'Filtros' }))
+    const slider = screen.getByRole('adjustable', { name: 'Presupuesto máximo' })
+    const input = screen.getByLabelText('Precio máximo')
+    await fireEvent(slider, 'layout', { nativeEvent: { layout: { width: 252 } } })
+    await fireEvent(slider, 'responderGrant', { nativeEvent: { locationX: 126 } })
+    expect(input).toHaveDisplayValue('11.500.000')
+    await fireEvent(slider, 'responderMove', { nativeEvent: { locationX: 226 } })
+    await fireEvent(slider, 'responderRelease')
+    expect(input).toHaveDisplayValue('')
+    await fireEvent.changeText(input, '21.500.000')
+    expect(slider.props.accessibilityValue.now).toBe(21500000)
+    await fireEvent.press(button('Volver'))
+    expect(cards()).toHaveLength(3)
+    await fireEvent.press(button('Filtros'))
+    const reopened = screen.getByRole('adjustable', { name: 'Presupuesto máximo' })
+    await fireEvent(reopened, 'accessibilityAction', { nativeEvent: { actionName: 'decrement' } })
+    await fireEvent.press(button('APLICAR'))
+    expect(cards()).toHaveLength(2)
   })
 
   it('TC-21: applies the combined filters client-side, keeping the order, and removes them by chip', async () => {

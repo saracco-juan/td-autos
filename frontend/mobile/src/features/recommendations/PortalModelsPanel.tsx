@@ -10,6 +10,7 @@ import { PORTAL_EMPTY_COPY, portalSourceLabel } from '@shared/portals/format'
 import type { PortalModelsResponse } from '@shared/portals/models'
 import { emptyStateCopy, exchangeRateNotice } from '@shared/recommendations/format'
 import Alert from '../../components/Alert'
+import { CatalogGrid } from './CatalogCard'
 import PortalModelCard from './PortalModelCard'
 import { fetchPortalModels } from './portalModels'
 
@@ -59,7 +60,7 @@ export default function PortalModelsPanel({ onCount, onDiagnosis }: Readonly<Pro
   const notice = exchangeRateNotice(response.exchange_rate)
   return (
     <>
-      {response.modelos.map((model) => <PortalModelCard key={model.id} model={model} />)}
+      <CatalogGrid>{response.modelos.map((model) => <PortalModelCard key={model.id} model={model} />)}</CatalogGrid>
       {response.fuente_precios ? <Text style={styles.meta}>{portalSourceLabel(response.fuente_precios)}</Text> : null}
       {notice.summary ? <Text style={styles.meta}>{notice.summary}</Text> : null}
       {notice.warning ? <Alert variant="warning">{notice.warning}</Alert> : null}

@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 
 import Alert from '../../components/Alert'
-import Button from '../../components/Button'
-import { colors, radii, shadows } from '../../theme/tokens'
+import { archivo } from '../../theme/archivo'
+import { CatalogAction, CatalogCard, catalog } from './CatalogCard'
+import PortalInfo from './PortalInfo'
 import { useComparisonSelection } from '../comparison/ComparisonSelection'
 import FavoriteButton from '../favorites/FavoriteButton'
 import {
@@ -19,108 +19,34 @@ import {
 } from '@shared/recommendations/format'
 import type { Recommendation } from '@shared/recommendations/matching'
 
-type Props = { result: Recommendation; best: boolean }
+type Props = { result: Recommendation; best: boolean; motionEnabled: boolean }
 
 // Figma "02 - Recomendaciones" (2373:9914), with the same vehicle actions as web.
-export default function RecommendationCard({ result, best }: Readonly<Props>) {
+export default function RecommendationCard({ result, best, motionEnabled }: Readonly<Props>) {
   const router = useRouter()
   const { ids, toggle } = useComparisonSelection()
-  const [expanded, setExpanded] = useState(false)
   const { vehicle, dealer } = result
   const title = recommendationTitle(result)
-  const meta = [formatPrice(result.published_price, result.published_currency), formatKilometers(vehicle.kilometraje), vehicle.ubicacion]
-
+  const warnings = warningMessages(result)
+  const selected = ids.includes(result.listing_id)
+  const favorite = <FavoriteButton animate={motionEnabled} vehicleId={result.listing_id} vehicleName={title} isFavorite={result.is_favorite} />
   return (
-    <View accessibilityLabel={`Recomendación: ${title}`} style={styles.card}>
-      <View style={styles.heading}>
-        <View style={styles.titleRow}>
-          <Text accessibilityRole="header" style={styles.title}>
-            {title}
-          </Text>
-          <FavoriteButton key={`${result.listing_id}:${result.is_favorite}`} vehicleId={result.listing_id}
-            vehicleName={title} isFavorite={result.is_favorite} />
-        </View>
-        <Text style={styles.meta}>{meta.join(' · ')}</Text>
+    <CatalogCard label={`Recomendación: ${title}`} title={title} photo={vehicle.image_urls?.[0] || vehicle.image_url} overlay={favorite}>
+      {best && <Text style={[catalog.meta, archivo(true)]}>MEJOR COINCIDENCIA</Text>}
+      <Text accessibilityRole="header" style={[catalog.title, archivo(true)]}>{title}</Text>
+      <Text style={[catalog.price, archivo(true)]}>{formatPrice(result.published_price, result.published_currency)}</Text>
+      <Text style={[catalog.meta, archivo()]}>{[formatKilometers(vehicle.kilometraje), vehicle.ubicacion].filter(Boolean).join(' · ')}</Text>
+      <PortalInfo label="Ver atributos y motivos" caption={compatibilityLabel(result)} warning={warnings.length > 0}>
+        <Text>{equivalentPriceLabel(result)}</Text>
+        <Text>{[dealer.nombre, dealer.provincia].filter(Boolean).join(' · ')}</Text>
+        {warnings.map(message => <Alert key={message} variant="warning">{message}</Alert>)}
+        <Text>{componentsSummary(result)}</Text>
+        <Text>{budgetPenaltyNote(result)}</Text>
+      </PortalInfo>
+      <View style={[catalog.actions, catalog.dealerActions]}>
+        <CatalogAction label="VER FICHA" onPress={() => router.push(`/vehiculos/${result.listing_id}`)} />
+        <CatalogAction motionEnabled={motionEnabled} selected={selected} label={selected ? 'QUITAR' : 'COMPARAR'} onPress={() => toggle(result.listing_id)} />
       </View>
-      <View style={styles.image}>
-        {vehicle.image_url ? (
-          <Image source={{ uri: vehicle.image_url }} accessibilityLabel={`Foto de ${title}`} style={StyleSheet.absoluteFill} />
-        ) : (
-          <Text style={styles.meta}>Sin imagen</Text>
-        )}
-        {best ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>MEJOR COINCIDENCIA</Text>
-          </View>
-        ) : null}
-      </View>
-      <Text style={styles.score}>{compatibilityLabel(result)}</Text>
-      <Text style={styles.meta}>{equivalentPriceLabel(result)}</Text>
-      <Text style={styles.meta}>{[dealer.nombre, dealer.provincia].filter(Boolean).join(' · ')}</Text>
-      {warningMessages(result).map((message) => (
-        <Alert key={message} variant="warning">
-          {message}
-        </Alert>
-      ))}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Ver atributos y motivos"
-        accessibilityState={{ expanded }}
-        onPress={() => setExpanded(!expanded)}
-        style={styles.toggle}
-      >
-        <Text style={styles.toggleText}>{expanded ? 'Ocultar atributos y motivos' : 'Ver atributos y motivos'}</Text>
-      </Pressable>
-      {expanded ? (
-        <View style={styles.details}>
-          <Text style={styles.meta}>{componentsSummary(result)}</Text>
-          <Text style={styles.meta}>{budgetPenaltyNote(result)}</Text>
-        </View>
-      ) : null}
-      <View style={styles.actions}>
-        <Button label={ids.includes(result.listing_id) ? 'QUITAR' : 'COMPARAR'} onPress={() => toggle(result.listing_id)} />
-        <Button label="VER FICHA" variant="primary" onPress={() => router.push(`/vehiculos/${result.listing_id}`)} />
-      </View>
-    </View>
+    </CatalogCard>
   )
 }
-
-const styles = StyleSheet.create({
-  card: {
-    gap: 10,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.card,
-    backgroundColor: colors.surface,
-    ...shadows.card,
-  },
-  heading: { gap: 4 },
-  titleRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
-  title: { flex: 1, color: colors.textPrimary, fontSize: 17, fontWeight: '600' },
-  meta: { color: colors.textSecondary, fontSize: 13 },
-  // 16:10 image area, as on web (docs/design.md "Lists and tables").
-  image: {
-    aspectRatio: 16 / 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.field,
-    backgroundColor: colors.surfaceRaised,
-    overflow: 'hidden',
-  },
-  badge: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: '#ffe01b',
-  },
-  badgeText: { color: colors.textPrimary, fontSize: 10, fontWeight: '700' },
-  score: { color: colors.textPrimary, fontSize: 14, fontWeight: '700' },
-  toggle: { alignSelf: 'flex-start', paddingVertical: 4 },
-  toggleText: { color: colors.textPrimary, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
-  details: { gap: 6 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-})
