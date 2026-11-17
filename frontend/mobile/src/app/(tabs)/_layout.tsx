@@ -38,8 +38,7 @@ export default function TabsLayout() {
     <FavoriteProvider><ComparisonSelectionProvider><Tabs
       screenOptions={({ route }) => ({
         header: renderHeader,
-        sceneStyle: { backgroundColor: colors.background,
-          paddingBottom: ['favoritos', 'recomendados'].includes(route.name) ? 0 : barSpace },
+        sceneStyle: { backgroundColor: colors.background },
         tabBarShowLabel: false,
         tabBarIcon: () => null,
         tabBarBackground: () => <BuyerTabIndicator tabs={TABS} index={TABS.findIndex(tab => tab.name === route.name)} />,

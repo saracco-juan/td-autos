@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useEffect, useState } from 'react'
-import { Animated, StyleSheet, useAnimatedValue, View } from 'react-native'
+import { Animated, StyleSheet, type LayoutChangeEvent, useAnimatedValue, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path } from 'react-native-svg'
 
@@ -10,11 +10,22 @@ import { colors } from '../theme/tokens'
 export const TAB_BAR_HEIGHT = 64
 const DISC_LIFT = 16
 const NOTCH_DEPTH = 28
+const PILL_COLOR = '#706963'
 type Icon = keyof typeof Ionicons.glyphMap
 
 export function useBuyerTabBarSpace() {
   const { bottom } = useSafeAreaInsets()
   return TAB_BAR_HEIGHT + Math.max(bottom, 8)
+}
+
+export function useBuyerFooter() {
+  const bottom = useBuyerTabBarSpace()
+  const [height, setHeight] = useState(0)
+  return {
+    scrollPadding: { paddingBottom: bottom + height + 16 },
+    footerPosition: { position: 'absolute' as const, bottom, left: 0, right: 0 },
+    measureFooter: (event: LayoutChangeEvent) => setHeight(event.nativeEvent.layout.height),
+  }
 }
 
 function useTabMotion(target: number, reduceMotion: boolean) {
@@ -37,7 +48,7 @@ function TabGlyph({ icon, selected, reduceMotion }: { icon: Icon; selected: bool
   const lift = focus.interpolate({ inputRange: [0, 1], outputRange: [0, -19] })
   return (
     <Animated.View style={[styles.glyph, { transform: [{ translateY: lift }] }]}>
-      <Ionicons name={icon} size={22} color={colors.textSecondary} />
+      <Ionicons name={icon} size={22} color={colors.onColor} />
       <Animated.View style={[styles.tint, { opacity: focus }]}>
         <Ionicons name={icon} size={22} color={colors.red} />
       </Animated.View>
@@ -77,7 +88,7 @@ function PillSurface({ width, center, reduceMotion }: { width: number; center: n
     <>
       <View style={styles.pill}>
         <Animated.View style={{ left: -width, width: 2 * width, transform }}>
-          <Svg width={2 * width} height={height}><Path d={outline} fill={colors.surface} /></Svg>
+          <Svg width={2 * width} height={height}><Path d={outline} fill={PILL_COLOR} /></Svg>
         </Animated.View>
       </View>
       <Animated.View style={[styles.disc, { transform }]} />
@@ -88,7 +99,7 @@ function PillSurface({ width, center, reduceMotion }: { width: number; center: n
 const styles = StyleSheet.create({
   background: { flex: 1 },
   pill: { ...StyleSheet.absoluteFill, top: DISC_LIFT, borderRadius: (TAB_BAR_HEIGHT - DISC_LIFT) / 2, overflow: 'hidden' },
-  surface: { backgroundColor: colors.surface },
+  surface: { backgroundColor: PILL_COLOR },
   icons: { position: 'absolute', left: 0, right: 0, top: 20, height: 38, flexDirection: 'row' },
   glyph: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   tint: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },

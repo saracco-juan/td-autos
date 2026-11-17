@@ -1,3 +1,4 @@
+import { useBuyerFooter } from '../../components/BuyerTabIndicator'
 import { useRouter } from 'expo-router'
 import { useFonts } from 'expo-font'
 import { useEffect, useLayoutEffect, useState } from 'react'
@@ -41,6 +42,7 @@ export default function DiagnosisScreen() {
   const [draft, setDraft] = useState<DiagnosisDraft>(createEmptyDraft)
   const [bodyTypes, setBodyTypes] = useState<BodyType[]>([])
   const [step, setStep] = useState(0)
+  const { scrollPadding, footerPosition, measureFooter } = useBuyerFooter()
   const position = useAnimatedValue(0)
   const reduceMotion = useReduceMotion()
   useFonts(diagnosisFonts)
@@ -139,7 +141,7 @@ export default function DiagnosisScreen() {
       <Animated.ScrollView
         key={step}
         style={[styles.scroll, { transform: [{ translateX: questionX }] }]}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, scrollPadding]}
       >
         <View style={styles.header}>
           <Text accessibilityRole="header" style={[styles.title, diagnosisType(true)]}>
@@ -172,7 +174,7 @@ export default function DiagnosisScreen() {
         {saveFailed ? <Alert variant="error">{SAVE_ERROR}</Alert> : null}
       </Animated.ScrollView>
 
-      <View style={styles.actions}>
+      <View onLayout={measureFooter} style={[styles.actions, footerPosition]}>
         {step > 0 ? (
           <View style={styles.action}>
             <Button label="ATRÁS" disabled={saving} onPress={() => goToStep(step - 1)} />

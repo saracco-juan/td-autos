@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons'
 import * as Linking from 'expo-linking'
 import { useFocusEffect } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
@@ -71,7 +72,8 @@ export default function VehicleContact({ vehicleId, available }: Readonly<{ vehi
 
   if (!available) return <Text style={{ color: colors.textSecondary, fontSize: 14 }}>WhatsApp no disponible</Text>
   return <>
-    <Button label="CONTACTAR POR WHATSAPP" variant="success" busy={busy}
+    <Button label="CONTACTAR POR WHATSAPP" variant="solidSuccess" busy={busy}
+      icon={<Ionicons name="logo-whatsapp" size={18} color={colors.onColor} />}
       busyLabel="ABRIENDO WHATSAPP…" onPress={() => void contact()} />
     {error ? <Alert variant="error">{error}</Alert> : null}
   </>

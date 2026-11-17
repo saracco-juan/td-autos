@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { detailSections } from '@shared/vehicles/detail'
-import { colors, radii, shadows } from '../../theme/tokens'
+import { colors } from '../../theme/tokens'
 import type { BuyerVehicle } from './types'
 
 // Four section tabs (general, engine, safety, comfort); only the selected section's rows are listed. React Native
@@ -55,12 +55,7 @@ export default function VehicleSpecifications({ vehicle }: Readonly<{ vehicle: B
 const styles = StyleSheet.create({
   card: {
     gap: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.card,
-    backgroundColor: colors.surface,
-    ...shadows.card,
+    paddingTop: 12,
   },
   heading: { color: colors.textPrimary, fontSize: 17, fontWeight: '700' },
   // Tabs wrap onto a second line at narrow widths.

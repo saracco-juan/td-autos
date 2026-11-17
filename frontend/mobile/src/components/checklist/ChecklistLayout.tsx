@@ -1,3 +1,4 @@
+import { useBuyerFooter } from '../BuyerTabIndicator'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native'
 
@@ -33,6 +34,7 @@ type Props = {
 
 // The checklist view: scrolling header, warning, pills and step card, with the action bar pinned below.
 export default function ChecklistLayout({ flow, steps, copy, header, panelFooter, after }: Readonly<Props>) {
+  const { scrollPadding, footerPosition, measureFooter } = useBuyerFooter()
   const scrollRef = useRef<ScrollViewInstance>(null)
   const { selected, progress, showWarning, warningText } = flow
 
@@ -47,7 +49,7 @@ export default function ChecklistLayout({ flow, steps, copy, header, panelFooter
 
   return (
     <View style={layoutStyles.screen}>
-      <ScrollView ref={scrollRef} style={layoutStyles.scroll} contentContainerStyle={layoutStyles.content}>
+      <ScrollView ref={scrollRef} style={layoutStyles.scroll} contentContainerStyle={[layoutStyles.content, scrollPadding]}>
         {header}
         {warningText ? <Alert variant="warning">{warningText}</Alert> : null}
         <StepPills
@@ -71,7 +73,8 @@ export default function ChecklistLayout({ flow, steps, copy, header, panelFooter
         ) : null}
         {after}
       </ScrollView>
-      <ActionBar
+      <View onLayout={measureFooter} style={footerPosition}>
+        <ActionBar
         labels={copy.actionLabels}
         warning={showWarning}
         finishing={flow.finishing}
@@ -81,7 +84,8 @@ export default function ChecklistLayout({ flow, steps, copy, header, panelFooter
         onFinish={flow.requestFinish}
         onFinishAnyway={flow.finishAnyway}
         onKeepWorking={flow.keepWorking}
-      />
+        />
+      </View>
     </View>
   )
 }
