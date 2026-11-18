@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { colors, radii, shadows } from '../theme/tokens'
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'solidSuccess'
+type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'solidSuccess' | 'solidPrimary'
 
 type Props = {
   label: string
@@ -22,6 +22,7 @@ const BORDER: Record<Variant, string> = {
   danger: colors.errorBorder,
   success: colors.successBorder,
   solidSuccess: colors.actionSuccess,
+  solidPrimary: colors.red,
 }
 
 export default function Button({
@@ -34,7 +35,7 @@ export default function Button({
   onPress,
 }: Readonly<Props>) {
   const inactive = busy || disabled
-  const solid = variant === 'solidSuccess'
+  const solid = variant === 'solidSuccess' || variant === 'solidPrimary'
   return (
     <Pressable
       accessibilityRole="button"
@@ -42,7 +43,7 @@ export default function Button({
       accessibilityState={{ busy, disabled: inactive }}
       disabled={inactive}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, { borderColor: BORDER[variant] }, solid && styles.solidSuccess,
+      style={({ pressed }) => [styles.button, { borderColor: BORDER[variant] }, solid && styles.solid, solid && { backgroundColor: BORDER[variant] },
         pressed && (solid ? styles.busy : styles.pressed), inactive && styles.busy]}
     >
       <View style={styles.content}>
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
     ...shadows.soft,
   },
   pressed: { backgroundColor: colors.surfaceRaised },
-  solidSuccess: { minHeight: 44, height: 'auto', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.actionSuccess },
+  solid: { minHeight: 44, height: 'auto', paddingHorizontal: 12, paddingVertical: 8 },
   busy: { opacity: 0.6 },
   content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   label: { color: colors.textPrimary, fontSize: 11, fontWeight: '600' },

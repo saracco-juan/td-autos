@@ -8,6 +8,7 @@ import { colors } from '../../theme/tokens'
 import Alert from '../Alert'
 import ActionBar, { type ActionLabels } from './ActionBar'
 import StepPanel from './StepPanel'
+import useReduceMotion from '../../lib/useReduceMotion'
 import StepPills from './StepPills'
 import type { ChecklistFlow } from './useChecklistFlow'
 
@@ -35,6 +36,7 @@ type Props = {
 // The checklist view: scrolling header, warning, pills and step card, with the action bar pinned below.
 export default function ChecklistLayout({ flow, steps, copy, header, panelFooter, after }: Readonly<Props>) {
   const { scrollPadding, footerPosition, measureFooter } = useBuyerFooter()
+  const reduceMotion = useReduceMotion()
   const scrollRef = useRef<ScrollViewInstance>(null)
   const { selected, progress, showWarning, warningText } = flow
 
@@ -63,6 +65,7 @@ export default function ChecklistLayout({ flow, steps, copy, header, panelFooter
           <StepPanel
             step={step}
             completedCodes={completedCodes}
+            reduceMotion={reduceMotion}
             saveFailed={flow.failedSteps.has(step.numero)}
             flagLabel={copy.flagLabel}
             saveError={copy.saveError}

@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router'
 import { StyleSheet, Text, View } from 'react-native'
 
-import { BACK_TO_SHEET, EYEBROW, reviewedCounter } from '@shared/checklist/inspection/copy'
-import BackChip from '../../components/BackChip'
+import { BACK_TO_SHEET, reviewedCounter } from '@shared/checklist/inspection/copy'
+import BackLink from '../../components/BackLink'
+import ChecklistProgress from '../../components/checklist/ChecklistProgress'
+import { archivo } from '../../theme/archivo'
 import { colors } from '../../theme/tokens'
 
 type Props = {
@@ -19,30 +21,25 @@ export function useBackToSheet(vehicleId: number) {
   return () => router.navigate(`/vehiculos/${vehicleId}`)
 }
 
-// Shared by the checklist and the summary (Figma 07 / 07c): back link, eyebrow, vehicle title and counter.
+// The checklist and summary identify the same vehicle.
 export default function InspectionHeader({ vehicleId, title, completed, total }: Readonly<Props>) {
   const goBack = useBackToSheet(vehicleId)
 
   return (
     <View style={styles.header}>
-      <BackChip label={BACK_TO_SHEET} onPress={goBack} />
+      <BackLink label={BACK_TO_SHEET} onPress={goBack} />
       <View style={styles.titles}>
-        <Text style={styles.eyebrow}>{EYEBROW}</Text>
-        <Text accessibilityRole="header" style={styles.title}>
-          {title}
-        </Text>
-        <Text accessibilityLiveRegion="polite" style={styles.counter}>
-          {reviewedCounter(completed, total)}
-        </Text>
+        <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>Inspección del auto</Text>
+        <Text style={[styles.subtitle, archivo()]}>{title}</Text>
+        <ChecklistProgress completed={completed} total={total} label={reviewedCounter(completed, total)} />
       </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  header: { gap: 20 },
+  header: { gap: 8, paddingBottom: 18 },
   titles: { gap: 8 },
-  eyebrow: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
+  subtitle: { color: colors.textSecondary, fontSize: 15 },
   title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },
-  counter: { color: colors.textSecondary, fontSize: 14 },
 })
