@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react-native'
+import { AccessibilityInfo, Animated } from 'react-native'
 
 import { vehicle } from '@shared/vehicles/fixtures'
 import type { ComparisonEntry } from '@shared/comparison/groups'
@@ -14,6 +15,22 @@ const entry = (id: number): ComparisonEntry => ({
 })
 
 describe('HU08 native comparison cards', () => {
+  afterEach(() => jest.restoreAllMocks())
+
+  it.each([true, false])('positions the indicator on the selected tab with reduced motion %s', async reduced => {
+    jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(reduced)
+    const timing = jest.spyOn(Animated, 'timing')
+    await render(<ComparisonCards entries={[entry(7), entry(8)]} onChangeVehicle={jest.fn()} onCosts={jest.fn()} />)
+    const general = screen.getByRole('tab', { name: 'Información general' })
+    const motor = screen.getByRole('tab', { name: 'Motor y consumo' })
+    await fireEvent(general, 'layout', { nativeEvent: { layout: { x: 0, width: 48 } } })
+    await fireEvent(motor, 'layout', { nativeEvent: { layout: { x: 68, width: 72 } } })
+    timing.mockClear()
+    await fireEvent.press(motor)
+    expect(motor).toBeSelected()
+    expect(timing.mock.calls.map(([, config]) => config.toValue)).toEqual(reduced ? [] : [80, 1.5])
+  })
+
   it('TC-23 shows current facts and synchronizes the six sections without changing the pair', async () => {
     const changeVehicle = jest.fn()
     await render(<ComparisonCards entries={[entry(7), entry(8)]} onChangeVehicle={changeVehicle} onCosts={jest.fn()} />)

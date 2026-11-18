@@ -34,9 +34,9 @@ export default function ComparisonScreen() {
   </ComparisonLayout>
 }
 
-function ReadyComparison({ ids: [first, second], onRetry }: {
+function ReadyComparison({ ids: [first, second], onRetry }: Readonly<{
   ids: [number, number]; onRetry: () => void
-}) {
+}>) {
   const { authFetch } = useAuth()
   const router = useRouter()
   const { toggle } = useComparisonSelection()

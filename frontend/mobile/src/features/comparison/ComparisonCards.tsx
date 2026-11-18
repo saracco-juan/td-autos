@@ -26,7 +26,7 @@ type TabPosition = { x: number; width: number }
 const LINE_WIDTH = 48
 const tabTiming = { duration: 400, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }
 
-function TabUnderline({ x, width }: TabPosition) {
+function TabUnderline({ x, width }: Readonly<TabPosition>) {
   const offset = x + (width - LINE_WIDTH) / 2
   const scale = width / LINE_WIDTH
   const translateX = useAnimatedValue(offset)
@@ -60,7 +60,7 @@ function modelName({ detail: { vehicle } }: ComparisonEntry) {
   return [vehicle.modelo, vehicle.version].filter(Boolean).join(' ') || vehicleTitle(vehicle)
 }
 
-function VehicleCard({ entry, onChangeVehicle }: { entry: ComparisonEntry; onChangeVehicle: (id: number) => void }) {
+function VehicleCard({ entry, onChangeVehicle }: Readonly<{ entry: ComparisonEntry; onChangeVehicle: (id: number) => void }>) {
   const { vehicle } = entry.detail
   const title = vehicleTitle(vehicle)
   return <View style={styles.column} accessibilityLabel={`Vehículo comparado: ${title}`}>
