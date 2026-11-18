@@ -135,7 +135,7 @@ describe('route guards', () => {
     apiMock.logoutRequest.mockResolvedValue(undefined)
 
     const view = await renderApp('/perfil')
-    await fireEvent.press(await screen.findByText('CERRAR SESIÓN'))
+    await fireEvent.press(await screen.findByRole('button', { name: 'CERRAR SESIÓN' }))
 
     expect(await screen.findByText('Ingresá a tu cuenta')).toBeOnTheScreen()
     await waitFor(() => expect(view.getPathname()).toBe('/login'))

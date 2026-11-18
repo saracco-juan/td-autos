@@ -1,6 +1,11 @@
 import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
+import PurchaseProgress from './PurchaseProgress'
+import { archivo } from '../../theme/archivo'
+import useReduceMotion from '../../lib/useReduceMotion'
 
 import Alert from '../../components/Alert'
 import Button from '../../components/Button'
@@ -34,6 +39,10 @@ function valuesFrom(user: User | null): ProfileValues {
 }
 
 export default function ProfileScreen() {
+  const router = useRouter()
+  const reduceMotion = useReduceMotion()
+  const [editing, setEditing] = useState(false)
+  const closeEditor = () => { if (!saving) setEditing(false) }
   const barSpace = useBuyerTabBarSpace()
   const { user, updateProfile, logout } = useAuth()
   const [values, setValues] = useState(() => valuesFrom(user))
@@ -98,11 +107,31 @@ export default function ProfileScreen() {
         <Text accessibilityRole="header" style={styles.title}>
           Perfil
         </Text>
-        <Text style={styles.subtitle}>Datos personales</Text>
+        <Text style={[styles.name, archivo(true)]}>{[user?.name, user?.apellido].filter(Boolean).join(' ') || 'Tu cuenta'}</Text>
+        <Text style={styles.subtitle}>{user?.email}</Text>
+        <Text style={styles.subtitle}>Comprador · {user?.perfil_completo ? 'Perfil completo' : 'Datos por completar'}</Text>
+        <Pressable accessibilityRole="button" onPress={() => { setValues(valuesFrom(user)); setErrors({}); setSaved(false); setSaveError(false); setEditing(true) }} style={styles.edit}>
+          <Ionicons name="pencil-outline" size={15} color={colors.textPrimary} /><Text style={archivo(true)}>Editar datos</Text>
+        </Pressable>
       </View>
       {user?.perfil_completo === false ? <Alert variant="warning">{INCOMPLETE_NOTICE}</Alert> : null}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>DATOS PERSONALES</Text>
+      <PurchaseProgress />
+      <View style={styles.header}>
+        <Text style={[styles.sectionTitle, archivo(true)]}>Seguí con tu búsqueda</Text>
+        <Pressable accessibilityRole="link" onPress={() => router.navigate('/diagnostico')} style={styles.route}>
+          <View style={styles.routeText}><Text style={archivo(true)}>Tu diagnóstico</Text><Text style={styles.subtitle}>{user?.tiene_diagnostico ? 'Realizado · Revisar preferencias' : 'Contanos qué auto necesitás'}</Text></View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        </Pressable>
+        <Pressable accessibilityRole="link" onPress={() => router.navigate('/favoritos')} style={styles.route}>
+          <View style={styles.routeText}><Text style={archivo(true)}>Tus favoritos</Text><Text style={styles.subtitle}>Volvé a los autos que guardaste</Text></View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        </Pressable>
+      </View>
+      <Modal visible={editing} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={closeEditor}>
+      <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <View style={styles.dialog} accessibilityViewIsModal>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.card}>
+        <Text accessibilityRole="header" style={[styles.sectionTitle, archivo(true)]}>Datos personales</Text>
         {saved ? <Alert variant="success">{SUCCESS_MESSAGE}</Alert> : null}
         {saveError ? <Alert variant="error">{SAVE_ERROR}</Alert> : null}
         <TextField
@@ -129,27 +158,35 @@ export default function ProfileScreen() {
           label="GUARDAR CAMBIOS"
           busyLabel="GUARDANDO…"
           busy={saving}
-          variant="primary"
+          variant="solidPrimary"
           onPress={() => void handleSave()}
         />
+        <Button label="CANCELAR" disabled={saving} onPress={closeEditor} />
+      </ScrollView>
       </View>
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>PRIVACIDAD Y SESIÓN</Text>
+      </KeyboardAvoidingView>
+      </Modal>
+      <View>
         {logoutError ? <Alert variant="error">{LOGOUT_ERROR}</Alert> : null}
-        <Button
-          label="CERRAR SESIÓN"
-          busyLabel="CERRANDO SESIÓN…"
-          busy={loggingOut}
-          onPress={() => void handleLogout()}
-        />
+        <Pressable accessibilityRole="button" accessibilityLabel="CERRAR SESIÓN" disabled={loggingOut}
+          accessibilityState={{ busy: loggingOut, disabled: loggingOut }} onPress={() => void handleLogout()} style={styles.edit}>
+          <Text style={{ color: colors.actionDanger }}>{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</Text>
+        </Pressable>
       </View>
     </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 24, gap: 20 },
+  name: { fontSize: 26, marginTop: 16, color: colors.textPrimary },
+  sectionTitle: { fontSize: 21, color: colors.textPrimary },
+  edit: { flexDirection: 'row', alignItems: 'center', gap: 7, minHeight: 44, alignSelf: 'flex-start' },
+  route: { flexDirection: 'row', gap: 12, alignItems: 'center', paddingVertical: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.borderDefault },
+  routeText: { flex: 1, gap: 5 },
+  overlay: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#241f1c66' },
+  dialog: { maxHeight: '90%', borderRadius: 14, overflow: 'hidden', backgroundColor: colors.surface },
+  screen: { flex: 1, backgroundColor: colors.surface },
+  content: { padding: 20, paddingBottom: 24, gap: 24 },
   header: { gap: 4 },
   title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },
   subtitle: { color: colors.textSecondary, fontSize: 14 },

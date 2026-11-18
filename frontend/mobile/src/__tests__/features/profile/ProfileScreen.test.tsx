@@ -7,6 +7,9 @@ import ProfileScreen from '../../../features/profile/ProfileScreen'
 import type { ProfileValues } from '../../../features/profile/types'
 import { HttpError, NetworkError } from '../../../lib/http'
 
+jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: jest.fn() }) }))
+jest.mock('../../../features/profile/PurchaseProgress', () => () => null)
+
 const COMPLETE: User = {
   id: 1,
   name: 'Martín',
@@ -57,16 +60,15 @@ const SUCCESS = 'Los cambios se guardaron.'
 describe('ProfileScreen', () => {
   it('shows the header, the personal data form and the account card', async () => {
     await renderScreen().rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     expect(screen.getByText('Perfil')).toBeOnTheScreen()
     expect(screen.getByText('Datos personales')).toBeOnTheScreen()
-    expect(screen.getByText('DATOS PERSONALES')).toBeOnTheScreen()
     expect(screen.getByLabelText('Nombre')).toHaveDisplayValue('Martín')
     expect(screen.getByLabelText('Apellido')).toHaveDisplayValue('Gómez')
     expect(screen.getByLabelText('Email')).toHaveDisplayValue('martin@example.com')
     expect(screen.getByLabelText('Email')).toHaveProp('editable', false)
     expect(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' })).toBeOnTheScreen()
-    expect(screen.getByText('PRIVACIDAD Y SESIÓN')).toBeOnTheScreen()
     expect(screen.queryByText(INCOMPLETE_NOTICE)).not.toBeOnTheScreen()
     expect(screen.queryByText('CAMBIAR CONTRASEÑA')).not.toBeOnTheScreen()
     expect(screen.queryByText('NOTIFICACIONES')).not.toBeOnTheScreen()
@@ -75,6 +77,7 @@ describe('ProfileScreen', () => {
   it('TC-09: completes an incomplete profile, then hides the notice and confirms the save', async () => {
     const { updateProfile, rendered } = renderScreen({ user: INCOMPLETE })
     await rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
     expect(screen.getByText(INCOMPLETE_NOTICE)).toBeOnTheScreen()
 
     await fireEvent.changeText(screen.getByLabelText('Apellido'), 'Gómez')
@@ -88,6 +91,7 @@ describe('ProfileScreen', () => {
   it('TC-10: saves edited values, trimmed, and keeps showing them', async () => {
     const { updateProfile, rendered } = renderScreen()
     await rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     await fireEvent.changeText(screen.getByLabelText('Nombre'), '  Martina ')
     await fireEvent.changeText(screen.getByLabelText('Apellido'), 'Pérez')
@@ -102,6 +106,7 @@ describe('ProfileScreen', () => {
   it('TC-11: does not send a blank required field and flags it', async () => {
     const { updateProfile, rendered } = renderScreen()
     await rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     await fireEvent.changeText(screen.getByLabelText('Apellido'), '   ')
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
@@ -113,6 +118,7 @@ describe('ProfileScreen', () => {
 
   it('clears a field error as soon as that field is edited', async () => {
     await renderScreen().rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
     await fireEvent.changeText(screen.getByLabelText('Apellido'), '')
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
     await screen.findByText('El apellido es obligatorio.')
@@ -126,6 +132,7 @@ describe('ProfileScreen', () => {
     const body = { errors: { apellido: ['El apellido no puede superar los 100 caracteres.'] } }
     const { rendered } = renderScreen({ save: () => Promise.reject(new HttpError(422, body)) })
     await rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
 
@@ -139,6 +146,7 @@ describe('ProfileScreen', () => {
   ])('shows a generic error when %s', async (_case, error) => {
     const { rendered } = renderScreen({ save: () => Promise.reject(error) })
     await rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
 
@@ -150,6 +158,7 @@ describe('ProfileScreen', () => {
     let finish: (user: User) => void = () => undefined
     const { rendered } = renderScreen({ save: () => new Promise<User>((resolve) => (finish = resolve)) })
     await rendered
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
 
@@ -174,7 +183,7 @@ describe('ProfileScreen', () => {
 
     await fireEvent.press(screen.getByRole('button', { name: 'CERRAR SESIÓN' }))
 
-    expect(await screen.findByText('CERRANDO SESIÓN…')).toBeOnTheScreen()
+    expect(await screen.findByText('Cerrando sesión…')).toBeOnTheScreen()
     expect(screen.getByRole('button', { name: 'CERRAR SESIÓN' })).toBeDisabled()
     finish()
   })
