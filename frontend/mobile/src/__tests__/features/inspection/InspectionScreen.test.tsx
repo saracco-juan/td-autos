@@ -24,7 +24,7 @@ const PROGRESS: InspectionProgress = { estado: 'en_curso', items_completados: []
 
 const button = (name: string) => screen.getByRole('button', { name })
 const checkbox = (name: RegExp) => screen.getByRole('checkbox', { name })
-const tab = (name: RegExp) => screen.getByRole('tab', { name })
+const section = (name: RegExp) => screen.getByRole('button', { name })
 
 async function open(response: InspectionResponse = inspectionResponse()) {
   api.fetchInspection.mockResolvedValue(response)
@@ -46,7 +46,7 @@ describe('InspectionScreen', () => {
     api.finishInspection.mockResolvedValue({ estado: 'completa', items_completados: ALL_CODES })
   })
 
-  it('opens from its deep link with the header, the step pills and the first step', async () => {
+  it('opens from its deep link with the header, the step headers and the first step', async () => {
     const view = await open()
 
     expect(view.getPathname()).toBe(URL)
@@ -54,8 +54,8 @@ describe('InspectionScreen', () => {
     expect(screen.getByText('Toyota Corolla XEI 2021')).toBeOnTheScreen()
     expect(screen.getByText('0 de 10 puntos revisados')).toBeOnTheScreen()
     expect(screen.getByRole('link', { name: 'Volver a la ficha' })).toBeOnTheScreen()
-    expect(tab(/^1\. Papeles del auto, 0 de 2/)).toBeSelected()
-    expect(tab(/^5\. Prueba de manejo, 0 de 2/)).toBeOnTheScreen()
+    expect(section(/^1\. Papeles del auto, 0 de 2/)).toHaveProp('accessibilityState', expect.objectContaining({ expanded: true }))
+    expect(section(/^5\. Prueba de manejo, 0 de 2/)).toBeOnTheScreen()
     expect(screen.getByText('Pedile al vendedor la cédula y el título del auto.')).toBeOnTheScreen()
     expect(checkbox(/^El titular coincide con el vendedor, crítico$/)).not.toBeChecked()
     expect(button('PASO SIGUIENTE')).toBeOnTheScreen()
@@ -90,18 +90,18 @@ describe('InspectionScreen', () => {
     expect(button('VOLVER A LA FICHA')).toBeOnTheScreen()
 
     await fireEvent.press(button('SEGUIR REVISANDO'))
-    expect(await screen.findByRole('tab', { name: /^1\. Papeles del auto/ })).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: /^1\. Papeles del auto/ })).toBeOnTheScreen()
   })
 
   it('TC-36: reopening keeps the marked items and opens the first step with pending items', async () => {
     await open(inspectionResponse({ estado: 'en_curso', items_completados: ['papeles_titular', 'papeles_vtv', 'exterior_pintura'] }))
 
     expect(screen.getByText('3 de 10 puntos revisados')).toBeOnTheScreen()
-    expect(tab(/^2\. Exterior, 1 de 2/)).toBeSelected()
+    expect(section(/^2\. Exterior, 1 de 2/)).toHaveProp('accessibilityState', expect.objectContaining({ expanded: true }))
     expect(checkbox(/^La pintura es pareja/)).toBeChecked()
     expect(checkbox(/^Las luces funcionan/)).not.toBeChecked()
 
-    await fireEvent.press(tab(/^1\. Papeles del auto/))
+    await fireEvent.press(section(/^1\. Papeles del auto/))
     expect(checkbox(/^El titular coincide/)).toBeChecked()
     expect(checkbox(/^La VTV está vigente/)).toBeChecked()
   })
@@ -119,7 +119,7 @@ describe('InspectionScreen', () => {
     expect(api.finishInspection).not.toHaveBeenCalled()
     expect(button('FINALIZAR IGUAL')).toBeOnTheScreen()
     expect(button('SEGUIR REVISANDO')).toBeOnTheScreen()
-    expect(tab(/^3\. Motor, 0 de 2, 1 crítico pendiente$/)).toBeOnTheScreen()
+    expect(section(/^3\. Motor, 0 de 2, 1 crítico pendiente$/)).toBeOnTheScreen()
     expect(screen.getByTestId('pending-dot-5')).toBeOnTheScreen()
     expect(screen.queryByTestId('pending-dot-1')).not.toBeOnTheScreen()
 
@@ -179,7 +179,7 @@ describe('InspectionScreen', () => {
     await fireEvent.press(button('FINALIZAR'))
 
     expect(await screen.findByText('No pudimos finalizar la inspección. Probá de nuevo.')).toBeOnTheScreen()
-    expect(tab(/^1\. Papeles del auto/)).toBeOnTheScreen()
+    expect(section(/^1\. Papeles del auto/)).toBeOnTheScreen()
     expect(screen.queryByText('Avance por paso')).not.toBeOnTheScreen()
   })
 
