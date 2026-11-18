@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { StyleSheet, Text } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { firstPendingStep } from '@shared/checklist/progress'
 import {
@@ -42,6 +42,7 @@ export default function TransferScreen() {
   const { authFetch } = useAuth()
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const [content, setContent] = useState<Content | null>(null)
+  const [showSource, setShowSource] = useState(false)
   const steps = toChecklistSteps(content?.stages ?? [])
   const flow = useChecklistFlow({
     steps,
@@ -96,12 +97,19 @@ export default function TransferScreen() {
       steps={steps}
       copy={COPY}
       header={header}
-      panelFooter={<Text style={styles.source}>{SOURCE_NOTE}</Text>}
+      panelFooter={<View>
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: showSource }}
+          onPress={() => setShowSource(value => !value)} style={styles.sourceToggle}>
+          <Text style={styles.source}>Sobre esta guía</Text>
+        </Pressable>
+        {showSource && <Text style={styles.source}>{SOURCE_NOTE}</Text>}
+      </View>}
       after={content.advisor === null ? null : <AdvisorCard whatsapp={content.advisor} />}
     />
   )
 }
 
 const styles = StyleSheet.create({
+  sourceToggle: { minHeight: 44, justifyContent: 'center' },
   source: { color: colors.textSecondary, fontSize: 12 },
 })
