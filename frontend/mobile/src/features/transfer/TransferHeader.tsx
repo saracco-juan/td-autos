@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native'
 
-import { EYEBROW, TITLE, completedCounter } from '@shared/checklist/transfer/copy'
+import { TITLE, completedCounter } from '@shared/checklist/transfer/copy'
+import ChecklistProgress from '../../components/checklist/ChecklistProgress'
+import { archivo } from '../../theme/archivo'
 import { colors } from '../../theme/tokens'
 
 type Props = {
@@ -8,24 +10,19 @@ type Props = {
   total: number
 }
 
-// Shared by the checklist and the summary: eyebrow, title and counter. Transferencia is a tab, so no back link.
+// Transferencia has its own tab and needs no back link.
 export default function TransferHeader({ completed, total }: Readonly<Props>) {
   return (
     <View style={styles.titles}>
-      <Text style={styles.eyebrow}>{EYEBROW}</Text>
-      <Text accessibilityRole="header" style={styles.title}>
+      <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>
         {TITLE}
       </Text>
-      <Text accessibilityLiveRegion="polite" style={styles.counter}>
-        {completedCounter(completed, total)}
-      </Text>
+      <ChecklistProgress completed={completed} total={total} label={completedCounter(completed, total)} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  titles: { gap: 8 },
-  eyebrow: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
+  titles: { gap: 8, paddingVertical: 16 },
   title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },
-  counter: { color: colors.textSecondary, fontSize: 14 },
 })

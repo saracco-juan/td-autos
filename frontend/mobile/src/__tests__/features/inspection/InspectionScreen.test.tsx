@@ -29,7 +29,7 @@ const tab = (name: RegExp) => screen.getByRole('tab', { name })
 async function open(response: InspectionResponse = inspectionResponse()) {
   api.fetchInspection.mockResolvedValue(response)
   const view = await renderApp(URL)
-  await screen.findByText('CHECKLIST DE INSPECCIÓN')
+  await screen.findByText('Inspección del auto')
   return view
 }
 

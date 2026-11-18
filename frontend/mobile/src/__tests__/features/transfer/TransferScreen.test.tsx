@@ -33,7 +33,7 @@ const tab = (name: RegExp) => screen.getByRole('tab', { name })
 async function open(response: TransferResponse = transferResponse()) {
   api.fetchTransfer.mockResolvedValue(response)
   const view = await renderApp(URL)
-  await screen.findByText('TRÁMITES')
+  await screen.findByText('Checklist de transferencia')
   return view
 }
 
