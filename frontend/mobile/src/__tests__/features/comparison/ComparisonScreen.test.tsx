@@ -67,7 +67,8 @@ describe('HU08 RF07 comparison loading and selection', () => {
     expect(detail).toHaveBeenCalledWith(mockRequest, 7)
     expect(detail).toHaveBeenCalledWith(mockRequest, 8)
     expect(cost.mock.calls).toEqual([[mockRequest, 7], [mockRequest, 8]])
-    await fireEvent.press(screen.getAllByText('VER CÁLCULO COMPLETO')[1])
+    await fireEvent.press(screen.getByRole('tab', { name: 'Costos estimados en ARS' }))
+    await fireEvent.press(screen.getAllByRole('link', { name: /^Ver cálculo completo de / })[1])
     expect(mockPush).toHaveBeenCalledWith('/vehiculos/8/costos')
   })
 
@@ -77,12 +78,12 @@ describe('HU08 RF07 comparison loading and selection', () => {
     await fireEvent.press(screen.getByText('Select 9'))
     expect(screen.getByText('La comparación admite exactamente dos vehículos.')).toBeOnTheScreen()
     expect(screen.getByLabelText('7,8')).toBeOnTheScreen()
-    await fireEvent.press(screen.getAllByText('QUITAR')[0])
-    expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
-    expect(screen.getByText('Conservás el vehículo 8.')).toBeOnTheScreen()
+    await fireEvent.press(screen.getAllByRole('button', { name: /^Cambiar / })[1])
+    expect(mockNavigate).toHaveBeenCalledWith('/recomendados')
+    expect(screen.getByLabelText('7')).toBeOnTheScreen()
     await fireEvent.press(screen.getByText('Select 9'))
     expect(await screen.findAllByLabelText(/^Vehículo comparado:/)).toHaveLength(2)
-    expect(screen.getByLabelText('8,9')).toBeOnTheScreen()
+    expect(screen.getByLabelText('7,9')).toBeOnTheScreen()
   })
 
   it('rejects an unavailable recommendation before loading its details or costs', async () => {
