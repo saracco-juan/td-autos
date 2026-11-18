@@ -32,3 +32,8 @@ export type InspectionResponse = InspectionProgress & {
   vehiculo: InspectionVehicle
   pasos: InspectionStep[]
 }
+
+export type InspectionIndex = {
+  pasos: InspectionResponse['pasos']
+  inspecciones: Omit<InspectionResponse, 'pasos'>[]
+}

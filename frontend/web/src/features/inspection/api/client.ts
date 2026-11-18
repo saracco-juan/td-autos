@@ -1,10 +1,7 @@
 import { apiFetch } from '../../../lib/http'
-import type { InspectionProgress, InspectionResponse } from '@shared/checklist/inspection/types'
+import type { InspectionProgress, InspectionResponse, InspectionIndex } from '@shared/checklist/inspection/types'
 
-export type InspectionIndex = {
-  pasos: InspectionResponse['pasos']
-  inspecciones: Omit<InspectionResponse, 'pasos'>[]
-}
+export type { InspectionIndex } from '@shared/checklist/inspection/types'
 
 export function fetchInspections(): Promise<InspectionIndex> {
   return apiFetch<InspectionIndex>('/api/inspecciones')
