@@ -6,6 +6,7 @@ Technical setup beyond the basics, split by topic so each note can be read on it
 | --- | --- |
 | Web feature folders, reusable action components and test organization. | [`web-architecture.md`](development/web-architecture.md) |
 | Profile checklist progress, authenticated read contract and resumption. | [`profile-progress.md`](development/profile-progress.md) |
+| Dealership owner profile, immutable identity and editable contact/responsible data. | [`dealer-profile.md`](development/dealer-profile.md) |
 | Dealership lead totals, periods and vehicle ranking (HU26 / RF31). | [`leads.md`](development/leads.md) |
 | HU26 dashboard reference adaptation and responsive visual QA. | [`hu26-dashboard-qa.md`](development/hu26-dashboard-qa.md) |
 | Confirmed dealership WhatsApp contact and local test data. | [`whatsapp-contact.md`](development/whatsapp-contact.md) |

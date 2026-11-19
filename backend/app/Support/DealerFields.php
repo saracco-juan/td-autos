@@ -8,6 +8,20 @@ namespace App\Support;
  */
 final class DealerFields
 {
+    public const PUBLIC_PHONE_MESSAGE = 'Ingresá un teléfono con código de país, de 8 a 15 dígitos, o dejalo vacío.';
+
+    public static function normalizePublicPhone(string $phone): ?string
+    {
+        $normalized = preg_replace('/[\s()+-]/u', '', $phone);
+
+        return $normalized === '' ? null : $normalized;
+    }
+
+    public static function publicPhoneRules(): array
+    {
+        return ['present', 'nullable', 'string', 'max:30', 'regex:/^[1-9][0-9]{7,14}$/D'];
+    }
+
     /**
      * @var array<string, array{string, string, int}>
      */
