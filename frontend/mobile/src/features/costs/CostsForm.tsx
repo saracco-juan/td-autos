@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   field: { gap: 4 },
   label: { color: colors.textPrimary, fontSize: 12, fontWeight: '500' },
   hint: { color: colors.textSecondary, fontSize: 12 },
-  trigger: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 12, borderWidth: 1, borderColor: colors.borderInput, borderRadius: radii.field, backgroundColor: colors.background },
+  trigger: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 12, borderWidth: 1, borderColor: colors.borderInput, borderRadius: radii.field, backgroundColor: colors.controlBackground },
   options: { marginTop: 6, padding: 4, borderWidth: 1, borderColor: colors.borderDefault, borderRadius: radii.field, backgroundColor: colors.surface },
   option: { minHeight: 44, justifyContent: 'center', padding: 10, borderRadius: 6 },
   checked: { backgroundColor: colors.surfaceRaised },

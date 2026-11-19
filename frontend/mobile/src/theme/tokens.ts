@@ -2,7 +2,8 @@
 export const colors = {
   red: '#e02404',
   charcoal: '#241f1c',
-  background: '#faf8f6',
+  background: '#ffffff',
+  controlBackground: '#faf8f6',
   surface: '#ffffff',
   surfaceRaised: '#f1ebe7',
   textPrimary: '#111111',
