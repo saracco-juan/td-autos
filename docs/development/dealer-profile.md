@@ -14,4 +14,10 @@ Public WhatsApp uses the same normalization and validation as `/api/concesionari
 
 ## Verification
 
+The web dashboard exposes this form at `/concesionaria/perfil` for active and pending dealerships. It reuses shared form controls and the pinned action bar, retains edits after failure, and confirms navigation while changes are unsaved. Name and email remain selectable read-only inputs. Save feedback resets the dirty state; Discard restores the last saved values without a request.
+
+For a manual smoke test, start Laravel and Vite as described in `docs/getting-started.md`, sign in as a dealership, and open Perfil. Change the location or responsible person, save, and reload: the values must persist. Edit again and select another tab: cancel keeps the edits, while leaving discards them. Name/email cannot be changed. An empty public WhatsApp disables that contact channel.
+
+From `frontend/web`, run `npm run test -- src/test/features/dealer/DealerProfilePage.test.tsx src/test/app/AppShell.test.tsx src/test/app/router.test.tsx`.
+
 From `backend`, run `php artisan test --filter='DealerProfileTest|DealerContactSettingsTest|AdminDealerDetailTest'`. Tests use isolated in-memory SQLite, covering ownership, pending access, immutable identity, validation, persisted edits and optional public contact. No schema migration or real data reset is required.

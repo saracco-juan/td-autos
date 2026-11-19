@@ -32,6 +32,7 @@ import FavoritesPage from '../features/favorites/pages/FavoritesPage'
 import LeadsPage from '../features/leads/pages/LeadsPage'
 import RootLayout from './RootLayout'
 import AppShell from './AppShell'
+import DealerProfilePage from '../features/dealer/pages/DealerProfilePage'
 import AuthLayout from './AuthLayout'
 
 export const routes: RouteObject[] = [
@@ -74,6 +75,7 @@ export const routes: RouteObject[] = [
                 children: [
                   { path: '/concesionaria', element: <Navigate to="/concesionaria/suscripcion" replace /> },
                   { path: '/concesionaria/leads', element: <LeadsPage /> },
+                  { path: '/concesionaria/perfil', element: <DealerProfilePage /> },
                   // Outside ActiveDealerRoute: a pending dealer has to reach it to send the first payment.
                   { path: '/concesionaria/suscripcion', element: <SubscriptionPage /> },
                   {

@@ -1,0 +1,25 @@
+.header { display: grid; gap: 12px; }
+.header p, .hint, .saveState { margin: 0; color: var(--text-secondary); line-height: 1.6; }
+.header p { font-size: 15px; }
+.form { display: grid; gap: 32px; }
+.section { min-width: 0; margin: 0; padding: 0; border: 0; }
+.section + .section { padding-top: 24px; border-top: 1px solid var(--border-default); }
+.section h2 { margin: 0 0 20px; font-size: 18px; font-weight: 600; }
+.section legend { float: left; width: 100%; padding: 0; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 32px; clear: both; }
+.fields input { min-width: 0; }
+.hint { font-size: 13px; }
+.section > .hint { margin-top: 12px; }
+input.readOnly { color: var(--text-secondary); background: var(--surface-raised); border-color: var(--border-default); }
+.feedback { min-height: 44px; }
+.feedback p { margin: 0; }
+.saveState { margin-right: auto; font-size: 13px; }
+.dialogActions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.dialogActions > button { flex: 1; }
+
+@media (max-width: 600px) {
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .saveState { flex-basis: 100%; }
+  .actions { flex-direction: column; }
+  .actions > button { flex: auto; min-height: 44px; }
+}

@@ -277,7 +277,7 @@ describe('AppShell', () => {
 
   it.each([
     ['buyer', ana, ['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia'], 'Perfil'],
-    ['dealer', marta, ['Suscripción', 'Métricas'], null],
+    ['dealer', marta, ['Suscripción', 'Métricas', 'Perfil'], null],
     ['administrator', { ...ana, rol: 'administrador' }, ['Concesionarias'], 'Administración'],
   ])('groups the %s links in the main navigation beside the logo and keeps the account items apart', (_, user, links, accountLink) => {
     mockAuth('authenticated', undefined, user as User)
@@ -476,10 +476,11 @@ describe('AppShell', () => {
       expect(within(banner).getByText('Autos del Sur')).toBeInTheDocument()
       expect(within(banner).queryByRole('link', { name: 'Autos del Sur' })).not.toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('type', 'button')
-      expect(banner.querySelectorAll('a')).toHaveLength(3)
+      expect(banner.querySelectorAll('a')).toHaveLength(4)
       // The menu toggle (visible on phones only) and the logout.
       expect(banner.querySelectorAll('button')).toHaveLength(2)
-      for (const name of ['Diagnóstico', 'Recomendados', 'Transferencia', 'Perfil', 'Inventario']) {
+      expect(screen.getByRole('link', { name: 'Perfil' })).toHaveAttribute('href', '/concesionaria/perfil')
+      for (const name of ['Diagnóstico', 'Recomendados', 'Transferencia', 'Inventario']) {
         expect(screen.queryByRole('link', { name })).not.toBeInTheDocument()
       }
     })
