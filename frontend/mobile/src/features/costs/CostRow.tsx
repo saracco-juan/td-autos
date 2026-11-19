@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderDefault,
     borderRadius: radii.field,
-    backgroundColor: colors.background,
+    backgroundColor: colors.controlBackground,
   },
   tipText: { color: colors.textSecondary, fontSize: 13 },
 })

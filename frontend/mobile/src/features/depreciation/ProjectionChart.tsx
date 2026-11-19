@@ -25,7 +25,7 @@ function YearChoice({ label, selected, before, after, first, last, onPress }: Re
       <Animated.View style={[styles.choice, { borderTopLeftRadius: first || selected || after ? 7 : 0,
         borderBottomLeftRadius: first || selected || after ? 7 : 0, borderTopRightRadius: last || selected || before ? 7 : 0,
         borderBottomRightRadius: last || selected || before ? 7 : 0,
-        backgroundColor: position.interpolate({ inputRange: [0, 1], outputRange: [colors.background, colors.red] }) }]}>
+        backgroundColor: position.interpolate({ inputRange: [0, 1], outputRange: [colors.controlBackground, colors.red] }) }]}>
         <Animated.Text style={[styles.choiceText, archivo(selected), { color: position.interpolate({ inputRange: [0, 1], outputRange: [colors.charcoal, colors.onColor] }) }]}>{label}</Animated.Text>
       </Animated.View>
     </Pressable>

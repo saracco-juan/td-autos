@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderInput,
     borderRadius: radii.field,
-    backgroundColor: colors.background,
+    backgroundColor: colors.controlBackground,
   },
   readOnlyField: { borderColor: colors.borderDefault },
   invalid: { borderColor: colors.red },
