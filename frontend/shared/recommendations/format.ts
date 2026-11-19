@@ -32,7 +32,7 @@ export function equivalentPriceLabel(result: Recommendation): string {
   return equivalent === null ? 'Equivalente en USD no disponible.' : `Equivalente: ${formatPrice(equivalent, currency)}`
 }
 
-// One message per backend warning code, in a fixed order.
+// Compatibility warnings in a fixed order; refresh metadata stays internal.
 export function warningMessages(result: Recommendation): string[] {
   const messages: string[] = []
   if (result.warnings.includes('budget_exceeded')) {
@@ -43,9 +43,6 @@ export function warningMessages(result: Recommendation): string[] {
     messages.push(result.resale?.estimate
       ? 'Hay proyección de valor, pero faltan datos de actividad del mercado para evaluar la reventa. Compatibilidad parcial: descuento de 10 puntos por falta de datos, no por mala reventa.'
       : 'Sin estimación de reventa: compatibilidad parcial sobre los factores conocidos, con descuento de 10 puntos por falta de datos, no por mala reventa.')
-  }
-  if (result.warnings.includes('resale_stale')) {
-    messages.push('Reventa calculada con la última evidencia disponible; actualización pendiente.')
   }
   return messages
 }

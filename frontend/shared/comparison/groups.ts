@@ -23,7 +23,6 @@ function diagnosisRows(recommendation: ComparisonEntry['recommendation']): Speci
   if (warnings.has('budget_exceeded')) warningMessages.push('Supera tu presupuesto.')
   if (warnings.has('body_mismatch')) warningMessages.push('No coincide con tu carrocería.')
   if (warnings.has('resale_unavailable')) warningMessages.push('Reventa no disponible: compatibilidad parcial.')
-  if (warnings.has('resale_stale')) warningMessages.push('Reventa pendiente de actualización.')
 
   return [
     { label: 'Compatibilidad con tu uso', value: compatibility ? score(compatibility.usage) : unavailable },

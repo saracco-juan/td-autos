@@ -33,14 +33,14 @@ describe('HU05 recommendation formatting shared by web and mobile', () => {
     expect(budgetPenaltyNote(result)).toMatch(/^Descuento por presupuesto: 5 puntos\./)
   })
 
-  it('turns every warning code into its message', () => {
+  it('shows compatibility warnings without internal refresh notices', () => {
     expect(warningMessages(result)).toEqual([])
+    expect(warningMessages({ ...result, warnings: ['resale_stale'] })).toEqual([])
     expect(warningMessages({ ...result, warnings: ['resale_stale', 'body_mismatch', 'budget_exceeded', 'resale_unavailable'] }))
       .toEqual([
         'Supera tu presupuesto en 2,5%.',
         'No coincide con la carrocería elegida.',
         expect.stringMatching(/^Sin estimación de reventa/),
-        expect.stringMatching(/^Reventa calculada/),
       ])
   })
 
