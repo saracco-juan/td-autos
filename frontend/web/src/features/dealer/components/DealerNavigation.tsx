@@ -18,5 +18,8 @@ export default function DealerNavigation({ user, className, showIcons = false }:
     <NavLink to="/concesionaria/leads" className={className}>
       {showIcons ? <DashboardNavIcon name="metrics" /> : null}Métricas
     </NavLink>
+    <NavLink to="/concesionaria/perfil" className={className}>
+      {showIcons ? <DashboardNavIcon name="profile" /> : null}Perfil
+    </NavLink>
   </>
 }

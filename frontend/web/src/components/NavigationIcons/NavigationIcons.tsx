@@ -33,6 +33,7 @@ const dashboardPaths = {
   verification: 'M12 3 4 6v5c0 5 8 10 8 10s8-5 8-10V6l-8-3ZM8 12l3 3 5-6',
   inventory: 'm5 9 2-5h10l2 5M5 9h14l2 3v6H3v-6l2-3ZM6 18v3M18 18v3M6 13h2M16 13h2',
   metrics: 'M4 3v17h17M8 15v-4M13 15V6M18 15V9',
+  profile: 'M20 21v-2a7 7 0 0 0-14 0v2M13 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
 }
 
 export function DashboardNavIcon({ name }: Readonly<{ name: keyof typeof dashboardPaths }>) {

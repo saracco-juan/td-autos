@@ -594,3 +594,9 @@ Inventory and the administrator dealership directory share `components/Table/Tab
 Each screen supplies column headings/widths, rows, stable row keys and its row renderer.
 The shared component owns semantic table structure; feature rows retain their actions,
 and the existing scroll regions and result pagination remain separate components.
+
+## Dealership profile (2026-11-19)
+
+The Perfil tab uses the existing dealership shell, Field/TextField, Button, FlowLayout and Dialog. Identity is read-only; contact/location and responsible details use two columns above 600px and one below. Unsaved changes are explicit, discard restores saved values, and server errors retain edits with focus on the first error only after submission. No new motion or form framework is introduced.
+
+Figma synchronization awaits approval: High v3 contact frame `2525:11237` shows the previous contact-only layout. Web should gain the Perfil tab, read-only commercial name/email, editable location and responsible details, and shared save/discard controls. The native mobile dealership profile frame is not implemented here; the same field-access decision remains pending there. No Figma nodes were edited.

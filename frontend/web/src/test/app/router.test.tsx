@@ -722,7 +722,7 @@ describe('app routes', () => {
       expect(router.state.location.pathname).toBe('/concesionaria/suscripcion')
     })
 
-    it.each(['/concesionaria', '/concesionaria/inventario'])('sends a buyer opening the dealer route %s to /', async (path) => {
+    it.each(['/concesionaria', '/concesionaria/inventario', '/concesionaria/perfil'])('sends a buyer opening the dealer route %s to /', async (path) => {
       const router = renderAt(path)
 
       await waitFor(() => expect(screen.getByRole('heading', { name: 'Tu próximo auto. Tu próxima historia.' })).toBeInTheDocument())
@@ -730,9 +730,9 @@ describe('app routes', () => {
       expect(screen.queryByRole('heading', { name: 'Verificación de suscripción' })).not.toBeInTheDocument()
     })
 
-    it('redirects a guest opening /concesionaria to the login screen', async () => {
+    it.each(['/concesionaria', '/concesionaria/perfil'])('redirects a guest opening %s to the login screen', async (path) => {
       asGuest()
-      const router = renderAt('/concesionaria')
+      const router = renderAt(path)
 
       expect(await screen.findByRole('heading', { name: 'Ingresá a tu cuenta' })).toBeInTheDocument()
       expect(router.state.location.pathname).toBe('/login')
