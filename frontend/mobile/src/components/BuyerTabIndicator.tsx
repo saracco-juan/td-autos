@@ -49,9 +49,6 @@ function TabGlyph({ icon, selected, reduceMotion }: { icon: Icon; selected: bool
   return (
     <Animated.View style={[styles.glyph, { transform: [{ translateY: lift }] }]}>
       <Ionicons name={icon} size={22} color={colors.onColor} />
-      <Animated.View style={[styles.tint, { opacity: focus }]}>
-        <Ionicons name={icon} size={22} color={colors.red} />
-      </Animated.View>
     </Animated.View>
   )
 }
@@ -102,10 +99,8 @@ const styles = StyleSheet.create({
   surface: { backgroundColor: PILL_COLOR },
   icons: { position: 'absolute', left: 0, right: 0, top: 20, height: 38, flexDirection: 'row' },
   glyph: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  tint: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   disc: {
     position: 'absolute', top: 1, left: -19, width: 38, height: 38, borderRadius: 19,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: colors.borderDefault,
+    backgroundColor: PILL_COLOR,
   },
 })
