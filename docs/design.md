@@ -228,6 +228,10 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## HU15-MOBILE depreciation (2026-10-30)
 
+- Mobile redesign (2026-11-18): white surface, Archivo and BackLink. The wide red
+  gradient chart reveals once and selects supplied years by touch or horizontal
+  drag. Compact year controls detach like the web header; calculation references
+  expand below. Respect reduced motion; keep the full value table and caveats.
 - High v3 mobile `2373:10051` (full content `2537:11653`) and insufficient-data
   `2537:11568` are approved. VER DEPRECIACIÓN in the vehicle sheet opens
   `/vehiculos/{id}/depreciacion`; Volver a la ficha returns to the same vehicle.

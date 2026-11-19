@@ -118,7 +118,7 @@ export default function ProfileScreen() {
       <PurchaseProgress />
       <View style={styles.header}>
         <Text style={[styles.sectionTitle, archivo(true)]}>Seguí con tu búsqueda</Text>
-        <Pressable accessibilityRole="link" onPress={() => router.navigate('/diagnostico')} style={styles.route}>
+        <Pressable accessibilityRole="link" onPress={() => router.navigate('/')} style={styles.route}>
           <View style={styles.routeText}><Text style={archivo(true)}>Tu diagnóstico</Text><Text style={styles.subtitle}>{user?.tiene_diagnostico ? 'Realizado · Revisar preferencias' : 'Contanos qué auto necesitás'}</Text></View>
           <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
         </Pressable>

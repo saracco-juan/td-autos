@@ -40,8 +40,8 @@ it('TC-40: opens depreciation from the sheet and returns to that same vehicle', 
   const view = await renderApp('/vehiculos/7')
   await fireEvent.press(await screen.findByRole('button', { name: 'VER DEPRECIACIÓN' }))
   await waitFor(() => expect(view.getPathname()).toBe(endpoint))
-  expect(await screen.findByText('DEPRECIACIÓN Y REVENTA')).toBeOnTheScreen()
-  expect(screen.getByRole('header', { name: 'Toyota Corolla XEI 2021' })).toBeOnTheScreen()
+  expect(await screen.findByText('Depreciación')).toBeOnTheScreen()
+  expect(screen.getByText('Toyota Corolla XEI 2021')).toBeOnTheScreen()
   expect(screen.getByText('US$ 11.810 · 59%')).toBeOnTheScreen()
   expect(service.fetchDepreciation).toHaveBeenCalledWith(expect.any(Function), 7)
   for (const tab of ['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia', 'Perfil']) {
@@ -70,7 +70,7 @@ it('shows the local loading state until the response is available', async () => 
   service.fetchDepreciation.mockReturnValue(new Promise(() => {}))
   await renderApp(endpoint)
   expect(await screen.findByLabelText('Cargando')).toBeOnTheScreen()
-  expect(screen.queryByText('VALOR PROYECTADO')).not.toBeOnTheScreen()
+  expect(screen.queryByText('Valor proyectado')).not.toBeOnTheScreen()
 })
 
 it.each([
@@ -81,7 +81,7 @@ it.each([
   await renderApp(endpoint)
   expect(await screen.findByText(title)).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('button', { name: 'REINTENTAR' }))
-  expect(await screen.findByText('VALOR PROYECTADO')).toBeOnTheScreen()
+  expect(await screen.findByText('Valor proyectado')).toBeOnTheScreen()
   expect(service.fetchDepreciation).toHaveBeenCalledTimes(2)
 })
 
@@ -89,7 +89,7 @@ it('does not show stale vehicle data when the listing is gone', async () => {
   service.fetchDepreciation.mockRejectedValue(new HttpError(404, {}))
   await renderApp(endpoint)
   expect(await screen.findByText('Esta publicación ya no está disponible.')).toBeOnTheScreen()
-  expect(screen.queryByText('VALOR PROYECTADO')).not.toBeOnTheScreen()
+  expect(screen.queryByText('Valor proyectado')).not.toBeOnTheScreen()
   expect(screen.queryByRole('button', { name: 'REINTENTAR' })).not.toBeOnTheScreen()
 })
 
@@ -108,8 +108,8 @@ it('ignores a late response after switching to another vehicle', async () => {
   await renderApp(endpoint)
   await screen.findByLabelText('Cargando')
   await act(async () => router.replace('/vehiculos/8/depreciacion'))
-  expect(await screen.findByRole('header', { name: /Yaris/ })).toBeOnTheScreen()
+  expect(await screen.findByText(/Yaris/)).toBeOnTheScreen()
   await act(async () => resolveFirst(depreciation()))
-  expect(screen.getByRole('header', { name: /Yaris/ })).toBeOnTheScreen()
-  expect(screen.queryByRole('header', { name: /Corolla/ })).not.toBeOnTheScreen()
+  expect(screen.getByText(/Yaris/)).toBeOnTheScreen()
+  expect(screen.queryByText(/Corolla/)).not.toBeOnTheScreen()
 })
