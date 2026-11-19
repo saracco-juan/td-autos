@@ -22,6 +22,8 @@ const KM_MIN = 'Revisá los kilómetros: tienen que ser un número entero mayor 
 const KM_MAX = 'Revisá los kilómetros: el máximo es 20.000 por mes.'
 
 const monthly = () => within(screen.getByTestId('costs-monthly'))
+const openSettings = async () => fireEvent.press(await screen.findByRole('button', { name: 'Ajustar estimación' }))
+const openCoverage = async () => fireEvent.press(screen.getByRole('button', { name: 'Cobertura del seguro' }))
 const purchase = () => within(screen.getByTestId('costs-purchase'))
 const withoutFuel = (data: OwnershipCosts, fuel: OwnershipCosts['vehicle']['fuel'] = data.vehicle.fuel): OwnershipCosts => ({
   ...data,
@@ -42,24 +44,23 @@ describe('CostsScreen', () => {
   it('S1 / S3: opens already computed and shows what it takes to keep and to buy the vehicle', async () => {
     const view = await renderApp(URL)
 
-    expect(await screen.findByRole('header', { name: 'Toyota Corolla XEI 2022' })).toBeOnTheScreen()
+    expect(await screen.findByRole('header', { name: 'Calculadora de costos' })).toBeOnTheScreen()
+    expect(screen.getByText('Toyota Corolla XEI 2022')).toBeOnTheScreen()
     expect(view.getPathname()).toBe(URL)
     expect(api.fetchCosts).toHaveBeenCalledWith(expect.any(Function), 7)
-    expect(screen.getByText('COSTO DE POSESIÓN')).toBeOnTheScreen()
-    expect(screen.getByText('Cuánto te costaría comprarlo y mantenerlo, más allá del precio publicado.')).toBeOnTheScreen()
 
-    expect(monthly().getByText('PARA MANTENERLO')).toBeOnTheScreen()
+    expect(monthly().getByText('Desglose de mantenimiento')).toBeOnTheScreen()
     expect(monthly().getByText('$ 120.000 por mes')).toBeOnTheScreen()
     expect(monthly().getByText('$ 96.000 por mes')).toBeOnTheScreen()
     expect(monthly().getByText('$ 20.000 por mes')).toBeOnTheScreen()
-    expect(monthly().getByText('Total por mes')).toBeOnTheScreen()
-    expect(monthly().getByText('$ 236.000')).toBeOnTheScreen()
+    expect(monthly().getByText('/ mes')).toBeOnTheScreen()
+    expect(monthly().getByText(/\$ 236\.000/)).toBeOnTheScreen()
     expect(monthly().getByText('Service (por año)')).toBeOnTheScreen()
     expect(monthly().getByText('$ 972.000')).toBeOnTheScreen()
     expect(monthly().getByText('Total por año')).toBeOnTheScreen()
     expect(monthly().getByText('$ 3.804.000')).toBeOnTheScreen()
 
-    expect(purchase().getByText('PARA COMPRARLO')).toBeOnTheScreen()
+    expect(purchase().getByText('Para comprarlo')).toBeOnTheScreen()
     expect(purchase().getByText('$ 20.700.000')).toBeOnTheScreen()
     expect(purchase().getByText('Precio más transferencia')).toBeOnTheScreen()
     expect(purchase().getByText('Precio publicado')).toBeOnTheScreen()
@@ -73,6 +74,8 @@ describe('CostsScreen', () => {
 
   it('prefills the form from the diagnosis, without a hint under the km', async () => {
     await renderApp(URL)
+    await openSettings()
+    await openCoverage()
 
     expect(await screen.findByLabelText('Kilómetros por mes')).toHaveDisplayValue('1500')
     expect(screen.getByRole('radio', { name: 'Terceros completo' })).toBeChecked()
@@ -80,16 +83,34 @@ describe('CostsScreen', () => {
     expect(screen.queryByText('Usamos un valor estimado.')).not.toBeOnTheScreen()
   })
 
+  it('opens coverage below its trigger, closes on selection and discards cancelled drafts', async () => {
+    await renderApp(URL)
+    await openSettings()
+    expect(screen.queryByRole('radio')).not.toBeOnTheScreen()
+    await openCoverage()
+    await fireEvent.press(screen.getByRole('radio', { name: 'Todo riesgo' }))
+    expect(screen.getByRole('button', { name: 'Cobertura del seguro' })).toBeCollapsed()
+    await fireEvent.changeText(screen.getByLabelText('Kilómetros por mes'), '2500')
+    await fireEvent.press(screen.getByRole('button', { name: 'CANCELAR' }))
+    expect(screen.queryByLabelText('Kilómetros por mes')).not.toBeOnTheScreen()
+    expect(api.fetchCosts).toHaveBeenCalledTimes(1)
+    await openSettings()
+    expect(screen.getByLabelText('Kilómetros por mes')).toHaveDisplayValue('1500')
+    await openCoverage()
+    expect(screen.getByRole('radio', { name: 'Terceros completo' })).toBeChecked()
+  })
+
   it('explains an estimated default km value', async () => {
     api.fetchCosts.mockResolvedValue({ ...costs(), inputs: { ...costs().inputs, km_source: 'default' } })
     await renderApp(URL)
 
+    await openSettings()
     expect(await screen.findByText('Usamos un valor estimado.')).toBeOnTheScreen()
   })
 
   it('S4: opens each explanation on tap with this vehicle numbers and closes it on a second tap', async () => {
     await renderApp(URL)
-    await screen.findByText('PARA MANTENERLO')
+    await screen.findByText('Desglose de mantenimiento')
 
     const fuel = screen.getByRole('button', { name: 'Cómo calculamos Combustible' })
     expect(fuel).toBeCollapsed()
@@ -107,7 +128,7 @@ describe('CostsScreen', () => {
 
   it('S4: explains insurance, patente, service and transfer', async () => {
     await renderApp(URL)
-    await screen.findByText('PARA MANTENERLO')
+    await screen.findByText('Desglose de mantenimiento')
 
     const open = (name: string) => fireEvent.press(screen.getByRole('button', { name: `Cómo calculamos ${name}` }))
     await open('Seguro')
@@ -123,7 +144,7 @@ describe('CostsScreen', () => {
     await open('Transferencia')
     expect(screen.getByText(/Arancel del registro \(1%\) \+ sellos de Córdoba \(2%\)/)).toBeOnTheScreen()
 
-    expect(monthly().getAllByRole('button')).toHaveLength(4)
+    expect(monthly().getAllByRole('button')).toHaveLength(5)
     expect(purchase().getAllByRole('button')).toHaveLength(1)
     expect(screen.queryByRole('button', { name: /Precio publicado/ })).not.toBeOnTheScreen()
   })
@@ -146,7 +167,7 @@ describe('CostsScreen', () => {
     expect(await screen.findByText('No podemos estimarlo')).toBeOnTheScreen()
     expect(screen.queryByText('Próximamente')).not.toBeOnTheScreen()
     expect(screen.getByText('El total no incluye el combustible.')).toBeOnTheScreen()
-    expect(monthly().getByText('$ 112.000')).toBeOnTheScreen()
+    expect(monthly().getByText(/\$ 112\.000/)).toBeOnTheScreen()
     expect(monthly().getByText('$ 972.000')).toBeOnTheScreen()
   })
 
@@ -180,7 +201,7 @@ describe('CostsScreen', () => {
 
   it('does not show the USD note for a price in pesos', async () => {
     await renderApp(URL)
-    await screen.findByText('PARA COMPRARLO')
+    await screen.findByText('Para comprarlo')
 
     expect(screen.queryByText(/Publicado en US\$/)).not.toBeOnTheScreen()
   })
@@ -211,6 +232,8 @@ describe('CostsScreen', () => {
 
   it('S3: recalculates with the km and the coverage the user chose, loading only the results', async () => {
     await renderApp(URL)
+    await openSettings()
+    await openCoverage()
     const km = await screen.findByLabelText('Kilómetros por mes')
     await fireEvent.changeText(km, '2500')
     await fireEvent.press(screen.getByRole('radio', { name: 'Todo riesgo' }))
@@ -220,13 +243,13 @@ describe('CostsScreen', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'RECALCULAR' }))
 
     expect(api.fetchCosts).toHaveBeenLastCalledWith(expect.any(Function), 7, { km: 2500, coverage: 'todo_riesgo' })
-    expect(screen.getByLabelText('Cargando')).toBeOnTheScreen()
+    expect(screen.getByRole('button', { name: 'RECALCULAR' })).toBeDisabled()
     expect(screen.getByLabelText('Kilómetros por mes')).toBeOnTheScreen()
-    expect(screen.queryByText('PARA MANTENERLO')).not.toBeOnTheScreen()
+    expect(screen.getByText('Desglose de mantenimiento')).toBeOnTheScreen()
     const data = costs()
     resolve({ ...data, inputs: { km_per_month: 2500, km_source: 'usuario', coverage: 'todo_riesgo' }, monthly: { ...data.monthly, total: 400000 } })
-    expect(await within(await screen.findByTestId('costs-monthly')).findByText('$ 400.000')).toBeOnTheScreen()
-    expect(screen.queryByLabelText('Cargando')).not.toBeOnTheScreen()
+    expect(await within(await screen.findByTestId('costs-monthly')).findByText(/\$ 400\.000/)).toBeOnTheScreen()
+    expect(screen.queryByLabelText('Kilómetros por mes')).not.toBeOnTheScreen()
   })
 
   it.each([
@@ -236,17 +259,19 @@ describe('CostsScreen', () => {
     ['20001', KM_MAX],
   ])('S2: rejects km "%s" under the field, without calling the API and keeping the result', async (value, message) => {
     await renderApp(URL)
+    await openSettings()
     await fireEvent.changeText(await screen.findByLabelText('Kilómetros por mes'), value)
 
     await fireEvent.press(screen.getByRole('button', { name: 'RECALCULAR' }))
 
     expect(screen.getByText(message)).toBeOnTheScreen()
     expect(api.fetchCosts).toHaveBeenCalledTimes(1)
-    expect(monthly().getByText('$ 236.000')).toBeOnTheScreen()
+    expect(monthly().getByText(/\$ 236\.000/)).toBeOnTheScreen()
   })
 
   it('shows the server validation messages under the fields and keeps the previous result', async () => {
     await renderApp(URL)
+    await openSettings()
     await screen.findByLabelText('Kilómetros por mes')
     api.fetchCosts.mockRejectedValueOnce(
       new HttpError(422, { errors: { km: [KM_MAX], cobertura: ['Elegí una cobertura de la lista.'] } }),
@@ -256,18 +281,19 @@ describe('CostsScreen', () => {
 
     expect(await screen.findByText(KM_MAX)).toBeOnTheScreen()
     expect(screen.getByText('Elegí una cobertura de la lista.')).toBeOnTheScreen()
-    expect(monthly().getByText('$ 236.000')).toBeOnTheScreen()
+    expect(monthly().getByText(/\$ 236\.000/)).toBeOnTheScreen()
   })
 
   it('keeps the previous result and shows a message when a recalculation fails', async () => {
     await renderApp(URL)
+    await openSettings()
     await screen.findByLabelText('Kilómetros por mes')
     api.fetchCosts.mockRejectedValueOnce(new NetworkError(new Error('offline')))
 
     await fireEvent.press(screen.getByRole('button', { name: 'RECALCULAR' }))
 
     expect(await screen.findByText('No pudimos calcular los costos. Intentá de nuevo en unos minutos.')).toBeOnTheScreen()
-    expect(monthly().getByText('$ 236.000')).toBeOnTheScreen()
+    expect(monthly().getByText(/\$ 236\.000/)).toBeOnTheScreen()
     expect(screen.queryByLabelText('Cargando')).not.toBeOnTheScreen()
   })
 
@@ -297,7 +323,7 @@ describe('CostsScreen', () => {
     expect(await screen.findByText(title)).toBeOnTheScreen()
     await fireEvent.press(screen.getByRole('button', { name: 'REINTENTAR' }))
 
-    expect(await screen.findByText('PARA MANTENERLO')).toBeOnTheScreen()
+    expect(await screen.findByText('Desglose de mantenimiento')).toBeOnTheScreen()
     expect(api.fetchCosts).toHaveBeenCalledTimes(2)
   })
 
@@ -306,6 +332,6 @@ describe('CostsScreen', () => {
     await renderApp(URL)
 
     expect(await screen.findByLabelText('Cargando')).toBeOnTheScreen()
-    await waitFor(() => expect(screen.queryByText('PARA MANTENERLO')).not.toBeOnTheScreen())
+    await waitFor(() => expect(screen.queryByText('Desglose de mantenimiento')).not.toBeOnTheScreen())
   })
 })

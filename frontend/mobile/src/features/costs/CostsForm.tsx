@@ -1,8 +1,11 @@
+import { Ionicons } from '@expo/vector-icons'
+import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import Button from '../../components/Button'
 import TextField from '../../components/TextField'
-import { colors, radii, shadows } from '../../theme/tokens'
+import { colors, radii } from '../../theme/tokens'
+import { archivo } from '../../theme/archivo'
 import type { Coverage } from '@shared/costs/types'
 
 export type FieldErrors = { km?: string[]; coverage?: string[] }
@@ -16,16 +19,16 @@ type Props = {
   onKmChange: (value: string) => void
   onCoverageChange: (value: Coverage) => void
   onSubmit: () => void
+  onCancel: () => void
 }
 
-// React Native has no native select: the coverage is a two-option segmented choice, like the transmission
-// in the filters sheet (Figma 06 draws a select; see docs/design.md "HU10-MOBILE calculator").
 const COVERAGES: readonly { value: Coverage; label: string }[] = [
   { value: 'terceros_completo', label: 'Terceros completo' },
   { value: 'todo_riesgo', label: 'Todo riesgo' },
 ]
 
-export default function CostsForm({ km, coverage, kmHint, errors, busy, onKmChange, onCoverageChange, onSubmit }: Readonly<Props>) {
+export default function CostsForm({ km, coverage, kmHint, errors, busy, onKmChange, onCoverageChange, onSubmit, onCancel }: Readonly<Props>) {
+  const [expanded, setExpanded] = useState(false)
   return (
     <View style={styles.card}>
       <TextField
@@ -33,12 +36,19 @@ export default function CostsForm({ km, coverage, kmHint, errors, busy, onKmChan
         keyboardType="number-pad"
         value={km}
         errors={errors.km}
+        readOnly={busy}
         onChangeText={onKmChange}
         hint={kmHint ? <Text style={styles.hint}>Usamos un valor estimado.</Text> : undefined}
       />
       <View style={styles.field}>
-        <Text style={styles.label}>Cobertura del seguro</Text>
-        <View accessibilityRole="radiogroup" style={styles.options}>
+        <Text style={[styles.label, archivo()]}>Cobertura del seguro</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Cobertura del seguro"
+          accessibilityState={{ expanded, disabled: busy }} disabled={busy} onPress={() => setExpanded(!expanded)}
+          style={({ pressed }) => [styles.trigger, pressed && styles.checked]}>
+          <Text style={[styles.optionText, archivo()]}>{COVERAGES.find((item) => item.value === coverage)?.label}</Text>
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.charcoal} />
+        </Pressable>
+        {expanded ? <View accessibilityRole="radiogroup" style={styles.options}>
           {COVERAGES.map(({ value, label }) => {
             const checked = coverage === value
             return (
@@ -46,52 +56,41 @@ export default function CostsForm({ km, coverage, kmHint, errors, busy, onKmChan
                 key={value}
                 accessibilityRole="radio"
                 accessibilityLabel={label}
-                accessibilityState={{ checked }}
-                onPress={() => onCoverageChange(value)}
+                accessibilityState={{ checked, disabled: busy }}
+                disabled={busy}
+                onPress={() => { onCoverageChange(value); setExpanded(false) }}
                 style={[styles.option, checked && styles.checked]}
               >
-                <Text style={[styles.optionText, checked && styles.checkedText]}>{label}</Text>
+                <Text style={[styles.optionText, archivo(checked)]}>{label}</Text>
               </Pressable>
             )
           })}
-        </View>
+        </View> : null}
         {errors.coverage?.map((message) => (
           <Text key={message} style={styles.error}>
             {message}
           </Text>
         ))}
       </View>
-      <Button label="RECALCULAR" variant="primary" busy={busy} onPress={onSubmit} />
+      <View style={styles.actions}>
+        <View style={styles.action}><Button label="CANCELAR" disabled={busy} onPress={onCancel} /></View>
+        <View style={styles.action}><Button label="RECALCULAR" variant="primary" busy={busy} onPress={onSubmit} /></View>
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  card: {
-    gap: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.card,
-    backgroundColor: colors.surface,
-    ...shadows.card,
-  },
+  card: { gap: 16 },
+  actions: { flexDirection: 'row', gap: 12 },
+  action: { flex: 1, paddingVertical: 2 },
   field: { gap: 4 },
   label: { color: colors.textPrimary, fontSize: 12, fontWeight: '500' },
   hint: { color: colors.textSecondary, fontSize: 12 },
-  options: { flexDirection: 'row', gap: 8 },
-  option: {
-    flex: 1,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderInput,
-    borderRadius: radii.field,
-    backgroundColor: colors.background,
-  },
-  checked: { borderWidth: 2, borderColor: colors.charcoal, backgroundColor: colors.surface },
-  optionText: { color: colors.textPrimary, fontSize: 14 },
-  checkedText: { fontWeight: '600' },
+  trigger: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: 12, borderWidth: 1, borderColor: colors.borderInput, borderRadius: radii.field, backgroundColor: colors.background },
+  options: { marginTop: 6, padding: 4, borderWidth: 1, borderColor: colors.borderDefault, borderRadius: radii.field, backgroundColor: colors.surface },
+  option: { minHeight: 44, justifyContent: 'center', padding: 10, borderRadius: 6 },
+  checked: { backgroundColor: colors.surfaceRaised },
+  optionText: { flexShrink: 1, color: colors.charcoal, fontSize: 14 },
   error: { color: colors.red, fontSize: 12 },
 })

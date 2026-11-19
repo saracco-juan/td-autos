@@ -96,7 +96,7 @@ function Detail({ id, fromFavorites }: Readonly<{ id: number | null; fromFavorit
     if (!data) return
     const selected = ids.includes(data.vehicle.id)
     if (!selected) toggle(data.vehicle.id)
-    if (selected || ids.length < 2) router.push('/comparar')
+    if (selected || ids.length < 2) router.navigate('/recomendados')
   }
 
   return (

@@ -1,10 +1,12 @@
 import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import Alert from '../../components/Alert'
-import BackChip from '../../components/BackChip'
+import BackLink from '../../components/BackLink'
+import { archivo } from '../../theme/archivo'
+import useReduceMotion from '../../lib/useReduceMotion'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
 import { HttpError, NetworkError } from '../../lib/http'
@@ -41,6 +43,8 @@ export default function CostsScreen({ rawId }: Readonly<{ rawId: string | undefi
 }
 
 function Costs({ id }: Readonly<{ id: number | null }>) {
+  const [editing, setEditing] = useState(false)
+  const reduceMotion = useReduceMotion()
   const barSpace = useBuyerTabBarSpace()
   const { authFetch } = useAuth()
   const router = useRouter()
@@ -64,6 +68,7 @@ function Costs({ id }: Readonly<{ id: number | null }>) {
           setKm(String(data.inputs.km_per_month))
           setCoverage(data.inputs.coverage)
           setRecalculating(false)
+          setEditing(false)
         })
         .catch((error: unknown) => {
           if (request !== latest.current) return
@@ -115,9 +120,24 @@ function Costs({ id }: Readonly<{ id: number | null }>) {
   const vehicle = data?.vehicle
   const title = vehicle ? [vehicle.make, vehicle.model, vehicle.version, vehicle.year].filter(Boolean).join(' ') : ''
 
+  const closeEditor = () => {
+    if (recalculating) return
+    setEditing(false)
+    setFieldErrors({})
+    setNotice(undefined)
+    if (data) {
+      setKm(String(data.inputs.km_per_month))
+      setCoverage(data.inputs.coverage)
+    }
+  }
+
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barSpace + 16 }]} keyboardShouldPersistTaps="handled">
-      <BackChip label={BACK_LABEL} onPress={goBack} />
+      <View style={styles.header}>
+        <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>Calculadora de costos</Text>
+        {title ? <Text style={[styles.muted, archivo()]}>{title}</Text> : null}
+        <BackLink label={BACK_LABEL} onPress={goBack} />
+      </View>
       {view.status === 'loading' ? (
         <View style={styles.section}>
           <Loader />
@@ -139,35 +159,31 @@ function Costs({ id }: Readonly<{ id: number | null }>) {
 
       {data && vehicle ? (
         <>
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>COSTO DE POSESIÓN</Text>
-            <Text accessibilityRole="header" style={styles.title}>
-              {title}
-            </Text>
-            <Text style={styles.muted}>Cuánto te costaría comprarlo y mantenerlo, más allá del precio publicado.</Text>
-          </View>
-          {notice ? <Alert variant="error">{notice}</Alert> : null}
-          <CostsForm
-            km={km}
-            coverage={coverage}
-            kmHint={data.inputs.km_source === 'default'}
-            errors={fieldErrors}
-            busy={recalculating}
-            onKmChange={setKm}
-            onCoverageChange={setCoverage}
-            onSubmit={recalculate}
-          />
-          {recalculating ? (
-            <View style={styles.section}>
-              <Loader />
-            </View>
-          ) : (
-            <>
-              <MonthlyPanel data={data} />
-              <PurchasePanel data={data} />
-              <Disclaimer data={data} />
-            </>
-          )}
+          <MonthlyPanel data={data} onAdjust={() => setEditing(true)} />
+          <PurchasePanel data={data} />
+          <Disclaimer data={data} />
+          <Modal visible={editing} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={closeEditor}>
+            <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+              <View style={styles.dialog} accessibilityViewIsModal>
+                <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+                  <Text accessibilityRole="header" style={[styles.modalTitle, archivo(true)]}>Ajustá tu estimación</Text>
+                  <Text style={[styles.muted, archivo()]}>Indicá cuánto vas a manejar y la cobertura que preferís.</Text>
+                  {notice ? <Alert variant="error">{notice}</Alert> : null}
+                  <CostsForm
+                    km={km}
+                    coverage={coverage}
+                    kmHint={data.inputs.km_source === 'default'}
+                    errors={fieldErrors}
+                    busy={recalculating}
+                    onKmChange={setKm}
+                    onCoverageChange={setCoverage}
+                    onSubmit={recalculate}
+                    onCancel={closeEditor}
+                  />
+                </ScrollView>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
         </>
       ) : null}
     </ScrollView>
@@ -175,14 +191,17 @@ function Costs({ id }: Readonly<{ id: number | null }>) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, gap: 16 },
+  scroll: { flex: 1, backgroundColor: colors.surface },
+  content: { padding: 20, gap: 28 },
   // Loading and errors stay inside the screen content (docs/design.md "Feedback").
   section: { minHeight: 240, gap: 16 },
   notFound: { gap: 8 },
   notFoundTitle: { color: colors.textPrimary, fontSize: 20, fontWeight: '700' },
   header: { gap: 8 },
-  eyebrow: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
-  title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },
+  overlay: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#241f1c66' },
+  dialog: { maxHeight: '90%', width: '100%', maxWidth: 480, alignSelf: 'center', borderRadius: 12, overflow: 'hidden', backgroundColor: colors.surface },
+  form: { padding: 20, gap: 16 },
+  modalTitle: { fontSize: 24, color: colors.charcoal },
+  title: { color: colors.textPrimary, fontSize: 32 },
   muted: { color: colors.textSecondary, fontSize: 14 },
 })
