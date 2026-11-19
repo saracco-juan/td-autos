@@ -47,6 +47,8 @@ The backend has a public HTTPS URL (`https://<vercel host>/backend`, see [`infra
 
 ## Local demo database
 
+Before creating demo accounts, set `DEMO_PASSWORD` to a private password in your local environment and run `php artisan config:clear`. There is no built-in default, and commands never print the value. Missing or blank configuration fails before `db:local` replaces a database or the dealer command creates accounts. Existing accounts keep their password: rotate any previously shared demo password through password recovery; rerunning seeders does not rotate existing accounts. Never use demo accounts or their credentials in production.
+
 To try the app without Supabase, `php artisan db:local` builds `backend/database/manual.sqlite` from scratch (migrations and demo data). **It deletes the target file if it exists**: to keep an older database, use `php artisan db:local --path=<absolute path of a new file>`. It never touches the `.env` connection and does not run in production. It creates an administrator, a buyer, 7 dealers in every state with their receipts, and 2 deterministic vehicles per active dealer (Chevrolet Onix LT and Toyota Corolla XEi) with valid body type and values for editing. Each vehicle has seven local synthetic images of its model; they are not real offers. Images go to the `public` disk and receipts to `local`, with no remote storage. To use the new database, in `backend/.env`:
 
 ```env
@@ -60,7 +62,7 @@ RECEIPTS_DISK=local
 
 Run `php artisan storage:link` to serve the local photos, and use `FRONTEND_URL=http://localhost:5173` for the Vite frontend. The active demo dealers are `pampa` and `litoral`: sign in as one of them, open Inventario, edit a vehicle, check its seven photos and save a different price. Reopening it must keep the price and the photos. A historical vehicle without a body type opens with an empty selection and requires one before saving.
 
-Demo accounts (password `TdAutos2026!`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` and the dealers `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` and `litoral` with the `@demo.tdautos.test` suffix.
+Demo accounts (use your configured `DEMO_PASSWORD`): `admin@demo.tdautos.test`, `comprador@demo.tdautos.test` and the dealers `sur`, `rosario`, `cuyo`, `norte`, `capital`, `pampa` and `litoral` with the `@demo.tdautos.test` suffix.
 
 For volume testing, `php artisan db:local --vehiculos=10000` adds about 50 active dealers with a current subscription (`concesionaria01@volumen.tdautos.test` to `concesionaria50@volumen.tdautos.test`, same password) and spreads the requested number of vehicles among them, unevenly and always with the same data: real Argentine-market models and body types, prices and mileage that match the year, unique plates and 7 photos per vehicle. The photos are 7 numbered images written to the `public` disk (`backend/storage/app/public/vehiculos/volumen`); run `php artisan storage:link` once so they show. Without the option the database stays as before. SQLite only: it does not work on Supabase.
 

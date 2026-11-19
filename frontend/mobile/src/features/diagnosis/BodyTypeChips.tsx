@@ -1,35 +1,34 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { colors } from '../../theme/tokens'
+import { colors, radii } from '../../theme/tokens'
+import { bodyTypeShapes } from '@shared/diagnosis/vehicleSilhouettes'
+import VehicleSilhouette from './VehicleSilhouette'
+import { diagnosisType } from './typography'
 import type { BodyType } from '@shared/diagnosis/types'
 
 type Props = {
   bodyTypes: readonly BodyType[]
   selected: readonly number[]
-  max: number
   onToggle: (id: number) => void
 }
 
-// Multi-choice question: pill chips two per row (Figma "Chip"); a chosen chip shows a check before its name.
-// Once the maximum is chosen, the other chips are disabled until one is released.
-export default function BodyTypeChips({ bodyTypes, selected, max, onToggle }: Readonly<Props>) {
-  const full = selected.length >= max
+export default function BodyTypeChips({ bodyTypes, selected, onToggle }: Readonly<Props>) {
   return (
     <View style={styles.group}>
       {bodyTypes.map((bodyType) => {
         const checked = selected.includes(bodyType.id)
-        const disabled = full && !checked
+        const shape = bodyTypeShapes[bodyType.nombre]
         return (
           <Pressable
             key={bodyType.id}
             accessibilityRole="checkbox"
             accessibilityLabel={bodyType.nombre}
-            accessibilityState={{ checked, disabled }}
-            disabled={disabled}
+            accessibilityState={{ checked }}
             onPress={() => onToggle(bodyType.id)}
-            style={[styles.chip, checked && styles.checked, disabled && styles.disabled]}
+            style={[styles.chip, checked && styles.checked]}
           >
-            <Text style={[styles.label, checked && styles.checkedLabel]}>
+            {shape && <VehicleSilhouette shape={shape} color={checked ? colors.onColor : colors.charcoal} />}
+            <Text style={[styles.label, diagnosisType(checked), checked && styles.checkedLabel]}>
               {checked ? '✓ ' : ''}
               {bodyType.nombre}
             </Text>
@@ -45,17 +44,18 @@ const styles = StyleSheet.create({
   chip: {
     flexBasis: '45%',
     flexGrow: 1,
-    height: 40,
+    minHeight: 98,
+    gap: 8,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: colors.borderDefault,
-    borderRadius: 999,
-    backgroundColor: colors.background,
+    borderRadius: radii.button,
+    backgroundColor: colors.surface,
   },
-  checked: { borderColor: colors.textPrimary },
-  disabled: { opacity: 0.6 },
-  label: { color: colors.textSecondary, fontSize: 12, fontWeight: '500' },
-  checkedLabel: { color: colors.textPrimary },
+  checked: { borderColor: colors.charcoal, backgroundColor: colors.charcoal },
+  label: { color: colors.textPrimary, fontSize: 14, textAlign: 'center' },
+  checkedLabel: { color: colors.onColor },
 })

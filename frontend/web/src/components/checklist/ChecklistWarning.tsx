@@ -1,5 +1,5 @@
 import type { ReactNode, Ref } from 'react'
-import alertStyles from '../alert.module.css'
+import alertStyles from '../../styles/alert.module.css'
 import styles from './ChecklistWarning.module.css'
 
 type Props = {

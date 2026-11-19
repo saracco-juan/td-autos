@@ -9,30 +9,30 @@ const PHOTOS = [
 ]
 const TITLE = 'Toyota Corolla XEI 2021'
 const cover = () => screen.getByTestId('gallery-cover')
-const thumbnail = (position: number) => screen.getByRole('button', { name: `Ver foto ${position} de ${TITLE}` })
+const swipeTo = (index: number) => fireEvent.scroll(screen.getByTestId('photo-pager'), {
+  nativeEvent: { contentOffset: { x: index * 320, y: 0 }, layoutMeasurement: { width: 320 } },
+})
 
 describe('VehicleGallery', () => {
-  it('shows the first photo by order as the cover, with one thumbnail button per photo', async () => {
+  it('shows the first photo by order and pages horizontally without buttons', async () => {
     await render(<VehicleGallery photos={PHOTOS} title={TITLE} />)
 
     expect(cover().props.accessibilityLabel).toBe(`Foto 1 de ${TITLE}`)
     expect(cover().props.source).toEqual({ uri: 'https://example.test/one.jpg' })
-    expect(screen.getAllByRole('button').map((button) => button.props.accessibilityLabel)).toEqual([
-      `Ver foto 1 de ${TITLE}`,
-      `Ver foto 2 de ${TITLE}`,
-      `Ver foto 3 de ${TITLE}`,
-    ])
-    expect(thumbnail(1)).toBeSelected()
+    expect(cover().props.resizeMode).toBe('contain')
+    expect(screen.getByTestId('photo-pager').props.pagingEnabled).toBe(true)
+    expect(screen.getByTestId('photo-pager').props.horizontal).toBe(true)
+    expect(screen.queryByRole('button')).not.toBeOnTheScreen()
   })
 
-  it('changes the cover when a thumbnail is pressed', async () => {
+  it('updates the current photo and counter after a swipe', async () => {
     await render(<VehicleGallery photos={PHOTOS} title={TITLE} />)
 
-    await fireEvent.press(thumbnail(3))
+    await swipeTo(2)
 
     expect(cover().props.source).toEqual({ uri: 'https://example.test/three.jpg' })
     expect(cover().props.accessibilityLabel).toBe(`Foto 3 de ${TITLE}`)
-    expect(thumbnail(3)).toBeSelected()
+    expect(screen.getByText('3 / 3')).toBeOnTheScreen()
   })
 
   it('says the cover is unavailable when it fails, keeping the other photos reachable', async () => {
@@ -42,17 +42,16 @@ describe('VehicleGallery', () => {
 
     expect(screen.getByText('Esta foto no está disponible.')).toBeOnTheScreen()
     expect(screen.queryByTestId('gallery-cover')).not.toBeOnTheScreen()
-    await fireEvent.press(thumbnail(2))
+    await swipeTo(1)
     expect(cover().props.source).toEqual({ uri: 'https://example.test/two.jpg' })
   })
 
-  it('replaces a broken thumbnail by a text fallback', async () => {
-    await render(<VehicleGallery photos={PHOTOS} title={TITLE} />)
+  it('omits the counter and disables paging for a single photo', async () => {
+    await render(<VehicleGallery photos={[PHOTOS[0]]} title={TITLE} />)
 
-    await fireEvent(screen.getByTestId('gallery-thumbnail-2'), 'error')
-
-    expect(screen.getByText('Foto 2 no disponible')).toBeOnTheScreen()
-    expect(thumbnail(2)).toBeOnTheScreen()
+    expect(cover()).toBeOnTheScreen()
+    expect(screen.getByTestId('photo-pager').props.scrollEnabled).toBe(false)
+    expect(screen.queryByText('1 / 1')).not.toBeOnTheScreen()
   })
 
   it('shows a plain message, never a stock image, when there are no photos', async () => {

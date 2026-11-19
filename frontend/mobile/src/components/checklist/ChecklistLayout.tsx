@@ -1,5 +1,6 @@
+import { useBuyerTabBarSpace } from '../BuyerTabIndicator'
 import { useEffect, useRef, type ReactNode } from 'react'
-import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native'
+import { Modal, ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native'
 
 import { pendingFlaggedByStep } from '@shared/checklist/progress'
 import type { ChecklistStep } from '@shared/checklist/types'
@@ -7,7 +8,8 @@ import { colors } from '../../theme/tokens'
 import Alert from '../Alert'
 import ActionBar, { type ActionLabels } from './ActionBar'
 import StepPanel from './StepPanel'
-import StepPills from './StepPills'
+import StepSection from './StepSection'
+import useReduceMotion from '../../lib/useReduceMotion'
 import type { ChecklistFlow } from './useChecklistFlow'
 
 const NO_MARKERS: ReadonlyMap<number, number> = new Map()
@@ -25,66 +27,94 @@ type Props = {
   steps: ChecklistStep[]
   copy: ChecklistCopy
   header: ReactNode
-  // Extra content under the items, inside the step card.
+  // Supporting information below the sections.
   panelFooter?: ReactNode
-  // Extra content under the step card.
+  // Optional feature-specific follow-up.
   after?: ReactNode
 }
 
-// The checklist view: scrolling header, warning, pills and step card, with the action bar pinned below.
 export default function ChecklistLayout({ flow, steps, copy, header, panelFooter, after }: Readonly<Props>) {
+  const bottom = useBuyerTabBarSpace()
+  const reduceMotion = useReduceMotion()
   const scrollRef = useRef<ScrollViewInstance>(null)
+  const positions = useRef(new Map<number, number>())
   const { selected, progress, showWarning, warningText } = flow
-
-  // A new step starts at the top of the scroll.
+  const previous = useRef(selected)
   useEffect(() => {
-    scrollRef.current?.scrollTo({ y: 0, animated: false })
-  }, [selected])
+    if (selected === previous.current) return
+    previous.current = selected
+    if (!selected) return
+    const timer = setTimeout(() => {
+      const y = positions.current.get(selected)
+      if (y !== undefined) scrollRef.current?.scrollTo({ y, animated: !reduceMotion })
+    }, reduceMotion ? 0 : 450)
+    return () => clearTimeout(timer)
+  }, [selected, reduceMotion])
 
   const completedCodes = new Set(flow.completed)
   const stepIndex = steps.findIndex((step) => step.numero === selected)
-  const step = steps[stepIndex]
+  const pending = showWarning ? pendingFlaggedByStep(steps, completedCodes) : NO_MARKERS
 
   return (
-    <View style={layoutStyles.screen}>
-      <ScrollView ref={scrollRef} style={layoutStyles.scroll} contentContainerStyle={layoutStyles.content}>
+    <View style={[layoutStyles.screen, { paddingBottom: bottom, backgroundColor: colors.surface }]}>
+      <ScrollView ref={scrollRef} style={layoutStyles.scroll} contentContainerStyle={styles.content}>
         {header}
-        {warningText ? <Alert variant="warning">{warningText}</Alert> : null}
-        <StepPills
-          steps={progress.steps}
-          selected={selected}
-          pendingFlagged={showWarning ? pendingFlaggedByStep(steps, completedCodes) : NO_MARKERS}
-          pendingLabel={copy.pendingMarkerLabel}
-          onSelect={flow.setSelected}
-        />
-        {step ? (
-          <StepPanel
-            step={step}
-            completedCodes={completedCodes}
-            saveFailed={flow.failedSteps.has(step.numero)}
-            flagLabel={copy.flagLabel}
-            saveError={copy.saveError}
-            onToggle={flow.handleToggle}
-          >
-            {panelFooter}
-          </StepPanel>
-        ) : null}
+        {steps.map((step, index) => (
+          <View key={step.numero} onLayout={e => positions.current.set(step.numero, e.nativeEvent.layout.y)}>
+            <StepSection step={progress.steps[index]} open={selected === step.numero} reduceMotion={reduceMotion}
+              pendingLabel={pending.has(step.numero) ? copy.pendingMarkerLabel(pending.get(step.numero)!) : ''}
+              onPress={() => flow.setSelected(selected === step.numero ? 0 : step.numero)}>
+              <StepPanel
+                step={step}
+                completedCodes={completedCodes}
+                reduceMotion={reduceMotion}
+                saveFailed={flow.failedSteps.has(step.numero)}
+                flagLabel={copy.flagLabel}
+                saveError={copy.saveError}
+                onToggle={flow.handleToggle}
+              />
+            </StepSection>
+          </View>
+        ))}
+        {panelFooter}
         {after}
       </ScrollView>
-      <ActionBar
-        labels={copy.actionLabels}
-        warning={showWarning}
-        finishing={flow.finishing}
-        finishFailed={flow.finishFailed}
-        hasNext={stepIndex < steps.length - 1}
-        onNext={() => flow.setSelected(steps[stepIndex + 1].numero)}
-        onFinish={flow.requestFinish}
-        onFinishAnyway={flow.finishAnyway}
-        onKeepWorking={flow.keepWorking}
-      />
+      <FinishWarning text={warningText} onDismiss={flow.keepWorking} reduceMotion={reduceMotion}>
+        <ActionBar
+          labels={copy.actionLabels}
+          warning={showWarning}
+          finishing={flow.finishing}
+          finishFailed={flow.finishFailed}
+          hasNext={stepIndex >= 0 && stepIndex < steps.length - 1}
+          onNext={() => flow.setSelected(steps[stepIndex + 1].numero)}
+          onFinish={flow.requestFinish}
+          onFinishAnyway={flow.finishAnyway}
+          onKeepWorking={flow.keepWorking}
+        />
+      </FinishWarning>
     </View>
   )
 }
+
+function FinishWarning({ text, onDismiss, reduceMotion, children }: Readonly<{
+  text: string | null; onDismiss: () => void; reduceMotion: boolean; children: ReactNode
+}>) {
+  if (!text) return children
+  return (
+    <Modal transparent onRequestClose={onDismiss} animationType={reduceMotion ? 'none' : 'fade'}>
+      <View style={styles.overlay}><View style={styles.dialog}>
+        <Alert variant="warning">{text}</Alert>
+        {children}
+      </View></View>
+    </Modal>
+  )
+}
+
+const styles = StyleSheet.create({
+  content: { paddingHorizontal: 18, paddingVertical: 14, backgroundColor: colors.surface, flexGrow: 1 },
+  overlay: { flex: 1, justifyContent: 'center', padding: 16, backgroundColor: '#241f1c66' },
+  dialog: { borderRadius: 14, padding: 12, backgroundColor: colors.surface },
+})
 
 // Shared with SummaryLayout so both views frame the content the same way.
 export const layoutStyles = StyleSheet.create({

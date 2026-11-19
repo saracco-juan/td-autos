@@ -1,0 +1,41 @@
+.nativeHidden.nativeHidden { scrollbar-width: none; }
+.nativeHidden::-webkit-scrollbar { display: none; }
+
+.control {
+  appearance: none;
+  writing-mode: vertical-lr;
+  direction: ltr;
+  width: 20px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+.control[hidden] { display: none; }
+.page { position: fixed; right: 0; top: 0; height: 100dvh; z-index: 20; }
+.panel { position: absolute; right: 0; bottom: 0; }
+.control::-webkit-slider-runnable-track { width: 8px; height: 100%; background: transparent; }
+.control::-moz-range-track { width: 8px; height: 100%; background: transparent; }
+.control::-webkit-slider-thumb {
+  appearance: none;
+  width: 8px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--palette-charcoal);
+}
+.control::-moz-range-thumb {
+  width: 8px;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--palette-charcoal);
+}
+.control:focus-visible { outline: 2px solid var(--palette-charcoal); outline-offset: -2px; border-radius: 999px; }
+@media (forced-colors: active) {
+  .nativeHidden.nativeHidden { scrollbar-width: auto; }
+  .nativeHidden::-webkit-scrollbar { display: block; }
+  .control { display: none; }
+}

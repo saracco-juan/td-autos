@@ -37,7 +37,7 @@ class SuscripcionController extends Controller
         $dealer = $request->user()->concesionaria;
 
         if (TransferData::fromConfig() === null) {
-            return response()->json(['message' => 'Los datos de transferencia no están disponibles por el momento.'], 503);
+            return response()->json(['message' => 'Los datos para pagar todavía no están configurados. Contactá a la administración para que los complete; hasta entonces no podés enviar un comprobante.'], 503);
         }
 
         if ($dealer->comprobantes()->pendientes()->exists()) {

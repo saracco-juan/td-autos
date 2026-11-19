@@ -1,0 +1,30 @@
+.page {
+  composes: container from '../../../styles/screen.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  margin-bottom: auto;
+  padding: 32px 0 64px;
+}
+
+.page p {
+  color: var(--text-secondary);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heading p {
+  margin: 0;
+}
+
+.ready {
+  min-width: 0;
+  outline: none;
+}

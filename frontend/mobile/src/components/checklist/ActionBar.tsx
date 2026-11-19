@@ -58,7 +58,7 @@ export default function ActionBar({
             <View style={styles.action}>
               <Button
                 label={labels.keepWorking}
-                variant="primary"
+                variant="solidPrimary"
                 disabled={finishing}
                 onPress={onKeepWorking}
               />
@@ -76,7 +76,7 @@ export default function ActionBar({
                 label={labels.finish}
                 busyLabel={FINISHING}
                 busy={finishing}
-                variant="primary"
+                variant="solidPrimary"
                 onPress={onFinish}
               />
             </View>

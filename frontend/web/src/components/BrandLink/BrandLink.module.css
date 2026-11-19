@@ -1,0 +1,14 @@
+.brand {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand span { color: var(--palette-red); margin-right: 6px; }
+.brand:focus-visible { outline: 2px solid var(--palette-charcoal); outline-offset: 3px; }
+
+@media (max-width: 800px) {
+  .brand { font-size: 18px; }
+}

@@ -1,0 +1,134 @@
+.page {
+  composes: container from '../../../styles/screen.module.css';
+  margin-bottom: auto;
+  padding-block: 32px 64px;
+}
+
+.header {
+  display: grid;
+  gap: 10px;
+  margin-bottom: clamp(32px, 4vw, 56px);
+}
+
+.title {
+  composes: title from '../../../styles/screen.module.css';
+}
+
+.subtitle,
+.description,
+.journeyRow p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
+}
+
+.identity,
+.editor {
+  min-width: 0;
+}
+
+.editor {
+  display: grid;
+  gap: 16px;
+}
+
+.name {
+  margin: 0 0 16px;
+  font-size: clamp(28px, 3vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
+
+.accountState {
+  display: inline-flex;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.description {
+  margin-top: 24px;
+  max-width: 42ch;
+}
+
+.accountDetails {
+  display: grid;
+  gap: 16px;
+  margin: 28px 0 0;
+}
+
+.accountDetails > div {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  border-bottom: 1px solid var(--border-default);
+  padding-bottom: 14px;
+  font-size: 13px;
+}
+
+.accountDetails dt {
+  color: var(--text-secondary);
+}
+
+.accountDetails dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.journey {
+  margin-top: clamp(40px, 5vw, 72px);
+}
+
+.journey h2 {
+  margin: 0 0 24px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.journeyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-block: 24px;
+  border-top: 1px solid var(--border-default);
+}
+
+.journeyRow h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.journeyRow p {
+  max-width: 70ch;
+}
+
+.journeyRow a {
+  width: auto;
+  flex-shrink: 0;
+}
+
+@media (max-width: 800px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .journeyRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+}

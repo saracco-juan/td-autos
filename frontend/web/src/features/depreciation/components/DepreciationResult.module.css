@@ -1,0 +1,107 @@
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 56px clamp(32px, 5vw, 72px);
+}
+
+.projection { min-width: 0; display: grid; gap: 24px; }
+.projection h2, .explanation h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.rate {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.rate strong { font-size: 24px; font-weight: 600; color: var(--palette-charcoal); }
+
+.chart { width: 100%; height: auto; overflow: visible; }
+.chartValue { font-size: 12px; font-weight: 600; fill: var(--text-primary); animation: showValues 400ms ease-out 800ms both; }
+.chartYear { font-size: 12px; fill: var(--text-secondary); }
+.area { fill: var(--palette-charcoal); opacity: 0.05; }
+.curve { fill: none; stroke: var(--palette-charcoal); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.axis { fill: none; stroke: var(--border-default); }
+.curve, .axis { vector-effect: non-scaling-stroke; }
+.chart circle { fill: var(--surface-default); stroke: var(--palette-charcoal); stroke-width: 2; }
+.chart text, .summary td, .rate strong { font-variant-numeric: tabular-nums; }
+
+/* Reveal the actual projection once on entry, without changing its values. */
+.chartReveal {
+  animation: drawProjection 1600ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes drawProjection {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
+@keyframes showValues {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chartReveal, .chartValue { animation: none; }
+}
+
+.legend, .note {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+}
+.legend::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  margin-right: 8px;
+  vertical-align: middle;
+  background: var(--palette-charcoal);
+}
+
+.summary {
+  min-width: 0;
+  padding: clamp(24px, 3vw, 40px);
+  border-radius: 24px;
+  background: #f6f5f4;
+}
+.summary table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.summary caption { text-align: left; margin-bottom: 24px; font-weight: 600; font-size: 22px; letter-spacing: -0.02em; }
+.summary th, .summary td { padding: 20px 0; border-bottom: 1px solid var(--border-default); }
+.summary th { text-align: left; font-weight: 400; color: var(--text-secondary); padding-right: 16px; }
+.summary td { text-align: right; line-height: 1.6; }
+.summary strong { font-size: clamp(20px, 1.6vw, 28px); font-weight: 600; letter-spacing: -0.025em; }
+.summary .note { margin-top: 24px; }
+
+.explanation { grid-column: 1 / -1; display: grid; gap: 28px; padding-top: 40px; border-top: 1px solid var(--border-default); }
+.factors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(32px, 5vw, 72px); }
+.factors h3 { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
+.factors p, .explanation > p { margin: 0; font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
+.factors p + p { margin-top: 8px; }
+
+@media (max-width: 999px) {
+  .body { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+}
+
+@media (max-width: 599px) {
+  .projection { gap: 20px; }
+  .projection h2, .explanation h2 { font-size: 22px; }
+  .factors { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .chartValue { display: none; }
+  .chartYear { font-size: 28px; }
+  .summary { padding: 24px 20px; }
+  .summary table { font-size: 14px; }
+  .explanation { padding-top: 32px; }
+}

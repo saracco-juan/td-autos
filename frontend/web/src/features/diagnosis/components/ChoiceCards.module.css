@@ -1,0 +1,51 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  composes: fill from '../../../components/Buttons/buttonHover.module.css';
+  --button-hover-fill: var(--palette-charcoal);
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 12px 20px;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: color 550ms ease, background-color 550ms ease, border-color 550ms ease;
+}
+
+.selected {
+  background: var(--palette-charcoal);
+  color: var(--text-on-color);
+  border-color: var(--palette-charcoal);
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.card:has(.input:focus-visible) {
+  outline: 2px solid var(--palette-red);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    color: var(--text-on-color);
+    border-color: var(--palette-charcoal);
+  }
+}

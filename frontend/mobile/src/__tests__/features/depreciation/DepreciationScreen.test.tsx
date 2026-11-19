@@ -50,7 +50,7 @@ it('TC-40: opens depreciation from the sheet and returns to that same vehicle', 
   expect(screen.queryByRole('button', { name: /^depreciacion,/ })).not.toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('link', { name: 'Volver a la ficha' }))
   await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
-  expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
+  expect(await screen.findByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'CALCULAR COSTOS' })).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'CHECKLIST DE INSPECCIÓN' })).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'COMPARAR' })).toBeOnTheScreen()

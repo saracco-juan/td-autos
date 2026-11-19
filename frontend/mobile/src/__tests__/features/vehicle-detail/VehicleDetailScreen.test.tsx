@@ -41,7 +41,7 @@ describe('VehicleDetailScreen', () => {
     api.fetchVehicleDetail.mockResolvedValue(response({ frenos_abs: true }))
     const view = await renderApp(URL)
 
-    expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
     expect(view.getPathname()).toBe(URL)
     expect(api.fetchVehicleDetail).toHaveBeenCalledWith(expect.any(Function), 7)
     expect(screen.getByRole('header', { name: 'Toyota Corolla XEI 2021' })).toBeOnTheScreen()
@@ -93,7 +93,7 @@ describe('VehicleDetailScreen', () => {
     )
     await renderApp(URL)
 
-    expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
     expect(screen.getByText('Precio no disponible.')).toBeOnTheScreen()
     expect(screen.getByText('Fotos no disponibles.')).toBeOnTheScreen()
     expect(screen.getByText('Descripción no disponible.')).toBeOnTheScreen()
@@ -128,19 +128,32 @@ describe('VehicleDetailScreen', () => {
     expect(await screen.findByText(title)).toBeOnTheScreen()
     await fireEvent.press(screen.getByRole('button', { name: 'REINTENTAR' }))
 
-    expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
     expect(api.fetchVehicleDetail).toHaveBeenCalledTimes(2)
   })
 
   it('switches the specification section from the tabs', async () => {
     api.fetchVehicleDetail.mockResolvedValue(response())
     await renderApp(URL)
-    await screen.findByText('FICHA TÉCNICA')
+    await screen.findByRole('button', { name: 'Expandir ficha técnica' })
 
     await fireEvent.press(screen.getByRole('tab', { name: 'Motor y consumo' }))
 
     expect(screen.getByText('170 CV')).toBeOnTheScreen()
     expect(screen.queryByText('Kilometraje')).not.toBeOnTheScreen()
+  })
+
+  it('snaps the sheet at its measured top and allows reading further or collapsing it', async () => {
+    api.fetchVehicleDetail.mockResolvedValue(response())
+    await renderApp(URL)
+    const panel = await screen.findByTestId('detail-panel')
+    await fireEvent(panel, 'layout', { nativeEvent: { layout: { y: 320 } } })
+    const scroll = screen.getByTestId('detail-scroll')
+    expect(scroll.props.snapToOffsets).toEqual([0, 320])
+    expect(scroll.props.snapToEnd).toBe(false)
+    await fireEvent(scroll, 'momentumScrollEnd', { nativeEvent: { contentOffset: { y: 350 } } })
+    await fireEvent.press(screen.getByRole('button', { name: 'Contraer ficha técnica' }))
+    expect(screen.getByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
   })
 
   it('falls back to a text message when the cover photo is broken', async () => {
@@ -162,7 +175,7 @@ describe('VehicleDetailScreen', () => {
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7/inspeccion'))
     await fireEvent.press(await screen.findByRole('link', { name: 'Volver a la ficha' }))
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
-    expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
   })
 
   it('S6: opens the calculator from the sheet and Volver a la ficha returns to it', async () => {
@@ -176,6 +189,6 @@ describe('VehicleDetailScreen', () => {
     expect(await screen.findByText('COSTO DE POSESIÓN')).toBeOnTheScreen()
     await fireEvent.press(screen.getByRole('link', { name: 'Volver a la ficha' }))
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
-    expect(await screen.findByText('FICHA TÉCNICA')).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
   })
 })

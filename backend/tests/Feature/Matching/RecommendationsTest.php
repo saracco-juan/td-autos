@@ -195,6 +195,8 @@ class RecommendationsTest extends TestCase
         $this->buyer();
         $ars = $this->car();
         $usd = $this->car(['moneda' => 'USD', 'precio' => 20000]);
+        $ars->fotos()->create(['ubicacion_archivo' => 'https://example.test/third.jpg', 'orden' => 3]);
+        $ars->fotos()->create(['ubicacion_archivo' => 'https://example.test/second.jpg', 'orden' => 2]);
         $response = $this->getJson('/api/recomendaciones')->assertOk()->assertJsonPath('status', 'ready')
             ->assertJsonCount(2, 'results')->assertJsonPath('results.0.listing_id', $ars->id)
             ->assertJsonPath('results.1.listing_id', $usd->id)->assertJsonPath('results.1.price_ars', 20000000)
@@ -202,6 +204,7 @@ class RecommendationsTest extends TestCase
             ->assertJsonPath('results.0.vehicle.plazas', 5)->assertJsonPath('results.0.vehicle.potencia_unidad', 'CV')
             ->assertJsonPath('results.0.vehicle.android_auto_apple_carplay', true)
             ->assertJsonPath('results.0.vehicle.image_url', 'https://example.test/car.jpg')
+            ->assertJsonPath('results.0.vehicle.image_urls', ['https://example.test/car.jpg', 'https://example.test/second.jpg', 'https://example.test/third.jpg'])
             ->assertJsonPath('exchange_rate.quote.sell', 1000)->assertJsonPath('exchange_rate.quote.source', 'DolarAPI')
             ->assertJsonPath('exchange_rate.stale', false)->assertJsonPath('exchange_rate.warning', null);
         $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));

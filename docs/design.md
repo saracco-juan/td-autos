@@ -1,6 +1,155 @@
 # TD Autos — design rules
 
+## Dealership subscription workspace (2026-11-05)
+
+- Keep the existing dealership sidebar and centered content frame. Subscription
+  uses three compact overview cards followed by the receipt history. History rows
+  show the actual file, paid period, submission/review dates and review outcome;
+  rejected rows include their reason. Empty, loading and recoverable error states
+  stay inside this section.
+- Recommendations and receipt history share `ResultsPagination`, extracted from
+  the approved recommendations footer, on top of the existing `Pagination`.
+  Preserve its page counter, individual controls, dark selected page and focus
+  treatment. History also uses the existing page-size selector and `ScrollArea`.
+- REALIZAR TRANSFERENCIA opens a native modal containing bank details, payment
+  instructions, receipt selection and submission. This user-requested modal
+  replaces the inline payment area and pinned bottom actions. Closing preserves
+  the selected file; submission errors preserve it for retry. A pending review
+  prevents another submission, with the reason visible in the overview.
+- Reuse the native top-layer `Dialog` component for focus containment, Escape,
+  inert background and focus restoration. Its deliberate pointer-triggered
+  entrance/exit uses opacity and a subtle 12px/0.97 transform over 500ms with
+  `cubic-bezier(0.32, 0.72, 0, 1)`, explicitly requested instead of the usual fast
+  product motion. Keyboard activation is immediate; reduced motion removes
+  travel and shortens the fade to 100ms. Keep the approved shared 550ms hover.
+- Reflow cards and receipt rows at 800px; modal contents become one column at
+  600px. Preserve 44px touch controls, scrollable modal content and wrapped long
+  filenames/account details. The primary payment action remains black.
+- Missing transfer data explains that payment configuration must be completed
+  by administration, rather than suggesting that waiting will fix it. Approved
+  receipts remain visible in history and receive explicit overview feedback.
+- User-approved divergence from High v3 subscription `2373:8708`: compact
+  overview, real history, shared list controls and animated payment modal.
+  Figma synchronization for web and mobile remains pending approval. Native
+  mobile implementation is outside this web iteration.
+
+## Dealership workspace structure (2026-11-04)
+
+- Authenticated `/concesionaria` routes use a persistent 216px left sidebar,
+  with the TD Autos mark above navigation and dealership identity, email and
+  logout at the bottom. Public, buyer and administrator layouts stay unchanged.
+- Reuse the existing session actions, route links, active-dealer visibility,
+  Archivo, TD palette, 10px controls and shared 550ms hover. Keep a white work
+  surface and a quiet neutral sidebar; do not add speculative metrics or actions.
+- Reuse `BrandLink`, extracted from the login header, so TD and Autos have the
+  same typographic size. Desktop navigation uses compact 36px rows, 13px text
+  and a black selected state. Hover reuses the shared charcoal reveal and white
+  text over 550ms; compact navigation does not introduce a separate gray button
+  treatment. Mobile targets remain at least 44px high.
+- `components/DashboardShell` owns the shared sidebar, account area and centered
+  content frame. It accepts account content and role-specific navigation through
+  props, without knowing dealership models or access rules. `DealerShell` is the
+  feature adapter; `DealerNavigation` retains the links and active-inventory
+  visibility. The application shell retains session and navigation orchestration.
+  Administration can reuse this container in its own redesign without copying it.
+- Sidebar destinations use subtle 16px outline icons with a consistent 1.5px
+  stroke: payment card for subscription, shield/check for verification, car for
+  inventory and bars for metrics. Icons are decorative and inherit the link color;
+  text labels keep their accessible names. Do not add platform-dependent emoji.
+- At 800px and below, navigation becomes an inline expandable menu above the
+  content. Following a route or pressing Escape closes it. Short desktop windows
+  let the sidebar scroll so account actions remain reachable. Long identity text wraps.
+- This first iteration changes only the workspace frame. Subscription,
+  verification, inventory and metrics retain their current content and behavior.
+- Desktop workspace content is centered in a maximum 1360px frame, including
+  its 32px gutters, with 28px main headings. The 216px sidebar stays unchanged.
+  At 800px and below, keep full available content width, existing page heading
+  sizes and 20px horizontal gutters. Do not scale down mobile text or controls.
+- In the subscription account card, the visible Activa label uses the shared
+  success green. Pending and inactive labels retain their existing accent;
+  grace-period warnings and expiry notices remain unchanged.
+- User-approved divergence: High v3 dealer navigation `2373:6894` is horizontal
+  with a public footer. The reference supplied on 2026-11-04 replaces that
+  organization with a sidebar; Figma synchronization remains pending approval.
+
 Visual and interaction rules for every web screen (and the mobile app where the pattern exists). Read this file before building or changing a screen. Figma (`TD Autos · Wireframes High v3`, see `AGENTS.md`) is the visual source of truth; these rules cover what Figma does not say and win over it when they conflict, and every difference is logged for the Figma sync described in `AGENTS.md`.
+
+## Buyer login and registration panel (2026-11-04)
+
+- `/login` and `/registro` use one persistent red companion panel in `AuthLayout`.
+  It slides from right to left for registration and reverses for login, using a
+  550ms interruptible transform with `cubic-bezier(0.32, 0.72, 0, 1)`. The red
+  surface stays stationary behind an animated rectangular `clip-path` window;
+  only the transparent companion content translates. This avoids translating
+  a large opaque red layer, which left transient stripes in the reported browser.
+  Both transitions share the same duration and curve. This follows
+  the approved video reference; no illustration or photo is part of this direction.
+- Reuse `AuthCard` in its embedded variant, `ButtonLink` and `BackLink`. Preserve
+  Archivo, TD red, white surfaces, rectangular controls and the shared 550ms hover.
+  The outer layout owns the single brand link and return-to-home action.
+- At 800px and below, keep the form first and a compact, static red panel below.
+  Reduced-motion preferences disable travel. Both panel and inline switch actions
+  reuse `AuthSwitchLink`: keyboard activation switches immediately and explicitly
+  requests title focus through navigation state, without scrolling. Pointer and
+  direct entry leave focus alone. `AuthCard` keeps `embedded` presentation separate
+  from its optional `focusTitle` behavior.
+- Embedded buyer inputs use `16px` text through `800px` width to avoid the small-input
+  focus zoom risk on mobile Safari. Desktop and standalone auth fields retain
+  their existing sizing; no viewport zoom restriction is added.
+- The desktop stage fills the remaining viewport below the access navigation.
+  Use smaller outer vertical padding and embedded-card gaps on shorter displays;
+  keep input and button sizes unchanged. Both normal buyer forms fit without page
+  scrolling at 1920×900, 1366×768 and 1280×720. Extra validation content, zoom, very
+  short windows and the mobile stack may still scroll rather than clipping controls.
+- Recovery and password reset keep their standalone cards.
+  Auth validation, endpoints, OAuth origins and session guards are unchanged.
+- Approved divergence from the existing auth frames: sliding split composition,
+  embedded buyer forms and mobile stack. No current buyer frame was verified for
+  this revision; High v3 web/mobile Figma synchronization remains pending approval.
+
+## Dealer registration wizard (2026-11-04)
+
+- `/registro/concesionaria` groups the existing twelve fields into four steps:
+  Concesionaria, Ubicación, Responsable and Cuenta. Next validates only its step;
+  the original full validator still runs before sending the unchanged payload.
+  Back preserves values in React state. Credentials are never saved as a draft.
+- Server field errors return to the first affected step, preserving messages for
+  the other steps. Submission still refreshes the session before subscription
+  navigation. The existing 409, 422 and retry behavior remains covered by tests.
+- Reuse `AuthPageHeader` for the TD Autos brand/home action on buyer and dealer
+  access screens, plus `TextField`, password requirements and buttons.
+  Dealer inputs use 16px text on mobile and a compact two-column field grid on desktop.
+- The reference's segmented black progress advances with validated Next actions.
+  The title and description sit above the progress, outside the form card.
+  Fill uses an interruptible 250ms scale transform. The whole card exits left in
+  200ms, then the next card enters from the right in 250ms; Back reverses this.
+  A single live form retains values without duplicating credential inputs.
+  Navigation is disabled during travel and pending animations cancel on unmount.
+  First entry is already displayed. Keyboard
+  changes and reduced-motion preferences skip travel. No motion dependency is added.
+- Keep the dealer header/progress anchored near the top while content height
+  follows its step, avoiding a stretched empty card and a shifting progress row.
+  Keyboard-focused step headings have a visible outline. Button hover remains 550ms.
+- This user-approved staged layout replaces the old all-fields-at-once dealer
+  card. High v3 web/mobile synchronization remains pending separate approval.
+
+## Web typography and footer (2026-11-03)
+
+- After trying Archivo on the public Home, the user approved it for the entire
+  web application. Define its face and `--font-sans` once in `src/index.css`;
+  native form controls inherit the same family. Preserve each screen's type
+  sizes, weights and layout, including the existing 550ms button hover.
+- Archivo is a locally served Latin variable WOFF2 (weights 400–900),
+  loaded with `font-display: swap`. The asset and its SIL Open Font License are
+  in `frontend/web/public/fonts/`; the family is from
+  [Omnibus-Type](https://github.com/Omnibus-Type/Archivo).
+- Preserve the existing display hierarchy and phrase breaks. Home mobile body
+  copy starts at 16px; headings balance without forcing new line breaks.
+- The shared footer uses a continuous dark surface and a solid dark-red wordmark.
+  The user retired the decorative radial glow and faded wordmark treatment.
+  Keep its full-width layout, centered return control, owners and navigation.
+- The hero image, 550ms button transitions and section-navigation behavior are
+  unchanged. This is an approved web design divergence; Figma sync is pending.
 
 ## HU11 favorites (2026-10-28)
 
@@ -67,6 +216,16 @@ Visual and interaction rules for every web screen (and the mobile app where the 
   Tablet and phone layouts stack inside the dashboard scroll region; vehicle
   pagination and its internal list scroll remain independent. No new dependency.
 
+- Metrics refinement (2026-11-05): retain the four metric sections and contact
+  semantics, with compact summary indicators above brand distribution and ranking.
+  Use native horizontal meters for brands and concentration instead of rotated
+  columns or a canvas gauge. Ranking rows use separators, and `ResultsPagination`
+  supplies the same controls as inventory and subscription. Figma sync awaits
+  user acceptance; this refinement changes no backend API, calculation or stored data.
+- Narrow panels opt into `ResultsPagination`'s `wrap` option; local spacing is
+  passed through `className`. Pages do not style the component's internal markup,
+  and other lists retain the default layout.
+
 ## HU15-MOBILE depreciation (2026-10-30)
 
 - High v3 mobile `2373:10051` (full content `2537:11653`) and insufficient-data
@@ -98,11 +257,95 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 ## Page layout
 
-- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text, the admin dashboard (1040 px), the buyer profile (760 px, the width of its form card), recommendations (1200 px) and the flows that do not need the width (diagnosis, inspection, transfer and dealer verification: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width.
+- Diagnosis redesign (2026-11-03): use the shared 1600px content container instead
+  of the historical narrow flow. Keep questions left and the summary right, stacking
+  below 900px. The user's latest progress reference supersedes the previous bar:
+  a red sports-car SVG follows the black track from the first question to the last.
+  Car, track and question panels share a 1000ms ease-in-out-sine movement
+  (`cubic-bezier(.37, 0, .63, 1)`): gradual acceleration and braking make each step
+  feel like a continuous drive. This deliberate pace follows the user's motion
+  preference; controls remain immediately usable and transitions can reverse.
+  Forward moves right and Back reverses it. Inactive panels are inert and hidden
+  from assistive technology. The old question fades out in 160ms before the next
+  fades in over 400ms, so text never overlaps during the longer movement.
+  Keep question travel within the shell gutter and leave the question stack
+  unclipped, including focus outlines. This prevents cropped text and
+  horizontal overflow without changing the motion duration or settled layout.
+  Reduced motion removes travel; an offscreen next question scrolls into view
+  smoothly, or instantly with reduced motion. Answer controls reuse the shared
+  550ms hover and 10px corners. Saving and validation rules remain unchanged.
+  The track spans the full content width, is 4px high with 1px corners, and has
+  no milestone dots. Keep the complete car inside its endpoints. Body choices
+  use wide rectangular cards with monochrome side profiles above their labels;
+  the red sports profile and the six body profiles share one inline SVG component.
+  SVG Vector's contour/layering guidance informs the drawings; its isometric
+  renderer is not required for these side profiles.
+  Follow the user's body-reference sheet: CUV proportions illustrate SUV, and
+  minivan proportions illustrate Furgón. Keep the catalogue labels unchanged.
+  Trace the reference contours rather than inventing generic car shapes: retain
+  the left-facing direction, rooflines, window openings and wheelbases. The rural
+  profile uses the sheet's long, square-bodied silhouette. Omit door handles,
+  door seams and decorative wheel rings that are absent from the reference.
+  Body illustrations are unfilled outlines, with rounded joins and simplified
+  wheel/detail lines; only the moving sports car retains its red fill.
+  Trying a third body type preserves both selections and replaces the question's
+  helper text with a concise, politely announced explanation of the two-choice
+  limit. Restore the helper text after a valid selection change or step navigation.
+  Figma synchronization and native mobile adaptation remain separate pending work.
+
+### Buyer catalog redesign (2026-11-02)
+
+- The approved Carent reference supplies catalog distribution; Devialet supplies
+  spacing and hierarchy. Oversized hero typography belongs to the future landing.
+- Header and footer redesign belong to the separate local
+  `feature-rediseno-header` branch. Recommendations retain the existing shared
+  shell until that work is reviewed and integrated. The latest header direction
+  uses edge-aligned logo/account groups, centered neutral navigation and restrained
+  red accents; that refinement remains pending on the header branch.
+- Recommendations override the internal-scroll rules below: both source tabs use
+  document scrolling, with natural-height cards and pagination after the grid.
+  Use a catalog column up to 1600 px, nine dealership results per page and 3/2/1 columns.
+  Preserve the approved photographic cards, existing actions and source notices.
+- Continue using CSS Modules and shared CSS variables; do not introduce Tailwind
+  or a second styling system. Keep global CSS limited to base styles and tokens.
+- Catalog pagination and Favorites carousel arrows use compact 44 x 36 px controls with
+  10 px corners, matching the filter button, and retain the shared 550ms hover.
+  Favorite hearts and photo indicators remain circular. Use charcoal selected page
+  numbers and red primary actions. Source tabs retain the approved minimal text
+  and underline treatment, without capsules or filled backgrounds.
+  Filters expand above the grid, preserving card
+  width; fields wrap to two columns and then one on smaller screens. Applied
+  filters stay removable, and pagination includes its current/total page label.
+  Shared tabs and pagination retain their existing appearance on other routes.
+- Favorites groups View recommendations and Compare in its header. The comparison
+  control starts compact, expands for selections or validation, and wraps within
+  narrow screens. Card actions size to their labels so selected text stays on one line.
+- Recommendations keeps Filters and Compare on one aligned toolbar row. Both
+  actions are 36px high (44px for coarse pointers), with 12px labels and 10px corners;
+  Compare is 108px wide and sits at the right edge while no vehicles are selected.
+  The comparison group expands only for selected vehicles or validation, within
+  its available grid column. A single selection extends left of the action;
+  two selections keep the integrated compartments. On narrow screens, selected
+  vehicles stack below Compare while the action stays aligned with Filters.
+  Reuse ComparisonControls directly with scoped sizing variables; its default
+  dimensions on Favorites stay unchanged. Keep the shared 550ms hover and respect
+  reduced motion. Web Figma synchronization remains pending approval.
+- Filter disclosure opens and closes with a short interruptible CSS accordion
+  transition. Keyboard activation is immediate; reduced motion removes the layout
+  transition. Closed fields are inert and excluded from the accessibility tree.
+  Wider spacing separates sections and cards. The wide-screen portal note stays
+  inside the content column rather than occupying the old external margin.
+- These changes implement the user's approved references in the real frontend.
+  Figma synchronization remains pending approval.
+
+- Pages use the full width of the window with small fluid side gutters (`clamp(16px, 3vw, 40px)`). No narrow centered column; only auth cards, long reading text, the admin dashboard (1040 px), recommendations (1200 px) and the flows that do not need the width (diagnosis, inspection, transfer and dealer verification: `FlowLayout narrow`, a centered column up to 1040 px with its action bar) keep a max width. The buyer Profile redesign uses the shared 1600px container, with account identity beside the form and stacked content below 800px.
 - Every screen fills the viewport height: header on top, footer at the bottom, content in between with no empty band under the actions.
 - On flow and form screens (diagnosis, transfer and inspection checklists, subscription, vehicle form, CSV import, dealer edit), the primary actions sit in a bar pinned to the bottom of the content area, never in the middle of the page. If the content is taller than the screen, the content scrolls and the action bar stays visible.
 
 ## Responsive
+
+- Profile redesign (2026-11-04): a saved identity overview, personal-data editor, real checklist progress and links to diagnosis/favorites replace the narrow isolated form. Reuse Archivo, the shared 1600px width, Button/ButtonLink/Field and 550ms hover. Thin charcoal progress bars use saved marks and honor reduced motion. No fabricated counts, settings or purchase-completion claim. High v3 Profile `2373:7499` could not be read through the connector; synchronization is pending approval. Web implemented; mobile adaptation pending its profile redesign.
+- Profile polish: keep brand/model/year as the inspection heading and show the version underneath; retain the full identity in the progress label. Resume actions share a 220px width, capped by their container, so progress tracks align. Loaded progress fades in over 200ms; saved feedback enters over 160ms in a reserved slot after the button, keeping editable fields stable. Both honor reduced motion; shared hover stays 550ms. Input borders now use `#858585` (3.69:1 on white, 3.12:1 on the raised surface); this shared token also improves existing auth forms. Web implemented; Figma and mobile sync remain pending.
 
 - Use fluid units for layout: `%`, `fr`, `min()`, `max()`, `clamp()`, `width: 100%` with `max-width`, `minmax(min(100%, X), 1fr)` grids and `flex-wrap`. Fixed pixels only for borders, radii, icons, small gaps and font sizes.
 - Check every screen at 1280×800, 768×1024 and 375×812 in a browser before handing it over. No horizontal page scroll at any width; no text overflowing its box.
@@ -122,6 +365,26 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 - Recommendations show a 3 x 3 page (9 cards, fixed) in a centered column up to 1200 px. Moving between pages keeps the count ("Mostrando N vehículos") and the pager in place; only the cards are replaced by the loader. Cards are as tall as their content, with a 16:10 image; what does not fit scrolls inside the list box. Tablets show two columns, phones one card per row. (Decided 2026-10-16 over stretching two rows to fill the screen.)
 - Scroll containers keep their rounded box: the frame clips, the inner region scrolls, slim inset scrollbar in the border color.
 
+## Web recommendation cards redesign (2026-11-02)
+
+- The approved photo-card direction applies to both Concesionarias and Otros
+  portales: edge-to-edge photography, 28 px corners, a charcoal lower fade,
+  existing Inter typography, and TD Autos red for the main action. A shared
+  card stylesheet keeps the two sources consistent without changing other buttons.
+- Keep actual publication currencies, reference-price labels, compatibility,
+  warnings, favorites, comparison, explanations, and missing-photo feedback.
+  Dealer cards open VER FICHA; portal cards retain their named external links
+  (VER EN MERCADO LIBRE / VER EN KAVAK), including the new-tab announcement.
+- The list layout, filtering and pagination remain unchanged. No new photo
+  carousel is included. Mobile app redesign is pending; the web layout still
+  supports desktop, tablet and phone widths.
+- Figma update pending review: High v3 Card/Vehicle `2373:7340` on `2373:7641`
+  shows the previous inset 16:10 photo. The approved direction supersedes that
+  card treatment only; its business states remain applicable.
+- Card controls have visible keyboard focus, at least 44 px targets, and brief
+  pointer press feedback that respects reduced motion. Comparison keeps its
+  explicit QUITAR label and a filled selected state; no selection uses color alone.
+
 ## Buttons
 
 - The actions of a flow screen share one row in the pinned bottom bar; they stack only on phones.
@@ -132,6 +395,8 @@ Visual and interaction rules for every web screen (and the mobile app where the 
 
 - Message boxes (error, success, warning) have a tinted background and dark text: reuse `frontend/web/src/components/alert.module.css`. Its `info` variant is the neutral one (table-header tone `--surface-raised`, default border, dark text, never a dark fill) for plain explanations that are neither success nor problem; it may start with the `InfoIcon` (circled "i", `aria-hidden`, secondary tone) at the left of the text. Do not use `notice` (green, reads as success) for those.
 - Loading is shown on the component that waits, never full screen: a submit button shows its busy state; a section that loads data shows a loader centered horizontally and vertically inside that section.
+- A page that can show a section loader fills the shell height (`flex: 1`, and so does every wrapper between the page and the loader), so the loader has room to center. A page whose layout is a grid shows its first load across the page, not inside one column. Header lines that arrive with the data (counts, subtitles) keep their space while loading, so the header never moves.
+- The page never jumps while it loads: the shell content is at least one screen tall below the navigation, so the footer stays below the fold while a section waits and does not move when the content arrives, and the page reserves the scrollbar lane (`scrollbar-gutter: stable`) so starting or stopping to scroll never shifts the layout sideways. (Decided 2026-11-10 after the demo recordings showed the footer flashing during every load.)
 - Selections (checkbox, toggle, chip) change at once and save in the background: no loader, no blocking.
 - Figma covers layout and business states only; loaders and service errors live in code and get no Figma frames.
 
@@ -287,3 +552,33 @@ Native mobile `Calculadora financiera`, High v3 `2373:10024` (06) and `2469:1615
 - States: electric fuel reads "Próximamente", no consumption "No podemos estimarlo" (the total says what it leaves out), budget message (success or warning) only when the profile has a budget, 404 "No encontramos ese vehículo.", network or server errors with REINTENTAR (loader and errors get no frames, see "Feedback").
 - "Volver a la ficha" opens `/vehiculos/{id}` with an explicit target, because the tabs navigator's back goes to its first tab.
 
+
+## Dealership inventory redesign (2026-11-05)
+
+Inventory uses the shared `ResultsPagination`, `Button` and `ButtonLink` controls. The rounded search field sits directly above the table and filters the already loaded owned vehicles by make, model, version, year or plate before pagination, ignoring case and accents; changing the query returns to page one. A no-results state can clear the query without hiding creation/import actions. The template download replaces the former automatic-inclusion explanation.
+
+Creation and editing use the same stepped `VehicleForm` and registration progress presentation through `FormProgress`: Identidad, Publicación, Ficha técnica, Equipamiento and Fotos. Only the active section is shown. Next validates that section, Back preserves values and photos, and Save validates the complete existing payload. Server field errors reveal and focus their section. Make, model and version use filtered native selects; the plate field shows an accepted-format example. Navigation uses shared `BackLink`. Both subscription and vehicle entry already share full-width `FlowLayout` inside `DashboardShell`; there is no second content-width system. The seven-photo minimum and subscription restrictions remain unchanged.
+
+Deletion stays in its table row. The compact button has the same 32px desktop height as Editar (44px on coarse pointers), a red hover and an uninterrupted two-second hold. The user-requested 200ms width expansion reveals MANTENER PARA ELIMINAR; releasing, leaving, blurring or unmounting cancels. Keyboard and reduced-motion modes retain static status feedback. A short click cannot delete. Pending requests are locked, and rejected requests can be retried.
+
+Import opens the shared `Dialog` with a square drop area and a keyboard-accessible file picker. The original direct URL and the modal reuse one import form, including preview, atomic confirmation and row errors. Successful import refreshes the current list without navigating. Template downloads share one authenticated Blob lifecycle: green indeterminate activity while the total size is unknown, completion feedback when the file is handed to the browser download, and no success message on failure.
+
+Figma synchronization is pending approval: High v3 inventory `2373:8733` still has legacy controls and no search; vehicle entry `2373:8756` still shows the flat form, and import `2373:8817` remains a standalone page. Web should reflect these controls, steps and import modal; native mobile dealership frames are not part of this implementation. No Figma nodes were edited.
+
+## Administrator workspace structure (2026-11-06)
+
+- Authenticated `/admin` routes now reuse the same `DashboardShell` as dealership
+  routes through the feature-local `AdminShell` and `AdminNavigation` adapters.
+  Keep the existing Concesionarias and Administración destinations and their order;
+  receipt review and dealer editing belong to the Concesionarias selected section.
+- The shared sidebar displays the logo, decorative outline icons and administrator
+  name/email/logout. It retains the same responsive menu, dimensions, hover and
+  centered content frame. Public and buyer routes keep their existing layout.
+- This unit changes only the container. Administrator page contents, route guards,
+  session actions and API contracts stay unchanged. High v3 frame `2373:9278`
+  still shows the old header/footer; Figma synchronization awaits user acceptance.
+
+Inventory and the administrator dealership directory share `components/Table/Table`.
+Each screen supplies column headings/widths, rows, stable row keys and its row renderer.
+The shared component owns semantic table structure; feature rows retain their actions,
+and the existing scroll regions and result pagination remain separate components.

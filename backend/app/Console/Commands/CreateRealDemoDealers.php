@@ -5,7 +5,9 @@ namespace App\Console\Commands;
 use Database\Seeders\RealDemo\RealDemoDealers;
 use Database\Seeders\RealDemo\RealDemoInventory;
 use Database\Seeders\RealDemo\RealDemoTarget;
+use Database\Seeders\Support\DemoCredentials;
 use Illuminate\Console\Command;
+use RuntimeException;
 
 /**
  * Creates only the ten real demo dealers (UH-05) in the current database, so the XLSX files of
@@ -28,6 +30,15 @@ class CreateRealDemoDealers extends Command
         $this->line('Target database: '.RealDemoTarget::describe());
 
         $confirmed = (bool) $this->option('confirm');
+        if ($confirmed) {
+            try {
+                DemoCredentials::password();
+            } catch (RuntimeException $error) {
+                $this->error($error->getMessage());
+
+                return self::FAILURE;
+            }
+        }
         $created = $confirmed ? $dealers->create(skipExisting: true) : null;
 
         $rows = [];
@@ -42,7 +53,7 @@ class CreateRealDemoDealers extends Command
         if (! $confirmed) {
             $this->warn('Dry run: nothing was written. Add --confirm to create the dealers.');
         }
-        $this->line('contraseña de demo: la de DemoDealersSeeder');
+        $this->line('contraseña de demo: la configurada en DEMO_PASSWORD');
 
         return self::SUCCESS;
     }

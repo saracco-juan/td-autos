@@ -1,0 +1,120 @@
+/* Figma "Card/Auth" */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 560px;
+  padding: clamp(20px, 5vw, 40px);
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  box-shadow: 0 6px 12px rgba(26, 20, 15, 0.1);
+}
+
+/* Figma "Card/Auth" variant "Tipo=Registro concesionaria" (2338:5609). */
+.wide {
+  max-width: 760px;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Title on the left, boxed wordmark (Figma 2141:779) on the right. */
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.wordmark {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 2px solid var(--palette-charcoal);
+  border-radius: 10px;
+  color: var(--palette-charcoal);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.subtitle {
+  max-width: 450px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.embedded {
+  max-width: none;
+  padding: 24px clamp(24px, 3.5vw, 48px);
+  gap: 20px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.embedded > p {
+  margin: 0;
+}
+
+.embedded .title {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  outline: none;
+}
+
+.embedded .subtitle {
+  margin: 0;
+  line-height: 1.6;
+}
+
+@media (min-width: 801px) and (max-height: 800px) {
+  .embedded {
+    --auth-form-gap: 20px;
+    --auth-fields-gap: 16px;
+    padding-block: 16px;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 801px) and (max-height: 740px) {
+  .embedded {
+    --auth-form-gap: 16px;
+    --auth-fields-gap: 12px;
+    padding-block: 10px;
+    gap: 9px;
+  }
+
+  .embedded .heading {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 24px 20px;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 800px) {
+  .embedded {
+    --auth-input-font-size: 16px;
+  }
+}

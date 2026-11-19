@@ -1,0 +1,35 @@
+/* Retain native selection and keyboard behavior; older browsers use their OS picker. */
+@supports (appearance: base-select) {
+  select:not([multiple]):not([size]),
+  select:not([multiple]):not([size])::picker(select) { appearance: base-select; }
+  select:not([multiple]):not([size]) { background-image: none; }
+
+  select:not([multiple]):not([size])::picker(select) {
+    margin-block-start: 6px;
+    padding: 4px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--surface-default);
+    color: var(--text-primary);
+    box-shadow: 0 8px 24px rgb(36 31 28 / 14%);
+    font: 500 13px/1.5 var(--font-sans);
+  }
+
+  select:not([multiple]):not([size]) option {
+    font: 500 13px/1.5 var(--font-sans);
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  select:not([multiple]):not([size]) option:checked,
+  select:not([multiple]):not([size]) option:focus-visible { background: #f4f4f4; }
+
+  @media (hover: hover) and (pointer: fine) {
+    select:not([multiple]):not([size]) option:hover { background: #f4f4f4; }
+  }
+}
+
+@media (pointer: coarse) {
+  select:not([multiple]):not([size]) option { min-height: 44px; }
+}

@@ -6,10 +6,13 @@ import { createFavoritesApi } from '@shared/favorites/api'
 import type { FavoriteVehicle, FavoritesResponse } from '@shared/favorites/types'
 import { vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import type { Recommendation } from '@shared/recommendations/matching'
+import BackLink from '../../components/BackLink'
+import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import Button from '../../components/Button'
 import Alert from '../../components/Alert'
 import Loader from '../../components/Loader'
 import { NetworkError } from '../../lib/http'
+import { archivo } from '../../theme/archivo'
 import { colors } from '../../theme/tokens'
 import { useAuth } from '../auth/useAuth'
 import LoadError, { type LoadErrorKind } from '../diagnosis/LoadError'
@@ -21,8 +24,8 @@ import FavoritesPager from './FavoritesPager'
 type ViewState = { status: 'loading' } | { status: 'error'; kind: LoadErrorKind }
   | { status: 'ready' }
 
-// Figma 2373:10676 / 2373:10698: only the list scrolls between the heading and action.
 export default function FavoritesScreen() {
+  const barSpace = useBuyerTabBarSpace()
   const router = useRouter()
   const { authFetch } = useAuth()
   const favorites = useFavoriteState()
@@ -68,56 +71,61 @@ export default function FavoritesScreen() {
   }
   const response = view.status === 'ready' ? data : null
   const total = data?.meta.total
+  const empty = response?.meta.total === 0
+  const openRecommendations = () => router.navigate('/recomendados')
   return (
     <View style={styles.screen}>
       <View style={styles.heading}>
-        <Text style={styles.eyebrow}>FAVORITOS</Text>
-        <Text accessibilityRole="header" style={styles.title}>Vehículos guardados</Text>
-        {total !== undefined ? <Text style={styles.subtitle}>{total === 0 ? 'Sin vehículos guardados'
-          : `${total} ${total === 1 ? 'vehículo guardado' : 'vehículos guardados'}`}</Text> : null}
+        <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>Favoritos</Text>
+        <View style={styles.summary}>
+          {total !== undefined && total > 0 && <Text style={[styles.subtitle, archivo()]}>
+            {`${total} ${total === 1 ? 'vehículo guardado' : 'vehículos guardados'}`}
+          </Text>}
+          {!empty && <BackLink label="Ver recomendados" onPress={openRecommendations} style={styles.backLink} />}
+        </View>
       </View>
       {actionError ? <Alert variant="error">No pudimos actualizar tus favoritos. Intentá nuevamente.</Alert> : null}
       {removed ? <View style={styles.notice}>
         <Text accessibilityLiveRegion="polite" style={styles.subtitle}>Quitaste {vehicleTitle(removed)} de tus favoritos.</Text>
         <Button label="DESHACER" disabled={states[removed.id]?.pending} onPress={() => { void runAction(removed, true) }} />
       </View> : null}
-      <ScrollView key={`${page}-${size}`} style={styles.list} contentContainerStyle={styles.content}>
+      <ScrollView key={`${page}-${size}`} style={styles.list}
+        contentContainerStyle={[styles.content, { paddingBottom: barSpace + 8 }]}>
         {view.status === 'loading' ? <Loader /> : null}
         {view.status === 'error' ? <>
           <LoadError kind={view.kind} />
           <Button label="REINTENTAR" onPress={() => { setView({ status: 'loading' }); load() }} />
         </> : null}
-        {view.status === 'ready' && total === 0 ? <View style={styles.empty}>
+        {empty ? <View style={styles.empty}>
           <Text accessibilityRole="header" style={styles.emptyTitle}>Todavía no guardaste vehículos</Text>
           <Text style={styles.subtitle}>Guardá los que te interesen desde Recomendaciones y encontralos acá.</Text>
+          <Button label="VER RECOMENDADOS" onPress={openRecommendations} />
         </View> : null}
         {response?.data.map((vehicle) => <FavoriteCard key={vehicle.id} vehicle={vehicle}
           pending={states[vehicle.id]?.pending ?? false} onRemove={() => { void runAction(vehicle, false) }}
           match={matches.find((match) => match.listing_id === vehicle.id)} best={matches[0]?.listing_id === vehicle.id} />)}
-      </ScrollView>
-      <View style={styles.footer}>
+
         {total !== undefined && total > 6 ? <FavoritesPager page={page} lastPage={Math.max(1, data?.meta.last_page ?? 1)}
           size={size} onPage={setPage} onSize={(value) => {
             if (value === size) return
             setPage(1)
             setSize(value)
           }} /> : null}
-        <Button label="VER RECOMENDADOS" onPress={() => router.navigate('/recomendados')} />
-      </View>
+      </ScrollView>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, padding: 16, gap: 16, backgroundColor: colors.background },
+  screen: { flex: 1, paddingHorizontal: 16, paddingTop: 16, gap: 16, backgroundColor: colors.background },
   heading: { gap: 8 },
-  eyebrow: { fontSize: 12, fontWeight: '600', color: colors.charcoal },
+  summary: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 8 },
+  backLink: { marginLeft: 'auto', alignSelf: 'center' },
   title: { fontSize: 32, fontWeight: '700', color: colors.textPrimary },
   subtitle: { fontSize: 14, color: colors.textSecondary },
   list: { flex: 1 },
-  content: { flexGrow: 1, gap: 16, paddingBottom: 8 },
+  content: { flexGrow: 1, gap: 16 },
   empty: { gap: 12, paddingVertical: 32 },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
-  footer: { alignItems: 'flex-end', gap: 12 },
   notice: { gap: 8, padding: 12, borderRadius: 10, backgroundColor: colors.surfaceRaised },
 })

@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Services\Catalog\FixedAcaraCatalog;
-use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\LocalDevSeeder;
 use Database\Seeders\RealDemo\RealDemoLoader;
+use Database\Seeders\Support\DemoCredentials;
 use Database\Seeders\Support\LocalAcaraCatalogData;
 use Database\Seeders\VolumeInventorySeeder;
 use Illuminate\Console\Command;
@@ -39,6 +39,14 @@ class BuildLocalDatabase extends Command
 
         if ($vehicles === null || $real === null) {
             $this->error('--'.($vehicles === null ? 'vehiculos' : 'reales').' must be a whole number, 0 or more.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            DemoCredentials::password();
+        } catch (\RuntimeException $error) {
+            $this->error($error->getMessage());
 
             return self::FAILURE;
         }
@@ -107,8 +115,6 @@ class BuildLocalDatabase extends Command
             DB::purge(self::CONNECTION);
         }
 
-        $password = DemoDealersSeeder::DEMO_PASSWORD;
-
         $this->newLine();
         $this->info("Local database ready: {$path}");
         $this->line('Fixed ACARA catalog loaded ('.count($catalogSnapshot['rows']).' source rows).');
@@ -117,7 +123,7 @@ class BuildLocalDatabase extends Command
         $this->line("  DB_DATABASE={$path}");
         $this->line('  DB_URL=');
         $this->line('After changing the environment, run `php artisan config:clear`.');
-        $this->line('Demo accounts (password: '.$password.'):');
+        $this->line('Demo accounts (use your configured DEMO_PASSWORD):');
         $this->line('  '.LocalDevSeeder::ADMIN_EMAIL.' (admin)');
         $this->line('  '.LocalDevSeeder::BUYER_EMAIL.' (buyer)');
         $this->line('  *@demo.tdautos.test (dealers: sur, rosario, cuyo, norte, capital, pampa, litoral)');

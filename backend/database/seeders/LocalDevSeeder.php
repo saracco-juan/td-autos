@@ -9,6 +9,7 @@ use App\Models\Vehiculo;
 use App\Models\VehiculoConcesionaria;
 use App\Support\VehiculoFotos;
 use App\Support\VehiculoOptions;
+use Database\Seeders\Support\DemoCredentials;
 use Database\Seeders\Support\DemoVehicleFacts;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
@@ -36,6 +37,8 @@ class LocalDevSeeder extends Seeder
 
     public function run(): void
     {
+        $password = DemoCredentials::password();
+
         $this->call(DatabaseSeeder::class);
 
         // The admin goes first so DemoDealersSeeder can set the reviewer of decided receipts.
@@ -43,14 +46,14 @@ class LocalDevSeeder extends Seeder
             'name' => 'Admin',
             'apellido' => 'Demo',
             'email' => self::ADMIN_EMAIL,
-            'password' => DemoDealersSeeder::DEMO_PASSWORD,
+            'password' => $password,
         ]);
 
         User::factory()->create([
             'name' => 'Comprador',
             'apellido' => 'Demo',
             'email' => self::BUYER_EMAIL,
-            'password' => DemoDealersSeeder::DEMO_PASSWORD,
+            'password' => $password,
         ]);
 
         $this->call(DemoDealersSeeder::class);

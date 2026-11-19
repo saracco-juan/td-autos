@@ -28,12 +28,12 @@ const SAVE_ERROR = 'No pudimos guardar el cambio. Probá de nuevo.'
 
 const button = (name: string) => screen.getByRole('button', { name })
 const checkbox = (name: RegExp) => screen.getByRole('checkbox', { name })
-const tab = (name: RegExp) => screen.getByRole('tab', { name })
+const section = (name: RegExp) => screen.getByRole('button', { name })
 
 async function open(response: TransferResponse = transferResponse()) {
   api.fetchTransfer.mockResolvedValue(response)
   const view = await renderApp(URL)
-  await screen.findByText('TRÁMITES')
+  await screen.findByText('Checklist de transferencia')
   return view
 }
 
@@ -51,7 +51,7 @@ describe('TransferScreen', () => {
     openURL.mockResolvedValue(true)
   })
 
-  it('opens in the Transferencia tab with the header, the stage pills and the first stage', async () => {
+  it('opens in the Transferencia tab with the header, the stage headers and the first stage', async () => {
     const view = await open()
 
     expect(view.getPathname()).toBe(URL)
@@ -59,13 +59,21 @@ describe('TransferScreen', () => {
     expect(screen.getByText('Checklist de transferencia')).toBeOnTheScreen()
     expect(screen.getByText('0 de 15 pasos completados')).toBeOnTheScreen()
     expect(screen.queryByRole('link')).not.toBeOnTheScreen()
-    expect(tab(/^1\. Antes de señar, 0 de 3/)).toBeSelected()
-    expect(tab(/^4\. Después de transferir, 0 de 3/)).toBeOnTheScreen()
+    expect(section(/^1\. Antes de señar, 0 de 3/)).toHaveProp('accessibilityState', expect.objectContaining({ expanded: true }))
+    expect(section(/^4\. Después de transferir, 0 de 3/)).toBeOnTheScreen()
     expect(screen.getByText('Chequeá estos puntos antes de dejar plata de seña.')).toBeOnTheScreen()
     expect(button('ETAPA SIGUIENTE')).toBeOnTheScreen()
     expect(button('FINALIZAR')).toBeOnTheScreen()
     expect(screen.queryByRole('button', { name: 'ETAPA ANTERIOR' })).not.toBeOnTheScreen()
     expect(screen.getByRole('button', { name: /^Transferencia,/ })).toBeOnTheScreen()
+  })
+
+  it('collapses the open section and restores its items when reopened', async () => {
+    await open()
+    await fireEvent.press(section(/^1\. Antes de señar/))
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+    await fireEvent.press(section(/^1\. Antes de señar/))
+    expect(screen.getAllByRole('checkbox')).toHaveLength(3)
   })
 
   it('TC-38: completes the checklist stage by stage and finishes into the summary', async () => {
@@ -90,7 +98,7 @@ describe('TransferScreen', () => {
     expect(screen.queryByText('Pasos pendientes')).not.toBeOnTheScreen()
 
     await fireEvent.press(button('VOLVER AL CHECKLIST'))
-    expect(await screen.findByRole('tab', { name: /^1\. Antes de señar/ })).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: /^1\. Antes de señar/ })).toBeOnTheScreen()
   })
 
   it('TC-39: reopening keeps the marked items and opens the first stage with pending items', async () => {
@@ -102,11 +110,11 @@ describe('TransferScreen', () => {
     )
 
     expect(screen.getByText('4 de 15 pasos completados')).toBeOnTheScreen()
-    expect(tab(/^2\. Documentación, 1 de 5/)).toBeSelected()
+    expect(section(/^2\. Documentación, 1 de 5/)).toHaveProp('accessibilityState', expect.objectContaining({ expanded: true }))
     expect(checkbox(/^DNI del comprador/)).toBeChecked()
     expect(checkbox(/^Cédula del vehículo/)).not.toBeChecked()
 
-    await fireEvent.press(tab(/^1\. Antes de señar/))
+    await fireEvent.press(section(/^1\. Antes de señar/))
     expect(checkbox(/^El vendedor es el titular/)).toBeChecked()
   })
 
@@ -124,7 +132,7 @@ describe('TransferScreen', () => {
     expect(api.finishTransfer).not.toHaveBeenCalled()
     expect(button('FINALIZAR IGUAL')).toBeOnTheScreen()
     expect(button('SEGUIR COMPLETANDO')).toBeOnTheScreen()
-    expect(tab(/^2\. Documentación, 4 de 5, 1 paso obligatorio pendiente$/)).toBeOnTheScreen()
+    expect(section(/^2\. Documentación, 4 de 5, 1 paso obligatorio pendiente$/)).toBeOnTheScreen()
     expect(screen.getByTestId('pending-dot-3')).toBeOnTheScreen()
     expect(screen.queryByTestId('pending-dot-1')).not.toBeOnTheScreen()
 
@@ -149,7 +157,7 @@ describe('TransferScreen', () => {
     await fireEvent.press(button('FINALIZAR'))
     expect(button('FINALIZAR IGUAL')).toBeOnTheScreen()
 
-    await fireEvent.press(tab(/^2\. Documentación/))
+    await fireEvent.press(section(/^2\. Documentación/))
     await tick(/^DNI del comprador/)
 
     expect(screen.queryByRole('button', { name: 'FINALIZAR IGUAL' })).not.toBeOnTheScreen()
@@ -185,7 +193,7 @@ describe('TransferScreen', () => {
     await fireEvent.press(button('FINALIZAR'))
 
     expect(await screen.findByText('No pudimos finalizar el checklist. Probá de nuevo.')).toBeOnTheScreen()
-    expect(tab(/^1\. Antes de señar/)).toBeOnTheScreen()
+    expect(section(/^1\. Antes de señar/)).toBeOnTheScreen()
     expect(screen.queryByText('Avance por etapa')).not.toBeOnTheScreen()
   })
 
@@ -217,11 +225,13 @@ describe('TransferScreen', () => {
     expect(await screen.findByText('Algo salió mal')).toBeOnTheScreen()
   })
 
-  it('shows the sources note under the items of every stage', async () => {
+  it('opens the sources note and keeps it available across stages', async () => {
     await open()
 
+    expect(screen.queryByText(SOURCE_NOTE)).not.toBeOnTheScreen()
+    await fireEvent.press(button('Sobre esta guía'))
     expect(screen.getByText(SOURCE_NOTE)).toBeOnTheScreen()
-    await fireEvent.press(tab(/^3\. Trámite en el registro/))
+    await fireEvent.press(section(/^3\. Trámite en el registro/))
     expect(screen.getByText(SOURCE_NOTE)).toBeOnTheScreen()
   })
 

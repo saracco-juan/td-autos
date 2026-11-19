@@ -1,0 +1,103 @@
+.page {
+  composes: container from '../../../styles/screen.module.css';
+  --diagnosis-motion-duration: 1000ms;
+  --diagnosis-motion-ease: cubic-bezier(.37, 0, .63, 1);
+  /* Travel stays inside the shell's 16–40px gutter, with 4px for focus outlines. */
+  --diagnosis-motion-distance: clamp(12px, calc(3vw - 4px), 36px);
+  padding-top: 32px;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  align-items: start;
+  gap: clamp(32px, 5vw, 80px);
+}
+
+/* Stacked panels reserve the tallest question's space without moving the summary. */
+.questions {
+  display: grid;
+  min-width: 0;
+}
+
+.question {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transform: translateX(var(--diagnosis-motion-offset));
+  transition: transform var(--diagnosis-motion-duration) var(--diagnosis-motion-ease),
+    opacity 160ms ease;
+}
+
+/* Clear the previous text before revealing the next question during the same drive. */
+.question[aria-hidden='false'] {
+  transition-duration: var(--diagnosis-motion-duration), 400ms;
+  transition-delay: 0ms, 160ms;
+}
+
+.header {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(26px, 2.6vw, 38px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+  scroll-margin-top: 200px;
+}
+
+.subtitle {
+  max-width: 65ch;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message {
+  margin: 0;
+}
+
+.actions > button {
+  flex-basis: auto;
+}
+
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  .actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-top: 16px;
+  }
+  .header {
+    margin-bottom: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question,
+  .question[aria-hidden='false'] {
+    transform: none;
+    transition: opacity 120ms ease;
+  }
+}

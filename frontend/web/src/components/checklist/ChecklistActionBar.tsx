@@ -1,5 +1,6 @@
-import alertStyles from '../alert.module.css'
-import buttonStyles from '../button.module.css'
+import type { MouseEventHandler } from 'react'
+import alertStyles from '../../styles/alert.module.css'
+import buttonStyles from '../Buttons/button.module.css'
 import styles from './ChecklistActionBar.module.css'
 import barStyles from './pinnedBar.module.css'
 
@@ -21,8 +22,8 @@ type Props = {
   finishFailed: boolean
   hasPrevious: boolean
   hasNext: boolean
-  onPrevious: () => void
-  onNext: () => void
+  onPrevious: MouseEventHandler<HTMLButtonElement>
+  onNext: MouseEventHandler<HTMLButtonElement>
   onFinish: () => void
   onFinishAnyway: () => void
   onKeepWorking: () => void

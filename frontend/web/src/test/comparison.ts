@@ -1,5 +1,5 @@
 import { vehicle } from '@shared/vehicles/fixtures'
-import type { ComparisonEntry } from '../features/comparison/ComparisonTable'
+import type { ComparisonEntry } from '../features/comparison/components/ComparisonTable'
 
 export const entry = (id = 7): ComparisonEntry => ({
   id,

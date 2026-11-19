@@ -3,7 +3,6 @@
 namespace Tests\Feature\RealDemo;
 
 use App\Models\User;
-use Database\Seeders\DemoDealersSeeder;
 use Database\Seeders\RealDemo\RealDemoInventory;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +23,7 @@ class RealDemoLocalLoadTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['demo.password' => bin2hex(random_bytes(24))]);
 
         Storage::fake('local');
         Storage::fake('public');
@@ -64,7 +64,7 @@ class RealDemoLocalLoadTest extends TestCase
         $dealers = $db->table('users')->where('email', 'like', '%@reales.tdautos.test')->get();
 
         $this->assertCount(10, $dealers);
-        $this->assertTrue(Hash::check(DemoDealersSeeder::DEMO_PASSWORD, $dealers->first()->password));
+        $this->assertTrue(Hash::check(config('demo.password'), $dealers->first()->password));
         $this->assertSame(User::ROL_CONCESIONARIA, $dealers->first()->rol);
         $this->assertSame(
             10,

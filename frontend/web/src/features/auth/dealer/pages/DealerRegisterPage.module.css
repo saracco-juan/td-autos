@@ -1,0 +1,51 @@
+.page {
+  align-self: flex-start;
+  width: 100%;
+  max-width: 920px;
+  margin-block: clamp(0px, 2dvh, 20px);
+  padding-block: 8px;
+}
+.header {
+  margin-bottom: 20px;
+}
+.intro {
+  margin-bottom: 24px;
+}
+.intro h1 {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+.intro p {
+  margin: 8px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.viewport {
+  overflow: hidden;
+  border-radius: 16px;
+}
+.card {
+  background: var(--surface-primary, #fff);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  padding: 28px 36px;
+}
+.login {
+  margin: 16px 0 0;
+}
+@media (max-width: 800px) {
+  .page {
+    --auth-input-font-size: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .page {
+    margin-block: 0;
+  }
+  .page .card {
+    padding: 24px 20px;
+  }
+}

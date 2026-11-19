@@ -1,3 +1,4 @@
+import { AccessibilityInfo, Animated } from 'react-native'
 import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library'
 
 import * as authApi from '../../../features/auth/api'
@@ -72,6 +73,27 @@ it('TC-31: uses the same heart from recommendations without changing existing co
   expect(request).toHaveBeenCalledWith('/api/favoritos/7', { method: 'PUT', token: 'tok' })
   expect(screen.getByRole('button', { name: 'VER FICHA' })).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'COMPARAR' })).toBeOnTheScreen()
+})
+
+it.each([false, true])('honors reduced motion for favorite and comparison feedback (reduced=%s)', async (reduced) => {
+  const preference = jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(reduced)
+  const motion = jest.spyOn(Animated, 'timing')
+  const count = (duration: number) => motion.mock.calls.filter(([, config]) => config.duration === duration).length
+  try {
+    jest.mocked(recommendationsApi).fetchRecommendations.mockResolvedValue(ready([recommendation(7)]))
+    await renderApp('/recomendados')
+    const heart = await screen.findByRole('button', { name: /Guardar .* en favoritos/ })
+    expect(count(420)).toBe(0)
+    await fireEvent.press(heart)
+    expect(count(420)).toBe(reduced ? 0 : 1)
+    expect(screen.getByRole('button', { name: /Quitar .* de favoritos/ })).toBeSelected()
+    await fireEvent.press(screen.getByRole('button', { name: 'COMPARAR' }))
+    expect(count(800)).toBe(reduced ? 0 : 1)
+    expect(screen.getByRole('button', { name: /Quitar .* de la comparación/ })).toBeOnTheScreen()
+  } finally {
+    motion.mockRestore()
+    preference.mockRestore()
+  }
 })
 
 it.each([true, false])('keeps both hearts consistent across navigation while saving (success=%s)', async (success) => {

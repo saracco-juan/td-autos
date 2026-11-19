@@ -11,6 +11,7 @@ export type RecommendationVehicle = {
   combustible: 'nafta' | 'diesel' | 'gnc' | 'hibrido' | 'electrico'
   carroceria: string | null
   image_url: string | null
+  image_urls?: string[]
 }
 
 export type RecommendationWarning = 'body_mismatch' | 'budget_exceeded' | 'resale_unavailable' | 'resale_stale'

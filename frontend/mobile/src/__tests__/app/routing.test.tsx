@@ -93,6 +93,25 @@ describe('route guards', () => {
     expect(view.getPathname()).toBe('/transferencia')
   })
 
+  it('names all five icon buttons and moves the selection when the buyer switches tabs', async () => {
+    storage.readToken.mockResolvedValue('tok')
+    apiMock.fetchCurrentUser.mockResolvedValue(USER)
+    transfer.fetchTransfer.mockResolvedValue(transferResponse())
+    const view = await renderApp('/')
+
+    const labels = ['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia', 'Perfil']
+    const button = (index: number) => screen.getByRole('button', {
+      name: `${labels[index]}, pestaña ${index + 1} de 5`,
+    })
+    await screen.findByText('DIAGNÓSTICO DE NECESIDADES')
+    labels.forEach((_, index) => expect(button(index)).toBeOnTheScreen())
+    expect(button(0)).toBeSelected()
+    await fireEvent.press(button(3))
+    await waitFor(() => expect(view.getPathname()).toBe('/transferencia'))
+    expect(button(3)).toBeSelected()
+    expect(button(0)).not.toBeSelected()
+  })
+
   it('does not 404 when the OS opens the app on the google return route', async () => {
     const guest = await renderApp('/auth/google?code=abc')
 
@@ -116,7 +135,7 @@ describe('route guards', () => {
     apiMock.logoutRequest.mockResolvedValue(undefined)
 
     const view = await renderApp('/perfil')
-    await fireEvent.press(await screen.findByText('CERRAR SESIÓN'))
+    await fireEvent.press(await screen.findByRole('button', { name: 'CERRAR SESIÓN' }))
 
     expect(await screen.findByText('Ingresá a tu cuenta')).toBeOnTheScreen()
     await waitFor(() => expect(view.getPathname()).toBe('/login'))

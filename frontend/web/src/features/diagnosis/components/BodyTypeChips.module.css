@@ -1,0 +1,58 @@
+.group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.chip {
+  composes: button from '../../../components/Buttons/button.module.css';
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: auto;
+  min-height: 124px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.silhouette {
+  width: 180px;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 21px;
+}
+
+.check {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.selected {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+  color: var(--text-on-color);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--palette-red);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .chip {
+    min-height: 112px;
+    padding: 12px;
+    font-size: 13px;
+  }
+}

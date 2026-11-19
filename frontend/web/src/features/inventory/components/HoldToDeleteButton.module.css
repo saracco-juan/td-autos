@@ -1,0 +1,44 @@
+.hold:not(:disabled) {
+  --button-hover-fill: var(--action-danger);
+  width: 64px;
+  min-height: 32px;
+  height: 32px;
+  user-select: none;
+  touch-action: none;
+  transition: width 200ms cubic-bezier(0.23, 1, 0.32, 1), color 550ms ease, border-color 550ms ease;
+}
+
+.hold[data-holding] {
+  --button-hover-color: var(--palette-charcoal);
+  width: 150px;
+  padding-inline: 6px;
+  color: var(--palette-charcoal);
+  font-size: 10px;
+}
+
+.hold[data-holding]::after { display: none; }
+.label { position: relative; z-index: 1; white-space: nowrap; }
+.progress {
+  position: absolute;
+  inset: 0;
+  background: var(--status-error-bg);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.hold[data-holding] .progress {
+  transform: scaleX(1);
+  transition: transform 2s linear;
+}
+.hold[data-keyboard] .progress { display: none; }
+.hold[data-keyboard][data-holding] { background: var(--status-error-bg); }
+
+@media (pointer: coarse) {
+  .hold:not(:disabled) { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hold:not(:disabled) { transition: none; }
+  .progress { display: none; }
+  .hold[data-holding] { background: var(--status-error-bg); }
+}

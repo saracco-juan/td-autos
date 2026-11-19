@@ -1,0 +1,90 @@
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-block: 20px;
+  border-top: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pager nav > div {
+  gap: 6px;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pager nav ul { gap: 6px; }
+
+.wrap nav { flex-wrap: wrap; }
+
+.wrap nav > div {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.pager nav button {
+  --button-hover-fill: var(--palette-charcoal);
+  min-width: 44px;
+  height: 36px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-default);
+  font-size: 14px;
+  transition: color 550ms ease, border-color 550ms ease;
+}
+
+.pager select {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 64px;
+  height: 36px;
+  line-height: normal;
+  transition: background-color 550ms ease, color 550ms ease, border-color 550ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pager nav button:hover:not(:disabled):not([aria-current]) {
+    border-color: var(--palette-charcoal);
+    color: var(--text-on-color);
+  }
+
+  .pager select:hover {
+    border-color: var(--palette-charcoal);
+    background: var(--palette-charcoal);
+    color: var(--text-on-color);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pager nav button, .pager select { transition: none; }
+}
+
+.pager nav button[aria-current='page'] {
+  background: var(--palette-charcoal);
+  border-color: var(--palette-charcoal);
+  color: var(--text-on-color);
+}
+
+.pager nav button:focus-visible {
+  outline: 2px solid var(--palette-charcoal);
+  outline-offset: 3px;
+  box-shadow: none;
+}
+
+@media (max-width: 800px), (pointer: coarse) {
+  .pager nav button,
+  .pager select {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 800px) {
+  .pager select { font-size: 16px; }
+}

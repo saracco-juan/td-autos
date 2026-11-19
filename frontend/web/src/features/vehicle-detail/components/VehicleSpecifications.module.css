@@ -1,0 +1,85 @@
+.card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.card h2 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.card h3 {
+  margin: 32px 0 12px;
+  font-size: 15px;
+}
+
+.card p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.card small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rows {
+  margin: 0;
+}
+
+.specificationsPanel {
+  max-height: clamp(240px, 50dvh, 440px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--palette-charcoal) transparent;
+  padding: 2px 36px 2px 2px;
+}
+
+.tabs { position: relative; }
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 14px;
+}
+.row dt {
+  font-weight: 600;
+}
+
+.row dd {
+  margin: 0;
+  text-align: right;
+}
+
+.row small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.description {
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .row dd {
+    text-align: left;
+  }
+}

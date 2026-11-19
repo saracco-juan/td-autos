@@ -424,6 +424,214 @@
       "sessions": 1,
       "memories": 1,
       "prompts": 0
+    },
+    {
+      "id": "30974ec2",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:08:38.2050957Z",
+      "sessions": 5,
+      "memories": 214,
+      "prompts": 154
+    },
+    {
+      "id": "ba247bbd",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:33:50.7573255Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 4
+    },
+    {
+      "id": "b5d3f4cb",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:37:32.4683387Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 1
+    },
+    {
+      "id": "efde4349",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:51:24.6020404Z",
+      "sessions": 1,
+      "memories": 5,
+      "prompts": 0
+    },
+    {
+      "id": "e7725bb5",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T20:51:50.1804111Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "044b4d3b",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T21:36:28.3434927Z",
+      "sessions": 1,
+      "memories": 15,
+      "prompts": 2
+    },
+    {
+      "id": "379e25fb",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T22:02:12.3784302Z",
+      "sessions": 1,
+      "memories": 9,
+      "prompts": 2
+    },
+    {
+      "id": "26115238",
+      "created_by": "Compumar",
+      "created_at": "2026-11-04T22:06:28.0716178Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "8f7f22b6",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T02:09:42.646192Z",
+      "sessions": 2,
+      "memories": 29,
+      "prompts": 18
+    },
+    {
+      "id": "1041d133",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T02:11:23.8057399Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "16c46fcb",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T02:16:37.984488Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "d0078140",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T02:36:39.447534Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 0
+    },
+    {
+      "id": "bf5d8b57",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T20:03:31.4023643Z",
+      "sessions": 3,
+      "memories": 30,
+      "prompts": 19
+    },
+    {
+      "id": "d581dddc",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T20:07:54.8341773Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 1
+    },
+    {
+      "id": "c66ba35e",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T20:31:43.1249394Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 3
+    },
+    {
+      "id": "19cfd570",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T20:33:25.917167Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 0
+    },
+    {
+      "id": "4e2f368b",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T21:29:41.0178469Z",
+      "sessions": 2,
+      "memories": 14,
+      "prompts": 1
+    },
+    {
+      "id": "cd793915",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T21:35:09.0205137Z",
+      "sessions": 1,
+      "memories": 1,
+      "prompts": 1
+    },
+    {
+      "id": "07c94788",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T22:29:03.1030138Z",
+      "sessions": 2,
+      "memories": 14,
+      "prompts": 3
+    },
+    {
+      "id": "e6480f8f",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T22:33:31.9225943Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 1
+    },
+    {
+      "id": "d33c3b7f",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T23:14:52.6421086Z",
+      "sessions": 2,
+      "memories": 17,
+      "prompts": 3
+    },
+    {
+      "id": "cc5a0056",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T23:18:42.7204138Z",
+      "sessions": 1,
+      "memories": 2,
+      "prompts": 1
+    },
+    {
+      "id": "0a5bd3c7",
+      "created_by": "Compumar",
+      "created_at": "2026-11-05T23:54:46.4610467Z",
+      "sessions": 1,
+      "memories": 4,
+      "prompts": 3
+    },
+    {
+      "id": "a54e6b99",
+      "created_by": "Compumar",
+      "created_at": "2026-11-06T01:36:24.2512757Z",
+      "sessions": 2,
+      "memories": 11,
+      "prompts": 5
+    },
+    {
+      "id": "13b32fb0",
+      "created_by": "Compumar",
+      "created_at": "2026-11-06T13:03:14.6153111Z",
+      "sessions": 2,
+      "memories": 10,
+      "prompts": 6
+    },
+    {
+      "id": "7f93f126",
+      "created_by": "Compumar",
+      "created_at": "2026-11-06T14:16:28.4798003Z",
+      "sessions": 1,
+      "memories": 3,
+      "prompts": 1
     }
   ]
 }

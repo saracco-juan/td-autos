@@ -1,3 +1,4 @@
+import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -25,6 +26,7 @@ export default function DepreciationScreen({ rawId }: Readonly<{ rawId: string |
 }
 
 function Depreciation({ id }: Readonly<{ id: number | null }>) {
+  const barSpace = useBuyerTabBarSpace()
   const { authFetch } = useAuth()
   const router = useRouter()
   const [view, setView] = useState<State>({ status: id === null ? 'unavailable' : 'loading' })
@@ -50,7 +52,7 @@ function Depreciation({ id }: Readonly<{ id: number | null }>) {
   const data = view.status === 'ready' ? view.data : null
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barSpace + 24 }]}>
       <BackChip label={id === null ? 'Volver a recomendados' : 'Volver a la ficha'}
         onPress={() => router.navigate(id === null ? '/recomendados' : `/vehiculos/${id}`)} />
       {view.status === 'loading' ? <View style={styles.section}><Loader /></View> : null}

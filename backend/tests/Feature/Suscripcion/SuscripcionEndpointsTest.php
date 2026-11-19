@@ -400,7 +400,7 @@ class SuscripcionEndpointsTest extends TestCase
 
         $this->upload($dealer, $this->pdf())
             ->assertStatus(503)
-            ->assertExactJson(['message' => 'Los datos de transferencia no están disponibles por el momento.']);
+            ->assertExactJson(['message' => 'Los datos para pagar todavía no están configurados. Contactá a la administración para que los complete; hasta entonces no podés enviar un comprobante.']);
         $this->assertNothingStored();
         $this->assertSame(0, Suscripcion::count());
     }

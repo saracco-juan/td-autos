@@ -1,0 +1,54 @@
+.button {
+  position: relative;
+  width: min(100%, 220px);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.progress {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: transparent;
+}
+
+.label {
+  position: relative;
+}
+
+.button[data-download-state='loading'] {
+  border-color: var(--status-success-border);
+  opacity: 1;
+}
+
+.button[data-download-state='loading'] .progress {
+  background: linear-gradient(90deg, transparent, var(--status-success-bg), var(--status-success-border), var(--status-success-bg), transparent);
+  animation: sweep 1.2s linear infinite;
+}
+
+.button[data-download-state='success'] .progress {
+  background: var(--status-success-bg);
+}
+
+.button[data-download-state='success'] {
+  --button-hover-fill: var(--status-success-bg);
+  --button-hover-color: var(--palette-charcoal);
+  --button-hover-border: var(--action-success);
+  color: var(--palette-charcoal);
+}
+
+.success {
+  margin: 0;
+}
+
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button[data-download-state='loading'] .progress {
+    animation: none;
+    background: var(--status-success-bg);
+  }
+}

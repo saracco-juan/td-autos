@@ -1,0 +1,234 @@
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { createRef } from 'react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import ChecklistStepList, { type ChecklistNavigation } from '../../../components/checklist/ChecklistStepList'
+import { STEPS } from '@shared/checklist/fixtures'
+
+type Props = React.ComponentProps<typeof ChecklistStepList>
+
+const criticalLabel = (count: number) => (count === 1 ? '1 crítico pendiente' : `${count} críticos pendientes`)
+
+function renderList(overrides: Partial<Props> = {}) {
+  const props: Props = {
+    idPrefix: 'inspection',
+    steps: STEPS,
+    completedCodes: new Set(),
+    selected: 1,
+    orientation: 'vertical',
+    pendingFlagged: new Map(),
+    pendingLabel: criticalLabel,
+    onSelect: vi.fn(),
+    ...overrides,
+  }
+  const view = render(<ChecklistStepList {...props} />)
+  return { props, ...view }
+}
+
+const tabs = () => screen.getAllByRole('tab')
+
+describe('ChecklistStepList', () => {
+  beforeEach(() => vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false }))))
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('selects immediately with reduced motion and cancels a pending exit when selection changes externally', () => {
+    const { props, container, rerender } = renderList()
+    const panel = document.createElement('div')
+    panel.id = 'inspection-panel-1'
+    container.append(panel)
+    const animation = { cancel: vi.fn(), onfinish: null as (() => void) | null }
+    panel.animate = vi.fn(() => animation as unknown as Animation)
+
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })))
+    fireEvent.click(tabs()[1], { detail: 1 })
+    expect(props.onSelect).toHaveBeenCalledWith(2)
+    expect(panel.animate).not.toHaveBeenCalled()
+
+    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })))
+    props.onSelect = vi.fn()
+    rerender(<ChecklistStepList {...props} />)
+    fireEvent.click(tabs()[2], { detail: 1 })
+    rerender(<ChecklistStepList {...props} selected={2} />)
+    expect(animation.cancel).toHaveBeenCalled()
+    act(() => animation.onfinish?.())
+    expect(props.onSelect).not.toHaveBeenCalled()
+    expect(tabs()[1]).toHaveAttribute('aria-selected', 'true')
+    panel.remove()
+  })
+
+  it.each(['tabs', 'actions'])('animates navigation from %s in either direction without animating initial content', (source) => {
+    const navigation = createRef<ChecklistNavigation>()
+    const { props, rerender, container } = renderList({ ref: navigation })
+    const choose = (index: number) => {
+      if (source === 'tabs') fireEvent.click(tabs()[index], { detail: 1 })
+      else act(() => navigation.current!.select(STEPS[index].numero, true))
+    }
+    const panel = document.createElement('div')
+    panel.id = 'inspection-panel-1'
+    container.append(panel)
+    const animations: { cancel: ReturnType<typeof vi.fn>; onfinish: (() => void) | null }[] = []
+    panel.animate = vi.fn(() => {
+      const animation = { cancel: vi.fn(), onfinish: null }
+      animations.push(animation)
+      return animation as unknown as Animation
+    })
+    const select = vi.fn((numero: number) => {
+      panel.id = `inspection-panel-${numero}`
+      rerender(<ChecklistStepList {...props} selected={numero} onSelect={select} />)
+    })
+    rerender(<ChecklistStepList {...props} onSelect={select} />)
+
+    expect(panel.animate).not.toHaveBeenCalled()
+    choose(2)
+    expect(select).not.toHaveBeenCalled()
+    act(() => animations[0].onfinish?.())
+    expect(select).toHaveBeenLastCalledWith(3)
+    expect(panel.animate).toHaveBeenCalledTimes(2)
+    expect(tabs()[2]).toHaveAttribute('aria-selected', 'true')
+
+    choose(1)
+    expect(select).toHaveBeenCalledTimes(1)
+    act(() => animations[2].onfinish?.())
+    expect(select).toHaveBeenLastCalledWith(2)
+    expect(panel.animate).toHaveBeenCalledTimes(4)
+    panel.remove()
+  })
+
+  it('discards an interrupted exit and keeps keyboard selection immediate', () => {
+    const { props, unmount, container } = renderList()
+    const panel = document.createElement('div')
+    panel.id = 'inspection-panel-1'
+    container.append(panel)
+    const animations: { cancel: ReturnType<typeof vi.fn>; onfinish: (() => void) | null }[] = []
+    panel.animate = vi.fn(() => {
+      const animation = { cancel: vi.fn(), onfinish: null }
+      animations.push(animation)
+      return animation as unknown as Animation
+    })
+    fireEvent.click(tabs()[1], { detail: 1 })
+    fireEvent.click(tabs()[2], { detail: 1 })
+    expect(animations[0].cancel).toHaveBeenCalled()
+    act(() => animations[0].onfinish?.())
+    expect(props.onSelect).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(screen.getByRole('tablist'), { key: 'End' })
+    expect(props.onSelect).toHaveBeenLastCalledWith(STEPS.at(-1)!.numero)
+    act(() => animations[1].onfinish?.())
+    expect(props.onSelect).toHaveBeenCalledTimes(1)
+    fireEvent.click(tabs()[1], { detail: 1 })
+    unmount()
+    act(() => animations[2].onfinish?.())
+    expect(props.onSelect).toHaveBeenCalledTimes(1)
+    panel.remove()
+  })
+
+  it('renders a vertical tablist with one tab per step: title on the left, progress on the right', () => {
+    renderList({ completedCodes: new Set(['papeles_vtv']) })
+
+    expect(screen.getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical')
+    expect(tabs().map((tab) => tab.textContent)).toEqual([
+      '1. Papeles del auto1 de 2',
+      '2. Exterior0 de 2',
+      '3. Motor0 de 2',
+      '4. Interior0 de 2',
+      '5. Prueba de manejo0 de 2',
+    ])
+  })
+
+  it('supports the horizontal orientation', () => {
+    renderList({ orientation: 'horizontal' })
+
+    expect(screen.getByRole('tablist')).toHaveAttribute('aria-orientation', 'horizontal')
+  })
+
+  it('marks only the selected tab, with a roving tabindex, and points each tab to its panel', () => {
+    renderList({ selected: 3 })
+
+    expect(tabs().map((tab) => tab.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true', 'false', 'false'])
+    expect(tabs().map((tab) => tab.getAttribute('tabindex'))).toEqual(['-1', '-1', '0', '-1', '-1'])
+    expect(tabs()[2]).toHaveAttribute('aria-controls', 'inspection-panel-3')
+    expect(tabs()[2]).toHaveAttribute('id', 'inspection-tab-3')
+  })
+
+  it('builds the tab and panel ids from the id prefix', () => {
+    renderList({ idPrefix: 'transfer', selected: 2 })
+
+    expect(tabs()[1]).toHaveAttribute('id', 'transfer-tab-2')
+    expect(tabs()[1]).toHaveAttribute('aria-controls', 'transfer-panel-2')
+  })
+
+  it('selects a step by clicking its tab', async () => {
+    const { props } = renderList()
+
+    await userEvent.setup().click(screen.getByRole('tab', { name: /^3\. Motor/ }))
+
+    expect(props.onSelect).toHaveBeenCalledWith(3)
+  })
+
+  it('moves and selects with Up and Down (wrapping) in a vertical list, focusing the new tab', async () => {
+    const user = userEvent.setup()
+    const { props, rerender } = renderList({ selected: 1 })
+    tabs()[0].focus()
+
+    await user.keyboard('{ArrowDown}')
+    expect(props.onSelect).toHaveBeenLastCalledWith(2)
+    expect(tabs()[1]).toHaveFocus()
+
+    rerender(<ChecklistStepList {...props} selected={1} />)
+    tabs()[0].focus()
+    await user.keyboard('{ArrowUp}')
+    expect(props.onSelect).toHaveBeenLastCalledWith(5)
+    expect(tabs()[4]).toHaveFocus()
+  })
+
+  it('ignores Left and Right in a vertical list, and Up and Down in a horizontal one', async () => {
+    const user = userEvent.setup()
+    const { props, rerender } = renderList()
+    tabs()[0].focus()
+
+    await user.keyboard('{ArrowRight}{ArrowLeft}')
+    expect(props.onSelect).not.toHaveBeenCalled()
+
+    rerender(<ChecklistStepList {...props} orientation="horizontal" />)
+    await user.keyboard('{ArrowDown}')
+    expect(props.onSelect).not.toHaveBeenCalled()
+    await user.keyboard('{ArrowRight}')
+    expect(props.onSelect).toHaveBeenLastCalledWith(2)
+  })
+
+  it('goes to the first and last step with Home and End', async () => {
+    const user = userEvent.setup()
+    const { props } = renderList({ selected: 3 })
+    tabs()[2].focus()
+
+    await user.keyboard('{End}')
+    expect(props.onSelect).toHaveBeenLastCalledWith(5)
+    expect(tabs()[4]).toHaveFocus()
+
+    await user.keyboard('{Home}')
+    expect(props.onSelect).toHaveBeenLastCalledWith(1)
+    expect(tabs()[0]).toHaveFocus()
+  })
+
+  it('shows a marker with accessible text, singular and plural, only on the steps with flagged items pending', () => {
+    renderList({
+      pendingFlagged: new Map([
+        [2, 2],
+        [5, 1],
+      ]),
+    })
+
+    expect(screen.getByRole('tab', { name: /^2\. Exterior/ })).toHaveTextContent('2 críticos pendientes')
+    expect(screen.getByRole('tab', { name: /^5\. Prueba/ })).toHaveTextContent('1 crítico pendiente')
+    expect(screen.getByRole('tab', { name: /^1\. Papeles/ })).not.toHaveTextContent('pendiente')
+  })
+
+  it('takes the marker text from the pending label, with the count', () => {
+    const pendingLabel = vi.fn((count: number) => `${count} obligatorios sin completar`)
+    renderList({ pendingFlagged: new Map([[3, 4]]), pendingLabel })
+
+    expect(screen.getByRole('tab', { name: /^3\. Motor/ })).toHaveTextContent('4 obligatorios sin completar')
+    expect(pendingLabel).toHaveBeenCalledWith(4)
+    expect(pendingLabel).toHaveBeenCalledTimes(1)
+  })
+})

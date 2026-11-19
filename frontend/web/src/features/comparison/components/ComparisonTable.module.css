@@ -1,0 +1,278 @@
+.viewport {
+  min-width: 0;
+  padding: 0 2px 24px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+  column-gap: clamp(16px, 2vw, 28px);
+}
+
+.card {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 2;
+  row-gap: 0;
+  min-width: 0;
+  background: var(--surface-default);
+}
+
+.photo {
+  display: block;
+  grid-row: 1;
+  width: 100%;
+  height: clamp(180px, 25vw, 300px);
+  object-fit: contain;
+  border-radius: 24px;
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+}
+
+div.photo {
+  display: grid;
+  place-items: center;
+}
+
+.intro {
+  display: flex;
+  grid-row: 2;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 12px;
+}
+
+.intro h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: clamp(20px, 2vw, 26px);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.remove {
+  width: auto;
+  min-height: 40px;
+  height: auto;
+  padding: 8px 12px;
+  flex: 0 0 auto;
+}
+
+.facts {
+  display: grid;
+  grid-template-rows: subgrid;
+  margin: 0;
+  padding: 0 20px;
+}
+
+.factSlot {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 420ms cubic-bezier(0.32, 0.72, 0, 1), opacity 360ms ease;
+}
+
+.factSlot[data-hidden='true'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.factClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.factSlot:not([data-hidden='true']) .factClip:has([role='tooltip']:not([hidden])) {
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .factSlot { transition: none; }
+}
+
+.fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.fact dt {
+  min-width: 0;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.fact dd {
+  max-width: 55%;
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.costLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(clamp(16px, 2vw, 28px) + 40px);
+  margin-top: 24px;
+}
+
+.costLinks a {
+  min-height: 44px;
+  height: auto;
+  padding: 12px 16px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.specifications {
+  margin-top: clamp(28px, 4vw, 48px);
+  padding: 0 20px 12px;
+  border-radius: 20px;
+  background: var(--surface-default);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 26px);
+  letter-spacing: -0.02em;
+}
+
+.hideSimilarities {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.hideSimilarities input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--text-primary);
+  cursor: pointer;
+}
+
+.empty {
+  display: block;
+  margin: 0;
+  padding: 24px 0;
+}
+
+.sectionTabs [role='tablist'] {
+  justify-content: flex-start;
+}
+
+.sectionTabs [role='tabpanel'] {
+  min-width: 0;
+  padding-top: 8px;
+}
+
+.specificationColumn {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / span var(--specification-rows);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+
+
+.specificationColumn h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.specificationColumn .facts {
+  grid-row: 2 / span var(--fact-count);
+  padding: 0;
+}
+
+.specificationColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--specification-rows), auto);
+  column-gap: calc(clamp(16px, 2vw, 28px) + 40px);
+}
+
+.notes {
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.notes summary {
+  width: fit-content;
+  cursor: pointer;
+}
+
+.notes p {
+  margin: 8px 0 0;
+}
+
+@media (max-width: 800px) {
+  .cards,
+  .specificationColumns,
+  .costLinks {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    row-gap: 24px;
+  }
+
+  .specificationColumn {
+    display: block;
+    grid-row: auto;
+  }
+
+  .specificationColumn .facts {
+    display: block;
+    grid-row: auto;
+  }
+
+  .specifications {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .intro {
+    align-items: flex-start;
+    padding-inline: 16px;
+  }
+
+  .intro h2 {
+    font-size: 20px;
+  }
+
+  .facts {
+    padding-inline: 16px;
+  }
+
+  .fact {
+    gap: 12px;
+  }
+
+}

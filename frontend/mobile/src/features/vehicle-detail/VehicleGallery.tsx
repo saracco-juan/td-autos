@@ -1,82 +1,50 @@
-import { useState } from 'react'
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { useRef, useState } from 'react'
+import { Image, ScrollView, type ScrollViewInstance, StyleSheet, Text, View } from 'react-native'
 
 import type { DetailVehicle } from '@shared/vehicles/detail'
-import { colors, radii } from '../../theme/tokens'
+import { colors } from '../../theme/tokens'
 
 type Props = { photos: DetailVehicle['fotos']; title: string }
 
-// Cover photo plus a row of thumbnails (Figma 2373:9996). Photos come ordered by `orden`; a photo that fails to
-// load is replaced by a text message, never by a stock image.
 export default function VehicleGallery({ photos, title }: Readonly<Props>) {
   const ordered = [...photos].sort((a, b) => a.orden - b.orden)
-  const [selectedId, setSelectedId] = useState<number | undefined>(undefined)
+  const [position, setPosition] = useState(0)
+  const [width, setWidth] = useState(1)
   const [failed, setFailed] = useState<ReadonlySet<string>>(() => new Set())
-  const selected = ordered.find((photo) => photo.id === selectedId) ?? ordered[0]
-  const markFailed = (url: string) => setFailed((previous) => new Set(previous).add(url))
+  const pager = useRef<ScrollViewInstance>(null)
 
   return (
-    <View accessibilityLabel="Fotos del vehículo" style={styles.gallery}>
-      {!selected || failed.has(selected.url) ? (
-        <View accessibilityRole="text" style={[styles.cover, styles.placeholder]}>
-          <Text style={styles.placeholderText}>{selected ? 'Esta foto no está disponible.' : 'Fotos no disponibles.'}</Text>
-        </View>
-      ) : (
-        <Image
-          testID="gallery-cover"
-          source={{ uri: selected.url }}
-          accessibilityLabel={`Foto ${ordered.indexOf(selected) + 1} de ${title}`}
-          onError={() => markFailed(selected.url)}
-          style={styles.cover}
-        />
+    <View onLayout={({ nativeEvent }) => setWidth(Math.max(1, nativeEvent.layout.width))}>
+      {ordered.length === 0 ? <View style={styles.placeholder}><Text style={styles.message}>Fotos no disponibles.</Text></View> : (
+        <ScrollView horizontal pagingEnabled directionalLockEnabled ref={pager} testID="photo-pager" style={styles.gallery}
+          scrollEnabled={ordered.length > 1} showsHorizontalScrollIndicator={false}
+          onContentSizeChange={() => pager.current?.scrollTo({ x: position * width, animated: false })}
+          scrollEventThrottle={32} onScroll={({ nativeEvent: { contentOffset, layoutMeasurement } }) => {
+            if (layoutMeasurement.width > 0) {
+              setPosition(Math.max(0, Math.min(ordered.length - 1, Math.round(contentOffset.x / layoutMeasurement.width))))
+            }
+          }}>
+          {ordered.map((photo, index) => <View key={photo.id} style={[styles.page, { width }]}>
+            {failed.has(photo.url) ? <Text style={styles.message}>Esta foto no está disponible.</Text> : (
+              <Image testID={index === position ? 'gallery-cover' : undefined} source={{ uri: photo.url }} resizeMode="contain"
+                accessibilityLabel={`Foto ${index + 1} de ${title}`} style={StyleSheet.absoluteFill}
+                onError={() => setFailed(previous => new Set(previous).add(photo.url))} />
+            )}
+          </View>)}
+        </ScrollView>
       )}
-      {ordered.length > 0 ? (
-        <View style={styles.thumbnails}>
-          {ordered.map((photo, index) => (
-            <Pressable
-              key={photo.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Ver foto ${index + 1} de ${title}`}
-              accessibilityState={{ selected: photo.id === selected?.id }}
-              onPress={() => setSelectedId(photo.id)}
-              style={[styles.thumbnail, photo.id === selected?.id && styles.thumbnailSelected]}
-            >
-              {failed.has(photo.url) ? (
-                <Text style={styles.thumbnailFallback}>Foto {index + 1} no disponible</Text>
-              ) : (
-                <Image
-                  testID={`gallery-thumbnail-${index + 1}`}
-                  source={{ uri: photo.url }}
-                  onError={() => markFailed(photo.url)}
-                  style={StyleSheet.absoluteFill}
-                />
-              )}
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
+      {ordered.length > 1 && <View pointerEvents="none" style={styles.counter}>
+        <Text style={styles.count}>{position + 1} / {ordered.length}</Text>
+      </View>}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  gallery: { gap: 12 },
-  // 16:10 as the recommendation card image.
-  cover: { width: '100%', aspectRatio: 16 / 10, borderRadius: radii.card, backgroundColor: colors.surfaceRaised },
-  placeholder: { alignItems: 'center', justifyContent: 'center', padding: 16 },
-  placeholderText: { color: colors.textSecondary, fontSize: 14, textAlign: 'center' },
-  thumbnails: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  thumbnail: {
-    width: 72,
-    height: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderRadius: radii.field,
-    backgroundColor: colors.surfaceRaised,
-  },
-  thumbnailSelected: { borderWidth: 2, borderColor: colors.charcoal },
-  thumbnailFallback: { color: colors.textSecondary, fontSize: 10, textAlign: 'center', paddingHorizontal: 4 },
+  gallery: { width: '100%', aspectRatio: 4 / 3 },
+  placeholder: { aspectRatio: 4 / 3, justifyContent: 'center' },
+  page: { justifyContent: 'center' },
+  message: { textAlign: 'center', color: colors.surfaceRaised },
+  counter: { alignSelf: 'flex-end', paddingHorizontal: 12, paddingVertical: 3 },
+  count: { color: colors.onColor, fontSize: 12, fontVariant: ['tabular-nums'] },
 })

@@ -15,6 +15,7 @@ type Props = {
 export default function ChecklistColumns({ steps, list, panel, aside }: Props) {
   return (
     <div
+      data-checklist-columns
       className={`${styles.columns} ${aside ? styles.withAside : ''}`}
       style={{ '--max-items': longestStepSize(steps) } as CSSProperties}
     >

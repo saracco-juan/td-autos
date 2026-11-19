@@ -1,0 +1,58 @@
+.form {
+  gap: 28px;
+}
+.step {
+  min-height: 180px;
+}
+.step h2 {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 20px;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.step h2:focus {
+  outline: none;
+}
+.step h2:focus-visible {
+  outline: 2px solid var(--border-input);
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+.fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.next {
+  grid-column: 2;
+}
+
+
+@media (max-width: 600px) {
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .step {
+    min-height: 0;
+  }
+  .step h2 {
+    font-size: 18px;
+  }
+  .actions {
+    gap: 12px;
+  }
+  .actions > button {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+}
