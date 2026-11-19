@@ -18,7 +18,7 @@ const COMPLETE: User = {
   rol: 'comprador',
   perfil_completo: true,
 }
-const INCOMPLETE: User = { ...COMPLETE, apellido: null, perfil_completo: false }
+const INCOMPLETE: User = { ...COMPLETE, name: '', apellido: null, perfil_completo: false }
 
 type Overrides = {
   user?: User
@@ -58,14 +58,26 @@ const INCOMPLETE_NOTICE = 'Tu perfil está incompleto. Completá los datos oblig
 const SUCCESS = 'Los cambios se guardaron.'
 
 describe('ProfileScreen', () => {
+  it('saves a buyer with only a full name without showing an incomplete-profile notice', async () => {
+    const { updateProfile, rendered } = renderScreen({ user: { ...COMPLETE, apellido: null } })
+    await rendered
+    expect(screen.queryByText(INCOMPLETE_NOTICE)).not.toBeOnTheScreen()
+    await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
+    expect(screen.getByLabelText('Nombre completo')).toHaveDisplayValue('Martín')
+    expect(screen.queryByLabelText('Apellido')).not.toBeOnTheScreen()
+    await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
+    expect(await screen.findByText(SUCCESS)).toBeOnTheScreen()
+    expect(updateProfile).toHaveBeenCalledWith({ name: 'Martín', apellido: '' })
+  })
+
   it('shows the header, the personal data form and the account card', async () => {
     await renderScreen().rendered
     await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     expect(screen.getByText('Perfil')).toBeOnTheScreen()
     expect(screen.getByText('Datos personales')).toBeOnTheScreen()
-    expect(screen.getByLabelText('Nombre')).toHaveDisplayValue('Martín')
-    expect(screen.getByLabelText('Apellido')).toHaveDisplayValue('Gómez')
+    expect(screen.getByLabelText('Nombre completo')).toHaveDisplayValue('Martín Gómez')
+    expect(screen.queryByLabelText('Apellido')).not.toBeOnTheScreen()
     expect(screen.getByLabelText('Email')).toHaveDisplayValue('martin@example.com')
     expect(screen.getByLabelText('Email')).toHaveProp('editable', false)
     expect(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' })).toBeOnTheScreen()
@@ -80,11 +92,11 @@ describe('ProfileScreen', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
     expect(screen.getByText(INCOMPLETE_NOTICE)).toBeOnTheScreen()
 
-    await fireEvent.changeText(screen.getByLabelText('Apellido'), 'Gómez')
+    await fireEvent.changeText(screen.getByLabelText('Nombre completo'), 'Martín Gómez')
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
 
     expect(await screen.findByText(SUCCESS)).toBeOnTheScreen()
-    expect(updateProfile).toHaveBeenCalledWith({ name: 'Martín', apellido: 'Gómez' })
+    expect(updateProfile).toHaveBeenCalledWith({ name: 'Martín Gómez', apellido: '' })
     expect(screen.queryByText(INCOMPLETE_NOTICE)).not.toBeOnTheScreen()
   })
 
@@ -93,14 +105,12 @@ describe('ProfileScreen', () => {
     await rendered
     await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
-    await fireEvent.changeText(screen.getByLabelText('Nombre'), '  Martina ')
-    await fireEvent.changeText(screen.getByLabelText('Apellido'), 'Pérez')
+    await fireEvent.changeText(screen.getByLabelText('Nombre completo'), '  Martina Pérez ')
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
 
     expect(await screen.findByText(SUCCESS)).toBeOnTheScreen()
-    expect(updateProfile).toHaveBeenCalledWith({ name: 'Martina', apellido: 'Pérez' })
-    expect(screen.getByLabelText('Nombre')).toHaveDisplayValue('Martina')
-    expect(screen.getByLabelText('Apellido')).toHaveDisplayValue('Pérez')
+    expect(updateProfile).toHaveBeenCalledWith({ name: 'Martina Pérez', apellido: '' })
+    expect(screen.getByLabelText('Nombre completo')).toHaveDisplayValue('Martina Pérez')
   })
 
   it('TC-11: does not send a blank required field and flags it', async () => {
@@ -108,10 +118,10 @@ describe('ProfileScreen', () => {
     await rendered
     await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
-    await fireEvent.changeText(screen.getByLabelText('Apellido'), '   ')
+    await fireEvent.changeText(screen.getByLabelText('Nombre completo'), '   ')
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
 
-    expect(await screen.findByText('El apellido es obligatorio.')).toBeOnTheScreen()
+    expect(await screen.findByText('El nombre es obligatorio.')).toBeOnTheScreen()
     expect(updateProfile).not.toHaveBeenCalled()
     expect(screen.queryByText(SUCCESS)).not.toBeOnTheScreen()
   })
@@ -119,24 +129,24 @@ describe('ProfileScreen', () => {
   it('clears a field error as soon as that field is edited', async () => {
     await renderScreen().rendered
     await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
-    await fireEvent.changeText(screen.getByLabelText('Apellido'), '')
+    await fireEvent.changeText(screen.getByLabelText('Nombre completo'), '')
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
-    await screen.findByText('El apellido es obligatorio.')
+    await screen.findByText('El nombre es obligatorio.')
 
-    await fireEvent.changeText(screen.getByLabelText('Apellido'), 'G')
+    await fireEvent.changeText(screen.getByLabelText('Nombre completo'), 'G')
 
-    expect(screen.queryByText('El apellido es obligatorio.')).not.toBeOnTheScreen()
+    expect(screen.queryByText('El nombre es obligatorio.')).not.toBeOnTheScreen()
   })
 
   it('shows the field errors the server returns (422)', async () => {
-    const body = { errors: { apellido: ['El apellido no puede superar los 100 caracteres.'] } }
+    const body = { errors: { name: ['El nombre no puede superar los 255 caracteres.'] } }
     const { rendered } = renderScreen({ save: () => Promise.reject(new HttpError(422, body)) })
     await rendered
     await fireEvent.press(screen.getByRole('button', { name: 'Editar datos' }))
 
     await fireEvent.press(screen.getByRole('button', { name: 'GUARDAR CAMBIOS' }))
 
-    expect(await screen.findByText('El apellido no puede superar los 100 caracteres.')).toBeOnTheScreen()
+    expect(await screen.findByText('El nombre no puede superar los 255 caracteres.')).toBeOnTheScreen()
     expect(screen.queryByText('No se pudieron guardar los cambios. Intentá nuevamente.')).not.toBeOnTheScreen()
   })
 

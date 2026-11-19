@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProfileRequest extends FormRequest
@@ -18,7 +19,7 @@ class UpdateProfileRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'apellido' => ['required', 'string', 'max:100'],
+            'apellido' => [$this->user()?->rol === User::ROL_COMPRADOR ? 'nullable' : 'required', 'string', 'max:100'],
         ];
     }
 

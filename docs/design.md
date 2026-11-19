@@ -1,5 +1,13 @@
 # TD Autos — design rules
 
+## Buyer full name (2026-11-19)
+
+- Buyer registration and profile use one “Nombre completo” field in web and mobile.
+- Existing name and surname are displayed together. An unchanged save preserves both
+  stored fields; an edited name is saved whole, without guessing surname boundaries.
+- A buyer with a nonblank name has a complete profile. Dealer and administrator
+  surname requirements remain unchanged. No bulk migration of existing identities.
+
 ## Dealership subscription workspace (2026-11-05)
 
 - Keep the existing dealership sidebar and centered content frame. Subscription
