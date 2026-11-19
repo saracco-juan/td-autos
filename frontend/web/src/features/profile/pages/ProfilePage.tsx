@@ -1,3 +1,4 @@
+import { fullName, profilePayload } from '@shared/profile/form'
 import { useState } from 'react'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { HttpError } from '../../../lib/http'
@@ -13,7 +14,7 @@ import { validateProfileForm } from '../model/validateProfileForm'
 const INCOMPLETE_NOTICE = 'Tu perfil está incompleto. Completá los datos obligatorios.'
 const SUCCESS_MESSAGE = 'Los cambios se guardaron.'
 const GENERIC_ERROR = 'No se pudieron guardar los cambios. Intentá nuevamente.'
-const SERVER_FIELDS: ProfileFieldName[] = ['name', 'apellido']
+const SERVER_FIELDS: ProfileFieldName[] = ['name']
 
 type ValidationBody = { errors?: Partial<Record<string, string[]>> }
 
@@ -29,8 +30,7 @@ function fieldErrorsFromServer(body: ValidationBody | undefined): ProfileFieldEr
 export default function ProfilePage() {
   const { user, refresh } = useAuth()
   const [values, setValues] = useState<ProfileValues>({
-    name: user?.name ?? '',
-    apellido: user?.apellido ?? '',
+    name: fullName(user), apellido: '',
   })
   const [errors, setErrors] = useState<ProfileFieldErrors>({})
   const [formError, setFormError] = useState<string>()
@@ -45,7 +45,7 @@ export default function ProfilePage() {
   }
 
   const handleSubmit = async () => {
-    const validationErrors = validateProfileForm(values)
+    const validationErrors = validateProfileForm(profilePayload(values.name, user))
     setErrors(validationErrors)
     setFormError(undefined)
     setSaved(false)
@@ -53,7 +53,7 @@ export default function ProfilePage() {
 
     setSubmitting(true)
     try {
-      await updateProfile({ name: values.name.trim(), apellido: values.apellido.trim() })
+      await updateProfile(profilePayload(values.name, user))
       // The nav and the incomplete notice read the session user: load the saved data.
       await refresh()
       setSaved(true)

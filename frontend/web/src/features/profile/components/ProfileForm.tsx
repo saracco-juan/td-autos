@@ -39,29 +39,17 @@ export default function ProfileForm({
       <h2 id="profile-form-title" className={styles.title}>
         DATOS PERSONALES
       </h2>
-      <p className={styles.intro}>Podés actualizar tu nombre y apellido para identificar tu cuenta.</p>
+      <p className={styles.intro}>Podés actualizar tu nombre completo para identificar tu cuenta.</p>
       <div className={styles.fields}>
-        <Field id="profile-name" label="Nombre" errors={errors.name}>
+        <Field id="profile-name" label="Nombre completo" errors={errors.name}>
           {(control) => (
             <input
               {...control}
               type="text"
               name="name"
-              autoComplete="given-name"
+              autoComplete="name"
               value={values.name}
               onChange={handleChange('name')}
-            />
-          )}
-        </Field>
-        <Field id="profile-apellido" label="Apellido" errors={errors.apellido}>
-          {(control) => (
-            <input
-              {...control}
-              type="text"
-              name="apellido"
-              autoComplete="family-name"
-              value={values.apellido}
-              onChange={handleChange('apellido')}
             />
           )}
         </Field>

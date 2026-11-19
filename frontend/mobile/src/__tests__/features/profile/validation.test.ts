@@ -8,7 +8,6 @@ describe('validateProfileForm', () => {
   it('TC-11: flags blank required fields, ignoring surrounding spaces', () => {
     expect(validateProfileForm({ name: '   ', apellido: '' })).toEqual({
       name: ['El nombre es obligatorio.'],
-      apellido: ['El apellido es obligatorio.'],
     })
   })
 

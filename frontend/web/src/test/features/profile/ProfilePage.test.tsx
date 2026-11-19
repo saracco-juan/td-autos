@@ -20,7 +20,7 @@ const GENERIC_ERROR = 'No se pudieron guardar los cambios. Intentá nuevamente.'
 
 const incompleteUser: User = {
   id: 1,
-  name: 'Ana',
+  name: '',
   apellido: null,
   email: 'ana@example.com',
   rol: 'comprador',
@@ -79,8 +79,8 @@ describe('ProfilePage', () => {
       expect(screen.getByRole('heading', { level: 1, name: 'Perfil' })).toBeInTheDocument()
       expect(screen.getByText('Tu cuenta y el punto de partida de tu próximo auto.')).toBeInTheDocument()
       expect(screen.getByRole('heading', { name: 'DATOS PERSONALES' })).toBeInTheDocument()
-      expect(screen.getByLabelText('Nombre')).toHaveValue('Ana')
-      expect(screen.getByLabelText('Apellido')).toHaveValue('Pérez')
+      expect(screen.getByLabelText('Nombre completo')).toHaveValue('Ana Pérez')
+      expect(screen.queryByLabelText('Apellido')).not.toBeInTheDocument()
       expect(screen.getByLabelText('Email')).toHaveValue('ana@example.com')
     })
 
@@ -114,17 +114,27 @@ describe('ProfilePage', () => {
   })
 
   describe('saving', () => {
-    it('TC-09: completes a missing apellido, saves it and refreshes the session', async () => {
+    it('saves a buyer with only a full name without showing the incomplete-profile notice', async () => {
+      renderPage({ ...completeUser, apellido: null })
+      expect(screen.queryByText(NOTICE)).not.toBeInTheDocument()
+      expect(screen.getByLabelText('Nombre completo')).toHaveValue('Ana')
+      expect(screen.queryByLabelText('Apellido')).not.toBeInTheDocument()
+      await save(userEvent.setup())
+      expect(await screen.findByRole('status')).toHaveTextContent(SUCCESS)
+      expect(updateProfile).toHaveBeenCalledWith({ name: 'Ana', apellido: '' })
+    })
+
+    it('TC-09: completes a missing full name, saves it and refreshes the session', async () => {
       const user = userEvent.setup()
       renderPage(incompleteUser)
 
-      expect(screen.getByLabelText('Apellido')).toHaveValue('')
-      await user.type(screen.getByLabelText('Apellido'), 'Pérez')
+      expect(screen.getByLabelText('Nombre completo')).toHaveValue('')
+      await user.type(screen.getByLabelText('Nombre completo'), 'Ana Pérez')
       await save(user)
 
       expect(await screen.findByRole('status')).toHaveTextContent(SUCCESS)
       expect(updateProfile).toHaveBeenCalledTimes(1)
-      expect(updateProfile).toHaveBeenCalledWith({ name: 'Ana', apellido: 'Pérez' })
+      expect(updateProfile).toHaveBeenCalledWith({ name: 'Ana Pérez', apellido: '' })
       expect(refresh).toHaveBeenCalledTimes(1)
     })
 
@@ -132,12 +142,11 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       renderPage()
 
-      await replaceText(user, 'Nombre', 'Anabel')
-      await replaceText(user, 'Apellido', 'Gómez')
+      await replaceText(user, 'Nombre completo', 'Anabel Gómez')
       await save(user)
 
       expect(await screen.findByRole('status')).toHaveTextContent(SUCCESS)
-      expect(updateProfile).toHaveBeenCalledWith({ name: 'Anabel', apellido: 'Gómez' })
+      expect(updateProfile).toHaveBeenCalledWith({ name: 'Anabel Gómez', apellido: '' })
       expect(vi.mocked(updateProfile).mock.calls[0][0]).not.toHaveProperty('email')
       expect(refresh).toHaveBeenCalledTimes(1)
     })
@@ -146,11 +155,11 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       renderPage()
 
-      await replaceText(user, 'Nombre', '  Anabel ')
+      await replaceText(user, 'Nombre completo', '  Anabel Pérez ')
       await save(user)
 
       await screen.findByRole('status')
-      expect(updateProfile).toHaveBeenCalledWith({ name: 'Anabel', apellido: 'Pérez' })
+      expect(updateProfile).toHaveBeenCalledWith({ name: 'Anabel Pérez', apellido: '' })
     })
 
     it('clears the success message when a field is edited afterwards', async () => {
@@ -159,7 +168,7 @@ describe('ProfilePage', () => {
 
       await save(user)
       expect(await screen.findByRole('status')).toBeInTheDocument()
-      await user.type(screen.getByLabelText('Nombre'), 'a')
+      await user.type(screen.getByLabelText('Nombre completo'), 'a')
 
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
     })
@@ -173,8 +182,7 @@ describe('ProfilePage', () => {
 
   describe('client validation', () => {
     it.each([
-      ['Nombre', 'El nombre es obligatorio.'],
-      ['Apellido', 'El apellido es obligatorio.'],
+      ['Nombre completo', 'El nombre es obligatorio.'],
     ])('TC-11: blocks saving with an empty %s and shows the message on that field', async (label, message) => {
       const user = userEvent.setup()
       renderPage()
@@ -193,11 +201,11 @@ describe('ProfilePage', () => {
       const user = userEvent.setup()
       renderPage()
 
-      await replaceText(user, 'Nombre', '')
+      await replaceText(user, 'Nombre completo', '')
       await save(user)
-      await user.type(screen.getByLabelText('Nombre'), 'A')
+      await user.type(screen.getByLabelText('Nombre completo'), 'A')
 
-      expect(screen.getByLabelText('Nombre')).not.toHaveAttribute('aria-invalid')
+      expect(screen.getByLabelText('Nombre completo')).not.toHaveAttribute('aria-invalid')
     })
   })
 
@@ -225,7 +233,6 @@ describe('ProfilePage', () => {
         new HttpError(422, {
           errors: {
             name: ['El nombre no puede superar los 255 caracteres.'],
-            apellido: ['El apellido no puede superar los 100 caracteres.'],
           },
         }),
       )
@@ -234,11 +241,11 @@ describe('ProfilePage', () => {
 
       await save(user)
 
-      expect(await screen.findByLabelText('Nombre')).toHaveAccessibleDescription(
+      expect(await screen.findByLabelText('Nombre completo')).toHaveAccessibleDescription(
         'El nombre no puede superar los 255 caracteres.',
       )
-      expect(screen.getByLabelText('Apellido')).toHaveAccessibleDescription(
-        'El apellido no puede superar los 100 caracteres.',
+      expect(screen.getByLabelText('Nombre completo')).toHaveAccessibleDescription(
+        'El nombre no puede superar los 255 caracteres.',
       )
       expect(screen.queryByRole('alert')).not.toBeInTheDocument()
       expect(refresh).not.toHaveBeenCalled()
@@ -252,7 +259,7 @@ describe('ProfilePage', () => {
       await save(user)
 
       expect(await screen.findByRole('alert')).toHaveTextContent(GENERIC_ERROR)
-      expect(screen.getByLabelText('Nombre')).not.toHaveAttribute('aria-invalid')
+      expect(screen.getByLabelText('Nombre completo')).not.toHaveAttribute('aria-invalid')
     })
 
     it.each([

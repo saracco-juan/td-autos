@@ -67,11 +67,11 @@ class User extends Authenticatable
     }
 
     /**
-     * A profile is complete when both name and apellido are filled (computed, not stored).
+     * Buyers use a full name; other roles still require a separate surname.
      */
     protected function perfilCompleto(): Attribute
     {
-        return Attribute::get(fn () => filled($this->name) && filled($this->apellido));
+        return Attribute::get(fn () => filled($this->name) && ($this->rol === self::ROL_COMPRADOR || filled($this->apellido)));
     }
 
     /**

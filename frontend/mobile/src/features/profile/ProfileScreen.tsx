@@ -1,3 +1,4 @@
+import { fullName, profilePayload } from '@shared/profile/form'
 import { useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { useState } from 'react'
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -21,7 +22,7 @@ const INCOMPLETE_NOTICE = 'Tu perfil está incompleto. Completá los datos oblig
 const SUCCESS_MESSAGE = 'Los cambios se guardaron.'
 const SAVE_ERROR = 'No se pudieron guardar los cambios. Intentá nuevamente.'
 const LOGOUT_ERROR = 'No se pudo cerrar la sesión. Intentá nuevamente.'
-const SERVER_FIELDS: ProfileFieldName[] = ['name', 'apellido']
+const SERVER_FIELDS: ProfileFieldName[] = ['name']
 
 type ValidationBody = { errors?: Partial<Record<string, string[]>> }
 
@@ -35,7 +36,7 @@ function fieldErrorsFromServer(body: ValidationBody | undefined): ProfileFieldEr
 }
 
 function valuesFrom(user: User | null): ProfileValues {
-  return { name: user?.name ?? '', apellido: user?.apellido ?? '' }
+  return { name: fullName(user), apellido: '' }
 }
 
 export default function ProfileScreen() {
@@ -67,7 +68,7 @@ export default function ProfileScreen() {
   }
 
   const handleSave = async () => {
-    const validationErrors = validateProfileForm(values)
+    const validationErrors = validateProfileForm(profilePayload(values.name, user))
     setErrors(validationErrors)
     setSaveError(false)
     setSaved(false)
@@ -75,7 +76,7 @@ export default function ProfileScreen() {
 
     setSaving(true)
     try {
-      await updateProfile({ name: values.name.trim(), apellido: values.apellido.trim() })
+      await updateProfile(profilePayload(values.name, user))
       setSaved(true)
     } catch (error) {
       const serverErrors =
@@ -135,22 +136,13 @@ export default function ProfileScreen() {
         {saved ? <Alert variant="success">{SUCCESS_MESSAGE}</Alert> : null}
         {saveError ? <Alert variant="error">{SAVE_ERROR}</Alert> : null}
         <TextField
-          label="Nombre"
+          label="Nombre completo"
           value={values.name}
           onChangeText={handleChange('name')}
           errors={errors.name}
           autoCapitalize="words"
-          autoComplete="given-name"
-          textContentType="givenName"
-        />
-        <TextField
-          label="Apellido"
-          value={values.apellido}
-          onChangeText={handleChange('apellido')}
-          errors={errors.apellido}
-          autoCapitalize="words"
-          autoComplete="family-name"
-          textContentType="familyName"
+          autoComplete="name"
+          textContentType="name"
         />
         {/* Shown for reference only: the email is the login identity and is never sent. */}
         <TextField label="Email" value={user?.email ?? ''} onChangeText={() => undefined} readOnly />

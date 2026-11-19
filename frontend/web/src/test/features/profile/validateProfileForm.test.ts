@@ -14,22 +14,20 @@ describe('validateProfileForm', () => {
   })
 
   // TC-11
-  it('requires the apellido', () => {
-    expect(validateProfileForm({ ...valid, apellido: '' }).apellido).toEqual(['El apellido es obligatorio.'])
+  it('accepts an omitted surname', () => {
+    expect(validateProfileForm({ ...valid, apellido: '' })).toEqual({})
   })
 
   // TC-11
-  it('reports both required fields at once', () => {
+  it('reports the required name', () => {
     expect(validateProfileForm({ name: '', apellido: '' })).toEqual({
       name: ['El nombre es obligatorio.'],
-      apellido: ['El apellido es obligatorio.'],
     })
   })
 
   it('treats whitespace-only values as missing', () => {
     expect(validateProfileForm({ name: '   ', apellido: ' \t ' })).toEqual({
       name: ['El nombre es obligatorio.'],
-      apellido: ['El apellido es obligatorio.'],
     })
   })
 
