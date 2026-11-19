@@ -6,7 +6,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { parseVehicleId, vehicleTitle } from '@shared/checklist/inspection/vehicle'
 import { depreciationCopy } from '@shared/depreciation/presentation'
 import type { DepreciationResponse } from '@shared/depreciation/types'
-import BackChip from '../../components/BackChip'
+import BackLink from '../../components/BackLink'
+import { archivo } from '../../theme/archivo'
 import Button from '../../components/Button'
 import Loader from '../../components/Loader'
 import { HttpError, NetworkError } from '../../lib/http'
@@ -53,7 +54,9 @@ function Depreciation({ id }: Readonly<{ id: number | null }>) {
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, { paddingBottom: barSpace + 24 }]}>
-      <BackChip label={id === null ? 'Volver a recomendados' : 'Volver a la ficha'}
+      <Text accessibilityRole="header" style={[styles.title, archivo(true)]}>Depreciación</Text>
+      {data ? <Text style={[styles.subtitle, archivo()]}>{vehicleTitle(data.vehicle)}</Text> : null}
+      <BackLink label={id === null ? 'Volver a recomendados' : 'Volver a la ficha'}
         onPress={() => router.navigate(id === null ? '/recomendados' : `/vehiculos/${id}`)} />
       {view.status === 'loading' ? <View style={styles.section}><Loader /></View> : null}
       {view.status === 'error' ? <View style={styles.section}>
@@ -64,11 +67,6 @@ function Depreciation({ id }: Readonly<{ id: number | null }>) {
         Esta publicación ya no está disponible.
       </Text> : null}
       {data ? <>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>DEPRECIACIÓN Y REVENTA</Text>
-          <Text accessibilityRole="header" style={styles.title}>{vehicleTitle(data.vehicle)}</Text>
-          <Text style={styles.subtitle}>{depreciationCopy.subtitle}</Text>
-        </View>
         {data.projection && data.reference ? <DepreciationResult projection={data.projection}
           reference={data.reference} kilometers={data.vehicle.kilometraje} />
           : <View style={styles.empty}>
@@ -81,12 +79,10 @@ function Depreciation({ id }: Readonly<{ id: number | null }>) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 24, gap: 20 },
+  scroll: { flex: 1, backgroundColor: colors.surface },
+  content: { padding: 20, paddingBottom: 24, gap: 12 },
   section: { minHeight: 240, gap: 16 },
-  header: { gap: 8 },
-  eyebrow: { color: colors.textPrimary, fontSize: 12, fontWeight: '600' },
-  title: { color: colors.textPrimary, fontSize: 32, fontWeight: '700' },
+  title: { color: colors.textPrimary, fontSize: 32 },
   subtitle: { color: colors.textSecondary, fontSize: 14 },
   unavailable: { color: colors.textPrimary, fontSize: 20, fontWeight: '700' },
   empty: { gap: 12, padding: 16, borderWidth: 1, borderColor: colors.borderDefault,

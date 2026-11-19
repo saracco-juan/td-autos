@@ -94,6 +94,19 @@ describe('DiagnosisScreen', () => {
     expect(api.fetchDiagnosis).toHaveBeenCalledTimes(1)
   })
 
+  it.each([false, true])('opens diagnosis from Profile (existing diagnosis: %s)', async (hasDiagnosis) => {
+    auth.fetchCurrentUser.mockResolvedValue({ ...USER, tiene_diagnostico: hasDiagnosis })
+    api.fetchDiagnosis.mockResolvedValue(loaded(hasDiagnosis ? ANSWERS : null))
+    const view = await renderApp('/perfil')
+    await fireEvent.press(await screen.findByRole('link', { name: /Tu diagnóstico/ }))
+
+    await waitFor(() => expect(view.getPathname()).toBe('/'))
+    expect(await screen.findByText('¿Cuál es tu presupuesto máximo?')).toBeOnTheScreen()
+    expect(screen.getByText('PASO 1 DE 7')).toBeOnTheScreen()
+    expect(api.fetchDiagnosis).toHaveBeenCalledTimes(1)
+    if (hasDiagnosis) expect(option('$15.000.000 a $25.000.000')).toBeChecked()
+  })
+
   it('shows a loader while the diagnosis loads', async () => {
     await open(new Promise(() => undefined))
 

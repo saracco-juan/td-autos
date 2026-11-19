@@ -1,37 +1,28 @@
-import { StyleSheet, Text, View } from 'react-native'
-import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg'
+import { Ionicons } from '@expo/vector-icons'
+import { useEffect, useState } from 'react'
+import { Animated, Easing, Pressable, StyleSheet, Text, useAnimatedValue, View } from 'react-native'
+import ProjectionChart from './ProjectionChart'
+import useReduceMotion from '../../lib/useReduceMotion'
+import { archivo } from '../../theme/archivo'
 
-import { chartGeometry, depreciationCopy, formatPercent, mileageDescription, referenceLines, yearLabel } from '@shared/depreciation/presentation'
+import { depreciationCopy, formatPercent, mileageDescription, referenceLines, yearLabel } from '@shared/depreciation/presentation'
 import type { DepreciationProjection, DepreciationReference } from '@shared/depreciation/types'
 import { formatPrice } from '@shared/recommendations/format'
-import { colors, radii, shadows } from '../../theme/tokens'
+import { colors } from '../../theme/tokens'
 
 type Props = { projection: DepreciationProjection; reference: DepreciationReference; kilometers: number | null }
 
-function ProjectionChart({ projection }: Readonly<{ projection: DepreciationProjection }>) {
-  const { values, coordinates, path } = chartGeometry(projection, 316, 190)
-  return (
-    <View accessible accessibilityRole="image" accessibilityLabel={depreciationCopy.chartLabel}>
-      <Svg width="100%" height={190} viewBox="0 0 316 190">
-        <Path d={`${path} L303,158 L13,158 Z`} fill={colors.textSecondary} fillOpacity={0.12} />
-        <Path d="M13,158 H303" stroke={colors.borderDefault} />
-        <Path d={path} fill="none" stroke={colors.charcoal} strokeWidth={2.5} />
-        {values.map((point, index) => {
-          const { x, y } = coordinates[index]
-          const anchor = index === 0 ? 'start' : index === values.length - 1 ? 'end' : 'middle'
-          return <G key={point.years}>
-            <Circle cx={x} cy={y} r={3.5} fill={colors.charcoal} />
-            <SvgText x={x} y={182} textAnchor={anchor} fontSize={11} fill={colors.textSecondary}>
-              {point.years === 0 ? 'Hoy' : yearLabel(point.years)}
-            </SvgText>
-          </G>
-        })}
-      </Svg>
-    </View>
-  )
-}
-
 export default function DepreciationResult({ projection, reference, kilometers }: Readonly<Props>) {
+  const [open, setOpen] = useState(false)
+  const [height, setHeight] = useState(0)
+  const reduce = useReduceMotion()
+  const expansion = useAnimatedValue(0)
+  useEffect(() => {
+    const motion = Animated.timing(expansion, { toValue: open ? 1 : 0, duration: reduce ? 0 : 300,
+      easing: Easing.bezier(.23, 1, .32, 1), useNativeDriver: false })
+    motion.start()
+    return () => motion.stop()
+  }, [open, expansion, reduce])
   const rows = [
     { label: 'Valor actual', value: formatPrice(projection.current_value, projection.currency) },
     ...projection.points.map(point => ({ label: `En ${yearLabel(point.years)}`,
@@ -40,15 +31,15 @@ export default function DepreciationResult({ projection, reference, kilometers }
   return (
     <View style={styles.body}>
       <View style={styles.chartCard}>
-        <Text accessibilityRole="header" style={styles.chartTitle}>Valor proyectado en el tiempo</Text>
-        <ProjectionChart projection={projection} />
-        <View style={styles.legend}>
-          <View style={styles.swatch} />
-          <Text style={[styles.note, styles.flex]}>{depreciationCopy.legend}</Text>
+        <Text accessibilityRole="header" style={[styles.chartTitle, archivo(true)]}>Valor proyectado en el tiempo</Text>
+        <View style={styles.rate}>
+          <Text style={styles.note}>Depreciación anual estimada</Text>
+          <Text style={[styles.value, archivo(true)]}>{formatPercent(projection.annual_depreciation_percent)} anual</Text>
         </View>
+        <ProjectionChart projection={projection} />
       </View>
-      <View accessibilityLabel="Valor proyectado" style={styles.card}>
-        <Text accessibilityRole="header" style={styles.summaryTitle}>VALOR PROYECTADO</Text>
+      <View accessibilityLabel="Valor proyectado">
+        <Text accessibilityRole="header" style={[styles.summaryTitle, archivo(true)]}>Valor proyectado</Text>
         {rows.map((row, index) => <View key={row.label} style={styles.row}>
           <Text style={styles.label}>{row.label}</Text>
           <Text style={[styles.value, index === 0 && styles.strong]}>{row.value}</Text>
@@ -56,20 +47,25 @@ export default function DepreciationResult({ projection, reference, kilometers }
         <Text style={styles.summaryNote}>{depreciationCopy.retained}</Text>
       </View>
       <View style={styles.explanation}>
-        <Text accessibilityRole="header" style={styles.caption}>CÓMO SE CALCULA</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Cómo se calcula" accessibilityState={{ expanded: open }} onPress={() => setOpen(!open)} style={styles.rate}>
+          <Text style={[styles.chartTitle, archivo(true)]}>Cómo se calcula</Text>
+          <Animated.View style={{ transform: [{ rotate: expansion.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }}>
+            <Ionicons name="chevron-down" size={18} color={colors.charcoal} />
+          </Animated.View>
+        </Pressable>
+        <Animated.View aria-hidden={!open} pointerEvents={open ? 'auto' : 'none'} style={{ height: Animated.multiply(expansion, height), overflow: 'hidden' }}>
+        <View style={styles.measured} onLayout={event => setHeight(event.nativeEvent.layout.height)}>
         <View style={styles.infoCard}>
-          <Text accessibilityRole="header" style={styles.infoTitle}>Referencias del vehículo</Text>
+          <Text accessibilityRole="header" style={[styles.infoTitle, archivo(true)]}>Referencias del vehículo</Text>
           {referenceLines(reference).map(line => <Text key={line} style={styles.note}>{line}</Text>)}
         </View>
         <View style={styles.infoCard}>
-          <Text accessibilityRole="header" style={styles.infoTitle}>Estado de la unidad</Text>
+          <Text accessibilityRole="header" style={[styles.infoTitle, archivo(true)]}>Estado de la unidad</Text>
           <Text style={styles.note}>{mileageDescription(kilometers)}</Text>
           <Text style={styles.note}>{depreciationCopy.condition}</Text>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Depreciación anual estimada</Text>
-          <Text style={[styles.value, styles.strong]}>{formatPercent(projection.annual_depreciation_percent)} anual</Text>
         </View>
+        </Animated.View>
         {projection.annual_depreciation_percent < 0 ? <Text style={styles.note}>{depreciationCopy.appreciation}</Text> : null}
         {reference.stale ? <Text accessibilityLiveRegion="polite" style={styles.note}>{depreciationCopy.stale}</Text> : null}
         <Text style={styles.note}>{depreciationCopy.caveat}</Text>
@@ -78,29 +74,21 @@ export default function DepreciationResult({ projection, reference, kilometers }
   )
 }
 
-const card = {
-  borderWidth: 1, borderColor: colors.borderDefault, borderRadius: radii.card,
-  backgroundColor: colors.surface, ...shadows.card,
-}
-
 const styles = StyleSheet.create({
   body: { gap: 32 },
-  card,
-  chartCard: { ...card, padding: 20, gap: 16 },
-  infoCard: { ...card, padding: 16, gap: 8 },
-  chartTitle: { color: colors.textPrimary, fontSize: 14, fontWeight: '600' },
+  chartCard: { gap: 16 },
+  infoCard: { gap: 8 },
+  chartTitle: { color: colors.charcoal, fontSize: 21 },
   infoTitle: { color: colors.textPrimary, fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  summaryTitle: { color: colors.textPrimary, fontSize: 16, fontWeight: '600', padding: 16 },
+  summaryTitle: { color: colors.charcoal, fontSize: 21, marginBottom: 8 },
   row: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
-    gap: 8, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: colors.borderDefault },
+    gap: 8, paddingVertical: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: colors.borderDefault },
   label: { color: colors.textSecondary, fontSize: 13, flexShrink: 1 },
   value: { color: colors.textPrimary, fontSize: 13, flexShrink: 1, textAlign: 'right' },
   strong: { fontWeight: '700' },
   note: { color: colors.textSecondary, fontSize: 12, lineHeight: 16 },
-  summaryNote: { color: colors.textSecondary, fontSize: 12, lineHeight: 16, padding: 16 },
+  summaryNote: { color: colors.textSecondary, fontSize: 12, lineHeight: 18, marginTop: 12 },
   explanation: { gap: 24 },
-  caption: { color: colors.textSecondary, fontSize: 14, fontWeight: '600' },
-  legend: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  swatch: { width: 16, height: 3, backgroundColor: colors.charcoal },
-  flex: { flex: 1 },
+  rate: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, minHeight: 44 },
+  measured: { position: 'absolute', top: 0, left: 0, right: 0, gap: 20 },
 })
