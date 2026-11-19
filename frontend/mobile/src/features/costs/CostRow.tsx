@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
+import { archivo } from '../../theme/archivo'
 import { colors, radii } from '../../theme/tokens'
 
 export type RowInfo = { name: string; text: string }
@@ -21,7 +22,7 @@ export default function CostRow({ label, value, strong = false, info }: Readonly
     <View style={styles.row}>
       <View style={styles.line}>
         <View style={styles.labelGroup}>
-          <Text style={[styles.label, strong && styles.strong]}>{label}</Text>
+          <Text style={[styles.label, archivo(strong)]}>{label}</Text>
           {info ? (
             <Pressable
               accessibilityRole="button"
@@ -34,7 +35,7 @@ export default function CostRow({ label, value, strong = false, info }: Readonly
             </Pressable>
           ) : null}
         </View>
-        <Text style={[styles.value, strong && styles.strong]}>{value}</Text>
+        <Text style={[styles.value, archivo(strong)]}>{value}</Text>
       </View>
       {info && open ? (
         <View style={styles.tip}>
@@ -46,12 +47,11 @@ export default function CostRow({ label, value, strong = false, info }: Readonly
 }
 
 const styles = StyleSheet.create({
-  row: { gap: 8 },
+  row: { gap: 8, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderDefault },
   line: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   labelGroup: { flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   label: { flexShrink: 1, color: colors.textPrimary, fontSize: 14 },
-  value: { color: colors.textPrimary, fontSize: 14 },
-  strong: { fontWeight: '700' },
+  value: { flexShrink: 1, textAlign: 'right', color: colors.textPrimary, fontSize: 14 },
   tip: {
     padding: 10,
     borderWidth: 1,

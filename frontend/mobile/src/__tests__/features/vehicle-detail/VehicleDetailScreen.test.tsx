@@ -65,9 +65,8 @@ describe('VehicleDetailScreen', () => {
     api.fetchVehicleDetail.mockResolvedValue(response())
     const view = await renderApp(URL)
     await fireEvent.press(await screen.findByRole('button', { name: 'COMPARAR' }))
-    await waitFor(() => expect(view.getPathname()).toBe('/comparar'))
-    expect(await screen.findByText('1 vehículo seleccionado')).toBeOnTheScreen()
-    expect(screen.getByText(/Seleccioná exactamente dos/)).toBeOnTheScreen()
+    await waitFor(() => expect(view.getPathname()).toBe('/recomendados'))
+    expect(screen.queryByText(/Seleccioná exactamente dos/)).not.toBeOnTheScreen()
     expect(screen.queryAllByLabelText(/^Vehículo comparado:/)).toHaveLength(0)
   })
 
@@ -186,7 +185,7 @@ describe('VehicleDetailScreen', () => {
     await fireEvent.press(await screen.findByRole('button', { name: 'CALCULAR COSTOS' }))
 
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7/costos'))
-    expect(await screen.findByText('COSTO DE POSESIÓN')).toBeOnTheScreen()
+    expect(await screen.findByRole('header', { name: 'Calculadora de costos' })).toBeOnTheScreen()
     await fireEvent.press(screen.getByRole('link', { name: 'Volver a la ficha' }))
     await waitFor(() => expect(view.getPathname()).toBe('/vehiculos/7'))
     expect(await screen.findByRole('button', { name: 'Expandir ficha técnica' })).toBeOnTheScreen()
