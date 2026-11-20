@@ -1,6 +1,6 @@
 import Button from '../../../../components/Buttons/Button'
 import { useEffect, useRef, type FormEvent } from 'react'
-import alertStyles from '../../../../styles/alert.module.css'
+import Feedback from '../../../../components/Feedback/Feedback'
 import PasswordRequirements from '../../shared/components/PasswordRequirements'
 import TextField, { type TextFieldProps } from '../../shared/components/TextField'
 import styles from '../../shared/styles/authForm.module.css'
@@ -72,11 +72,7 @@ export default function DealerRegisterForm({ values, errors, submitting, formErr
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} noValidate className={`${styles.form} ${wizardStyles.form}`}>
-      {formError ? (
-        <p role="alert" className={alertStyles.alert}>
-          {formError}
-        </p>
-      ) : null}
+      <Feedback message={formError} variant="error" />
       <section key={step} className={wizardStyles.step} aria-labelledby="dealer-step-title">
         <h2 id="dealer-step-title" ref={headingRef} tabIndex={-1}>{activeStep.heading}</h2>
         <div className={`${styles.fieldGrid} ${wizardStyles.fields}`}>

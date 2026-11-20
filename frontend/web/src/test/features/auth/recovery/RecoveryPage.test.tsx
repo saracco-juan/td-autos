@@ -75,6 +75,7 @@ describe('RecoveryPage', () => {
       await fillAndSubmit(user)
 
       expect(await screen.findByRole('status')).toHaveTextContent(HELPER)
+      expect(screen.getByText('Revisá tu email y la carpeta de spam para continuar.')).toBeInTheDocument()
       expect(requestPasswordReset).toHaveBeenCalledTimes(1)
       expect(requestPasswordReset).toHaveBeenCalledWith('ana@example.com')
     })

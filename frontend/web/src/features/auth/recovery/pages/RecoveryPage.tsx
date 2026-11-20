@@ -5,7 +5,7 @@ import { HttpError } from '../../../../lib/http'
 import { requestPasswordReset } from '../../api/client'
 import { useAuth } from '../../session/hooks/useAuth'
 import type { FieldErrors } from '../../model/types'
-import alertStyles from '../../../../styles/alert.module.css'
+import Feedback from '../../../../components/Feedback/Feedback'
 import AuthCard from '../../shared/components/AuthCard'
 import AuthPageHeader from '../../shared/components/AuthPageHeader'
 import { validateEmail } from '../../shared/model/validateEmail'
@@ -70,12 +70,11 @@ export default function RecoveryPage() {
           onSubmit={handleSubmit}
         />
         {confirmation ? (
-          <p role="status" className={alertStyles.notice}>
-            {confirmation}
-          </p>
+          <Feedback message={confirmation} />
         ) : (
           <p className={styles.helper}>{HELPER}</p>
         )}
+        {confirmation ? <p className={styles.helper}>Revisá tu email y la carpeta de spam para continuar.</p> : null}
         <ButtonLink to="/login" variant="secondary">
           VOLVER AL ACCESO
         </ButtonLink>

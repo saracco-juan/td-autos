@@ -1,3 +1,4 @@
+import Feedback from '../../../components/Feedback/Feedback'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import Button from '../../../components/Buttons/Button'
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
@@ -209,7 +210,7 @@ export default function VehicleForm({ title, subtitle, initialValues, initialPho
 
   const actions = (
     <div className={styles.actionArea}>
-      {formError ? <p role="alert" className={alertStyles.alert}>{formError}</p> : null}
+      {Object.values(errors).some((messages) => messages?.length) ? <p role="alert" className={alertStyles.alert}>{formError}</p> : <Feedback message={formError} variant="error" />}
       <div className={barStyles.actions}>
         {step === 0 ? <ButtonLink to={INVENTORY_PATH} variant="danger" className={barStyles.action}>CANCELAR</ButtonLink> : <Button type="button" variant="secondary" className={barStyles.action} onClick={handlePrevious}>ANTERIOR</Button>}
         <Button type="submit" form={formId} disabled={submitting} aria-busy={submitting} variant="primary" className={barStyles.actionWide}>

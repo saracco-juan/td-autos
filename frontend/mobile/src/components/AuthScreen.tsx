@@ -9,10 +9,11 @@ type Props = {
   title: string
   subtitle?: string
   children: ReactNode
+  feedback?: ReactNode
 }
 
 // Guest screens (Figma 01-03b): red top bar and a white card with the heading, scrolling above the keyboard.
-export default function AuthScreen({ title, subtitle, children }: Readonly<Props>) {
+export default function AuthScreen({ title, subtitle, children, feedback }: Readonly<Props>) {
   const insets = useSafeAreaInsets()
   return (
     <View style={styles.screen}>
@@ -32,6 +33,7 @@ export default function AuthScreen({ title, subtitle, children }: Readonly<Props
             {children}
           </View>
         </ScrollView>
+        {feedback}
       </KeyboardAvoidingView>
     </View>
   )

@@ -2,7 +2,7 @@ import { router } from 'expo-router'
 import { useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
-import Alert from '../../components/Alert'
+import Feedback from '../../components/Feedback'
 import AuthScreen from '../../components/AuthScreen'
 import Button from '../../components/Button'
 import TextField from '../../components/TextField'
@@ -44,9 +44,7 @@ export default function RecoveryScreen() {
   }
 
   return (
-    <AuthScreen title="Recuperá tu contraseña">
-      {confirmation ? <Alert variant="success">{confirmation}</Alert> : null}
-      {formError ? <Alert variant="error">{formError}</Alert> : null}
+    <AuthScreen title="Recuperá tu contraseña" feedback={<Feedback message={formError || confirmation} variant={formError ? 'error' : 'success'} />}>
       <View style={styles.form}>
         <TextField
           label="Email"
@@ -71,7 +69,7 @@ export default function RecoveryScreen() {
           onPress={() => void submit()}
         />
       </View>
-      {confirmation ? null : <Text style={styles.helper}>{HELPER}</Text>}
+      <Text style={styles.helper}>{confirmation ? 'Revisá tu email y la carpeta de spam para continuar.' : HELPER}</Text>
       <Button label="VOLVER AL ACCESO" onPress={() => router.replace('/login')} />
     </AuthScreen>
   )

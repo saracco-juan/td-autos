@@ -9,6 +9,7 @@ import { archivo } from '../../theme/archivo'
 import useReduceMotion from '../../lib/useReduceMotion'
 
 import Alert from '../../components/Alert'
+import Feedback from '../../components/Feedback'
 import Button from '../../components/Button'
 import TextField from '../../components/TextField'
 import { HttpError } from '../../lib/http'
@@ -103,6 +104,7 @@ export default function ProfileScreen() {
   }
 
   return (
+    <View style={styles.screen}>
     <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingBottom: barSpace + 24 }]} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
         <Text accessibilityRole="header" style={styles.title}>
@@ -129,12 +131,10 @@ export default function ProfileScreen() {
         </Pressable>
       </View>
       <Modal visible={editing} transparent animationType={reduceMotion ? 'none' : 'fade'} onRequestClose={closeEditor}>
-      <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.dialog} accessibilityViewIsModal>
+      <KeyboardAvoidingView accessibilityViewIsModal style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <View style={styles.dialog}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.card}>
         <Text accessibilityRole="header" style={[styles.sectionTitle, archivo(true)]}>Datos personales</Text>
-        {saved ? <Alert variant="success">{SUCCESS_MESSAGE}</Alert> : null}
-        {saveError ? <Alert variant="error">{SAVE_ERROR}</Alert> : null}
         <TextField
           label="Nombre completo"
           value={values.name}
@@ -156,16 +156,18 @@ export default function ProfileScreen() {
         <Button label="CANCELAR" disabled={saving} onPress={closeEditor} />
       </ScrollView>
       </View>
+      <Feedback message={saveError ? SAVE_ERROR : saved ? SUCCESS_MESSAGE : undefined} variant={saveError ? 'error' : 'success'} onRetry={saving ? undefined : handleSave} />
       </KeyboardAvoidingView>
       </Modal>
       <View>
-        {logoutError ? <Alert variant="error">{LOGOUT_ERROR}</Alert> : null}
         <Pressable accessibilityRole="button" accessibilityLabel="CERRAR SESIÓN" disabled={loggingOut}
           accessibilityState={{ busy: loggingOut, disabled: loggingOut }} onPress={() => void handleLogout()} style={styles.edit}>
           <Text style={{ color: colors.actionDanger }}>{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</Text>
         </Pressable>
       </View>
     </ScrollView>
+    <Feedback message={logoutError ? LOGOUT_ERROR : undefined} variant="error" bottom={barSpace} onRetry={loggingOut ? undefined : handleLogout} />
+    </View>
   )
 }
 
