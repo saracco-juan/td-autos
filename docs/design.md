@@ -1,5 +1,9 @@
 # TD Autos — design rules
 
+## Mobile startup destination (2026-11-20)
+
+- Opening the app at its default route sends buyers with a completed diagnosis to Recomendados; buyers without one start at Diagnóstico. Explicit deep links and later navigation back to Diagnóstico remain unchanged.
+
 ## Buyer full name (2026-11-19)
 
 - Buyer registration and profile use one “Nombre completo” field in web and mobile.

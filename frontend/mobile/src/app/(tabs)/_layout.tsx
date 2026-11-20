@@ -1,5 +1,6 @@
 import type { Ionicons } from '@expo/vector-icons'
-import { Tabs } from 'expo-router'
+import { Redirect, Tabs, usePathname } from 'expo-router'
+import { useState } from 'react'
 import { useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -7,6 +8,7 @@ import AppBar from '../../components/AppBar'
 import BuyerTabIndicator, { TAB_BAR_HEIGHT, useBuyerTabBarSpace } from '../../components/BuyerTabIndicator'
 import { ComparisonSelectionProvider } from '../../features/comparison/ComparisonSelection'
 import { FavoriteProvider } from '../../features/favorites/FavoriteButton'
+import { useAuth } from '../../features/auth/useAuth'
 import { colors } from '../../theme/tokens'
 
 type IconName = keyof typeof Ionicons.glyphMap
@@ -30,10 +32,16 @@ function renderHeader() {
 const HIDDEN = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' as const } }
 
 export default function TabsLayout() {
+  const { user } = useAuth()
+  const pathname = usePathname()
+  // Only the initial entry changes; explicit visits to diagnosis remain available.
+  const [openRecommendations, setOpenRecommendations] = useState(() => pathname === '/' && user?.tiene_diagnostico === true)
+  if (openRecommendations && pathname !== '/') setOpenRecommendations(false)
   const { width } = useWindowDimensions()
   const { left, right } = useSafeAreaInsets()
   const barSpace = useBuyerTabBarSpace()
   const sideMargin = Math.max(16 + Math.max(left, right), (width - 400) / 2)
+  if (openRecommendations && pathname === '/') return <Redirect href="/recomendados" />
   return (
     <FavoriteProvider><ComparisonSelectionProvider><Tabs
       screenOptions={({ route }) => ({

@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native'
 import * as api from '../../features/auth/api'
 import * as diagnosisApi from '../../features/diagnosis/api'
 import * as transferApi from '../../features/transfer/api'
+import * as recommendationsApi from '../../features/recommendations/api'
 import { transferResponse } from '@shared/checklist/transfer/fixtures'
 import * as tokenStorage from '../../lib/tokenStorage'
 import { renderApp } from '../../test-utils/renderApp'
@@ -11,6 +12,7 @@ import { renderApp } from '../../test-utils/renderApp'
 jest.mock('../../features/auth/api')
 jest.mock('../../features/diagnosis/api')
 jest.mock('../../features/transfer/api')
+jest.mock('../../features/recommendations/api')
 jest.mock('../../lib/tokenStorage')
 
 const apiMock = jest.mocked(api)
@@ -37,6 +39,7 @@ describe('route guards', () => {
     jest.resetAllMocks()
     storage.readToken.mockResolvedValue(null)
     diagnosis.fetchDiagnosis.mockResolvedValue({ diagnostico: null, carrocerias: [] })
+    jest.mocked(recommendationsApi).fetchRecommendations.mockReturnValue(new Promise(() => {}))
   })
 
   it('sends a guest to the login screen', async () => {
@@ -65,6 +68,40 @@ describe('route guards', () => {
     for (const label of ['Diagnóstico', 'Recomendados', 'Favoritos', 'Transferencia', 'Perfil']) {
       expect(screen.getByRole('button', { name: new RegExp(`^${label},`) })).toBeOnTheScreen()
     }
+  })
+
+  it.each(['/', '/login', '/auth/google'])('RF03/RF04: opens saved recommendations from %s and still allows diagnosis', async (url) => {
+    storage.readToken.mockResolvedValue('tok')
+    apiMock.fetchCurrentUser.mockResolvedValue({ ...USER, tiene_diagnostico: true })
+    const view = await renderApp(url)
+
+    await waitFor(() => expect(view.getPathname()).toBe('/recomendados'))
+    expect(diagnosis.fetchDiagnosis).not.toHaveBeenCalled()
+    await fireEvent.press(screen.getByRole('button', { name: 'Diagnóstico, pestaña 1 de 5' }))
+    expect(await screen.findByText('DIAGNÓSTICO DE NECESIDADES')).toBeOnTheScreen()
+    expect(view.getPathname()).toBe('/')
+  })
+
+  it('preserves a profile deep link when the buyer has a diagnosis', async () => {
+    storage.readToken.mockResolvedValue('tok')
+    apiMock.fetchCurrentUser.mockResolvedValue({ ...USER, tiene_diagnostico: true })
+    const view = await renderApp('/perfil')
+
+    expect(await screen.findByRole('button', { name: 'CERRAR SESIÓN' })).toBeOnTheScreen()
+    expect(view.getPathname()).toBe('/perfil')
+  })
+
+  it('RF04: opens saved recommendations after password login', async () => {
+    apiMock.loginWithPassword.mockResolvedValue({ token: 'tok', user: { ...USER, tiene_diagnostico: true } })
+    const view = await renderApp('/login')
+    await screen.findByText('Ingresá a tu cuenta')
+    await fireEvent.changeText(screen.getByLabelText('Email'), 'ana@example.com')
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), 'Abcdefg1')
+    await fireEvent.press(screen.getByRole('button', { name: 'INGRESAR' }))
+
+    await waitFor(() => expect(view.getPathname()).toBe('/recomendados'))
+    expect(diagnosis.fetchDiagnosis).not.toHaveBeenCalled()
+    expect(storage.saveToken).toHaveBeenCalledWith('tok')
   })
 
   it('lays out only the five tabs, so the hidden inspection route takes no slot in the bar', async () => {
