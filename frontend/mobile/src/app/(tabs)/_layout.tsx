@@ -1,6 +1,6 @@
 import type { Ionicons } from '@expo/vector-icons'
 import { Redirect, Tabs, usePathname } from 'expo-router'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -31,19 +31,22 @@ function renderHeader() {
 // The item wrapper keeps `flex: 1` even without a button, so it must not be laid out at all.
 const HIDDEN = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' as const } }
 
-export default function TabsLayout() {
+function StartupDestination({ children }: Readonly<{ children: ReactNode }>) {
   const { user } = useAuth()
   const pathname = usePathname()
   // Only the initial entry changes; explicit visits to diagnosis remain available.
   const [openRecommendations, setOpenRecommendations] = useState(() => pathname === '/' && user?.tiene_diagnostico === true)
   if (openRecommendations && pathname !== '/') setOpenRecommendations(false)
+  return openRecommendations && pathname === '/' ? <Redirect href="/recomendados" /> : children
+}
+
+export default function TabsLayout() {
   const { width } = useWindowDimensions()
   const { left, right } = useSafeAreaInsets()
   const barSpace = useBuyerTabBarSpace()
   const sideMargin = Math.max(16 + Math.max(left, right), (width - 400) / 2)
-  if (openRecommendations && pathname === '/') return <Redirect href="/recomendados" />
   return (
-    <FavoriteProvider><ComparisonSelectionProvider><Tabs
+    <StartupDestination><FavoriteProvider><ComparisonSelectionProvider><Tabs
       screenOptions={({ route }) => ({
         header: renderHeader,
         sceneStyle: { backgroundColor: colors.background },
@@ -67,6 +70,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="vehiculos/[id]/costos" options={HIDDEN} />
       <Tabs.Screen name="vehiculos/[id]/depreciacion" options={HIDDEN} />
       <Tabs.Screen name="comparar" options={HIDDEN} />
-    </Tabs></ComparisonSelectionProvider></FavoriteProvider>
+    </Tabs></ComparisonSelectionProvider></FavoriteProvider></StartupDestination>
   )
 }
