@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -368,9 +368,9 @@ describe('DealerRegisterPage', () => {
         for (const [label, value] of Object.entries(validFields)) {
           const input = screen.queryByLabelText(label)
           if (!input) continue
-          await user.clear(input)
-          await user.click(input)
-          await user.paste(value)
+          // Restore valid data through change events; this test checks error mapping, not clipboard gestures.
+          fireEvent.change(input, { target: { value: '' } })
+          fireEvent.change(input, { target: { value } })
         }
         await user.click(screen.getByRole('button', { name: 'SIGUIENTE' }))
       }

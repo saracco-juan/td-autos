@@ -372,7 +372,7 @@ describe('InventoryPage save notice', () => {
 
     const message = (await screen.findByText(notice)).closest('[role="status"]')
     expect(message).toHaveTextContent(notice)
-    expect(message).toHaveFocus()
+    await waitFor(() => expect(message).toHaveFocus())
   })
 
   it('clears the navigation state so a reload does not show the message again', async () => {
