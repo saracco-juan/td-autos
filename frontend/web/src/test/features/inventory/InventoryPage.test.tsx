@@ -260,6 +260,18 @@ describe('InventoryPage', () => {
       }
     })
 
+    it('shows deletion success after a previous template download failure', async () => {
+      vi.mocked(fetchInventoryTemplate).mockRejectedValueOnce(new NetworkError(new Error('offline')))
+      vi.mocked(deleteVehicle).mockResolvedValue(undefined)
+      await loaded()
+      await userEvent.setup().click(screen.getByRole('button', { name: 'DESCARGAR PLANTILLA' }))
+      expect(await screen.findByRole('alert')).toHaveTextContent(/conexión/i)
+      await confirm()
+      await rowGone(COROLLA)
+      expect(screen.getByRole('status')).toHaveTextContent('Eliminaste el vehículo.')
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
     it('deletes the vehicle, removes the row and shows a success message', async () => {
       vi.mocked(deleteVehicle).mockResolvedValue(undefined)
       await loaded()
@@ -358,9 +370,9 @@ describe('InventoryPage save notice', () => {
   it.each(['Cargaste el vehículo.', 'Guardaste los cambios.'])('shows the filled success message "%s" received from the form', async (notice) => {
     renderWithState({ notice })
 
-    const message = await screen.findByText(notice)
-    expect(message).toHaveAttribute('role', 'status')
-    await waitFor(() => expect(message).toHaveFocus())
+    const message = (await screen.findByText(notice)).closest('[role="status"]')
+    expect(message).toHaveTextContent(notice)
+    expect(message).toHaveFocus()
   })
 
   it('clears the navigation state so a reload does not show the message again', async () => {

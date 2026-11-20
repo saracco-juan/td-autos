@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import Alert from '../../components/Alert'
+import Feedback from '../../components/Feedback'
 import AuthScreen from '../../components/AuthScreen'
 import Button from '../../components/Button'
 import PasswordField from '../../components/PasswordField'
@@ -70,8 +70,7 @@ export default function RegisterScreen() {
   const alertMessage = formError ?? google.error
 
   return (
-    <AuthScreen title="Registrá tu cuenta" subtitle="Por favor, introducí tus datos para registrarte.">
-      {alertMessage ? <Alert variant="error">{alertMessage}</Alert> : null}
+    <AuthScreen feedback={<Feedback message={alertMessage} variant="error" />} title="Registrá tu cuenta" subtitle="Por favor, introducí tus datos para registrarte.">
       <View style={styles.form}>
         <View style={styles.fields}>
           <TextField

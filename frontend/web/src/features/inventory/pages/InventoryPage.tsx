@@ -1,8 +1,8 @@
+import Feedback from '../../../components/Feedback/Feedback'
 import Button from '../../../components/Buttons/Button'
 import ButtonLink from '../../../components/Buttons/ButtonLink'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import alertStyles from "../../../styles/alert.module.css";
 import tableStyles from "../../../styles/dataTable.module.css";
 import ErrorState, { type ErrorKind } from "../../../components/ErrorState/ErrorState";
 import ListFooter from "../../../components/ListFooter/ListFooter";
@@ -84,7 +84,6 @@ export default function InventoryPage() {
   const [notice, setNotice] = useState<string | null>(() =>
     noticeFrom(location.state),
   );
-  const noticeRef = useRef<HTMLParagraphElement>(null);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
   const [query, setQuery] = useState('');
   const filteredVehicles = searchInventory(vehicles, query);
@@ -135,14 +134,9 @@ export default function InventoryPage() {
     loadList();
   };
 
-  // The message takes the focus once it is on screen (after a delete the row that held it is gone), so the result is announced.
-  const ready = loadState === "ready";
-  useEffect(() => {
-    if (notice && ready) noticeRef.current?.focus();
-  }, [notice, ready]);
-
   const removeRow = (id: number) => {
     setVehicles((current) => current.filter((vehicle) => vehicle.id !== id));
+    setDownloadFailure(null);
     setNotice(REMOVED_NOTICE);
   };
 
@@ -193,27 +187,14 @@ export default function InventoryPage() {
         className={styles.download}
         onStart={() => setDownloadFailure(null)}
         onFailure={(error) => {
+          setNotice(null);
           const blocked = inactiveSubscription(error);
           if (blocked) setLoadState({ blocked });
           else setDownloadFailure(importFailureFrom(error));
         }}
       />
-      {notice ? (
-        <p
-          ref={noticeRef}
-          tabIndex={-1}
-          role="status"
-          className={`${alertStyles.notice} ${styles.message}`}
-        >
-          {notice}
-        </p>
-      ) : null}
+      <Feedback focusOnShow message={downloadFailure?.message || notice} variant={downloadFailure ? 'error' : 'success'} />
       <div className={tableStyles.block}>
-        {downloadFailure ? (
-          <p role="alert" className={`${alertStyles.alert} ${styles.message}`}>
-            {downloadFailure.message}
-          </p>
-        ) : null}
         {vehicles.length > 0 ? (
           <label className={styles.search}>
             <span>Buscar vehículos</span>
@@ -307,6 +288,7 @@ export default function InventoryPage() {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImported={(message) => {
+          setDownloadFailure(null)
           setNotice(message)
           loadList()
         }}

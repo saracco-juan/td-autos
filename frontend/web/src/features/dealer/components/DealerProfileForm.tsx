@@ -4,7 +4,7 @@ import Button from '../../../components/Buttons/Button'
 import Dialog from '../../../components/Dialog/Dialog'
 import FlowLayout from '../../../components/FlowLayout/FlowLayout'
 import barStyles from '../../../components/checklist/pinnedBar.module.css'
-import alertStyles from '../../../styles/alert.module.css'
+import Feedback from '../../../components/Feedback/Feedback'
 import screenStyles from '../../../styles/screen.module.css'
 import { HttpError } from '../../../lib/http'
 import Field from '../../auth/shared/components/Field'
@@ -125,10 +125,7 @@ export default function DealerProfileForm({ profile }: Readonly<{ profile: Deale
         </div>
         {index === 1 ? <p className={styles.hint}>Estos datos identifican a la persona responsable de la cuenta.</p> : null}
       </fieldset>)}
-      <div className={styles.feedback}>
-        {success ? <p className={alertStyles.notice}><output>Guardaste los cambios del perfil.</output></p> : null}
-        {failure ? <p role="alert" className={alertStyles.alert}>{failure}</p> : null}
-      </div>
+      <Feedback message={failure || (success ? 'Guardaste los cambios del perfil.' : '')} variant={failure ? 'error' : 'success'} onRetry={submitting ? undefined : () => formRef.current?.requestSubmit()} />
     </form>
     {blocker.state === 'blocked' ? <Dialog open animate={false} title="Tenés cambios sin guardar" onClose={() => blocker.reset()} busy={submitting}>
       <p>Si salís, vas a perder los cambios que no guardaste.</p>

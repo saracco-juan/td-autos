@@ -1,7 +1,7 @@
 import Button from '../../../../components/Buttons/Button'
 import type { FormEvent } from 'react'
 import type { FieldErrors } from '../../model/types'
-import alertStyles from '../../../../styles/alert.module.css'
+import Feedback from '../../../../components/Feedback/Feedback'
 import PasswordRequirements from '../../shared/components/PasswordRequirements'
 import TextField, { type TextFieldProps } from '../../shared/components/TextField'
 import styles from '../../shared/styles/authForm.module.css'
@@ -45,11 +45,7 @@ export default function RegisterForm({ values, errors, submitting, formError, on
 
   return (
     <form onSubmit={handleSubmit} noValidate className={styles.form}>
-      {formError ? (
-        <p role="alert" className={alertStyles.alert}>
-          {formError}
-        </p>
-      ) : null}
+      <Feedback message={formError} variant="error" />
       <div className={styles.fields}>
         <RegisterField {...shared} field="name" label="Nombre completo" autoComplete="name" />
         <RegisterField {...shared} field="email" label="Email" type="email" autoComplete="email" />

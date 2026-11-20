@@ -1,6 +1,6 @@
 import Button from '../../../components/Buttons/Button'
 import type { ChangeEvent, FormEvent } from 'react'
-import alertStyles from '../../../styles/alert.module.css'
+import Feedback from '../../../components/Feedback/Feedback'
 import Field from '../../auth/shared/components/Field'
 import type { ProfileFieldErrors, ProfileFieldName, ProfileValues } from '../model/types'
 import styles from './ProfileForm.module.css'
@@ -79,18 +79,7 @@ export default function ProfileForm({
       >
         {submitting ? 'GUARDANDO…' : 'GUARDAR CAMBIOS'}
       </Button>
-      <div className={styles.feedback}>
-        {successMessage ? (
-          <p className={`${alertStyles.notice} ${styles.success}`}>
-            <output>{successMessage}</output>
-          </p>
-        ) : null}
-        {formError ? (
-          <p role="alert" className={alertStyles.alert}>
-            {formError}
-          </p>
-        ) : null}
-      </div>
+      <Feedback message={formError || successMessage} variant={formError ? 'error' : 'success'} onRetry={submitting ? undefined : onSubmit} />
     </form>
   )
 }

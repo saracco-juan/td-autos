@@ -47,6 +47,7 @@ describe('RecoveryScreen', () => {
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent(HELPER)
     expect(screen.getAllByText(HELPER)).toHaveLength(1)
+    expect(screen.getByText('Revisá tu email y la carpeta de spam para continuar.')).toBeOnTheScreen()
     expect(apiMock.requestPasswordReset).toHaveBeenCalledWith('ana@example.com')
     expect(screen.getByLabelText('Email')).toBeOnTheScreen()
   })
