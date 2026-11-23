@@ -1,3 +1,5 @@
-import RegisterScreen from '../../features/auth/RegisterScreen'
+import AccessScreen from '../../features/auth/AccessScreen'
 
-export default RegisterScreen
+export default function RegistrationRoute() {
+  return <AccessScreen initialMode={1} />
+}

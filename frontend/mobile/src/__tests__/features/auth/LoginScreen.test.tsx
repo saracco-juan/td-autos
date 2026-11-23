@@ -113,6 +113,9 @@ describe('LoginScreen', () => {
 
     expect(await screen.findByText('INGRESANDO…')).toBeOnTheScreen()
     expect(screen.getByRole('button', { name: 'INGRESAR' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Crear cuenta' })).toBeDisabled()
+    await fireEvent.press(screen.getByRole('link', { name: 'Crear cuenta' }))
+    expect(screen.getByText('Ingresá a tu cuenta')).toBeOnTheScreen()
   })
 
   it('toggles the password visibility', async () => {
@@ -134,5 +137,21 @@ describe('LoginScreen', () => {
     await fireEvent.press(screen.getByRole('link', { name: 'Iniciar sesión' }))
     await fireEvent.press(await screen.findByRole('link', { name: '¿Olvidaste tu contraseña?' }))
     await waitFor(() => expect(screen.getByText('Recuperá tu contraseña')).toBeOnTheScreen())
+  })
+
+  it('preserves each form when switching in place and hides inactive fields', async () => {
+    await renderApp('/login')
+    await screen.findByText('Ingresá a tu cuenta')
+    await fireEvent.changeText(screen.getByLabelText('Email'), 'ana@example.com')
+    await fireEvent.press(screen.getByRole('link', { name: 'Crear cuenta' }))
+    await fireEvent.changeText(screen.getByLabelText('Nombre completo'), 'Ana Pérez')
+    expect(screen.getAllByLabelText('Email')).toHaveLength(1)
+    await fireEvent.press(screen.getByRole('link', { name: 'Iniciar sesión' }))
+    expect(screen.getByLabelText('Email')).toHaveDisplayValue('ana@example.com')
+    expect(screen.queryByLabelText('Nombre completo')).toBeNull()
+    await fireEvent.press(screen.getByRole('link', { name: 'Crear cuenta' }))
+    expect(screen.getByLabelText('Nombre completo')).toHaveDisplayValue('Ana Pérez')
+    expect(apiMock.loginWithPassword).not.toHaveBeenCalled()
+    expect(apiMock.registerWithPassword).not.toHaveBeenCalled()
   })
 })
