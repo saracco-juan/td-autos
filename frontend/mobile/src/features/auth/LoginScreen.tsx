@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 
 import Feedback from '../../components/Feedback'
@@ -28,13 +28,14 @@ function formErrorFrom(error: unknown): string {
   return GENERIC_ERROR
 }
 
-export default function LoginScreen() {
+export default function LoginScreen({ embedded = false, onBusyChange }: Readonly<{ embedded?: boolean; onBusyChange?: (busy: boolean) => void }>) {
   const { login } = useAuth()
   const google = useGoogleSignIn('login')
   const [values, setValues] = useState<LoginFormValues>({ email: '', password: '' })
   const [errors, setErrors] = useState<FieldErrors>({})
   const [formError, setFormError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
+  useEffect(() => { onBusyChange?.(submitting || google.busy) }, [submitting, google.busy, onBusyChange])
 
   const change = (field: keyof LoginFormValues) => (value: string) => {
     setValues((current) => ({ ...current, [field]: value }))
@@ -59,7 +60,7 @@ export default function LoginScreen() {
   const alertMessage = formError ?? google.error
 
   return (
-    <AuthScreen feedback={<Feedback message={alertMessage} variant="error" />} title="Ingresá a tu cuenta" subtitle="Accedé para guardar tus favoritos.">
+    <AuthScreen embedded={embedded} feedback={<Feedback message={alertMessage} variant="error" />} title="Ingresá a tu cuenta" subtitle="Accedé para guardar tus favoritos.">
       <View style={styles.form}>
         <View style={styles.fields}>
           <TextField
@@ -83,13 +84,13 @@ export default function LoginScreen() {
             onSubmitEditing={() => void submit()}
           />
         </View>
-        <Button label="INGRESAR" busyLabel="INGRESANDO…" busy={submitting} variant="primary" onPress={() => void submit()} />
+        <Button label="INGRESAR" busyLabel="INGRESANDO…" busy={submitting} variant={embedded ? 'solidPrimary' : 'primary'} onPress={() => void submit()} />
       </View>
       <GoogleButton busy={google.busy} onPress={() => void google.start()} />
       <View style={styles.links}>
-        <LinkPrompt prompt="¿No tenés cuenta?">
+        {!embedded && <LinkPrompt prompt="¿No tenés cuenta?">
           <TextLink href="/registro">Crear cuenta</TextLink>
-        </LinkPrompt>
+        </LinkPrompt>}
         <TextLink href="/recuperar" subtle>
           ¿Olvidaste tu contraseña?
         </TextLink>

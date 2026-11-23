@@ -4,28 +4,30 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, radii, shadows } from '../theme/tokens'
 import AppBar from './AppBar'
+import { archivo } from '../theme/archivo'
 
 type Props = {
   title: string
   subtitle?: string
   children: ReactNode
   feedback?: ReactNode
+  embedded?: boolean
 }
 
 // Guest screens (Figma 01-03b): red top bar and a white card with the heading, scrolling above the keyboard.
-export default function AuthScreen({ title, subtitle, children, feedback }: Readonly<Props>) {
+export default function AuthScreen({ title, subtitle, children, feedback, embedded = false }: Readonly<Props>) {
   const insets = useSafeAreaInsets()
   return (
     <View style={styles.screen}>
-      <AppBar />
+      {!embedded && <AppBar />}
       <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[styles.content, { paddingBottom: 24 + insets.bottom }]}
         >
-          <View style={styles.card}>
+          <View style={embedded ? styles.clean : styles.card}>
             <View style={styles.heading}>
-              <Text accessibilityRole="header" style={styles.title}>
+              <Text accessibilityRole="header" style={[styles.title, embedded && archivo(true)]}>
                 {title}
               </Text>
               {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -53,6 +55,7 @@ const styles = StyleSheet.create({
     ...shadows.card,
   },
   heading: { gap: 10 },
+  clean: { gap: 24, paddingHorizontal: 8, paddingVertical: 16 },
   title: { color: colors.textPrimary, fontSize: 24, fontWeight: '700' },
   subtitle: { color: colors.textSecondary, fontSize: 14 },
 })
